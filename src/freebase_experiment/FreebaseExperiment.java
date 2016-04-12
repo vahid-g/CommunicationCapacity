@@ -76,8 +76,10 @@ public class FreebaseExperiment {
 			System.out.println("Establishing Connection...");
 			session.connect();
 			System.out.println("SSH Connection established.");
-			int assinged_port = session.setPortForwardingL(localPort, remoteHost, remotePort);
-			System.out.println("localhost:" + assinged_port + " -> " + remoteHost + ":" + remotePort);
+			int assinged_port = session.setPortForwardingL(localPort,
+					remoteHost, remotePort);
+			System.out.println("localhost:" + assinged_port + " -> "
+					+ remoteHost + ":" + remotePort);
 			System.out.println("Port Forwarded");
 		} catch (JSchException e) {
 			e.printStackTrace();
@@ -113,15 +115,15 @@ public class FreebaseExperiment {
 		return outputBuffer.toString();
 	}
 
-	private static void initialize(boolean isRemote){
-		if (isRemote){
+	private static void initialize(boolean isRemote) {
+		if (isRemote) {
 			sshConnect();
 			DB_URL = "jdbc:mysql://localhost:4321/querycapacity";
 		}
 	}
 
 	private static void finilize(boolean isRemote) {
-		if (isRemote){
+		if (isRemote) {
 			sshDisconnect();
 		}
 	}
@@ -176,9 +178,12 @@ public class FreebaseExperiment {
 				// System.out.println(rs.getString("name"));
 				Document doc = new Document();
 				try {
-					doc.add(new TextField(NAME_ATTRIB, rs.getString(NAME_ATTRIB), Field.Store.YES));
-					doc.add(new TextField(DESC_ATTRIB, rs.getString(DESC_ATTRIB), Field.Store.YES));
-					doc.add(new StoredField(FBID_ATTRIB, rs.getString(FBID_ATTRIB)));
+					doc.add(new TextField(NAME_ATTRIB, rs
+							.getString(NAME_ATTRIB), Field.Store.YES));
+					doc.add(new TextField(DESC_ATTRIB, rs
+							.getString(DESC_ATTRIB), Field.Store.YES));
+					doc.add(new StoredField(FBID_ATTRIB, rs
+							.getString(FBID_ATTRIB)));
 					writer.addDocument(doc);
 				} catch (IllegalArgumentException e) { // the field is null
 					// do nothing
@@ -259,9 +264,11 @@ public class FreebaseExperiment {
 				Document doc = new Document();
 				try {
 					for (String attrib : attribs) {
-						doc.add(new TextField(attrib, rs.getString(attrib), Field.Store.YES));
+						doc.add(new TextField(attrib, rs.getString(attrib),
+								Field.Store.YES));
 					}
-					doc.add(new StoredField(FBID_ATTRIB, rs.getString(FBID_ATTRIB)));
+					doc.add(new StoredField(FBID_ATTRIB, rs
+							.getString(FBID_ATTRIB)));
 					writer.addDocument(doc);
 				} catch (IllegalArgumentException e) { // the field is null
 					// do nothing
@@ -319,10 +326,11 @@ public class FreebaseExperiment {
 	 * queries; }
 	 */
 
-	public static List<FreebaseQuery> getExtendedQueriesByTable(String tableName) {
+	public static List<FreebaseQuery> getQueriesByRelevancyTable(
+			String tableName) {
 		List<FreebaseQuery> queries = new ArrayList<FreebaseQuery>();
 		String sqlQuery = null;
-		sqlQuery = "select id, wiki_id, fbid, text, frequency from tvp_cartoon_query as q where q.fbid in (select fbid from "
+		sqlQuery = "select id, wiki_id, fbid, text, frequency from tbl_query as q where q.fbid in (select fbid from "
 				+ tableName + ")";
 		Statement st = null;
 		ResultSet rs = null;
@@ -359,7 +367,8 @@ public class FreebaseExperiment {
 		return queries;
 	}
 
-	private static void addIdenticalAttibuteToQueries(List<FreebaseQuery> list, String attrib, String val) {
+	private static void addIdenticalAttibuteToQueries(List<FreebaseQuery> list,
+			String attrib, String val) {
 		for (FreebaseQuery query : list) {
 			query.attribs.put(attrib, val);
 		}
@@ -368,12 +377,14 @@ public class FreebaseExperiment {
 	public static void runQuery(FreebaseQuery freebaseQuery, String indexPath) {
 		IndexReader reader = null;
 		try {
-			reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)));
+			reader = DirectoryReader
+					.open(FSDirectory.open(Paths.get(indexPath)));
 			IndexSearcher searcher = new IndexSearcher(reader);
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();
 			for (String attrib : freebaseQuery.attribs.keySet()) {
 				builder.add(new QueryParser(attrib, new StandardAnalyzer())
-						.parse(QueryParser.escape(freebaseQuery.attribs.get(attrib))), BooleanClause.Occur.SHOULD);
+						.parse(QueryParser.escape(freebaseQuery.attribs
+								.get(attrib))), BooleanClause.Occur.SHOULD);
 			}
 			Query query = builder.build();
 			System.out.println("query: " + query.toString());
@@ -381,18 +392,21 @@ public class FreebaseExperiment {
 			// System.out.println("hits length: " + hits.length);
 			for (int i = 0; i < topDocs.scoreDocs.length; i++) {
 				Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-				if (doc.get(FreebaseExperiment.FBID_ATTRIB).equals(freebaseQuery.attribs.get(FBID_ATTRIB))) {
+				if (doc.get(FreebaseExperiment.FBID_ATTRIB).equals(
+						freebaseQuery.attribs.get(FBID_ATTRIB))) {
 					// System.out.println(searcher.explain(query, hits[i].doc));
 					freebaseQuery.mrr = 1.0 / (i + 1);
 					break;
 				}
 			}
-			int precisionBoundry = topDocs.scoreDocs.length > 10 ? 10 : topDocs.scoreDocs.length;
+			int precisionBoundry = topDocs.scoreDocs.length > 10 ? 10
+					: topDocs.scoreDocs.length;
 			for (int i = 0; i < precisionBoundry; i++) {
 				Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 				if (i < 3)
 					freebaseQuery.hits[i] = doc.get(NAME_ATTRIB);
-				if (doc.get(FreebaseExperiment.FBID_ATTRIB).equals(freebaseQuery.attribs.get(FBID_ATTRIB))) {
+				if (doc.get(FreebaseExperiment.FBID_ATTRIB).equals(
+						freebaseQuery.attribs.get(FBID_ATTRIB))) {
 					if (i < 3) {
 						freebaseQuery.p3 = 0.3;
 					}
@@ -419,17 +433,18 @@ public class FreebaseExperiment {
 		String tableName = "tvp_genre";
 		String attribs[] = { "name", "description", "genre" };
 		String indexPath = createIndex(tableName, attribs);
-		List<FreebaseQuery> queries = getExtendedQueriesByTable(tableName);
-		// addIdenticalAttibuteToQueries(queries, GENRE_ATTRIB, "Cartoon
-		// series");
-		addIdenticalAttibuteToQueries(queries, GENRE_ATTRIB, "Comedy film");
+		List<FreebaseQuery> queries = getQueriesByRelevancyTable("tvp_cartoon_series");
+		addIdenticalAttibuteToQueries(queries, GENRE_ATTRIB, "Cartoon series");
+		// addIdenticalAttibuteToQueries(queries, GENRE_ATTRIB, "Comedy film");
 		FileWriter fw = null;
 		try {
 			fw = new FileWriter(resultDir + tableName + ".csv");
 			for (FreebaseQuery query : queries) {
-				runQuery(query, INDEX_BASE + tableName + "/");
-				fw.write(query.id + ", " + query.text + ", " + query.frequency + ", " + query.wiki + ", " + query.p3
-						+ ", " + query.p10 + ", " + query.mrr + "," + query.hits[0] + ", " + query.hits[1] + "\n");
+				runQuery(query, indexPath);
+				fw.write(query.id + ", " + query.text + ", " + query.frequency
+						+ ", " + query.wiki + ", " + query.p3 + ", "
+						+ query.p10 + ", " + query.mrr + "," + query.hits[0]
+						+ ", " + query.hits[1] + "\n");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -447,15 +462,17 @@ public class FreebaseExperiment {
 	public static void runExperiment2() {
 		String tableName = "tvp_cartoon_series";
 		String attribs[] = { "name", "description" };
-		// String indexPath = createIndex(tableName, attribs);
-		List<FreebaseQuery> queries = getExtendedQueriesByTable(tableName);
+		String indexPath = createIndex(tableName, attribs);
+		List<FreebaseQuery> queries = getQueriesByRelevancyTable(tableName);
 		FileWriter fw = null;
 		try {
 			fw = new FileWriter(resultDir + tableName + ".csv");
 			for (FreebaseQuery query : queries) {
-				runQuery(query, INDEX_BASE + tableName + "/");
-				fw.write(query.id + ", " + query.text + ", " + query.frequency + ", " + query.wiki + ", " + query.p3
-						+ ", " + query.p10 + ", " + query.mrr + "\n");
+				runQuery(query, indexPath);
+				fw.write(query.id + ", " + query.text + ", " + query.frequency
+						+ ", " + query.wiki + ", " + query.p3 + ", "
+						+ query.p10 + ", " + query.mrr + "," + query.hits[0]
+						+ ", " + query.hits[1] + "\n");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -476,8 +493,10 @@ public class FreebaseExperiment {
 		try (Connection conn = getConnection()) {
 			st = conn.createStatement();
 			for (int i = 1; i <= tableNumber; i++) {
-				String sql = "create table " + newName + "_" + i + " as select * from " + tableName + " where mod("
-						+ tableName + ".counter, " + tableNumber + ") < " + i + ";";
+				String sql = "create table " + newName + "_" + i
+						+ " as select * from " + tableName + " where mod("
+						+ tableName + ".counter, " + tableNumber + ") < " + i
+						+ ";";
 				st.executeUpdate(sql);
 			}
 		} catch (SQLException e) {
@@ -495,7 +514,7 @@ public class FreebaseExperiment {
 	public static void main(String[] args) {
 		boolean isRemote = false;
 		initialize(isRemote);
-		
+		runExperiment2();
 		finilize(isRemote);
 	}
 
