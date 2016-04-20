@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -57,6 +59,7 @@ public class FreebaseExperiment {
 	static final String PROF_ATTRIB = "profession";
 	static final String GENRE_ATTRIB = "genre";
 	static final String FREQ_ATTRIB = "frequency";
+	static final String SEMANTIC_TYPE_ATTRIB = "semantic_type";
 
 	public static Session session;
 
@@ -222,9 +225,9 @@ public class FreebaseExperiment {
 		return indexPath;
 	}
 
-	public static String createIndex(String tableName, String[] attribs) {
+	public static String createIndex(String tableName, String[] attribs,
+			String indexPath) {
 		System.out.println("Creating Index...");
-		String indexPath = INDEX_BASE + tableName + "/";
 		// clean up the index directory
 		File dirFile = new File(indexPath);
 		if (dirFile.exists()) {
@@ -326,12 +329,8 @@ public class FreebaseExperiment {
 	 * queries; }
 	 */
 
-	public static List<FreebaseQuery> getQueriesByRelevancyTable(
-			String tableName) {
+	public static List<FreebaseQuery> getQueriesBySqlQuery(String sqlQuery) {
 		List<FreebaseQuery> queries = new ArrayList<FreebaseQuery>();
-		String sqlQuery = null;
-		sqlQuery = "select id, wiki_id, fbid, text, frequency from tbl_query as q where q.fbid in (select fbid from "
-				+ tableName + ")";
 		Statement st = null;
 		ResultSet rs = null;
 		try (Connection conn = getConnection()) {
@@ -340,12 +339,13 @@ public class FreebaseExperiment {
 			while (rs.next()) {
 				HashMap<String, String> attribs = new HashMap<String, String>();
 				attribs.put(NAME_ATTRIB, rs.getString("text"));
-				attribs.put(FBID_ATTRIB, rs.getString(FBID_ATTRIB));
+				// attribs.put(FBID_ATTRIB, rs.getString(FBID_ATTRIB));
 				// attribs.put(DESC_ATTRIB, rs.getString(DESC_ATTRIB));
 				FreebaseQuery q = new FreebaseQuery(rs.getInt("id"), attribs);
-				q.text = rs.getString("text").trim();
+				q.text = rs.getString("text").trim().replace(",", " ");
 				q.wiki = rs.getString("wiki_id");
 				q.frequency = rs.getInt(FREQ_ATTRIB);
+				q.fbid = rs.getString(FBID_ATTRIB);
 				queries.add(q);
 			}
 		} catch (SQLException e) {
@@ -365,6 +365,13 @@ public class FreebaseExperiment {
 			}
 		}
 		return queries;
+	}
+
+	public static List<FreebaseQuery> getQueriesByRelevancyTable(
+			String tableName) {
+		String sqlQuery = "select id, wiki_id, fbid, text, frequency from tbl_query as q where q.fbid in (select fbid from "
+				+ tableName + ")";
+		return getQueriesBySqlQuery(sqlQuery);
 	}
 
 	private static void addIdenticalAttibuteToQueries(List<FreebaseQuery> list,
@@ -393,7 +400,7 @@ public class FreebaseExperiment {
 			for (int i = 0; i < topDocs.scoreDocs.length; i++) {
 				Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 				if (doc.get(FreebaseExperiment.FBID_ATTRIB).equals(
-						freebaseQuery.attribs.get(FBID_ATTRIB))) {
+						freebaseQuery.fbid)) {
 					// System.out.println(searcher.explain(query, hits[i].doc));
 					freebaseQuery.mrr = 1.0 / (i + 1);
 					break;
@@ -406,7 +413,7 @@ public class FreebaseExperiment {
 				if (i < 3)
 					freebaseQuery.hits[i] = doc.get(NAME_ATTRIB);
 				if (doc.get(FreebaseExperiment.FBID_ATTRIB).equals(
-						freebaseQuery.attribs.get(FBID_ATTRIB))) {
+						freebaseQuery.fbid)) {
 					if (i < 3) {
 						freebaseQuery.p3 = 0.3;
 					}
@@ -432,7 +439,8 @@ public class FreebaseExperiment {
 	public static void runExperiment() {
 		String tableName = "tvp_genre";
 		String attribs[] = { "name", "description", "genre" };
-		String indexPath = createIndex(tableName, attribs);
+		String indexPath = INDEX_BASE + tableName + "/";
+		createIndex(tableName, attribs, indexPath);
 		List<FreebaseQuery> queries = getQueriesByRelevancyTable("tvp_cartoon_series");
 		addIdenticalAttibuteToQueries(queries, GENRE_ATTRIB, "Cartoon series");
 		// addIdenticalAttibuteToQueries(queries, GENRE_ATTRIB, "Comedy film");
@@ -460,13 +468,24 @@ public class FreebaseExperiment {
 	}
 
 	public static void runExperiment2() {
-		String tableName = "tvp_cartoon_series";
-		String attribs[] = { "name", "description" };
-		String indexPath = createIndex(tableName, attribs);
-		List<FreebaseQuery> queries = getQueriesByRelevancyTable(tableName);
-		FileWriter fw = null;
-		try {
-			fw = new FileWriter(resultDir + tableName + ".csv");
+		String tableName = "tbl_tv_program";
+		String attribs[] = { NAME_ATTRIB, DESC_ATTRIB };
+		String indexPath = INDEX_BASE + tableName + "/";
+		// createIndex(tableName, attribs, indexPath);
+		String pattern = "program| tv| television| serie| show | show$| film | film$| movie";
+		String sql = "select * from query where text REGEXP '" + pattern
+				+ "' and fbid in (select fbid from tbl_tv_program);";
+		List<FreebaseQuery> queries = getQueriesBySqlQuery(sql);
+		Pattern pat = Pattern.compile(pattern);
+		for (FreebaseQuery query : queries) {
+			System.out.println(query.text);
+			Matcher matcher = pat.matcher(query.text.toLowerCase());
+			matcher.find();
+			String keyword = matcher.group(0);
+			query.attribs.put(NAME_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
+		}
+		try (FileWriter fw = new FileWriter(resultDir + tableName + ".csv");) {
 			for (FreebaseQuery query : queries) {
 				runQuery(query, indexPath);
 				fw.write(query.id + ", " + query.text + ", " + query.frequency
@@ -476,14 +495,101 @@ public class FreebaseExperiment {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			if (fw != null) {
-				try {
-					fw.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+		}
+	}
+
+	public static void runExperiment3() {
+		String tableName = "tvp_film";
+		String attribs[] = { NAME_ATTRIB, DESC_ATTRIB, SEMANTIC_TYPE_ATTRIB };
+		String indexPath = INDEX_BASE + tableName + "/";
+		// createIndex(tableName, attribs, indexPath);
+		String pattern = "program| tv| television| serie| show | show$| film | film$| movie";
+		String sql = "select * from query where text REGEXP '" + pattern
+				+ "' and fbid in (select fbid from tbl_tv_program);";
+		List<FreebaseQuery> queries = getQueriesBySqlQuery(sql);
+		Pattern pat = Pattern.compile(pattern);
+		for (FreebaseQuery query : queries) {
+			System.out.println(query.text);
+			Matcher matcher = pat.matcher(query.text.toLowerCase());
+			matcher.find();
+			String keyword = matcher.group(0);
+			query.attribs.put(SEMANTIC_TYPE_ATTRIB, keyword);
+			query.attribs.put(NAME_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
+		}
+		try (FileWriter fw = new FileWriter(resultDir + tableName + ".csv");) {
+			for (FreebaseQuery query : queries) {
+				runQuery(query, indexPath);
+				fw.write(query.id + ", " + query.text + ", " + query.frequency
+						+ ", " + query.wiki + ", " + query.p3 + ", "
+						+ query.p10 + ", " + query.mrr + "," + query.hits[0]
+						+ ", " + query.hits[1] + "\n");
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void runExperiment4() {
+		String tableName = "tbl_film";
+		String attribs[] = { NAME_ATTRIB, DESC_ATTRIB };
+		String indexPath = INDEX_BASE + tableName + "/";
+		createIndex(tableName, attribs, indexPath);
+		String pattern = "movie | movie$";
+		String sql = "select * from query where text REGEXP '" + pattern
+				+ "' and fbid in (select fbid from " + tableName + ");";
+		List<FreebaseQuery> queries = getQueriesBySqlQuery(sql);
+		Pattern pat = Pattern.compile(pattern);
+		for (FreebaseQuery query : queries) {
+			System.out.println(query.text);
+			Matcher matcher = pat.matcher(query.text.toLowerCase());
+			matcher.find();
+			String keyword = matcher.group(0);
+			query.attribs.put(NAME_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
+		}
+		try (FileWriter fw = new FileWriter(resultDir + tableName + ".csv");) {
+			for (FreebaseQuery query : queries) {
+				runQuery(query, indexPath);
+				fw.write(query.id + ", " + query.text + ", " + query.frequency
+						+ ", " + query.wiki + ", " + query.p3 + ", "
+						+ query.p10 + ", " + query.mrr + "," + query.hits[0]
+						+ ", " + query.hits[1] + "\n");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void runExperiment5() {
+		String tableName = "tvp_film";
+		String attribs[] = { NAME_ATTRIB, DESC_ATTRIB, SEMANTIC_TYPE_ATTRIB };
+		String indexPath = INDEX_BASE + tableName + "/";
+		createIndex(tableName, attribs, indexPath);
+		String pattern = "movie | movie$";
+		String sql = "select * from query where text REGEXP '" + pattern
+				+ "' and fbid in (select fbid from tbl_film);";
+		List<FreebaseQuery> queries = getQueriesBySqlQuery(sql);
+		Pattern pat = Pattern.compile(pattern);
+		for (FreebaseQuery query : queries) {
+			System.out.println(query.text);
+			Matcher matcher = pat.matcher(query.text.toLowerCase());
+			matcher.find();
+			String keyword = matcher.group(0);
+			query.attribs.put(SEMANTIC_TYPE_ATTRIB, keyword);
+			query.attribs.put(NAME_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
+		}
+		try (FileWriter fw = new FileWriter(resultDir + tableName + "_2.csv");) {
+			for (FreebaseQuery query : queries) {
+				runQuery(query, indexPath);
+				fw.write(query.id + ", " + query.text + ", " + query.frequency
+						+ ", " + query.wiki + ", " + query.p3 + ", "
+						+ query.p10 + ", " + query.mrr + "," + query.hits[0]
+						+ ", " + query.hits[1] + "\n");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -514,7 +620,7 @@ public class FreebaseExperiment {
 	public static void main(String[] args) {
 		boolean isRemote = false;
 		initialize(isRemote);
-		runExperiment2();
+		runExperiment5();
 		finilize(isRemote);
 	}
 

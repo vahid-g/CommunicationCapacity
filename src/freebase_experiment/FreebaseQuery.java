@@ -16,6 +16,7 @@ public class FreebaseQuery{
 	String text;
 	String wiki;
 	HashMap<String, String> attribs;
+	String fbid;
 
 	double mrr;
 	double p3;

@@ -1,4 +1,4 @@
-select attribute, count(*) from tbl_statement group by attribute;
+select attribute, count(*) as 'freq' from tbl_statement group by attribute order by freq desc;
 select * from tbl_statement where attribute like 'profession';
 create table person_profession as 
 	select prs.id, prs.fbid, prs.name as name, prs.description, prf.name as profession 
@@ -13,8 +13,12 @@ select tbl_query.text as `query_text`, tbl_statement.value as `profession_in_que
 		on tbl_query.id = tbl_statement.query and tbl_query.fbid = person_profession.fbid 
 		where tbl_statement.attribute like 'profession';
 
-select * from tbl_statement where attribute like 'tv_program_genre';
 
+-- -----------------------------------------------------
+-- exploring tv_program with genre = cartoon series
+-- -----------------------------------------------------
+
+select * from tbl_statement where attribute like 'tv_program_genre';
 select * from tbl_query where  attributes_count > 2;
 select tq.id, wiki_id, text, semantic_type, attribute, value 
 	from tbl_query as tq inner join tbl_statement as ts on tq.id = ts.query where tq.attributes_count > 1;
@@ -56,3 +60,24 @@ create table tvp_comedy_film as select tvp.* from tbl_tv_program as tvp, tbl_tv_
 create table tvp_not_comedy_film as select tvp.* from tbl_tv_program as tvp left join tvp_comedy_film as tvp_cf
 	on tvp.id = tvp_cf.id where tvp_cf.id is null;
 
+-- -------------------------------------------------------------
+-- exploring queries with a keyword specifying the semantic_type
+-- -------------------------------------------------------------
+select * from query where semantic_type like 'tv_program' and text REGEXP 'program| tv| television| serie| show | show$| film | film$| movie';
+select * from query where text REGEXP 'program| tv| television| serie| show | show$| film | film$| movie' and fbid in (select fbid from tbl_tv_program);
+select * from query where semantic_type like 'tv_program' and text REGEXP 'film| movie';
+drop table tmp_tvp; 
+create table tmp_tvp as select id, fbid, name, description from tbl_tv_program;
+alter table tmp_tvp add semantic_type CHAR(255) default 'tv_program';
+drop table tmp_film; 
+create table tmp_film as select id, fbid, name, description from tbl_film;
+alter table tmp_film add semantic_type char(255) default 'film';
+drop table tvp_film; 
+create table tvp_film as select * from tmp_tvp union select * from tmp_film;
+
+select * from tvp_film where name like '%today show%';	
+select q.text, tvp_film.name from tvp_film, query as q where tvp_film.fbid = q.fbid 
+	-- and q.fbid in (select fbid from tbl_tv_program) 
+	and q.text REGEXP 'program| tv| television| serie| show | show$| film | film$| movie';
+
+select * from query where text REGEXP 'show | show$| movie$' and fbid in (select fbid from tbl_film);
