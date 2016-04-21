@@ -62,10 +62,15 @@ create table tvp_not_comedy_film as select tvp.* from tbl_tv_program as tvp left
 
 -- -------------------------------------------------------------
 -- exploring queries with a keyword specifying the semantic_type
+--  
+-- 	tbl_tv_program size: 52k
+-- 	tbl_film size: 209k
 -- -------------------------------------------------------------
 select * from query where semantic_type like 'tv_program' and text REGEXP 'program| tv| television| serie| show | show$| film | film$| movie';
+select * from query where text REGEXP 'show | show$| movie$' and fbid in (select fbid from tbl_film);
 select * from query where text REGEXP 'program| tv| television| serie| show | show$| film | film$| movie' and fbid in (select fbid from tbl_tv_program);
 select * from query where semantic_type like 'tv_program' and text REGEXP 'film| movie';
+
 drop table tmp_tvp; 
 create table tmp_tvp as select id, fbid, name, description from tbl_tv_program;
 alter table tmp_tvp add semantic_type CHAR(255) default 'tv_program';
@@ -75,9 +80,12 @@ alter table tmp_film add semantic_type char(255) default 'film';
 drop table tvp_film; 
 create table tvp_film as select * from tmp_tvp union select * from tmp_film;
 
-select * from tvp_film where name like '%today show%';	
 select q.text, tvp_film.name from tvp_film, query as q where tvp_film.fbid = q.fbid 
 	-- and q.fbid in (select fbid from tbl_tv_program) 
 	and q.text REGEXP 'program| tv| television| serie| show | show$| film | film$| movie';
 
-select * from query where text REGEXP 'show | show$| movie$' and fbid in (select fbid from tbl_film);
+select * from query where text regexp 'music|record|song|sound| art |album' and fbid in (select fbid from tbl_album);
+select q.*, s.attribute, s.value from query as q, tbl_statement as s where q.id = s.query and s.attribute like "tv_program_description"
+	and q.text regexp 'program| tv| television| serie| show | show$| film | film$| movie'
+	and q.fbid in (select fbid from tbl_tv_program);
+

@@ -340,7 +340,7 @@ public class FreebaseExperiment {
 				HashMap<String, String> attribs = new HashMap<String, String>();
 				attribs.put(NAME_ATTRIB, rs.getString("text"));
 				// attribs.put(FBID_ATTRIB, rs.getString(FBID_ATTRIB));
-				// attribs.put(DESC_ATTRIB, rs.getString(DESC_ATTRIB));
+				attribs.put(DESC_ATTRIB, rs.getString("text"));
 				FreebaseQuery q = new FreebaseQuery(rs.getInt("id"), attribs);
 				q.text = rs.getString("text").trim().replace(",", " ");
 				q.wiki = rs.getString("wiki_id");
@@ -484,8 +484,10 @@ public class FreebaseExperiment {
 			String keyword = matcher.group(0);
 			query.attribs.put(NAME_ATTRIB,
 					query.text.toLowerCase().replace(keyword, ""));
+			query.attribs.put(DESC_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
 		}
-		try (FileWriter fw = new FileWriter(resultDir + tableName + ".csv");) {
+		try (FileWriter fw = new FileWriter(resultDir + tableName + "_desc_name q_tvp.csv");) {
 			for (FreebaseQuery query : queries) {
 				runQuery(query, indexPath);
 				fw.write(query.id + ", " + query.text + ", " + query.frequency
@@ -516,8 +518,10 @@ public class FreebaseExperiment {
 			query.attribs.put(SEMANTIC_TYPE_ATTRIB, keyword);
 			query.attribs.put(NAME_ATTRIB,
 					query.text.toLowerCase().replace(keyword, ""));
+			query.attribs.put(DESC_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
 		}
-		try (FileWriter fw = new FileWriter(resultDir + tableName + ".csv");) {
+		try (FileWriter fw = new FileWriter(resultDir + tableName + "_desc_name q_tvp.csv");) {
 			for (FreebaseQuery query : queries) {
 				runQuery(query, indexPath);
 				fw.write(query.id + ", " + query.text + ", " + query.frequency
@@ -547,8 +551,11 @@ public class FreebaseExperiment {
 			String keyword = matcher.group(0);
 			query.attribs.put(NAME_ATTRIB,
 					query.text.toLowerCase().replace(keyword, ""));
+			query.attribs.put(DESC_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
 		}
-		try (FileWriter fw = new FileWriter(resultDir + tableName + ".csv");) {
+		try (FileWriter fw = new FileWriter(resultDir + tableName
+				+ "_desc_name.csv");) {
 			for (FreebaseQuery query : queries) {
 				runQuery(query, indexPath);
 				fw.write(query.id + ", " + query.text + ", " + query.frequency
@@ -579,8 +586,11 @@ public class FreebaseExperiment {
 			query.attribs.put(SEMANTIC_TYPE_ATTRIB, keyword);
 			query.attribs.put(NAME_ATTRIB,
 					query.text.toLowerCase().replace(keyword, ""));
+			query.attribs.put(DESC_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
 		}
-		try (FileWriter fw = new FileWriter(resultDir + tableName + "_2.csv");) {
+		try (FileWriter fw = new FileWriter(resultDir + tableName
+				+ "_2_desc_name.csv");) {
 			for (FreebaseQuery query : queries) {
 				runQuery(query, indexPath);
 				fw.write(query.id + ", " + query.text + ", " + query.frequency
@@ -620,7 +630,8 @@ public class FreebaseExperiment {
 	public static void main(String[] args) {
 		boolean isRemote = false;
 		initialize(isRemote);
-		runExperiment5();
+		runExperiment2();
+		runExperiment3();
 		finilize(isRemote);
 	}
 
