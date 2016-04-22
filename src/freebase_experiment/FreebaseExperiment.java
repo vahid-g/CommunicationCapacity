@@ -339,7 +339,7 @@ public class FreebaseExperiment {
 			while (rs.next()) {
 				HashMap<String, String> attribs = new HashMap<String, String>();
 				attribs.put(NAME_ATTRIB, rs.getString("text"));
-				// attribs.put(DESC_ATTRIB, rs.getString("text"));
+				attribs.put(DESC_ATTRIB, rs.getString("text"));
 				FreebaseQuery q = new FreebaseQuery(rs.getInt("id"), attribs);
 				q.text = rs.getString("text").trim().replace(",", " ");
 				q.wiki = rs.getString("wiki_id");
@@ -382,6 +382,8 @@ public class FreebaseExperiment {
 			String keyword = matcher.group(0);
 			query.attribs.put(NAME_ATTRIB,
 					query.text.toLowerCase().replace(keyword, ""));
+			query.attribs.put(DESC_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
 		}
 	}
 
@@ -395,6 +397,8 @@ public class FreebaseExperiment {
 			String keyword = matcher.group(0);
 			query.attribs.put(SEMANTIC_TYPE_ATTRIB, keyword);
 			query.attribs.put(NAME_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
+			query.attribs.put(DESC_ATTRIB,
 					query.text.toLowerCase().replace(keyword, ""));
 		}
 	}
@@ -596,7 +600,7 @@ public class FreebaseExperiment {
 		List<FreebaseQuery> queries = getQueriesBySqlQuery(sql);
 		removeKeyword(queries, pattern);
 		try (FileWriter fw = new FileWriter(resultDir + "t-" + tableName
-				+ " q-" + tableName + " a-name" + ".csv");) {
+				+ " q-" + tableName + " a-name-desc" + ".csv");) {
 			for (FreebaseQuery query : queries) {
 				runQuery(query, indexPath);
 				fw.write(query.id + ", " + query.text + ", " + query.frequency
@@ -619,7 +623,7 @@ public class FreebaseExperiment {
 		List<FreebaseQuery> queries = getQueriesBySqlQuery(sql);
 		extractAndRemoveKeyword(queries, pattern);
 		try (FileWriter fw = new FileWriter(resultDir + "t-" + tableName
-				+ " q-" + queryTableName + " a-name" + ".csv");) {
+				+ " q-" + queryTableName + " a-name-desc" + ".csv");) {
 			for (FreebaseQuery query : queries) {
 				runQuery(query, indexPath);
 				fw.write(query.id + ", " + query.text + ", " + query.frequency
@@ -635,14 +639,12 @@ public class FreebaseExperiment {
 	public static void main(String[] args) {
 		boolean isRemote = false;
 		initialize(isRemote);
-		String tvpTable = "tbl_tv_program";
-		String pattern = "program| tv| television| serie| show | show$| film | film$| movie";
-		String albumTable = "tbl_album";
-		String albumPattern = "music|record|song|sound| art |album";
-		String bookTable = "tbl_book";
-		String bookPattern = "book|theme|novel|notes|writing|manuscript|story";
-		experiment_keywordExtraction(bookTable, bookPattern);
-		experiment_keywordExtraction("media", bookPattern, bookTable);
+		String[] table = {"tbl_tv_program", "tbl_album", "tbl_book"};
+		String[] pattern = {"program| tv| television| serie| show | show$| film | film$| movie", "music|record|song|sound| art |album", "book|theme|novel|notes|writing|manuscript|story"};
+		for (int i = 0; i < table.length; i++){
+		experiment_keywordExtraction(table[i], pattern[i]);
+		experiment_keywordExtraction("media", pattern[i], table[i]);
+		}
 		finilize(isRemote);
 	}
 
