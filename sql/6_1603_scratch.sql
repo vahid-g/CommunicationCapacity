@@ -73,12 +73,11 @@ select * from query where semantic_type like 'tv_program' and text REGEXP 'film|
 
 drop table tmp_tvp; 
 create table tmp_tvp as select id, fbid, name, description from tbl_tv_program;
-alter table tmp_tvp add semantic_type CHAR(255) default 'tv_program';
-drop table tmp_film; 
 create table tmp_film as select id, fbid, name, description from tbl_film;
-alter table tmp_film add semantic_type char(255) default 'film';
-drop table tvp_film; 
 create table tvp_film as select * from tmp_tvp union select * from tmp_film;
+alter table tmp_tvp add semantic_type CHAR(255) default 'tv_program';
+alter table tmp_film add semantic_type char(255) default 'film';
+
 
 select q.text, tvp_film.name from tvp_film, query as q where tvp_film.fbid = q.fbid 
 	-- and q.fbid in (select fbid from tbl_tv_program) 
@@ -88,4 +87,26 @@ select * from query where text regexp 'music|record|song|sound| art |album' and 
 select q.*, s.attribute, s.value from query as q, tbl_statement as s where q.id = s.query and s.attribute like "tv_program_description"
 	and q.text regexp 'program| tv| television| serie| show | show$| film | film$| movie'
 	and q.fbid in (select fbid from tbl_tv_program);
+
+-- -------------------------------------------------------------
+-- creating a huge media table
+-- -------------------------------------------------------------
+select count(*) from tbl_album where description is not null;
+select count(*) from tbl_album;
+create table tmp_album as select id, fbid, name, description from tbl_album;
+create table tmp_book as select id, fbid, name, description from tbl_book;
+create table tmp_game as select id, fbid, name, description from tbl_game;
+
+alter table tmp_album add semantic_type CHAR(255) default 'album';
+alter table tmp_book add semantic_type CHAR(255) default 'book';
+alter table tmp_game add semantic_type CHAR(255) default 'computer_videogame';
+
+drop table media;
+create table media as (select * from tmp_film) union (select * from tmp_tvp)
+	union (select * from tmp_album) union (select * from tmp_book) union (select * from tmp_game);
+
+select count(*) from media where description is not null;
+select count(*) from media;
+
+
 
