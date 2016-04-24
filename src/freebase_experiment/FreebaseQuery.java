@@ -2,13 +2,11 @@ package freebase_experiment;
 
 import java.util.HashMap;
 
-public class FreebaseQuery{
+public class FreebaseQuery {
 	public FreebaseQuery(int id, HashMap<String, String> attribs) {
 		this.id = id;
 		this.attribs = attribs;
-		this.mrr = 0;
-		this.p3 = 0;
-		this.p10 = 0;
+		this.relRank = -1;
 	}
 
 	int id;
@@ -17,9 +15,34 @@ public class FreebaseQuery{
 	String wiki;
 	HashMap<String, String> attribs;
 	String fbid;
+	int relRank;
 
-	double mrr;
-	double p3;
-	double p10;
 	String[] hits = new String[3];
+
+	public double mrr() {
+		return 1.0 / relRank;
+	}
+
+	public double p3() {
+		if (relRank < 4)
+			return 0.3;
+		else
+			return 0;
+	}
+
+	public double p10() {
+		if (relRank < 11)
+			return 0.1;
+		else
+			return 0;
+
+	}
+	
+	public double precisionAtK(int k){
+		if (relRank != -1){
+			return 1 / k;
+		} else {
+			return 0;
+		}
+	}
 }
