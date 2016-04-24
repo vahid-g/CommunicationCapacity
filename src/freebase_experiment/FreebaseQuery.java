@@ -20,7 +20,8 @@ public class FreebaseQuery {
 	String[] hits = new String[3];
 
 	public double mrr() {
-		return 1.0 / relRank;
+		if (relRank != -1) return 1.0 / relRank;
+		else return 0;
 	}
 
 	public double p3() {
