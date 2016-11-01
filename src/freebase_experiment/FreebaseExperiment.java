@@ -593,7 +593,7 @@ public class FreebaseExperiment {
 		initialize(isRemote);
 		String[] table = { "tbl_tv_program", "tbl_album", "tbl_book" };
 		String[] pattern = { "program| tv| television| serie| show | show$| film | film$| movie",
-				"music|record|song|sound| art |album", "book|theme|novel|notes|writing|manuscript|story" };
+				"music|record|song|sound| art |album", "book|theme|novel|notes|writing|manuscript| story" };
 		for (int i = 0; i < table.length; i++) {
 			experiment_keywordExtraction(table[i], pattern[i]);
 			experiment_keywordExtraction("media", pattern[i], table[i]);
