@@ -25,23 +25,16 @@ public class FreebaseQuery {
 	}
 
 	public double p3() {
-		if (relRank < 4)
+		if (relRank != -1 && relRank < 4)
 			return 0.3;
 		else
 			return 0;
 	}
 
-	public double p10() {
-		if (relRank < 11)
-			return 0.1;
-		else
-			return 0;
 
-	}
-	
 	public double precisionAtK(int k){
-		if (relRank != -1){
-			return 1 / k;
+		if (relRank != -1 && relRank <= k){
+			return 1.0 / k;
 		} else {
 			return 0;
 		}
