@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
@@ -79,8 +80,10 @@ public class FreebaseExperiment {
 			System.out.println("Establishing Connection...");
 			session.connect();
 			System.out.println("SSH Connection established.");
-			int assinged_port = session.setPortForwardingL(localPort, remoteHost, remotePort);
-			System.out.println("localhost:" + assinged_port + " -> " + remoteHost + ":" + remotePort);
+			int assinged_port = session.setPortForwardingL(localPort,
+					remoteHost, remotePort);
+			System.out.println("localhost:" + assinged_port + " -> "
+					+ remoteHost + ":" + remotePort);
 			System.out.println("Port Forwarded");
 		} catch (JSchException e) {
 			e.printStackTrace();
@@ -179,9 +182,12 @@ public class FreebaseExperiment {
 				// System.out.println(rs.getString("name"));
 				Document doc = new Document();
 				try {
-					doc.add(new TextField(NAME_ATTRIB, rs.getString(NAME_ATTRIB), Field.Store.YES));
-					doc.add(new TextField(DESC_ATTRIB, rs.getString(DESC_ATTRIB), Field.Store.YES));
-					doc.add(new StoredField(FBID_ATTRIB, rs.getString(FBID_ATTRIB)));
+					doc.add(new TextField(NAME_ATTRIB, rs
+							.getString(NAME_ATTRIB), Field.Store.YES));
+					doc.add(new TextField(DESC_ATTRIB, rs
+							.getString(DESC_ATTRIB), Field.Store.YES));
+					doc.add(new StoredField(FBID_ATTRIB, rs
+							.getString(FBID_ATTRIB)));
 					writer.addDocument(doc);
 				} catch (IllegalArgumentException e) { // the field is null
 					// do nothing
@@ -220,7 +226,27 @@ public class FreebaseExperiment {
 		return indexPath;
 	}
 
-	public static String createIndex(String tableName, String[] attribs, String indexPath) {
+	public static String buildDataQuery(String tableName, String[] attribs) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("select fbid");
+		for (String attrib : attribs) {
+			sb.append(", " + attrib);
+		}
+		sb.append(" from " + tableName);
+		String sql = sb.toString();
+		System.out.println(sql);
+		return sql;
+	}
+
+	public static String buildConditionalDataQuery(String tableName,
+			String[] attribs, int lo, int hi) {
+		String baseQuery = buildDataQuery(tableName, attribs);
+		String sql = baseQuery + " where id > " + lo + " AND id < " + hi;
+		return sql;
+	}
+
+	public static String createIndexWithQuery(String sqlQuery,
+			String[] attribs, String indexPath) {
 		System.out.println("Creating Index...");
 		// clean up the index directory
 		File dirFile = new File(indexPath);
@@ -238,15 +264,7 @@ public class FreebaseExperiment {
 		try (Connection databaseConnection = getConnection()) {
 			// retrieve the tuples to be indexed
 			stmt = databaseConnection.createStatement();
-			StringBuilder sb = new StringBuilder();
-			sb.append("select fbid");
-			for (String attrib : attribs) {
-				sb.append(", " + attrib);
-			}
-			sb.append(" from " + tableName);
-			String sql = sb.toString();
-			System.out.println(sql);
-			rs = stmt.executeQuery(sql);
+			rs = stmt.executeQuery(sqlQuery);
 			// creating the index
 			directory = FSDirectory.open(Paths.get(indexPath));
 			StandardAnalyzer analyzer = new StandardAnalyzer();
@@ -261,9 +279,11 @@ public class FreebaseExperiment {
 				Document doc = new Document();
 				try {
 					for (String attrib : attribs) {
-						doc.add(new TextField(attrib, rs.getString(attrib), Field.Store.YES));
+						doc.add(new TextField(attrib, rs.getString(attrib),
+								Field.Store.YES));
 					}
-					doc.add(new StoredField(FBID_ATTRIB, rs.getString(FBID_ATTRIB)));
+					doc.add(new StoredField(FBID_ATTRIB, rs
+							.getString(FBID_ATTRIB)));
 					writer.addDocument(doc);
 				} catch (IllegalArgumentException e) { // the field is null
 					// do nothing
@@ -321,6 +341,92 @@ public class FreebaseExperiment {
 	 * queries; }
 	 */
 
+	@Deprecated
+	public static String createIndex(String tableName, String[] attribs,
+			String indexPath) {
+		System.out.println("Creating Index...");
+		// clean up the index directory
+		File dirFile = new File(indexPath);
+		if (dirFile.exists()) {
+			for (File f : dirFile.listFiles()) {
+				f.delete();
+			}
+		} else {
+			dirFile.mkdir();
+		}
+		Statement stmt = null;
+		ResultSet rs = null;
+		Directory directory = null;
+		IndexWriter writer = null;
+		try (Connection databaseConnection = getConnection()) {
+			// retrieve the tuples to be indexed
+			stmt = databaseConnection.createStatement();
+			StringBuilder sb = new StringBuilder();
+			sb.append("select fbid");
+			for (String attrib : attribs) {
+				sb.append(", " + attrib);
+			}
+			sb.append(" from " + tableName);
+			String sql = sb.toString();
+			System.out.println(sql);
+			rs = stmt.executeQuery(sql);
+			// creating the index
+			directory = FSDirectory.open(Paths.get(indexPath));
+			StandardAnalyzer analyzer = new StandardAnalyzer();
+			IndexWriterConfig config = new IndexWriterConfig(analyzer);
+			config.setOpenMode(OpenMode.CREATE);
+			// .setRAMBufferSizeMB(256.0);
+			writer = new IndexWriter(directory, config);
+			int count = 0;
+			while (rs.next()) {
+				count++;
+				// System.out.println(rs.getString("name"));
+				Document doc = new Document();
+				try {
+					for (String attrib : attribs) {
+						doc.add(new TextField(attrib, rs.getString(attrib),
+								Field.Store.YES));
+					}
+					doc.add(new StoredField(FBID_ATTRIB, rs
+							.getString(FBID_ATTRIB)));
+					writer.addDocument(doc);
+				} catch (IllegalArgumentException e) { // the field is null
+					// do nothing
+				}
+			}
+			System.out.println("Indexed documents: " + count);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (rs != null)
+					rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException se2) {
+			}
+			try {
+				if (writer != null)
+					writer.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			try {
+				if (directory != null)
+					directory.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+		}
+		System.out.println("Indexing Done!");
+		return indexPath;
+	}
+
 	public static List<FreebaseQuery> getQueriesBySqlQuery(String sqlQuery) {
 		List<FreebaseQuery> queries = new ArrayList<FreebaseQuery>();
 		Statement st = null;
@@ -358,7 +464,8 @@ public class FreebaseExperiment {
 		return queries;
 	}
 
-	public static List<FreebaseQuery> getQueriesByRelevancyTable(String tableName) {
+	public static List<FreebaseQuery> buildFreebaseQueriesByRelevancyTable(
+			String tableName) {
 		String sqlQuery = "select id, wiki_id, fbid, text, frequency from tbl_query as q where q.fbid in (select fbid from "
 				+ tableName + ")";
 		return getQueriesBySqlQuery(sqlQuery);
@@ -367,17 +474,19 @@ public class FreebaseExperiment {
 	public static void removeKeyword(List<FreebaseQuery> queries, String pattern) {
 		Pattern pat = Pattern.compile(pattern);
 		for (FreebaseQuery query : queries) {
-			System.out.println(query.text);
+			// System.out.println(query.text);
 			Matcher matcher = pat.matcher(query.text.toLowerCase());
 			matcher.find();
 			String keyword = matcher.group(0);
-			query.attribs.put(NAME_ATTRIB, query.text.toLowerCase().replace(keyword, ""));
+			query.attribs.put(NAME_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
 			// query.attribs.put(DESC_ATTRIB,
 			// query.text.toLowerCase().replace(keyword, ""));
 		}
 	}
 
-	public static void extractAndRemoveKeyword(List<FreebaseQuery> queries, String pattern) {
+	public static void extractAndRemoveKeyword(List<FreebaseQuery> queries,
+			String pattern) {
 		Pattern pat = Pattern.compile(pattern);
 		for (FreebaseQuery query : queries) {
 			System.out.println(query.text);
@@ -385,13 +494,15 @@ public class FreebaseExperiment {
 			matcher.find();
 			String keyword = matcher.group(0);
 			query.attribs.put(SEMANTIC_TYPE_ATTRIB, keyword);
-			query.attribs.put(NAME_ATTRIB, query.text.toLowerCase().replace(keyword, ""));
+			query.attribs.put(NAME_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
 			// query.attribs.put(DESC_ATTRIB,
 			// query.text.toLowerCase().replace(keyword, ""));
 		}
 	}
 
-	private static void addIdenticalAttibuteToQueries(List<FreebaseQuery> list, String attrib, String val) {
+	private static void addIdenticalAttibuteToQueries(List<FreebaseQuery> list,
+			String attrib, String val) {
 		for (FreebaseQuery query : list) {
 			query.attribs.put(attrib, val);
 		}
@@ -400,26 +511,30 @@ public class FreebaseExperiment {
 	public static void runQuery(FreebaseQuery freebaseQuery, String indexPath) {
 		IndexReader reader = null;
 		try {
-			reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)));
+			reader = DirectoryReader
+					.open(FSDirectory.open(Paths.get(indexPath)));
 			IndexSearcher searcher = new IndexSearcher(reader);
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();
 			for (String attrib : freebaseQuery.attribs.keySet()) {
 				builder.add(new QueryParser(attrib, new StandardAnalyzer())
-						.parse(QueryParser.escape(freebaseQuery.attribs.get(attrib))), BooleanClause.Occur.SHOULD);
+						.parse(QueryParser.escape(freebaseQuery.attribs
+								.get(attrib))), BooleanClause.Occur.SHOULD);
 			}
 			Query query = builder.build();
-			System.out.println("query: " + query.toString());
+			// System.out.println("submitting query: " + query.toString());
 			TopDocs topDocs = searcher.search(query, MAX_HITS);
 			// System.out.println("hits length: " + hits.length);
 			for (int i = 0; i < topDocs.scoreDocs.length; i++) {
 				Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-				if (doc.get(FreebaseExperiment.FBID_ATTRIB).equals(freebaseQuery.fbid)) {
+				if (doc.get(FreebaseExperiment.FBID_ATTRIB).equals(
+						freebaseQuery.fbid)) {
 					// System.out.println(searcher.explain(query, hits[i].doc));
 					freebaseQuery.relRank = i + 1;
 					break;
 				}
 			}
-			int precisionBoundry = topDocs.scoreDocs.length > 10 ? 10 : topDocs.scoreDocs.length;
+			int precisionBoundry = topDocs.scoreDocs.length > 10 ? 10
+					: topDocs.scoreDocs.length;
 			for (int i = 0; i < precisionBoundry; i++) {
 				Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 				if (i < 3)
@@ -446,8 +561,10 @@ public class FreebaseExperiment {
 		try (Connection conn = getConnection()) {
 			st = conn.createStatement();
 			for (int i = 1; i <= tableNumber; i++) {
-				String sql = "create table " + newName + "_" + i + " as select * from " + tableName + " where mod("
-						+ tableName + ".counter, " + tableNumber + ") < " + i + ";";
+				String sql = "create table " + newName + "_" + i
+						+ " as select * from " + tableName + " where mod("
+						+ tableName + ".counter, " + tableNumber + ") < " + i
+						+ ";";
 				st.executeUpdate(sql);
 			}
 		} catch (SQLException e) {
@@ -462,22 +579,70 @@ public class FreebaseExperiment {
 		}
 	}
 
-	public static void runExperiment() {
-		String tableName = "tvp_genre";
-		String attribs[] = { "name", "description", "genre" };
+	public static void experiment_single_table(String tableName, String[] attribs) {
+		// runs database size experiment on media table
+		// String attribs[] = { "name", "description" };
+		List<FreebaseQuery> queries = buildFreebaseQueriesByRelevancyTable(tableName);
 		String indexPath = INDEX_BASE + tableName + "/";
-		createIndex(tableName, attribs, indexPath);
-		List<FreebaseQuery> queries = getQueriesByRelevancyTable("tvp_cartoon_series");
-		addIdenticalAttibuteToQueries(queries, GENRE_ATTRIB, "Cartoon series");
-		// addIdenticalAttibuteToQueries(queries, GENRE_ATTRIB, "Comedy film");
+		createIndexWithQuery(
+				buildDataQuery(tableName, attribs), attribs,
+				indexPath);
 		FileWriter fw = null;
 		try {
 			fw = new FileWriter(resultDir + tableName + ".csv");
 			for (FreebaseQuery query : queries) {
 				runQuery(query, indexPath);
-				fw.write(query.id + ", " + query.text + ", " + query.frequency + ", " + query.wiki + ", " + query.p3()
-						+ ", " + query.precisionAtK(10) + ", " + query.mrr() + "," + query.hits[0] + ", "
-						+ query.hits[1] + "\n");
+				fw.write(query.id + ", " 
+						+ query.text + ", " 
+						+ query.frequency
+						+ ", " + query.wiki + ", " 
+						+ query.p3() + ", "
+						+ query.precisionAtK(3) + ", " 
+						+ query.mrr() + ","
+						+ query.hits[0] + ", " + "\n");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (fw != null) {
+				try {
+					fw.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+	}
+
+	public static void experiment_database_size() {
+		// runs database size experiment on media table writing outputs to a
+		// single file
+		String tableName = "media";
+		int mediaTableSize = 3285728;
+		String attribs[] = { "name", "description" };
+		List<FreebaseQuery> queries = buildFreebaseQueriesByRelevancyTable(tableName);
+		String indexPaths[] = new String[10];
+		for (int i = 0; i < 10; i++) {
+			indexPaths[i] = INDEX_BASE + tableName + "_" + i + "/";
+			System.out.println("iteration " + i + "..");
+			int lo = (int) ((i / 10.0) * mediaTableSize);
+			int hi = (int) (((i + 1) / 10.0) * mediaTableSize);
+			createIndexWithQuery(
+					buildConditionalDataQuery(tableName, attribs, lo, hi),
+					attribs, indexPaths[i]);
+		}
+		FileWriter fw = null;
+		try {
+			fw = new FileWriter(resultDir + tableName + "_total.csv");
+			for (FreebaseQuery query : queries) {
+				fw.write(query.id + ", " + query.text + ", " + query.frequency
+						+ ", ");
+				for (int i = 0; i < 10; i++) {
+					runQuery(query, indexPaths[i]);
+					fw.write(query.mrr() + ", ");
+				}
+				fw.write("\n");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -507,15 +672,19 @@ public class FreebaseExperiment {
 			Matcher matcher = pat.matcher(query.text.toLowerCase());
 			matcher.find();
 			String keyword = matcher.group(0);
-			query.attribs.put(NAME_ATTRIB, query.text.toLowerCase().replace(keyword, ""));
-			query.attribs.put(DESC_ATTRIB, query.text.toLowerCase().replace(keyword, ""));
+			query.attribs.put(NAME_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
+			query.attribs.put(DESC_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
 		}
-		try (FileWriter fw = new FileWriter(resultDir + tableName + "_desc_name q_tvp.csv");) {
+		try (FileWriter fw = new FileWriter(resultDir + tableName
+				+ "_desc_name q_tvp.csv");) {
 			for (FreebaseQuery query : queries) {
 				runQuery(query, indexPath);
-				fw.write(query.id + ", " + query.text + ", " + query.frequency + ", " + query.wiki + ", " + query.p3()
-						+ ", " + query.precisionAtK(20) + ", " + query.mrr() + "," + query.hits[0] + ", "
-						+ query.hits[1] + "\n");
+				fw.write(query.id + ", " + query.text + ", " + query.frequency
+						+ ", " + query.wiki + ", " + query.p3() + ", "
+						+ query.precisionAtK(20) + ", " + query.mrr() + ","
+						+ query.hits[0] + ", " + query.hits[1] + "\n");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -538,56 +707,65 @@ public class FreebaseExperiment {
 			matcher.find();
 			String keyword = matcher.group(0);
 			query.attribs.put(SEMANTIC_TYPE_ATTRIB, keyword);
-			query.attribs.put(NAME_ATTRIB, query.text.toLowerCase().replace(keyword, ""));
-			query.attribs.put(DESC_ATTRIB, query.text.toLowerCase().replace(keyword, ""));
+			query.attribs.put(NAME_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
+			query.attribs.put(DESC_ATTRIB,
+					query.text.toLowerCase().replace(keyword, ""));
 		}
-		try (FileWriter fw = new FileWriter(resultDir + tableName + "_desc_name q_tvp.csv");) {
+		try (FileWriter fw = new FileWriter(resultDir + tableName
+				+ "_desc_name q_tvp.csv");) {
 			for (FreebaseQuery query : queries) {
 				runQuery(query, indexPath);
-				fw.write(query.id + ", " + query.text + ", " + query.frequency + ", " + query.wiki + ", " + query.p3()
-						+ ", " + query.precisionAtK(20) + ", " + query.mrr() + "," + query.hits[0] + ", "
-						+ query.hits[1] + "\n");
+				fw.write(query.id + ", " + query.text + ", " + query.frequency
+						+ ", " + query.wiki + ", " + query.p3() + ", "
+						+ query.precisionAtK(20) + ", " + query.mrr() + ","
+						+ query.hits[0] + ", " + query.hits[1] + "\n");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static void experiment_keywordExtraction(String tableName, String pattern) {
+	public static void experiment_keywordExtraction(String tableName,
+			String pattern) {
 		String attribs[] = { NAME_ATTRIB, DESC_ATTRIB };
 		String indexPath = INDEX_BASE + tableName + "/";
 		// createIndex(tableName, attribs, indexPath);
-		String sql = "select * from query where text REGEXP '" + pattern + "' and fbid in (select fbid from "
-				+ tableName + ");";
+		String sql = "select * from query where text REGEXP '" + pattern
+				+ "' and fbid in (select fbid from " + tableName + ");";
 		List<FreebaseQuery> queries = getQueriesBySqlQuery(sql);
 		removeKeyword(queries, pattern);
-		try (FileWriter fw = new FileWriter(resultDir + "t-" + tableName + " q-" + tableName + " a-name" + ".csv");) {
+		try (FileWriter fw = new FileWriter(resultDir + "t-" + tableName
+				+ " q-" + tableName + " a-name" + ".csv");) {
 			for (FreebaseQuery query : queries) {
 				runQuery(query, indexPath);
-				fw.write(query.id + ", " + query.text + ", " + query.wiki + ", " + query.p3() + ", "
-						+ query.precisionAtK(10) + ", " + query.precisionAtK(20) + ", " + query.mrr() + ","
-						+ query.hits[0] + ", " + query.hits[1] + "\n");
+				fw.write(query.id + ", " + query.text + ", " + query.wiki
+						+ ", " + query.p3() + ", " + query.precisionAtK(10)
+						+ ", " + query.precisionAtK(20) + ", " + query.mrr()
+						+ "," + query.hits[0] + ", " + query.hits[1] + "\n");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static void experiment_keywordExtraction(String tableName, String pattern, String queryTableName) {
+	public static void experiment_keywordExtraction(String tableName,
+			String pattern, String queryTableName) {
 		String attribs[] = { NAME_ATTRIB, DESC_ATTRIB, SEMANTIC_TYPE_ATTRIB };
 		String indexPath = INDEX_BASE + tableName + "/";
 		// createIndex(tableName, attribs, indexPath);
-		String sql = "select * from query where text REGEXP '" + pattern + "' and fbid in (select fbid from "
-				+ queryTableName + ");";
+		String sql = "select * from query where text REGEXP '" + pattern
+				+ "' and fbid in (select fbid from " + queryTableName + ");";
 		List<FreebaseQuery> queries = getQueriesBySqlQuery(sql);
 		extractAndRemoveKeyword(queries, pattern);
-		try (FileWriter fw = new FileWriter(
-				resultDir + "t-" + tableName + " q-" + queryTableName + " a-name" + ".csv");) {
+		try (FileWriter fw = new FileWriter(resultDir + "t-" + tableName
+				+ " q-" + queryTableName + " a-name" + ".csv");) {
 			for (FreebaseQuery query : queries) {
 				runQuery(query, indexPath);
-				fw.write(query.id + ", " + query.text + ", " + query.wiki + ", " + query.p3() + ", "
-						+ query.precisionAtK(10) + ", " + query.precisionAtK(20) + ", " + query.mrr() + ","
-						+ query.hits[0] + ", " + query.hits[1] + "\n");
+				fw.write(query.id + ", " + query.text + ", " + query.wiki
+						+ ", " + query.p3() + ", " + query.precisionAtK(10)
+						+ ", " + query.precisionAtK(20) + ", " + query.mrr()
+						+ "," + query.hits[0] + ", " + query.hits[1] + "\n");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -596,19 +774,17 @@ public class FreebaseExperiment {
 
 	public static void main(String[] args) {
 		boolean isRemote = false;
-		initialize(isRemote);
-		String[] table = { "tbl_tv_program", "tbl_album", "tbl_book" };
-		/* String[] pattern = { "program| tv| television| serie| show | show$| film | film$| movie",
-				"music|record|song|sound| art |album", "book|theme|novel|notes|writing|manuscript| story" };*/
-		String[] pattern = {
-				"program| tv| television| serie| show | show$| film | film$| movie",
-				"music|record|song|sound| art |album",
-				"book|theme|novel|notes|writing|manuscript|story" };
-		for (int i = 0; i < table.length; i++) {
-			experiment_keywordExtraction(table[i], pattern[i]);
-			experiment_keywordExtraction("media", pattern[i], table[i]);
-		}
-		finilize(isRemote);
+		/*
+		 * initialize(isRemote); String[] table = { "tbl_tv_program",
+		 * "tbl_album", "tbl_book" }; String[] pattern = {
+		 * "program| tv| television| serie| show | show$| film | film$| movie",
+		 * "music|record|song|sound| art |album",
+		 * "book|theme|novel|notes|writing|manuscript|story" }; for (int i = 0;
+		 * i < table.length; i++) { experiment_keywordExtraction(table[i],
+		 * pattern[i]); experiment_keywordExtraction("media", pattern[i],
+		 * table[i]); } finilize(isRemote);
+		 */
+		experiment_database_size();
 	}
 
 }
