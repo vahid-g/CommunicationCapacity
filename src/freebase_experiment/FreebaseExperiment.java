@@ -617,7 +617,7 @@ public class FreebaseExperiment {
 		}
 	}
 
-	public static void experiment_database_size_randomized() {
+	public static void experiment_database_size_randomized(int experimentNo) {
 		// runs database size experiment on media table writing outputs to a
 		// single file
 		String tableName = "media";
@@ -629,7 +629,7 @@ public class FreebaseExperiment {
 		System.out.println("Loading tuples into docs..");
 		String indexQuery = buildDataQuery(tableName, attribs);
 		Document[] docs = loadTuplesToDocuments(indexQuery, attribs);
-		// shuffleArray(docs);
+		shuffleArray(docs);
 		int parts = 10;
 		for (int i = 0; i < parts; i++) {
 			System.out.println("Building index " + i + "..");
@@ -640,7 +640,8 @@ public class FreebaseExperiment {
 		System.out.println("submitting queries..");
 		FileWriter fw = null;
 		try {
-			fw = new FileWriter(resultDir + tableName + "_randomized_p3.csv");
+			fw = new FileWriter(resultDir + tableName + "_randomized_p3_"
+					+ experimentNo + ".csv");
 			for (FreebaseQuery query : queries) {
 				fw.write(query.id + ", " + query.text + ", " + query.frequency
 						+ ", ");
@@ -803,7 +804,9 @@ public class FreebaseExperiment {
 		 * pattern[i]); experiment_keywordExtraction("media", pattern[i],
 		 * table[i]); } finilize(isRemote);
 		 */
-		experiment_database_size_randomized();
+
+		for (int i = 0; i < 50; i++)
+			experiment_database_size_randomized(i);
 	}
 
 }
