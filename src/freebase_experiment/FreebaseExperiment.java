@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -146,86 +147,6 @@ public class FreebaseExperiment {
 		return conn;
 	}
 
-	// creates an inverted index on the given db table and returns the path to
-	// index directory
-	public static String createIndex(String tableName) {
-		System.out.println("Creating Index...");
-		String indexPath = INDEX_BASE + tableName + "/";
-		// clean up the index directory
-		File dirFile = new File(indexPath);
-		if (dirFile.exists()) {
-			for (File f : dirFile.listFiles()) {
-				f.delete();
-			}
-		} else {
-			dirFile.mkdir();
-		}
-		Statement stmt = null;
-		ResultSet rs = null;
-		Directory directory = null;
-		IndexWriter writer = null;
-		try (Connection databaseConnection = getConnection()) {
-			// retrieve the tuples to be indexed
-			stmt = databaseConnection.createStatement();
-			String sql = "select fbid, name, description from " + tableName;
-			rs = stmt.executeQuery(sql);
-			// creating the index
-			directory = FSDirectory.open(Paths.get(indexPath));
-			StandardAnalyzer analyzer = new StandardAnalyzer();
-			IndexWriterConfig config = new IndexWriterConfig(analyzer);
-			config.setOpenMode(OpenMode.CREATE);
-			// .setRAMBufferSizeMB(256.0);
-			writer = new IndexWriter(directory, config);
-			int count = 0;
-			while (rs.next()) {
-				count++;
-				// System.out.println(rs.getString("name"));
-				Document doc = new Document();
-				try {
-					doc.add(new TextField(NAME_ATTRIB, rs
-							.getString(NAME_ATTRIB), Field.Store.YES));
-					doc.add(new TextField(DESC_ATTRIB, rs
-							.getString(DESC_ATTRIB), Field.Store.YES));
-					doc.add(new StoredField(FBID_ATTRIB, rs
-							.getString(FBID_ATTRIB)));
-					writer.addDocument(doc);
-				} catch (IllegalArgumentException e) { // the field is null
-					// do nothing
-				}
-			}
-			System.out.println("Indexed documents: " + count);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (rs != null)
-					rs.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			try {
-				if (stmt != null)
-					stmt.close();
-			} catch (SQLException se2) {
-			}
-			try {
-				if (writer != null)
-					writer.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			try {
-				if (directory != null)
-					directory.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-		}
-		System.out.println("Indexing Done!");
-		return indexPath;
-	}
-
 	public static String buildDataQuery(String tableName, String[] attribs) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("select fbid");
@@ -245,8 +166,9 @@ public class FreebaseExperiment {
 		return sql;
 	}
 
-	public static String createIndexWithQuery(String sqlQuery,
-			String[] attribs, String indexPath) {
+	// this method builds an index on the results of sqlQuery
+	public static String createIndex(String sqlQuery, String[] attribs,
+			String indexPath) {
 		System.out.println("Creating Index...");
 		// clean up the index directory
 		File dirFile = new File(indexPath);
@@ -322,79 +244,29 @@ public class FreebaseExperiment {
 		return indexPath;
 	}
 
-	/*
-	 * public static List<FreebaseQuery> getQueriesByTopic(String topic) {
-	 * List<FreebaseQuery> queries = new ArrayList<FreebaseQuery>(); String
-	 * sqlQuery = null; sqlQuery =
-	 * "select id, fbid, text, frequency from tbl_query where semantic_type like '"
-	 * + topic + "'"; // 42422, 42547, 44186 // sqlQuery = //
-	 * "select id, fbid, text, frequency from tbl_query where id = 42422";
-	 * Statement st = null; ResultSet rs = null; try (Connection conn =
-	 * getConnection()) { st = conn.createStatement(); rs =
-	 * st.executeQuery(sqlQuery); while (rs.next()) { FreebaseQuery q = new
-	 * TableRetrievalService().new FreebaseQuery( rs.getInt("id"),
-	 * rs.getString("fbid"), rs.getString( "text").trim(),
-	 * rs.getInt("frequency")); queries.add(q); } } catch (SQLException e) {
-	 * e.printStackTrace(); } finally { try { if (rs != null) rs.close(); }
-	 * catch (SQLException e2) { e2.printStackTrace(); } try { if (st != null)
-	 * st.close(); } catch (SQLException e2) { e2.printStackTrace(); } } return
-	 * queries; }
-	 */
-
-	@Deprecated
-	public static String createIndex(String tableName, String[] attribs,
-			String indexPath) {
-		System.out.println("Creating Index...");
-		// clean up the index directory
-		File dirFile = new File(indexPath);
-		if (dirFile.exists()) {
-			for (File f : dirFile.listFiles()) {
-				f.delete();
-			}
-		} else {
-			dirFile.mkdir();
-		}
+	public static Document[] loadTuplesToDocuments(String sqlQuery,
+			String[] attribs) {
 		Statement stmt = null;
 		ResultSet rs = null;
-		Directory directory = null;
-		IndexWriter writer = null;
+		ArrayList<Document> docList = new ArrayList<Document>();
 		try (Connection databaseConnection = getConnection()) {
 			// retrieve the tuples to be indexed
 			stmt = databaseConnection.createStatement();
-			StringBuilder sb = new StringBuilder();
-			sb.append("select fbid");
-			for (String attrib : attribs) {
-				sb.append(", " + attrib);
-			}
-			sb.append(" from " + tableName);
-			String sql = sb.toString();
-			System.out.println(sql);
-			rs = stmt.executeQuery(sql);
-			// creating the index
-			directory = FSDirectory.open(Paths.get(indexPath));
-			StandardAnalyzer analyzer = new StandardAnalyzer();
-			IndexWriterConfig config = new IndexWriterConfig(analyzer);
-			config.setOpenMode(OpenMode.CREATE);
-			// .setRAMBufferSizeMB(256.0);
-			writer = new IndexWriter(directory, config);
-			int count = 0;
+			rs = stmt.executeQuery(sqlQuery);
 			while (rs.next()) {
-				count++;
-				// System.out.println(rs.getString("name"));
 				Document doc = new Document();
 				try {
+					doc.add(new StoredField(FBID_ATTRIB, rs
+							.getString(FBID_ATTRIB)));
 					for (String attrib : attribs) {
 						doc.add(new TextField(attrib, rs.getString(attrib),
 								Field.Store.YES));
 					}
-					doc.add(new StoredField(FBID_ATTRIB, rs
-							.getString(FBID_ATTRIB)));
-					writer.addDocument(doc);
 				} catch (IllegalArgumentException e) { // the field is null
 					// do nothing
 				}
+				docList.add(doc);
 			}
-			System.out.println("Indexed documents: " + count);
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -409,6 +281,45 @@ public class FreebaseExperiment {
 					stmt.close();
 			} catch (SQLException se2) {
 			}
+		}
+		return docList.toArray(new Document[0]);
+	}
+
+	// this method builds an index on lucene Documents
+	public static String createIndex(Document[] docs, String[] attribs,
+			String indexPath) {
+		System.out.println("Creating Index...");
+		// clean up the index directory
+		File dirFile = new File(indexPath);
+		if (dirFile.exists()) {
+			for (File f : dirFile.listFiles()) {
+				f.delete();
+			}
+		} else {
+			dirFile.mkdir();
+		}
+		Directory directory = null;
+		IndexWriter writer = null;
+		try {
+			// creating the index
+			directory = FSDirectory.open(Paths.get(indexPath));
+			StandardAnalyzer analyzer = new StandardAnalyzer();
+			IndexWriterConfig config = new IndexWriterConfig(analyzer);
+			config.setOpenMode(OpenMode.CREATE);
+			// .setRAMBufferSizeMB(256.0);
+			writer = new IndexWriter(directory, config);
+			for (Document doc : docs) {
+				// System.out.println(rs.getString("name"));
+				try {
+					writer.addDocument(doc);
+				} catch (IllegalArgumentException e) { // the field is null
+					// do nothing
+				}
+			}
+			System.out.println("Indexed documents: " + docs.length);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
 			try {
 				if (writer != null)
 					writer.close();
@@ -421,7 +332,6 @@ public class FreebaseExperiment {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
 		}
 		System.out.println("Indexing Done!");
 		return indexPath;
@@ -637,8 +547,7 @@ public class FreebaseExperiment {
 		// String attribs[] = { "name", "description" };
 		List<FreebaseQuery> queries = buildFreebaseQueriesByRelevancyTable(tableName);
 		String indexPath = INDEX_BASE + tableName + "/";
-		createIndexWithQuery(buildDataQuery(tableName, attribs), attribs,
-				indexPath);
+		createIndex(buildDataQuery(tableName, attribs), attribs, indexPath);
 		FileWriter fw = null;
 		try {
 			fw = new FileWriter(resultDir + tableName + ".csv");
@@ -675,11 +584,11 @@ public class FreebaseExperiment {
 		for (int i = 0; i < 10; i++) {
 			System.out.println("Building index " + i + "..");
 			indexPaths[i] = INDEX_BASE + tableName + "_" + i + "/";
-//			int lo = 0;
-//			int hi = (int) (((i + 1) / 10.0) * mediaTableSize);
-//			String indexQuery = buildConditionalDataQuery(tableName, attribs,
-//					lo, hi);
-//			createIndexWithQuery(indexQuery, attribs, indexPaths[i]);
+			// int lo = 0;
+			// int hi = (int) (((i + 1) / 10.0) * mediaTableSize);
+			// String indexQuery = buildConditionalDataQuery(tableName, attribs,
+			// lo, hi);
+			// createIndexWithQuery(indexQuery, attribs, indexPaths[i]);
 		}
 		System.out.println("submitting queries..");
 		FileWriter fw = null;
@@ -705,6 +614,65 @@ public class FreebaseExperiment {
 					e.printStackTrace();
 				}
 			}
+		}
+	}
+
+	public static void experiment_database_size_randomized() {
+		// runs database size experiment on media table writing outputs to a
+		// single file
+		String tableName = "media";
+		String attribs[] = { "name", "description" };
+		System.out.println("Loading queries..");
+		List<FreebaseQuery> queries = buildFreebaseQueriesByRelevancyTable(tableName);
+		String indexPaths[] = new String[10];
+
+		System.out.println("Loading tuples into docs..");
+		String indexQuery = buildDataQuery(tableName, attribs);
+		Document[] docs = loadTuplesToDocuments(indexQuery, attribs);
+		// shuffleArray(docs);
+		int parts = 10;
+		for (int i = 0; i < parts; i++) {
+			System.out.println("Building index " + i + "..");
+			indexPaths[i] = INDEX_BASE + tableName + "_" + i + "/";
+			int l = (int) (((i + 1.0) / parts) * docs.length);
+			createIndex(Arrays.copyOf(docs, l), attribs, indexPaths[i]);
+		}
+		System.out.println("submitting queries..");
+		FileWriter fw = null;
+		try {
+			fw = new FileWriter(resultDir + tableName + "_randomized_p3.csv");
+			for (FreebaseQuery query : queries) {
+				fw.write(query.id + ", " + query.text + ", " + query.frequency
+						+ ", ");
+				for (int i = 0; i < parts; i++) {
+					FreebaseQueryResult fqr = runFreebaseQuery(query,
+							indexPaths[i]);
+					fw.write(fqr.p3() + ", ");
+				}
+				fw.write("\n");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (fw != null) {
+				try {
+					fw.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	static void shuffleArray(Object[] ar) {
+		// If running on Java 6 or older, use `new Random()` on RHS here
+		Random rnd = new Random();
+		for (int i = ar.length - 1; i > 0; i--) {
+			int index = rnd.nextInt(i + 1);
+			// Simple swap
+			Object a = ar[index];
+			ar[index] = ar[i];
+			ar[i] = a;
 		}
 	}
 
@@ -835,7 +803,7 @@ public class FreebaseExperiment {
 		 * pattern[i]); experiment_keywordExtraction("media", pattern[i],
 		 * table[i]); } finilize(isRemote);
 		 */
-		experiment_database_size();
+		experiment_database_size_randomized();
 	}
 
 }
