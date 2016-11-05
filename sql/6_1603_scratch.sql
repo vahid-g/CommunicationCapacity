@@ -108,7 +108,7 @@ create table media as (select * from tmp_film) union (select * from tmp_tvp)
 select count(*) from media where description is not null;
 select count(*) from media;
 
-create table media_query as select * from query 
+create table media_query_tmp as select query_fbid from query 
 	where semantic_type like 'film' OR semantic_type like 'tv_program' OR semantic_type like 'album' 
 		OR semantic_type like 'album' OR semantic_type like 'book' OR semantic_type like 'computer_videgame';
 

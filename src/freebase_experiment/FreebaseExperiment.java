@@ -508,6 +508,7 @@ public class FreebaseExperiment {
 		}
 	}
 
+	@Deprecated
 	public static void runQuery(FreebaseQuery freebaseQuery, String indexPath) {
 		IndexReader reader = null;
 		try {
@@ -555,6 +556,57 @@ public class FreebaseExperiment {
 		}
 	}
 
+	// same code as above but returns an object of FreebaseQueryResult class
+	public static FreebaseQueryResult runFreebaseQuery(
+			FreebaseQuery freebaseQuery, String indexPath) {
+		IndexReader reader = null;
+		FreebaseQueryResult fqr = new FreebaseQueryResult();
+		try {
+			reader = DirectoryReader
+					.open(FSDirectory.open(Paths.get(indexPath)));
+			IndexSearcher searcher = new IndexSearcher(reader);
+			BooleanQuery.Builder builder = new BooleanQuery.Builder();
+			for (String attrib : freebaseQuery.attribs.keySet()) {
+				builder.add(new QueryParser(attrib, new StandardAnalyzer())
+						.parse(QueryParser.escape(freebaseQuery.attribs
+								.get(attrib))), BooleanClause.Occur.SHOULD);
+			}
+			Query query = builder.build();
+			// System.out.println("submitting query: " + query.toString());
+			TopDocs topDocs = searcher.search(query, MAX_HITS);
+			// System.out.println("hits length: " + hits.length);
+			for (int i = 0; i < topDocs.scoreDocs.length; i++) {
+				Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
+				if (doc.get(FreebaseExperiment.FBID_ATTRIB).equals(
+						freebaseQuery.fbid)) {
+					// System.out.println(searcher.explain(query, hits[i].doc));
+					freebaseQuery.relRank = i + 1;
+					fqr.relRank = i + 1;
+					break;
+				}
+			}
+			int precisionBoundry = topDocs.scoreDocs.length > 3 ? 3
+					: topDocs.scoreDocs.length;
+			for (int i = 0; i < precisionBoundry; i++) {
+				Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
+				fqr.top3Hits[i] = doc.get(NAME_ATTRIB);
+			}
+
+		} catch (ParseException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (reader != null)
+					reader.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return fqr;
+	}
+
 	public static void createSampledTables(String tableName, int tableNumber) {
 		Statement st = null;
 		String newName = tableName;
@@ -579,26 +631,22 @@ public class FreebaseExperiment {
 		}
 	}
 
-	public static void experiment_single_table(String tableName, String[] attribs) {
+	public static void experiment_single_table(String tableName,
+			String[] attribs) {
 		// runs database size experiment on media table
 		// String attribs[] = { "name", "description" };
 		List<FreebaseQuery> queries = buildFreebaseQueriesByRelevancyTable(tableName);
 		String indexPath = INDEX_BASE + tableName + "/";
-		createIndexWithQuery(
-				buildDataQuery(tableName, attribs), attribs,
+		createIndexWithQuery(buildDataQuery(tableName, attribs), attribs,
 				indexPath);
 		FileWriter fw = null;
 		try {
 			fw = new FileWriter(resultDir + tableName + ".csv");
 			for (FreebaseQuery query : queries) {
 				runQuery(query, indexPath);
-				fw.write(query.id + ", " 
-						+ query.text + ", " 
-						+ query.frequency
-						+ ", " + query.wiki + ", " 
-						+ query.p3() + ", "
-						+ query.precisionAtK(3) + ", " 
-						+ query.mrr() + ","
+				fw.write(query.id + ", " + query.text + ", " + query.frequency
+						+ ", " + query.wiki + ", " + query.p3() + ", "
+						+ query.precisionAtK(3) + ", " + query.mrr() + ","
 						+ query.hits[0] + ", " + "\n");
 			}
 		} catch (Exception e) {
@@ -621,26 +669,29 @@ public class FreebaseExperiment {
 		String tableName = "media";
 		int mediaTableSize = 3285728;
 		String attribs[] = { "name", "description" };
+		System.out.println("Loading queries..");
 		List<FreebaseQuery> queries = buildFreebaseQueriesByRelevancyTable(tableName);
 		String indexPaths[] = new String[10];
 		for (int i = 0; i < 10; i++) {
+			System.out.println("Building index " + i + "..");
 			indexPaths[i] = INDEX_BASE + tableName + "_" + i + "/";
-			System.out.println("iteration " + i + "..");
-			int lo = (int) ((i / 10.0) * mediaTableSize);
-			int hi = (int) (((i + 1) / 10.0) * mediaTableSize);
-			createIndexWithQuery(
-					buildConditionalDataQuery(tableName, attribs, lo, hi),
-					attribs, indexPaths[i]);
+//			int lo = 0;
+//			int hi = (int) (((i + 1) / 10.0) * mediaTableSize);
+//			String indexQuery = buildConditionalDataQuery(tableName, attribs,
+//					lo, hi);
+//			createIndexWithQuery(indexQuery, attribs, indexPaths[i]);
 		}
+		System.out.println("submitting queries..");
 		FileWriter fw = null;
 		try {
-			fw = new FileWriter(resultDir + tableName + "_total.csv");
+			fw = new FileWriter(resultDir + tableName + "_mrr.csv");
 			for (FreebaseQuery query : queries) {
 				fw.write(query.id + ", " + query.text + ", " + query.frequency
 						+ ", ");
 				for (int i = 0; i < 10; i++) {
-					runQuery(query, indexPaths[i]);
-					fw.write(query.mrr() + ", ");
+					FreebaseQueryResult fqr = runFreebaseQuery(query,
+							indexPaths[i]);
+					fw.write(fqr.mrr() + ", ");
 				}
 				fw.write("\n");
 			}

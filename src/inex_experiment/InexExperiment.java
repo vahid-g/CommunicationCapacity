@@ -86,9 +86,7 @@ public class InexExperiment {
 	}
 
 	public static void main(String[] args) {
-		// exp1();
-		exp2();
-		// exp4();
+		
 	}
 
 	public static void exp0() { // indexing and querying whole dataset
@@ -107,7 +105,50 @@ public class InexExperiment {
 				+ " total minutes");
 	}
 
-	public static void exp1() { // partitioning experiment with shuffling
+	public static void runSingleQuery() { // run a single query and print index
+		InexExperiment ie = new InexExperiment("DESC_NAME_09_1");
+		List<QueryDAO> queries = ie.loadQueries(QUERY_DIR
+				+ "inex09/queries.csv");
+		QueryDAO query = queries.get(0);
+		System.out.println(query);
+		// List<Document> result = ie.runQuery(query);
+		// for (Document doc : result.subList(0, 100)) {
+		// System.out.println(doc.get(DOCNAME_ATTRIB) + " : "
+		// + doc.get(TITLE_ATTRIB));
+		// }
+		ie.printIndexForTerm("christopher");
+	}
+
+	public static void buildPartitionedIndex() { // partitioning independent of related tuples
+		List<String> allFiles = Utils.listFilesForFolder(new File(DATASET_DIR));
+		Collections.shuffle(allFiles);
+		int partitionNo = 10;
+		ArrayList<String[]> partitions = Utils.partitionArray(
+				allFiles.toArray(new String[allFiles.size()]), partitionNo);
+		InexExperiment prevExperiment = null;
+		for (int i = 0; i < partitionNo; i++) {
+			System.out.println("iteration " + i);
+			InexExperiment ie = new InexExperiment("desc_name_trec_indie_2_"
+					+ i);
+			Date index_t = new Date();
+			System.out.println("indexing ");
+			System.out.println("partition length: " + partitions.get(i).length);
+			ie.buildIndex(partitions.get(i));
+			if (prevExperiment != null) {
+				System.out.println("updating index..");
+				ie.updateIndex(prevExperiment.indexDirPath);
+			}
+			Date query_t = new Date();
+			prevExperiment = ie;
+			System.out.println("indexing time "
+					+ (query_t.getTime() - index_t.getTime()) / 60000 + "mins");
+			System.out.println("querying time "
+					+ (new Date().getTime() - query_t.getTime()) / 60000
+					+ "mins");
+		}
+	}
+
+	public static void buildStratifiedPartitionedIndex() { // partitioning experiment with shuffling
 		try {
 			List<String> allFiles = Utils.listFilesForFolder(new File(
 					DATASET_DIR));
@@ -162,7 +203,7 @@ public class InexExperiment {
 		}
 	}
 
-	public static void exp2() { // running specific queries for exp1
+	public static void runQueriesOnPartitionedIndex() { // running specific queries for exp1
 		for (int i = 0; i < 10; i++) {
 			InexExperiment ie = new InexExperiment("desc_name_trec_indie_2_"
 					+ i);
@@ -177,47 +218,52 @@ public class InexExperiment {
 		}
 	}
 
-	public static void exp3() { // run a single query and print index
-		InexExperiment ie = new InexExperiment("DESC_NAME_09_1");
-		List<QueryDAO> queries = ie.loadQueries(QUERY_DIR
-				+ "inex09/queries.csv");
-		QueryDAO query = queries.get(0);
-		System.out.println(query);
-		// List<Document> result = ie.runQuery(query);
-		// for (Document doc : result.subList(0, 100)) {
-		// System.out.println(doc.get(DOCNAME_ATTRIB) + " : "
-		// + doc.get(TITLE_ATTRIB));
-		// }
-		ie.printIndexForTerm("christopher");
-	}
-
-	public static void exp4() { // partitioning independent of related tuples
-		List<String> allFiles = Utils.listFilesForFolder(new File(DATASET_DIR));
-		Collections.shuffle(allFiles);
-		int partitionNo = 10;
-		ArrayList<String[]> partitions = Utils.partitionArray(
-				allFiles.toArray(new String[allFiles.size()]), partitionNo);
-		InexExperiment prevExperiment = null;
-		for (int i = 0; i < partitionNo; i++) {
-			System.out.println("iteration " + i);
-			InexExperiment ie = new InexExperiment("desc_name_trec_indie_2_"
-					+ i);
-			Date index_t = new Date();
-			System.out.println("indexing ");
-			System.out.println("partition length: " + partitions.get(i).length);
-			ie.buildIndex(partitions.get(i));
-			if (prevExperiment != null) {
-				System.out.println("updating index..");
-				ie.updateIndex(prevExperiment.indexDirPath);
-			}
-			Date query_t = new Date();
-			prevExperiment = ie;
-			System.out.println("indexing time "
-					+ (query_t.getTime() - index_t.getTime()) / 60000 + "mins");
-			System.out.println("querying time "
-					+ (new Date().getTime() - query_t.getTime()) / 60000
-					+ "mins");
+	public static void runTotalQueriesOnPartitionedIndex() { 
+		List<QueryDAO> queries = loadQueries("data/query-log/inex09/queries_uniq.csv");
+		String[] indexPath = new String[10];
+		for (int i = 0; i < 10; i++) {
+			indexPath[i] = INDEX_DIR + "desc_name_trec_indie_2_" + i;
 		}
+		FileWriter fw = null;
+		try {
+			fw = new FileWriter(RESULT_DIR + "???");
+			for (QueryDAO queryDAO : queries) {
+				for (int i = 0; i < 10; i++) {
+					try (IndexReader reader = DirectoryReader.open(FSDirectory
+							.open(Paths.get(indexPath[i])))) {
+						IndexSearcher searcher = new IndexSearcher(reader);
+						searcher.setSimilarity(new BM25Similarity());
+						TopDocs topDocs = searcher.search(
+								buildQuery(queryDAO.text, TITLE_ATTRIB,
+										CONTENT_ATTRIB), 10);
+						int precisionBoundry = topDocs.scoreDocs.length > 10 ? 10
+								: topDocs.scoreDocs.length;
+						int sum = 0;
+						for (int j = 0; j < precisionBoundry; j++) {
+							Document doc = searcher
+									.doc(topDocs.scoreDocs[j].doc);
+							String docName = doc.get(DOCNAME_ATTRIB);
+							if (queryDAO.getRelDocs().contains(docName)) {
+								sum++;
+							}
+						}
+						queryDAO.p10 = sum / 10.0;
+						fw.write(queryDAO.text + ", " + queryDAO.p3 + "\n");
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		} finally {
+			try {
+				fw.close();
+			} catch (IOException e){
+				e.printStackTrace();
+			}
+		}
+
 	}
 
 	public void buildIndex(String datasetFolderPath) {
@@ -491,7 +537,7 @@ public class InexExperiment {
 		return query;
 	}
 
-	protected Query buildQuery(String queryString, String... fields) {
+	protected static Query buildQuery(String queryString, String... fields) {
 		MultiFieldQueryParser parser = new MultiFieldQueryParser(fields,
 				new StandardAnalyzer());
 		parser.setDefaultOperator(Operator.OR);
@@ -526,7 +572,7 @@ public class InexExperiment {
 		return query;
 	}
 
-	public List<QueryDAO> loadQueries(String queryFile) {
+	public static List<QueryDAO> loadQueries(String queryFile) {
 		List<QueryDAO> queries = new ArrayList<QueryDAO>();
 		try (BufferedReader br = new BufferedReader(new FileReader(queryFile))) {
 			String line;
