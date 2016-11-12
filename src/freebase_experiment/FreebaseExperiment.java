@@ -99,19 +99,16 @@ public class FreebaseExperiment {
 
 	public static String sendCommand(String command) {
 		StringBuilder outputBuffer = new StringBuilder();
-
 		try {
 			Channel channel = session.openChannel("exec");
 			((ChannelExec) channel).setCommand(command);
 			InputStream commandOutput = channel.getInputStream();
 			channel.connect();
 			int readByte = commandOutput.read();
-
 			while (readByte != 0xffffffff) {
 				outputBuffer.append((char) readByte);
 				readByte = commandOutput.read();
 			}
-
 			channel.disconnect();
 		} catch (IOException ioX) {
 			ioX.printStackTrace();
@@ -134,14 +131,13 @@ public class FreebaseExperiment {
 		}
 	}
 
-	private static Connection getConnection() throws SQLException {
+	private static Connection getDatabaseConnection() throws SQLException {
 		Properties connectionProps = new Properties();
 		connectionProps.put("user", USER);
 		connectionProps.put("password", PASS);
 		Connection conn = null;
 		try {
 			conn = DriverManager.getConnection(DB_URL, connectionProps);
-			System.out.println("Connected to Database!");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -167,90 +163,12 @@ public class FreebaseExperiment {
 		return sql;
 	}
 
-	// this method builds an index on the results of sqlQuery
-	public static String createIndex(String sqlQuery, String[] attribs,
-			String indexPath) {
-		System.out.println("Creating Index...");
-		// clean up the index directory
-		File dirFile = new File(indexPath);
-		if (dirFile.exists()) {
-			for (File f : dirFile.listFiles()) {
-				f.delete();
-			}
-		} else {
-			dirFile.mkdir();
-		}
-		Statement stmt = null;
-		ResultSet rs = null;
-		Directory directory = null;
-		IndexWriter writer = null;
-		try (Connection databaseConnection = getConnection()) {
-			// retrieve the tuples to be indexed
-			stmt = databaseConnection.createStatement();
-			rs = stmt.executeQuery(sqlQuery);
-			// creating the index
-			directory = FSDirectory.open(Paths.get(indexPath));
-			StandardAnalyzer analyzer = new StandardAnalyzer();
-			IndexWriterConfig config = new IndexWriterConfig(analyzer);
-			config.setOpenMode(OpenMode.CREATE);
-			// .setRAMBufferSizeMB(256.0);
-			writer = new IndexWriter(directory, config);
-			int count = 0;
-			while (rs.next()) {
-				count++;
-				// System.out.println(rs.getString("name"));
-				Document doc = new Document();
-				try {
-					for (String attrib : attribs) {
-						doc.add(new TextField(attrib, rs.getString(attrib),
-								Field.Store.YES));
-					}
-					doc.add(new StoredField(FBID_ATTRIB, rs
-							.getString(FBID_ATTRIB)));
-					writer.addDocument(doc);
-				} catch (IllegalArgumentException e) { // the field is null
-					// do nothing
-				}
-			}
-			System.out.println("Indexed documents: " + count);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (rs != null)
-					rs.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			try {
-				if (stmt != null)
-					stmt.close();
-			} catch (SQLException se2) {
-			}
-			try {
-				if (writer != null)
-					writer.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			try {
-				if (directory != null)
-					directory.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-		}
-		System.out.println("Indexing Done!");
-		return indexPath;
-	}
-
 	public static Document[] loadTuplesToDocuments(String sqlQuery,
 			String[] attribs) {
 		Statement stmt = null;
 		ResultSet rs = null;
 		ArrayList<Document> docList = new ArrayList<Document>();
-		try (Connection databaseConnection = getConnection()) {
+		try (Connection databaseConnection = getDatabaseConnection()) {
 			// retrieve the tuples to be indexed
 			stmt = databaseConnection.createStatement();
 			rs = stmt.executeQuery(sqlQuery);
@@ -334,7 +252,6 @@ public class FreebaseExperiment {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("Indexing Done!");
 		return indexPath;
 	}
 
@@ -342,7 +259,7 @@ public class FreebaseExperiment {
 		List<FreebaseQuery> queries = new ArrayList<FreebaseQuery>();
 		Statement st = null;
 		ResultSet rs = null;
-		try (Connection conn = getConnection()) {
+		try (Connection conn = getDatabaseConnection()) {
 			st = conn.createStatement();
 			rs = st.executeQuery(sqlQuery);
 			while (rs.next()) {
@@ -375,7 +292,7 @@ public class FreebaseExperiment {
 		return queries;
 	}
 
-	public static List<FreebaseQuery> buildFreebaseQueriesByRelevancyTable(
+	public static List<FreebaseQuery> getQueriesByRelevancyTable(
 			String tableName) {
 		String sqlQuery = "select id, wiki_id, fbid, text, frequency from tbl_query as q where q.fbid in (select fbid from "
 				+ tableName + ")";
@@ -518,7 +435,7 @@ public class FreebaseExperiment {
 		return fqr;
 	}
 
-	public static List<FreebaseQueryResult> runFreebaseQuery(
+	public static List<FreebaseQueryResult> runFreebaseQueries(
 			List<FreebaseQuery> queries, String indexPath) {
 		IndexReader reader = null;
 		List<FreebaseQueryResult> fqrList = new ArrayList<FreebaseQueryResult>();
@@ -526,34 +443,34 @@ public class FreebaseExperiment {
 			reader = DirectoryReader
 					.open(FSDirectory.open(Paths.get(indexPath)));
 			IndexSearcher searcher = new IndexSearcher(reader);
-			for (FreebaseQuery freebaseQuery : queries) {
+			for (int i = 0; i < queries.size(); i++) {
 				FreebaseQueryResult fqr = new FreebaseQueryResult();
 				BooleanQuery.Builder builder = new BooleanQuery.Builder();
-				for (String attrib : freebaseQuery.attribs.keySet()) {
+				for (String attrib : queries.get(i).attribs.keySet()) {
 					builder.add(new QueryParser(attrib, new StandardAnalyzer())
-							.parse(QueryParser.escape(freebaseQuery.attribs
+							.parse(QueryParser.escape(queries.get(i).attribs
 									.get(attrib))), BooleanClause.Occur.SHOULD);
 				}
 				Query query = builder.build();
 				// System.out.println("submitting query: " + query.toString());
 				TopDocs topDocs = searcher.search(query, MAX_HITS);
 				// System.out.println("hits length: " + hits.length);
-				for (int i = 0; i < topDocs.scoreDocs.length; i++) {
-					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
+				for (int j = 0; j < topDocs.scoreDocs.length; j++) {
+					Document doc = searcher.doc(topDocs.scoreDocs[j].doc);
 					if (doc.get(FreebaseExperiment.FBID_ATTRIB).equals(
-							freebaseQuery.fbid)) {
+							queries.get(i).fbid)) {
 						// System.out.println(searcher.explain(query,
 						// hits[i].doc));
-						freebaseQuery.relRank = i + 1;
-						fqr.relRank = i + 1;
+						queries.get(i).relRank = j + 1;
+						fqr.relRank = j + 1;
 						break;
 					}
 				}
 				int precisionBoundry = topDocs.scoreDocs.length > 3 ? 3
 						: topDocs.scoreDocs.length;
-				for (int i = 0; i < precisionBoundry; i++) {
-					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					fqr.top3Hits[i] = doc.get(NAME_ATTRIB);
+				for (int j = 0; j < precisionBoundry; j++) {
+					Document doc = searcher.doc(topDocs.scoreDocs[j].doc);
+					fqr.top3Hits[j] = doc.get(NAME_ATTRIB);
 				}
 				fqrList.add(fqr);
 			}
@@ -576,7 +493,7 @@ public class FreebaseExperiment {
 	public static void createSampledTables(String tableName, int tableNumber) {
 		Statement st = null;
 		String newName = tableName;
-		try (Connection conn = getConnection()) {
+		try (Connection conn = getDatabaseConnection()) {
 			st = conn.createStatement();
 			for (int i = 1; i <= tableNumber; i++) {
 				String sql = "create table " + newName + "_" + i
@@ -600,9 +517,10 @@ public class FreebaseExperiment {
 	public static void experiment_singleTable(String tableName, String[] attribs) {
 		// runs database size experiment on media table
 		// String attribs[] = { "name", "description" };
-		List<FreebaseQuery> queries = buildFreebaseQueriesByRelevancyTable(tableName);
+		List<FreebaseQuery> queries = getQueriesByRelevancyTable(tableName);
 		String indexPath = INDEX_BASE + tableName + "/";
-		createIndex(buildDataQuery(tableName, attribs), attribs, indexPath);
+		String dataQuery = buildDataQuery(tableName, attribs); 
+		createIndex(loadTuplesToDocuments(dataQuery, attribs), attribs, indexPath);
 		FileWriter fw = null;
 		try {
 			fw = new FileWriter(resultDir + tableName + ".csv");
@@ -634,7 +552,7 @@ public class FreebaseExperiment {
 		int mediaTableSize = 3285728;
 		String attribs[] = { "name", "description" };
 		System.out.println("Loading queries..");
-		List<FreebaseQuery> queries = buildFreebaseQueriesByRelevancyTable(tableName);
+		List<FreebaseQuery> queries = getQueriesByRelevancyTable(tableName);
 		String indexPaths[] = new String[10];
 		for (int i = 0; i < 10; i++) {
 			System.out.println("Building index " + i + "..");
@@ -678,7 +596,7 @@ public class FreebaseExperiment {
 		String tableName = "media";
 		String attribs[] = { "name", "description" };
 		System.out.println("Loading queries..");
-		List<FreebaseQuery> queries = buildFreebaseQueriesByRelevancyTable(tableName);
+		List<FreebaseQuery> queries = getQueriesByRelevancyTable(tableName);
 		String indexPaths[] = new String[10];
 
 		System.out.println("Loading tuples into docs..");
@@ -726,47 +644,52 @@ public class FreebaseExperiment {
 	}
 
 	public static ExperimentResult experiment_databaseSizeDoubleRandomized(
-			int experimentNo) {
+			int experimentNo, int queryPartitionCount, int dbPartitionCounts) {
 		// runs database size experiment on media table writing outputs to a
 		// single file
 		String tableName = "media";
 		String attribs[] = { "name", "description" };
 
-		System.out.println("Loading queries..");
-		List<FreebaseQuery> queriesList = buildFreebaseQueriesByRelevancyTable(tableName);
+		System.out.println(experimentNo + ". Loading queries..");
+		List<FreebaseQuery> queriesList = getQueriesByRelevancyTable(tableName);
 		long seed = System.nanoTime();
 		Collections.shuffle(queriesList, new Random(seed));
 
-		System.out.println("Loading tuples into docs..");
+		System.out.println(experimentNo + ". Loading tuples into docs..");
 		String indexPaths[] = new String[10];
 		String indexQuery = buildDataQuery(tableName, attribs);
 		Document[] docs = loadTuplesToDocuments(indexQuery, attribs);
 		shuffleArray(docs);
-		int queryParts = 10;
-		int dbParts = 10;
-		for (int i = 0; i < dbParts; i++) {
-			System.out.println("Building index " + i + "..");
+
+		System.out.println(experimentNo + ".Building index..");
+		for (int i = 0; i < dbPartitionCounts; i++) {
 			indexPaths[i] = INDEX_BASE + tableName + "_" + i + "/";
-			int l = (int) (((i + 1.0) / dbParts) * docs.length);
+			int l = (int) (((i + 1.0) / dbPartitionCounts) * docs.length);
 			createIndex(Arrays.copyOf(docs, l), attribs, indexPaths[i]);
 		}
-		System.out.println("submitting queries..");
-		int[][] foundCounter = new int[queryParts][dbParts];
-		int[][] lostCounter = new int[queryParts][dbParts];
-		for (int i = 0; i < queryParts; i++) {
-			int endIndex = (int) ((i + 1.0) / queryParts);
+
+		System.out.println(experimentNo + ". submitting queries..");
+		int[][] foundCounter = new int[queryPartitionCount][dbPartitionCounts];
+		int[][] lostCounter = new int[queryPartitionCount][dbPartitionCounts];
+		for (int i = 0; i < queryPartitionCount; i++) {
+			int endIndex = (int) ((i + 1.0) / queryPartitionCount * queriesList.size());
 			List<FreebaseQuery> queries = queriesList.subList(0, endIndex);
 			List<FreebaseQueryResult> oldResults = null;
-			for (int j = 0; j < dbParts; j++) {
-				List<FreebaseQueryResult> queryResults = runFreebaseQuery(
+			for (int j = 0; j < dbPartitionCounts; j++) {
+				List<FreebaseQueryResult> queryResults = runFreebaseQueries(
 						queries, indexPaths[j]);
-				if (j > 0) {
+				if (j == 0) {
+					for (int k = 0; k < queryResults.size(); k++) {
+						if (queryResults.get(k).p3() > 0)
+							foundCounter[i][j]++;
+					}
+				} else {
 					for (int k = 0; k < queryResults.size(); k++) {
 						if (queryResults.get(k).p3() > oldResults.get(k).p3()) {
 							foundCounter[i][j]++;
 						} else if (queryResults.get(k).p3() < oldResults.get(k)
 								.p3()) {
-							lostCounter[i][j]--;
+							lostCounter[i][j]++;
 						} else {
 							// continue
 						}
@@ -790,6 +713,54 @@ public class FreebaseExperiment {
 			Object a = ar[index];
 			ar[index] = ar[i];
 			ar[i] = a;
+		}
+	}
+	
+	public static void experiment_repeatRandomizedDatabaseSize(){
+		ExperimentResult[] er = new ExperimentResult[50];
+		ExperimentResult fr = new ExperimentResult();
+		int qCount = 10;
+		int dCount = 10;
+		int expCount = 50;
+		fr.lostCount = new int[qCount][dCount];
+		fr.foundCount = new int[qCount][dCount];
+		for (int i = 0; i < expCount; i++) {
+			er[i] = experiment_databaseSizeDoubleRandomized(i, qCount, dCount);
+			fr.lostCount = addMatrix(fr.lostCount, er[i].lostCount);
+			fr.foundCount = addMatrix(fr.foundCount, er[i].foundCount);
+		}
+		FileWriter fw = null;
+		try {
+			fw = new FileWriter(resultDir + "result_lost.csv");
+			for (int i = 0; i < qCount; i++) {
+				for (int j = 0; j < dCount - 1; j++) {
+					fw.write(fr.lostCount[i][j] / ((double)expCount) + ",");
+				}
+				fw.write(fr.lostCount[i][expCount - 1] / ((double)expCount) + "\n");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			fw.close();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			fw = new FileWriter(resultDir + "result_found.csv");
+			for (int i = 0; i < qCount; i++) {
+				for (int j = 0; j < dCount - 1; j++) {
+					fw.write(fr.foundCount[i][j] / ((double)expCount) + ",");
+				}
+				fw.write(fr.foundCount[i][expCount - 1] / ((double)expCount) + "\n");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			fw.close();
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
 	}
 
@@ -908,6 +879,16 @@ public class FreebaseExperiment {
 		}
 	}
 
+	public static int[][] addMatrix(int[][] a, int[][] b) {
+		int[][] c = new int[a.length][a[0].length];
+		for (int i = 0; i < a.length; i++) {
+			for (int j = 0; j < a[0].length; j++) {
+				c[i][j] = a[i][j] + b[i][j];
+			}
+		}
+		return c;
+	}
+
 	public static void main(String[] args) {
 		boolean isRemote = false;
 		/*
@@ -920,52 +901,7 @@ public class FreebaseExperiment {
 		 * pattern[i]); experiment_keywordExtraction("media", pattern[i],
 		 * table[i]); } finilize(isRemote);
 		 */
-
-		ExperimentResult[] er = new ExperimentResult[50];
-		ExperimentResult fr = new ExperimentResult();
-		fr.lostCount = new int[10][10];
-		fr.foundCount = new int[10][10];
-		for (int i = 0; i < 50; i++) {
-			er[i] = experiment_databaseSizeDoubleRandomized(i);
-			for (int j = 0; j < 10; j++) {
-				for (int k = 0; k < 10; k++) {
-					fr.lostCount[j][k] += er[i].lostCount[j][k];
-					fr.foundCount[j][k] += er[i].foundCount[j][k];
-				}
-			}
-		}
-		FileWriter fw = null;
-		try {
-			fw = new FileWriter("result_lost.csv");
-			for (int i = 0; i < 10; i++) {
-				for (int j = 0; j < 9; j++) {
-					fw.write(fr.lostCount[i][j] + ",");
-				}
-				fw.write(fr.lostCount[i][0] + "\n");
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try {
-			fw.close();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		try {
-			fw = new FileWriter("result_found.csv");
-			for (int i = 0; i < 10; i++) {
-				for (int j = 0; j < 9; j++) {
-					fw.write(fr.foundCount[i][j] + ",");
-				}
-				fw.write(fr.foundCount[i][0] + "\n");
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try {
-			fw.close();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
+		experiment_repeatRandomizedDatabaseSize();
+		
 	}
 }
