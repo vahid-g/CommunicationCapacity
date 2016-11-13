@@ -721,10 +721,11 @@ public class FreebaseExperiment {
 		ExperimentResult fr = new ExperimentResult();
 		int qCount = 10;
 		int dCount = 10;
-		int expCount = 50;
+		int expCount = 5;
 		fr.lostCount = new int[qCount][dCount];
 		fr.foundCount = new int[qCount][dCount];
 		for (int i = 0; i < expCount; i++) {
+			System.out.println("====== exp iteration " + i);
 			er[i] = experiment_databaseSizeDoubleRandomized(i, qCount, dCount);
 			fr.lostCount = addMatrix(fr.lostCount, er[i].lostCount);
 			fr.foundCount = addMatrix(fr.foundCount, er[i].foundCount);
@@ -736,7 +737,7 @@ public class FreebaseExperiment {
 				for (int j = 0; j < dCount - 1; j++) {
 					fw.write(fr.lostCount[i][j] / ((double)expCount) + ",");
 				}
-				fw.write(fr.lostCount[i][expCount - 1] / ((double)expCount) + "\n");
+				fw.write(fr.lostCount[i][dCount - 1] / ((double)expCount) + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -752,7 +753,7 @@ public class FreebaseExperiment {
 				for (int j = 0; j < dCount - 1; j++) {
 					fw.write(fr.foundCount[i][j] / ((double)expCount) + ",");
 				}
-				fw.write(fr.foundCount[i][expCount - 1] / ((double)expCount) + "\n");
+				fw.write(fr.foundCount[i][dCount - 1] / ((double)expCount) + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
