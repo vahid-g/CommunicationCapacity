@@ -108,9 +108,11 @@ create table media as (select * from tmp_film) union (select * from tmp_tvp)
 select count(*) from media where description is not null;
 select count(*) from media;
 
-create table media_query_tmp as select query_fbid from query 
+create table media_query_tmp as select query.fbid from query 
 	where semantic_type like 'film' OR semantic_type like 'tv_program' OR semantic_type like 'album' 
 		OR semantic_type like 'album' OR semantic_type like 'book' OR semantic_type like 'computer_videgame';
+        
+drop table media_rels;
 
 -- -------------------------------------------------------------
 -- analyzing the queries that lose precision over media table
@@ -119,3 +121,7 @@ alter table media add fulltext (name);
 select * from media where match(name) against('Lost');
 select * from media where name like '%Frankenstein%';
 select * from media where name like '%A Separate Peace%';
+
+select count(*) from tbl_all; -- 5M
+select count(*) from media; -- 3M
+select count(*) from tbl_person; -- 2M
