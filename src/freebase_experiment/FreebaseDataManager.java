@@ -50,7 +50,6 @@ public class FreebaseDataManager {
 	static final int MAX_HITS = 100;
 	static final String USER = "querycapacity";
 	static final String PASS = "13667v";
-	static final String INDEX_BASE = "data/freebase_index/";
 	static final String resultDir = "data/result/";
 	static final String NAME_ATTRIB = "name";
 	static final String DESC_ATTRIB = "description";
@@ -60,9 +59,9 @@ public class FreebaseDataManager {
 	static final String FREQ_ATTRIB = "frequency";
 	static final String SEMANTIC_TYPE_ATTRIB = "semantic_type";
 	public static Session session;
-	
+
 	private static final int MAX_FETCH_SIZE = 10000;
-	
+
 	static void sshConnect() {
 		String user = "ghadakcv";
 		String password = "Hanh@nolde?";
@@ -156,13 +155,15 @@ public class FreebaseDataManager {
 		ArrayList<Document> docList = new ArrayList<Document>();
 		try (Connection databaseConnection = getDatabaseConnection()) {
 			// retrieve the tuples to be indexed
-			stmt = databaseConnection.createStatement(java.sql.ResultSet.TYPE_FORWARD_ONLY,
-		              java.sql.ResultSet.CONCUR_READ_ONLY);
+			stmt = databaseConnection.createStatement(
+					java.sql.ResultSet.TYPE_FORWARD_ONLY,
+					java.sql.ResultSet.CONCUR_READ_ONLY);
 			stmt.setFetchSize(Integer.MIN_VALUE);
 			rs = stmt.executeQuery(sqlQuery);
 			Runtime runtime = Runtime.getRuntime();
 			System.out.println("Starting to retrieve data. Memory Used: "
-					+ (runtime.totalMemory() - runtime.freeMemory()) / (1024*1024) + " MB");
+					+ (runtime.totalMemory() - runtime.freeMemory())
+					/ (1024 * 1024) + " MB");
 			while (rs.next()) {
 				Document doc = new Document();
 				try {
@@ -200,7 +201,7 @@ public class FreebaseDataManager {
 			String indexPath) {
 		System.out.println("Creating Index...");
 		cleanupIndexDir(indexPath);
-		
+
 		Directory directory = null;
 		IndexWriter writer = null;
 		try {
@@ -238,8 +239,8 @@ public class FreebaseDataManager {
 		}
 		return indexPath;
 	}
-	
-	private static void cleanupIndexDir(String indexPath){
+
+	private static void cleanupIndexDir(String indexPath) {
 		File dirFile = new File(indexPath);
 		if (dirFile.exists()) {
 			for (File f : dirFile.listFiles()) {
@@ -332,34 +333,31 @@ public class FreebaseDataManager {
 	}
 
 	public static void removeKeyword(List<FreebaseQuery> queries, String pattern) {
-		Pattern pat = Pattern.compile(pattern);
 		for (FreebaseQuery query : queries) {
-			// System.out.println(query.text);
-			Matcher matcher = pat.matcher(query.text.toLowerCase());
-			matcher.find();
-			String keyword = matcher.group(0);
-			query.attribs.put(FreebaseDataManager.NAME_ATTRIB, query.text
-					.toLowerCase().replace(keyword, ""));
-			// query.attribs.put(DESC_ATTRIB,
-			// query.text.toLowerCase().replace(keyword, ""));
+			extractKeyword(query, pattern);
 		}
 	}
 
-	public static void extractAndRemoveKeyword(List<FreebaseQuery> queries,
+	public static void annotateSemanticType(List<FreebaseQuery> queries,
 			String pattern) {
-		Pattern pat = Pattern.compile(pattern);
 		for (FreebaseQuery query : queries) {
-			System.out.println(query.text);
-			Matcher matcher = pat.matcher(query.text.toLowerCase());
-			matcher.find();
-			String keyword = matcher.group(0);
+			String keyword = extractKeyword(query, pattern);
 			query.attribs
 					.put(FreebaseDataManager.SEMANTIC_TYPE_ATTRIB, keyword);
-			query.attribs.put(FreebaseDataManager.NAME_ATTRIB, query.text
-					.toLowerCase().replace(keyword, ""));
-			// query.attribs.put(DESC_ATTRIB,
-			// query.text.toLowerCase().replace(keyword, ""));
 		}
+	}
+	
+	//removes a keyword (based on provided pattern) from a queries name and description and returns it 
+	private static String extractKeyword(FreebaseQuery query, String pattern) {
+		Pattern pat = Pattern.compile(pattern);
+		Matcher matcher = pat.matcher(query.text.toLowerCase());
+		matcher.find();
+		String keyword = matcher.group(0);
+		query.attribs.put(FreebaseDataManager.NAME_ATTRIB, query.text
+				.toLowerCase().replace(keyword, ""));
+		query.attribs.put(DESC_ATTRIB,
+				query.text.toLowerCase().replace(keyword, ""));
+		return keyword;
 	}
 
 	public static void addIdenticalAttibuteToQueries(List<FreebaseQuery> list,

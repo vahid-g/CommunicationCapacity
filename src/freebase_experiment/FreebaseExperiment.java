@@ -6,23 +6,30 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.lucene.document.Document;
 
 public class FreebaseExperiment {
-	
-	public static String CLUSTER_FOLDER = "/scratch/cluster-share/ghadakcv/";
-	public static String CLUSTER_INDEX = CLUSTER_FOLDER + "index/";
-	public static String CLUSTER_RESULTS = "results/";
 
+	static class ExperimentResult {
+		int[][] lostCount;
+		int[][] foundCount;
+	}
+
+	final static String DATA_FOLDER = "data/";
+	final static String INDEX_BASE = DATA_FOLDER + "freebase_index/";
+
+	final static int PARTITION_COUNT = 10;
+
+	public static void main(String[] args) {
+		experiment_repeatRandomizedDatabaseSizeQuerySize();
+	}
+
+	// runs all queries on a single table instance
 	public static void experiment_singleTable(String tableName, String[] attribs) {
-		// runs database size experiment on media table
-		// String attribs[] = { "name", "description" };
 		List<FreebaseQuery> queries = FreebaseDataManager
 				.getQueriesByRelevancyTable(tableName);
-		String indexPath = FreebaseDataManager.INDEX_BASE + tableName + "/";
+		String indexPath = FreebaseExperiment.INDEX_BASE + tableName + "/";
 		String dataQuery = FreebaseDataManager.buildDataQuery(tableName,
 				attribs);
 		FreebaseDataManager.createIndex(
@@ -53,82 +60,9 @@ public class FreebaseExperiment {
 
 	}
 
-	public static void runExperiment2() {
-		String tableName = "tbl_tv_program";
-		String attribs[] = { FreebaseDataManager.NAME_ATTRIB,
-				FreebaseDataManager.DESC_ATTRIB };
-		String indexPath = FreebaseDataManager.INDEX_BASE + tableName + "/";
-		// createIndex(tableName, attribs, indexPath);
-		String pattern = "program| tv| television| serie| show | show$| film | film$| movie";
-		String sql = "select * from query where text REGEXP '" + pattern
-				+ "' and fbid in (select fbid from tbl_tv_program);";
-		List<FreebaseQuery> queries = FreebaseDataManager
-				.getQueriesBySqlQuery(sql);
-		Pattern pat = Pattern.compile(pattern);
-		for (FreebaseQuery query : queries) {
-			System.out.println(query.text);
-			Matcher matcher = pat.matcher(query.text.toLowerCase());
-			matcher.find();
-			String keyword = matcher.group(0);
-			query.attribs.put(FreebaseDataManager.NAME_ATTRIB, query.text
-					.toLowerCase().replace(keyword, ""));
-			query.attribs.put(FreebaseDataManager.DESC_ATTRIB, query.text
-					.toLowerCase().replace(keyword, ""));
-		}
-		try (FileWriter fw = new FileWriter(FreebaseDataManager.resultDir
-				+ tableName + "_desc_name q_tvp.csv");) {
-			for (FreebaseQuery query : queries) {
-				FreebaseDataManager.runQuery(query, indexPath);
-				fw.write(query.id + ", " + query.text + ", " + query.frequency
-						+ ", " + query.wiki + ", " + query.p3() + ", "
-						+ query.precisionAtK(20) + ", " + query.mrr() + ","
-						+ query.hits[0] + ", " + query.hits[1] + "\n");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void runExperiment3() {
-		String tableName = "tvp_film";
-		String attribs[] = { FreebaseDataManager.NAME_ATTRIB,
-				FreebaseDataManager.DESC_ATTRIB,
-				FreebaseDataManager.SEMANTIC_TYPE_ATTRIB };
-		String indexPath = FreebaseDataManager.INDEX_BASE + tableName + "/";
-		// createIndex(tableName, attribs, indexPath);
-		String pattern = "program| tv| television| serie| show | show$| film | film$| movie";
-		String sql = "select * from query where text REGEXP '" + pattern
-				+ "' and fbid in (select fbid from tbl_tv_program);";
-		List<FreebaseQuery> queries = FreebaseDataManager
-				.getQueriesBySqlQuery(sql);
-		Pattern pat = Pattern.compile(pattern);
-		for (FreebaseQuery query : queries) {
-			System.out.println(query.text);
-			Matcher matcher = pat.matcher(query.text.toLowerCase());
-			matcher.find();
-			String keyword = matcher.group(0);
-			query.attribs
-					.put(FreebaseDataManager.SEMANTIC_TYPE_ATTRIB, keyword);
-			query.attribs.put(FreebaseDataManager.NAME_ATTRIB, query.text
-					.toLowerCase().replace(keyword, ""));
-			query.attribs.put(FreebaseDataManager.DESC_ATTRIB, query.text
-					.toLowerCase().replace(keyword, ""));
-		}
-		try (FileWriter fw = new FileWriter(FreebaseDataManager.resultDir
-				+ tableName + "_desc_name q_tvp.csv");) {
-			for (FreebaseQuery query : queries) {
-				FreebaseDataManager.runQuery(query, indexPath);
-				fw.write(query.id + ", " + query.text + ", " + query.frequency
-						+ ", " + query.wiki + ", " + query.p3() + ", "
-						+ query.precisionAtK(20) + ", " + query.mrr() + ","
-						+ query.hits[0] + ", " + query.hits[1] + "\n");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void experiment_keywordExtraction(String tableName,
+	// schema capacity experiment. queries selected based on specific set of
+	// keywords and submitted to a smaller table with keywords dropped
+	public static void experiment_schemaCapacitySmallerTable(String tableName,
 			String pattern) {
 		// String[] table = { "tbl_tv_program", "tbl_album", "tbl_book" };
 		// String[] pattern = {
@@ -138,7 +72,7 @@ public class FreebaseExperiment {
 
 		String attribs[] = { FreebaseDataManager.NAME_ATTRIB,
 				FreebaseDataManager.DESC_ATTRIB };
-		String indexPath = FreebaseDataManager.INDEX_BASE + tableName + "/";
+		String indexPath = FreebaseExperiment.INDEX_BASE + tableName + "/";
 		// createIndex(tableName, attribs, indexPath);
 		String sql = "select * from query where text REGEXP '" + pattern
 				+ "' and fbid in (select fbid from " + tableName + ");";
@@ -159,18 +93,21 @@ public class FreebaseExperiment {
 		}
 	}
 
-	public static void experiment_keywordExtraction(String tableName,
+	// schema capacity experiment. queries selected based on specific set of
+	// keywords and submitted to a larger table. Note that the keywords are not
+	// dropped.
+	public static void experiment_schemaCapacityLargerTable(String tableName,
 			String pattern, String queryTableName) {
 		String attribs[] = { FreebaseDataManager.NAME_ATTRIB,
 				FreebaseDataManager.DESC_ATTRIB,
 				FreebaseDataManager.SEMANTIC_TYPE_ATTRIB };
-		String indexPath = FreebaseDataManager.INDEX_BASE + tableName + "/";
+		String indexPath = FreebaseExperiment.INDEX_BASE + tableName + "/";
 		// createIndex(tableName, attribs, indexPath);
 		String sql = "select * from query where text REGEXP '" + pattern
 				+ "' and fbid in (select fbid from " + queryTableName + ");";
 		List<FreebaseQuery> queries = FreebaseDataManager
 				.getQueriesBySqlQuery(sql);
-		FreebaseDataManager.extractAndRemoveKeyword(queries, pattern);
+		FreebaseDataManager.annotateSemanticType(queries, pattern);
 		try (FileWriter fw = new FileWriter(FreebaseDataManager.resultDir
 				+ "t-" + tableName + " q-" + queryTableName + " a-name"
 				+ ".csv");) {
@@ -186,20 +123,20 @@ public class FreebaseExperiment {
 		}
 	}
 
-	public static void experiment_databaseSize() {
-		// runs database size experiment on media table writing outputs to a
-		// single file
-		String tableName = "media";
-		int mediaTableSize = 3285728;
+	// database size experiment on a single table (this method is missing create
+	// index step)
+	// output: a file with rows associated with queries
+	public static void experiment_databaseSize(String tableName) {
 		String attribs[] = { "name", "description" };
 		System.out.println("Loading queries..");
 		List<FreebaseQuery> queries = FreebaseDataManager
 				.getQueriesByRelevancyTable(tableName);
-		String indexPaths[] = new String[10];
-		for (int i = 0; i < 10; i++) {
+		String indexPaths[] = new String[PARTITION_COUNT];
+		for (int i = 0; i < PARTITION_COUNT; i++) {
 			System.out.println("Building index " + i + "..");
-			indexPaths[i] = FreebaseDataManager.INDEX_BASE + tableName + "_"
-					+ i + "/";
+			indexPaths[i] = FreebaseExperiment.INDEX_BASE + tableName + "_" + i
+					+ "/";
+			// missing create index
 		}
 		System.out.println("submitting queries..");
 		FileWriter fw = null;
@@ -209,7 +146,7 @@ public class FreebaseExperiment {
 			for (FreebaseQuery query : queries) {
 				fw.write(query.id + ", " + query.text + ", " + query.frequency
 						+ ", ");
-				for (int i = 0; i < 10; i++) {
+				for (int i = 0; i < PARTITION_COUNT; i++) {
 					FreebaseQueryResult fqr = FreebaseDataManager
 							.runFreebaseQuery(query, indexPaths[i]);
 					fw.write(fqr.mrr() + ", ");
@@ -229,28 +166,27 @@ public class FreebaseExperiment {
 		}
 	}
 
-	public static void experiment_databaseSizeRandomized(int experimentNo) {
-		// runs database size experiment on media table writing outputs to a
-		// single file
-		String tableName = "media";
+	// randomized database size experiment
+	// output: a file with rows associated with queries
+	public static void experiment_databaseSizeRandomized(String tableName,
+			int experimentNo) {
 		String attribs[] = { "name", "description" };
 		System.out.println("Loading queries..");
 		List<FreebaseQuery> queries = FreebaseDataManager
 				.getQueriesByRelevancyTable(tableName);
-		String indexPaths[] = new String[10];
-
+		String indexPaths[] = new String[PARTITION_COUNT];
 		System.out.println("Loading tuples into docs..");
 		String indexQuery = FreebaseDataManager.buildDataQuery(tableName,
 				attribs);
 		Document[] docs = FreebaseDataManager.loadTuplesToDocuments(indexQuery,
 				attribs);
-		shuffleArray(docs);
-		int parts = 10;
-		for (int i = 0; i < parts; i++) {
+		Utils.shuffleArray(docs);
+
+		for (int i = 0; i < PARTITION_COUNT; i++) {
 			System.out.println("Building index " + i + "..");
-			indexPaths[i] = FreebaseDataManager.INDEX_BASE + tableName + "_"
-					+ i + "/";
-			int l = (int) (((i + 1.0) / parts) * docs.length);
+			indexPaths[i] = FreebaseExperiment.INDEX_BASE + tableName + "_" + i
+					+ "/";
+			int l = (int) (((i + 1.0) / PARTITION_COUNT) * docs.length);
 			FreebaseDataManager.createIndex(Arrays.copyOf(docs, l), attribs,
 					indexPaths[i]);
 		}
@@ -262,7 +198,7 @@ public class FreebaseExperiment {
 			for (FreebaseQuery query : queries) {
 				fw.write(query.id + ", " + query.text.replace("\"", "") + ", "
 						+ query.frequency + ", ");
-				for (int i = 0; i < parts; i++) {
+				for (int i = 0; i < PARTITION_COUNT; i++) {
 					FreebaseQueryResult fqr = FreebaseDataManager
 							.runFreebaseQuery(query, indexPaths[i]);
 					fw.write(fqr.p3() + ", ");
@@ -282,17 +218,13 @@ public class FreebaseExperiment {
 		}
 	}
 
-	static class ExperimentResult {
-		int[][] lostCount;
-		int[][] foundCount;
-	}
-
+	// randomized database size query size experiment
+	// output: An ExperimentResult object showing number of queries that has
+	// gained and lost precision
 	public static ExperimentResult experiment_randomizedDatabaseSizeQuerySize(
-			int experimentNo, int queryPartitionCount, int dbPartitionCounts, String indexBase, String tableName) {
-		// runs database size experiment on media table writing outputs to a
-		// single file
+			int experimentNo, int queryPartitionCount, int dbPartitionCounts,
+			String indexBase, String tableName) {
 		String attribs[] = { "name", "description" };
-
 		System.out.println(experimentNo + ". Loading queries..");
 		List<FreebaseQuery> queriesList = FreebaseDataManager
 				.getQueriesByRelevancyTable(tableName);
@@ -300,16 +232,16 @@ public class FreebaseExperiment {
 		Collections.shuffle(queriesList, new Random(seed));
 
 		System.out.println(experimentNo + ". Loading tuples into docs..");
-		String indexPaths[] = new String[10];
+		String indexPaths[] = new String[dbPartitionCounts];
 		String indexQuery = FreebaseDataManager.buildDataQuery(tableName,
 				attribs);
 		Document[] docs = FreebaseDataManager.loadTuplesToDocuments(indexQuery,
 				attribs);
-		shuffleArray(docs);
+		Utils.shuffleArray(docs);
 
 		System.out.println(experimentNo + ".Building index..");
 		for (int i = 0; i < dbPartitionCounts; i++) {
-			indexPaths[i] = indexBase + experimentNo + "_" + tableName + "_"
+			indexPaths[i] = INDEX_BASE + experimentNo + "_" + tableName + "_"
 					+ i + "/";
 			int l = (int) (((i + 1.0) / dbPartitionCounts) * docs.length);
 			FreebaseDataManager.createIndex(Arrays.copyOf(docs, l), attribs,
@@ -353,18 +285,10 @@ public class FreebaseExperiment {
 		return er;
 	}
 
-	static void shuffleArray(Object[] ar) {
-		// If running on Java 6 or older, use `new Random()` on RHS here
-		Random rnd = new Random();
-		for (int i = ar.length - 1; i > 0; i--) {
-			int index = rnd.nextInt(i + 1);
-			// Simple swap
-			Object a = ar[index];
-			ar[index] = ar[i];
-			ar[i] = a;
-		}
-	}
-
+	// repeated randomized database size query size experiment
+	// output: two files with rows as query set instances and columns as
+	// database instances showing
+	// average number of queries that gained and lost p@3
 	public static void experiment_repeatRandomizedDatabaseSizeQuerySize() {
 		ExperimentResult[] er = new ExperimentResult[50];
 		ExperimentResult fr = new ExperimentResult();
@@ -375,10 +299,11 @@ public class FreebaseExperiment {
 		fr.foundCount = new int[qCount][dCount];
 		for (int i = 0; i < expCount; i++) {
 			System.out.println("====== exp iteration " + i);
-			er[i] = experiment_randomizedDatabaseSizeQuerySize(i, qCount,
-					dCount, FreebaseDataManager.INDEX_BASE, "media");
-			fr.lostCount = addMatrix(fr.lostCount, er[i].lostCount);
-			fr.foundCount = addMatrix(fr.foundCount, er[i].foundCount);
+			er[i] = FreebaseExperiment
+					.experiment_randomizedDatabaseSizeQuerySize(i, qCount,
+							dCount, FreebaseExperiment.INDEX_BASE, "media");
+			fr.lostCount = Utils.addMatrix(fr.lostCount, er[i].lostCount);
+			fr.foundCount = Utils.addMatrix(fr.foundCount, er[i].foundCount);
 		}
 		FileWriter fw = null;
 		try {
@@ -417,64 +342,5 @@ public class FreebaseExperiment {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-	}
-
-	public static void experiment_randomizedDatabaseSizeQuerySizeOnCluster(
-			int expNo, int qCount, int dCount, String tableName) {
-		ExperimentResult fr = new ExperimentResult();
-		fr.lostCount = new int[qCount][dCount];
-		fr.foundCount = new int[qCount][dCount];
-		fr = experiment_randomizedDatabaseSizeQuerySize(expNo, qCount, dCount, CLUSTER_INDEX, tableName);
-		FileWriter fw = null;
-		try {
-			fw = new FileWriter(CLUSTER_RESULTS  + tableName + "_lost_" + expNo + ".csv");
-			for (int i = 0; i < qCount; i++) {
-				for (int j = 0; j < dCount - 1; j++) {
-					fw.write(fr.lostCount[i][j] + ",");
-				}
-				fw.write(fr.lostCount[i][dCount - 1] + "\n");
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try {
-			fw.close();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		try {
-			fw = new FileWriter(CLUSTER_RESULTS  + tableName + "_found_" + expNo + ".csv");
-			for (int i = 0; i < qCount; i++) {
-				for (int j = 0; j < dCount - 1; j++) {
-					fw.write(fr.foundCount[i][j] + ",");
-				}
-				fw.write(fr.foundCount[i][dCount - 1] + "\n");
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try {
-			fw.close();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-	}
-
-	public static int[][] addMatrix(int[][] a, int[][] b) {
-		int[][] c = new int[a.length][a[0].length];
-		for (int i = 0; i < a.length; i++) {
-			for (int j = 0; j < a[0].length; j++) {
-				c[i][j] = a[i][j] + b[i][j];
-			}
-		}
-		return c;
-	}
-
-	public static void main(String[] args) {
-
-		// experiment_repeatRandomizedDatabaseSizeQuerySize();
-		int expNo = Integer.parseInt(args[0]);
-		experiment_randomizedDatabaseSizeQuerySizeOnCluster(expNo, 5, 10, "media");
-
 	}
 }
