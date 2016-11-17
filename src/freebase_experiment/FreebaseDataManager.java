@@ -362,7 +362,7 @@ public class FreebaseDataManager {
 		}
 	}
 
-	private static void addIdenticalAttibuteToQueries(List<FreebaseQuery> list,
+	public static void addIdenticalAttibuteToQueries(List<FreebaseQuery> list,
 			String attrib, String val) {
 		for (FreebaseQuery query : list) {
 			query.attribs.put(attrib, val);
@@ -471,6 +471,7 @@ public class FreebaseDataManager {
 		return fqr;
 	}
 
+	// same as above but runs more than one query
 	public static List<FreebaseQueryResult> runFreebaseQueries(
 			List<FreebaseQuery> queries, String indexPath) {
 		IndexReader reader = null;
