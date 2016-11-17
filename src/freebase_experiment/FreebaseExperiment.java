@@ -288,10 +288,9 @@ public class FreebaseExperiment {
 	}
 
 	public static ExperimentResult experiment_randomizedDatabaseSizeQuerySize(
-			int experimentNo, int queryPartitionCount, int dbPartitionCounts, String indexBase) {
+			int experimentNo, int queryPartitionCount, int dbPartitionCounts, String indexBase, String tableName) {
 		// runs database size experiment on media table writing outputs to a
 		// single file
-		String tableName = "tbl_all";
 		String attribs[] = { "name", "description" };
 
 		System.out.println(experimentNo + ". Loading queries..");
@@ -377,7 +376,7 @@ public class FreebaseExperiment {
 		for (int i = 0; i < expCount; i++) {
 			System.out.println("====== exp iteration " + i);
 			er[i] = experiment_randomizedDatabaseSizeQuerySize(i, qCount,
-					dCount, FreebaseDataManager.INDEX_BASE);
+					dCount, FreebaseDataManager.INDEX_BASE, "media");
 			fr.lostCount = addMatrix(fr.lostCount, er[i].lostCount);
 			fr.foundCount = addMatrix(fr.foundCount, er[i].foundCount);
 		}
@@ -421,14 +420,14 @@ public class FreebaseExperiment {
 	}
 
 	public static void experiment_randomizedDatabaseSizeQuerySizeOnCluster(
-			int expNo, int qCount, int dCount) {
+			int expNo, int qCount, int dCount, String tableName) {
 		ExperimentResult fr = new ExperimentResult();
 		fr.lostCount = new int[qCount][dCount];
 		fr.foundCount = new int[qCount][dCount];
-		fr = experiment_randomizedDatabaseSizeQuerySize(expNo, qCount, dCount, CLUSTER_INDEX);
+		fr = experiment_randomizedDatabaseSizeQuerySize(expNo, qCount, dCount, CLUSTER_INDEX, tableName);
 		FileWriter fw = null;
 		try {
-			fw = new FileWriter(CLUSTER_RESULTS  + expNo + "_result_lost" + ".csv");
+			fw = new FileWriter(CLUSTER_RESULTS  + tableName + "_lost_" + expNo + ".csv");
 			for (int i = 0; i < qCount; i++) {
 				for (int j = 0; j < dCount - 1; j++) {
 					fw.write(fr.lostCount[i][j] + ",");
@@ -444,7 +443,7 @@ public class FreebaseExperiment {
 			e1.printStackTrace();
 		}
 		try {
-			fw = new FileWriter(CLUSTER_RESULTS  + expNo + "_result_found" + ".csv");
+			fw = new FileWriter(CLUSTER_RESULTS  + tableName + "_found_" + expNo + ".csv");
 			for (int i = 0; i < qCount; i++) {
 				for (int j = 0; j < dCount - 1; j++) {
 					fw.write(fr.foundCount[i][j] + ",");
@@ -475,7 +474,7 @@ public class FreebaseExperiment {
 
 		// experiment_repeatRandomizedDatabaseSizeQuerySize();
 		int expNo = Integer.parseInt(args[0]);
-		experiment_randomizedDatabaseSizeQuerySizeOnCluster(expNo, 5, 10);
+		experiment_randomizedDatabaseSizeQuerySizeOnCluster(expNo, 5, 10, "media");
 
 	}
 }
