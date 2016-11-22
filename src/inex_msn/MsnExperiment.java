@@ -6,30 +6,18 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.SlowCompositeReaderWrapper;
@@ -49,7 +37,7 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 
-public class InexExperiment {
+public class MsnExperiment {
 
 	public static final String CONTENT_ATTRIB = "content";
 	public static final String DOCNAME_ATTRIB = "name";
@@ -65,23 +53,9 @@ public class InexExperiment {
 
 	static int queryCoutner = 0;
 
-	protected IndexWriter writer;
 	private String indexDirPath;
 
-	private IndexWriterConfig getConfig() {
-		IndexWriterConfig config;
-		config = new IndexWriterConfig(new StandardAnalyzer());
-		config.setOpenMode(OpenMode.CREATE);
-		config.setRAMBufferSizeMB(1024.00);
-		config.setSimilarity(new BM25Similarity());
-		return config;
-	}
-
-	public InexExperiment() {
-		super();
-	}
-
-	public InexExperiment(String indexName) {
+	public MsnExperiment(String indexName) {
 		indexDirPath = INDEX_DIR + indexName + "/";
 	}
 
@@ -90,7 +64,7 @@ public class InexExperiment {
 	}
 
 	public static void exp0() { // indexing and querying whole dataset
-		InexExperiment ie = new InexExperiment("inex9_xml");
+		MsnExperiment ie = new MsnExperiment("inex9_xml");
 		Date start = new Date();
 		// ie.buildIndex(INEX_DIR);
 		Date endIndexing = new Date();
@@ -106,10 +80,10 @@ public class InexExperiment {
 	}
 
 	public static void runSingleQuery() { // run a single query and print index
-		InexExperiment ie = new InexExperiment("DESC_NAME_09_1");
-		List<QueryDAO> queries = ie.loadQueries(QUERY_DIR
+		MsnExperiment ie = new MsnExperiment("DESC_NAME_09_1");
+		List<MsnQueryDAO> queries = ie.loadQueries(QUERY_DIR
 				+ "inex09/queries.csv");
-		QueryDAO query = queries.get(0);
+		MsnQueryDAO query = queries.get(0);
 		System.out.println(query);
 		// List<Document> result = ie.runQuery(query);
 		// for (Document doc : result.subList(0, 100)) {
@@ -125,23 +99,24 @@ public class InexExperiment {
 		int partitionNo = 10;
 		ArrayList<String[]> partitions = Utils.partitionArray(
 				allFiles.toArray(new String[allFiles.size()]), partitionNo);
-		InexExperiment prevExperiment = null;
+		MsnExperiment prevExperiment = null;
 		for (int i = 0; i < partitionNo; i++) {
 			System.out.println("iteration " + i);
-			InexExperiment ie = new InexExperiment("desc_name_trec_indie_2_"
+			MsnExperiment ie = new MsnExperiment("desc_name_trec_indie_2_"
 					+ i);
 			Date index_t = new Date();
 			System.out.println("indexing ");
 			System.out.println("partition length: " + partitions.get(i).length);
-			ie.buildIndex(partitions.get(i));
+			InexIndexer.buildIndex(partitions.get(i), ie.indexDirPath);
 			if (prevExperiment != null) {
 				System.out.println("updating index..");
-				ie.updateIndex(prevExperiment.indexDirPath);
+				InexIndexer.updateIndex(prevExperiment.indexDirPath, ie.indexDirPath);
 			}
 			Date query_t = new Date();
 			prevExperiment = ie;
 			System.out.println("indexing time "
 					+ (query_t.getTime() - index_t.getTime()) / 60000 + "mins");
+			
 			System.out.println("querying time "
 					+ (new Date().getTime() - query_t.getTime()) / 60000
 					+ "mins");
@@ -171,19 +146,19 @@ public class InexExperiment {
 					allFiles.toArray(new String[allFiles.size()]), partitionNo);
 			List<String[]> partitions = Utils.mergePartitions(relPartitions,
 					otherPartitions);
-			InexExperiment prevExperiment = null;
+			MsnExperiment prevExperiment = null;
 			for (int i = 0; i < partitionNo; i++) {
 				System.out.println("iteration " + i);
-				InexExperiment ie = new InexExperiment("desc_name_trec_uniq_"
+				MsnExperiment ie = new MsnExperiment("desc_name_trec_uniq_"
 						+ i);
 				Date index_t = new Date();
 				System.out.println("indexing ");
 				System.out.println("partition length: "
 						+ partitions.get(i).length);
-				ie.buildIndex(partitions.get(i));
+				InexIndexer.buildIndex(partitions.get(i), ie.indexDirPath);
 				if (prevExperiment != null) {
 					System.out.println("updating index..");
-					ie.updateIndex(prevExperiment.indexDirPath);
+					InexIndexer.updateIndex(prevExperiment.indexDirPath, ie.indexDirPath);
 				}
 				Date query_t = new Date();
 				// System.out.println("running queries");
@@ -205,7 +180,7 @@ public class InexExperiment {
 
 	public static void runQueriesOnPartitionedIndex() { // running specific queries for exp1
 		for (int i = 0; i < 10; i++) {
-			InexExperiment ie = new InexExperiment("desc_name_trec_indie_2_"
+			MsnExperiment ie = new MsnExperiment("desc_name_trec_indie_2_"
 					+ i);
 			Date query_t = new Date();
 			System.out.println("running queries");
@@ -219,7 +194,7 @@ public class InexExperiment {
 	}
 
 	public static void runTotalQueriesOnPartitionedIndex() { 
-		List<QueryDAO> queries = loadQueries("data/query-log/inex09/queries_uniq.csv");
+		List<MsnQueryDAO> queries = loadQueries("data/query-log/inex09/queries_uniq.csv");
 		String[] indexPath = new String[10];
 		for (int i = 0; i < 10; i++) {
 			indexPath[i] = INDEX_DIR + "desc_name_trec_indie_2_" + i;
@@ -227,7 +202,7 @@ public class InexExperiment {
 		FileWriter fw = null;
 		try {
 			fw = new FileWriter(RESULT_DIR + "???");
-			for (QueryDAO queryDAO : queries) {
+			for (MsnQueryDAO queryDAO : queries) {
 				for (int i = 0; i < 10; i++) {
 					try (IndexReader reader = DirectoryReader.open(FSDirectory
 							.open(Paths.get(indexPath[i])))) {
@@ -266,179 +241,13 @@ public class InexExperiment {
 
 	}
 
-	public void buildIndex(String datasetFolderPath) {
-		FSDirectory directory = null;
-		try {
-			System.out.println("indexing to: " + indexDirPath);
-			directory = FSDirectory.open(Paths.get(indexDirPath));
-			writer = new IndexWriter(directory, getConfig());
-			this.indexFileFolder(datasetFolderPath);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (writer != null)
-				try {
-					writer.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			if (directory != null)
-				directory.close();
-		}
-	}
-
-	public void buildIndex(String[] datasetFilePaths) {
-		FSDirectory directory = null;
-		try {
-			directory = FSDirectory.open(Paths.get(indexDirPath));
-			writer = new IndexWriter(directory, getConfig());
-			for (String filePath : datasetFilePaths) {
-				this.indexFile(new File(filePath));
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (writer != null)
-				try {
-					writer.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			if (directory != null)
-				directory.close();
-		}
-	}
-
-	public void updateIndex(String newIndexPath) {
-		String tmpIndexPath = INDEX_DIR + "tmp_index";
-		FSDirectory newIndexDir = null;
-		FSDirectory tmpDir = null;
-		FSDirectory currentDir = null;
-		IndexWriter writer = null;
-		try {
-			newIndexDir = FSDirectory.open(Paths.get(newIndexPath));
-			tmpDir = FSDirectory.open(Paths.get(tmpIndexPath));
-			currentDir = FSDirectory.open(Paths.get(indexDirPath));
-			writer = new IndexWriter(tmpDir, getConfig());
-			writer.addIndexes(newIndexDir, currentDir);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (writer != null)
-				try {
-					writer.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			if (tmpDir != null)
-				tmpDir.close();
-			if (newIndexDir != null)
-				newIndexDir.close();
-			if (currentDir != null)
-				currentDir.close();
-		}
-		// housekeeping
-		try {
-			File currentIndex = new File(indexDirPath);
-			FileUtils.deleteDirectory(currentIndex);
-			File newIndex = new File(tmpIndexPath);
-			newIndex.renameTo(new File(indexDirPath));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	public void mergeIndices(String[] inputIndexPaths) {
-		FSDirectory writeDir = null;
-		FSDirectory[] inputDirs = new FSDirectory[inputIndexPaths.length];
-		IndexWriter writer = null;
-		try {
-			writeDir = FSDirectory.open(Paths.get(this.indexDirPath));
-			writer = new IndexWriter(writeDir, getConfig());
-			for (int i = 0; i < inputIndexPaths.length; i++) {
-				System.out.println(inputIndexPaths[i]);
-				inputDirs[i] = FSDirectory.open(Paths.get(INDEX_DIR
-						+ inputIndexPaths[i]));
-			}
-			writer.addIndexes(inputDirs);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (writer != null)
-				try {
-					writer.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			if (writeDir != null)
-				writeDir.close();
-			for (FSDirectory fsd : inputDirs) {
-				if (fsd != null)
-					fsd.close();
-			}
-		}
-	}
-
-	protected void indexFileFolder(String filePath) {
-		File file = new File(filePath);
-		if (!file.exists()) {
-			System.out.println("File " + file.getAbsolutePath()
-					+ " does not exist!");
-			return;
-		} else {
-			if (file.isDirectory()) {
-				System.out.println(" indexing dir " + file.getPath());
-				for (File f : file.listFiles()) {
-					indexFileFolder(f.getAbsolutePath());
-				}
-			} else { // file is not a directory
-				indexFile(file);
-			}
-		}
-	}
-
-	protected void indexFile(File file) {
-		try (InputStream fis = Files.newInputStream(file.toPath())) {
-			byte[] data = new byte[(int) file.length()];
-			fis.read(data);
-			String fileContent = new String(data, "UTF-8");
-			int length = fileContent.length() > 8 ? 8 : fileContent.length();
-			if (fileContent.substring(0, length).equals("REDIRECT")) {
-				return;
-			}
-			Pattern p = Pattern.compile(".*<title>(.*?)</title>.*",
-					Pattern.DOTALL);
-			Matcher m = p.matcher(fileContent);
-			m.find();
-			String title = "";
-			if (m.matches())
-				title = m.group(1);
-			else
-				System.out.println("!!! title not found in " + file.getName());
-			fileContent = fileContent.replaceAll("\\<.*?\\>", " ");
-			Document doc = new Document();
-			doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils
-					.removeExtension(file.getName()), Field.Store.YES));
-			doc.add(new TextField(TITLE_ATTRIB, title, Field.Store.YES));
-			doc.add(new TextField(CONTENT_ATTRIB, fileContent, Field.Store.YES));
-			// doc.add(new TextField(CONTENT_ATTRIB, new BufferedReader(
-			// new InputStreamReader(fis, StandardCharsets.UTF_8))));
-			writer.addDocument(doc);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void runUniQueries(List<QueryDAO> queries, String resultFileName) {
+	public void runUniQueries(List<MsnQueryDAO> queries, String resultFileName) {
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
 				.get(this.indexDirPath)))) {
 			System.out.println("Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
 			searcher.setSimilarity(new BM25Similarity());
-			for (QueryDAO queryDAO : queries) {
+			for (MsnQueryDAO queryDAO : queries) {
 				// System.out.println(queryCoutner++);
 				TopDocs topDocs = searcher
 						.search(buildQuery(queryDAO.text, TITLE_ATTRIB,
@@ -471,7 +280,7 @@ public class InexExperiment {
 			e.printStackTrace();
 		}
 		try (FileWriter fw = new FileWriter(RESULT_DIR + resultFileName)) {
-			for (QueryDAO query : queries) {
+			for (MsnQueryDAO query : queries) {
 				fw.write(query.text + ", " + query.p3 + ", " + query.p10 + ", "
 						+ query.mrr + "\n");
 			}
@@ -480,7 +289,7 @@ public class InexExperiment {
 		}
 	}
 
-	public void runQueries(List<QueryDAO> queries, String resultFileName) {
+	public void runQueries(List<MsnQueryDAO> queries, String resultFileName) {
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
 				.get(this.indexDirPath)))) {
 			// // Code to print the terms of index
@@ -495,7 +304,7 @@ public class InexExperiment {
 			System.out.println("Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
 			searcher.setSimilarity(new BM25Similarity());
-			for (QueryDAO queryDAO : queries) {
+			for (MsnQueryDAO queryDAO : queries) {
 				// System.out.println(queryCoutner++);
 				TopDocs topDocs = searcher
 						.search(buildQuery(queryDAO.text, TITLE_ATTRIB,
@@ -517,7 +326,7 @@ public class InexExperiment {
 			e.printStackTrace();
 		}
 		try (FileWriter fw = new FileWriter(RESULT_DIR + resultFileName)) {
-			for (QueryDAO query : queries) {
+			for (MsnQueryDAO query : queries) {
 				fw.write(query.text + ", " + query.p3 + ", " + query.p10 + ", "
 						+ query.mrr + "\n");
 			}
@@ -572,8 +381,8 @@ public class InexExperiment {
 		return query;
 	}
 
-	public static List<QueryDAO> loadQueries(String queryFile) {
-		List<QueryDAO> queries = new ArrayList<QueryDAO>();
+	public static List<MsnQueryDAO> loadQueries(String queryFile) {
+		List<MsnQueryDAO> queries = new ArrayList<MsnQueryDAO>();
 		try (BufferedReader br = new BufferedReader(new FileReader(queryFile))) {
 			String line;
 			String queryText;
@@ -586,7 +395,7 @@ public class InexExperiment {
 				if (queryText.equals(prevQueryText)) {
 					queries.get(queries.size() - 1).addRelevantAnswer(rel);
 				} else {
-					queries.add(new QueryDAO(queryText, rel));
+					queries.add(new MsnQueryDAO(queryText, rel));
 					prevQueryText = queryText;
 				}
 			}

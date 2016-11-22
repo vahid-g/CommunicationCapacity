@@ -2,10 +2,10 @@ package inex_msn;
 
 import java.util.ArrayList;
 
-class QueryDAO {
+class MsnQueryDAO {
 	
 		
-	public QueryDAO(String text, String relDoc) {
+	public MsnQueryDAO(String text, String relDoc) {
 		this.text = text;
 		this.relDocs = new ArrayList<String>();
 		this.relDocs.add(relDoc);

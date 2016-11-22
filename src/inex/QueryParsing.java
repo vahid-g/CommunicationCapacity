@@ -19,14 +19,13 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class Inex_Experiment {
+public class QueryParsing {
 
-	static class QueryDAO {
-		QueryDAO(int id, String text) {
+	static class InexQueryDAO {
+		InexQueryDAO(int id, String text) {
 			this.id = id;
 			this.text = text;
 		}
-
 		int id;
 		String text;
 		List<Integer> docIds = new ArrayList<Integer>();
@@ -37,8 +36,8 @@ public class Inex_Experiment {
 				"data/queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels");
 	}
 
-	static HashMap<Integer, QueryDAO> buildQueries(String path, String qrelPath) {
-		HashMap<Integer, QueryDAO> map = new HashMap<Integer, QueryDAO>();
+	static HashMap<Integer, InexQueryDAO> buildQueries(String path, String qrelPath) {
+		HashMap<Integer, InexQueryDAO> map = new HashMap<Integer, InexQueryDAO>();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(true);
 		dbf.setValidating(true);
@@ -53,7 +52,7 @@ public class Inex_Experiment {
 				int id = Integer.parseInt(node.getAttributes()
 						.getNamedItem("id").getNodeValue());
 				String queryText = getText(findSubNode("title", node));
-				map.put(id, new QueryDAO(id, queryText));
+				map.put(id, new InexQueryDAO(id, queryText));
 			}
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
@@ -77,7 +76,7 @@ public class Inex_Experiment {
 					if (m.group(3).equals("1")){
 						int id = Integer.parseInt(m.group(1));
 						int relId = Integer.parseInt(m.group(2));
-						QueryDAO dao = map.get(id);
+						InexQueryDAO dao = map.get(id);
 						dao.docIds.add(relId);
 					}
 				} else {
