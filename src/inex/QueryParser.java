@@ -3,9 +3,7 @@ package inex;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,17 +17,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class QueryParsing {
-
-	static class InexQueryDAO {
-		InexQueryDAO(int id, String text) {
-			this.id = id;
-			this.text = text;
-		}
-		int id;
-		String text;
-		List<Integer> docIds = new ArrayList<Integer>();
-	}
+public class QueryParser {
 
 	public static void main(String[] args) {
 		buildQueries("data/queries/inex_ld/2013-ld-adhoc-topics.xml",
@@ -77,7 +65,7 @@ public class QueryParsing {
 						int id = Integer.parseInt(m.group(1));
 						int relId = Integer.parseInt(m.group(2));
 						InexQueryDAO dao = map.get(id);
-						dao.docIds.add(relId);
+						dao.relDocIds.add(relId);
 					}
 				} else {
 					System.out.println("regex failed!!!");

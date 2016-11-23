@@ -1,12 +1,9 @@
 package inex_msn;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.regex.Matcher;
@@ -25,12 +22,15 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
-public class InexIndexer {
+public class InexIndexer{
 
-	static IndexWriterConfig getConfig() {
+	static IndexWriterConfig getConfig(boolean append) {
 		IndexWriterConfig config;
 		config = new IndexWriterConfig(new StandardAnalyzer());
-		config.setOpenMode(OpenMode.CREATE);
+		if (append)
+			config.setOpenMode(OpenMode.APPEND);
+		else
+			config.setOpenMode(OpenMode.CREATE);
 		config.setRAMBufferSizeMB(1024.00);
 		config.setSimilarity(new BM25Similarity());
 		return config;
@@ -42,7 +42,7 @@ public class InexIndexer {
 		try {
 			System.out.println("indexing to: " + indexPath);
 			directory = FSDirectory.open(Paths.get(indexPath));
-			writer = new IndexWriter(directory, getConfig());
+			writer = new IndexWriter(directory, getConfig(false));
 			indexFileFolder(datasetFolderPath, writer);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -59,13 +59,21 @@ public class InexIndexer {
 	}
 
 	public static void buildIndex(String[] datasetFilePaths, String indexPath) {
+		buildIndex(datasetFilePaths, indexPath, true);
+	}
+
+	public static void buildIndex(String[] datasetFilePaths, String indexPath,
+			boolean isXml) {
 		FSDirectory directory = null;
 		IndexWriter writer = null;
 		try {
 			directory = FSDirectory.open(Paths.get(indexPath));
-			writer = new IndexWriter(directory, getConfig());
+			writer = new IndexWriter(directory, getConfig(false));
 			for (String filePath : datasetFilePaths) {
-				indexXmlFile(filePath, writer);
+				if (isXml)
+					indexXmlFile(filePath, writer);
+				else
+					indexFile(filePath, writer);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -81,18 +89,15 @@ public class InexIndexer {
 		}
 	}
 
-	public static void updateIndex(String newIndexPath, String indexPath) {
-		String tmpIndexPath = MsnExperiment.INDEX_DIR + "tmp_index";
-		FSDirectory newIndexDir = null;
-		FSDirectory tmpDir = null;
+	public static void updateIndex(String prevIndexPath, String indexPath) {
+		FSDirectory prevIndexDir = null;
 		FSDirectory currentDir = null;
 		IndexWriter writer = null;
 		try {
-			newIndexDir = FSDirectory.open(Paths.get(newIndexPath));
-			tmpDir = FSDirectory.open(Paths.get(tmpIndexPath));
+			prevIndexDir = FSDirectory.open(Paths.get(prevIndexPath));
 			currentDir = FSDirectory.open(Paths.get(indexPath));
-			writer = new IndexWriter(tmpDir, getConfig());
-			writer.addIndexes(newIndexDir, currentDir);
+			writer = new IndexWriter(currentDir, getConfig(true));
+			writer.addIndexes(prevIndexDir);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -102,23 +107,11 @@ public class InexIndexer {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			if (tmpDir != null)
-				tmpDir.close();
-			if (newIndexDir != null)
-				newIndexDir.close();
+			if (prevIndexDir != null)
+				prevIndexDir.close();
 			if (currentDir != null)
 				currentDir.close();
 		}
-		// housekeeping
-		try {
-			File currentIndex = new File(indexPath);
-			FileUtils.deleteDirectory(currentIndex);
-			File newIndex = new File(tmpIndexPath);
-			newIndex.renameTo(new File(indexPath));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
 	}
 
 	static void mergeIndices(String[] inputIndexPaths, String indexPath) {
@@ -127,10 +120,11 @@ public class InexIndexer {
 		IndexWriter writer = null;
 		try {
 			writeDir = FSDirectory.open(Paths.get(indexPath));
-			writer = new IndexWriter(writeDir, getConfig());
+			writer = new IndexWriter(writeDir, getConfig(false));
 			for (int i = 0; i < inputIndexPaths.length; i++) {
 				System.out.println(inputIndexPaths[i]);
-				inputDirs[i] = FSDirectory.open(Paths.get(MsnExperiment.INDEX_DIR + inputIndexPaths[i]));
+				inputDirs[i] = FSDirectory.open(Paths
+						.get(MsnExperiment.INDEX_DIR + inputIndexPaths[i]));
 			}
 			writer.addIndexes(inputDirs);
 		} catch (IOException e) {
@@ -154,7 +148,8 @@ public class InexIndexer {
 	static void indexFileFolder(String filePath, IndexWriter writer) {
 		File file = new File(filePath);
 		if (!file.exists()) {
-			System.out.println("File " + file.getAbsolutePath() + " does not exist!");
+			System.out.println("File " + file.getAbsolutePath()
+					+ " does not exist!");
 			return;
 		} else {
 			if (file.isDirectory()) {
@@ -181,7 +176,8 @@ public class InexIndexer {
 			if (fileContent.substring(0, length).equals("REDIRECT")) {
 				return;
 			}
-			Pattern p = Pattern.compile(".*<title>(.*?)</title>.*", Pattern.DOTALL);
+			Pattern p = Pattern.compile(".*<title>(.*?)</title>.*",
+					Pattern.DOTALL);
 			Matcher m = p.matcher(fileContent);
 			m.find();
 			String title = "";
@@ -191,10 +187,12 @@ public class InexIndexer {
 				System.out.println("!!! title not found in " + file.getName());
 			fileContent = fileContent.replaceAll("\\<.*?\\>", " ");
 			Document doc = new Document();
-			doc.add(new StringField(MsnExperiment.DOCNAME_ATTRIB, FilenameUtils.removeExtension(file.getName()),
+			doc.add(new StringField(MsnExperiment.DOCNAME_ATTRIB, FilenameUtils
+					.removeExtension(file.getName()), Field.Store.YES));
+			doc.add(new TextField(MsnExperiment.TITLE_ATTRIB, title,
 					Field.Store.YES));
-			doc.add(new TextField(MsnExperiment.TITLE_ATTRIB, title, Field.Store.YES));
-			doc.add(new TextField(MsnExperiment.CONTENT_ATTRIB, fileContent, Field.Store.YES));
+			doc.add(new TextField(MsnExperiment.CONTENT_ATTRIB, fileContent,
+					Field.Store.YES));
 			// doc.add(new TextField(CONTENT_ATTRIB, new BufferedReader(
 			// new InputStreamReader(fis, StandardCharsets.UTF_8))));
 			writer.addDocument(doc);
@@ -205,22 +203,30 @@ public class InexIndexer {
 		}
 	}
 
-	static void indexFile(File file, IndexWriter writer) {
+	static void indexFile(String filepath, IndexWriter writer) {
+		File file = new File(filepath);
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];
 			fis.read(data);
 			Document doc = new Document();
-			// String fileContent = new String(data, "UTF-8");
-			// doc.add(new TextField(InexExperiment.CONTENT_ATTRIB, fileContent,
-			// Field.Store.YES));
-			doc.add(new TextField(MsnExperiment.CONTENT_ATTRIB,
-					new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8))));
+			String fileContent = new String(data, "UTF-8");
+			if (isRedirectingFile(fileContent))
+				return;
+			doc.add(new StringField(MsnExperiment.DOCNAME_ATTRIB, FilenameUtils
+					.removeExtension(file.getName()), Field.Store.YES));
+			doc.add(new TextField(MsnExperiment.CONTENT_ATTRIB, fileContent,
+					Field.Store.YES));
 			writer.addDocument(doc);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private static boolean isRedirectingFile(String fileContent) {
+		int length = fileContent.length() > 8 ? 8 : fileContent.length();
+		return (fileContent.substring(0, length).equals("REDIRECT"));
 	}
 
 }

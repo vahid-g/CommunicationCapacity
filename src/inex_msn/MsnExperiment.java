@@ -1,9 +1,6 @@
 package inex_msn;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -13,7 +10,6 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Fields;
@@ -23,15 +19,8 @@ import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.SlowCompositeReaderWrapper;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.queryparser.classic.QueryParser.Operator;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
@@ -68,8 +57,8 @@ public class MsnExperiment {
 		Date start = new Date();
 		// ie.buildIndex(INEX_DIR);
 		Date endIndexing = new Date();
-		ie.runQueries(ie.loadQueries(DEFAULT_QUERY_FILE), RESULT_DIR
-				+ "inex9_fold1_xml");
+		MsnQueryServices.runQueries(MsnQueryServices.loadQueries(DEFAULT_QUERY_FILE), RESULT_DIR
+				+ "inex9_fold1_xml", "???");
 		Date endQuerying = new Date();
 		System.out.println("Indexing time: "
 				+ (endIndexing.getTime() - start.getTime()) / 60000.0
@@ -81,7 +70,7 @@ public class MsnExperiment {
 
 	public static void runSingleQuery() { // run a single query and print index
 		MsnExperiment ie = new MsnExperiment("DESC_NAME_09_1");
-		List<MsnQueryDAO> queries = ie.loadQueries(QUERY_DIR
+		List<MsnQueryDAO> queries = MsnQueryServices.loadQueries(QUERY_DIR
 				+ "inex09/queries.csv");
 		MsnQueryDAO query = queries.get(0);
 		System.out.println(query);
@@ -184,9 +173,9 @@ public class MsnExperiment {
 					+ i);
 			Date query_t = new Date();
 			System.out.println("running queries");
-			ie.runQueries(
-					ie.loadQueries("data/query-log/inex09/queries_uniq.csv"),
-					"desc_name_trec09_uniq_2_" + i + ".csv");
+			MsnQueryServices.runQueries(
+					MsnQueryServices.loadQueries("data/query-log/inex09/queries_uniq.csv"),
+					"desc_name_trec09_uniq_2_" + i + ".csv", "???");
 			System.out.println("querying time "
 					+ (new Date().getTime() - query_t.getTime()) / 60000
 					+ "mins");
@@ -194,7 +183,7 @@ public class MsnExperiment {
 	}
 
 	public static void runTotalQueriesOnPartitionedIndex() { 
-		List<MsnQueryDAO> queries = loadQueries("data/query-log/inex09/queries_uniq.csv");
+		List<MsnQueryDAO> queries = MsnQueryServices.loadQueries("data/query-log/inex09/queries_uniq.csv");
 		String[] indexPath = new String[10];
 		for (int i = 0; i < 10; i++) {
 			indexPath[i] = INDEX_DIR + "desc_name_trec_indie_2_" + i;
@@ -209,7 +198,7 @@ public class MsnExperiment {
 						IndexSearcher searcher = new IndexSearcher(reader);
 						searcher.setSimilarity(new BM25Similarity());
 						TopDocs topDocs = searcher.search(
-								buildQuery(queryDAO.text, TITLE_ATTRIB,
+								MsnQueryServices.buildQuery(queryDAO.text, TITLE_ATTRIB,
 										CONTENT_ATTRIB), 10);
 						int precisionBoundry = topDocs.scoreDocs.length > 10 ? 10
 								: topDocs.scoreDocs.length;
@@ -239,173 +228,6 @@ public class MsnExperiment {
 			}
 		}
 
-	}
-
-	public void runUniQueries(List<MsnQueryDAO> queries, String resultFileName) {
-		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
-				.get(this.indexDirPath)))) {
-			System.out.println("Number of docs in index: " + reader.numDocs());
-			IndexSearcher searcher = new IndexSearcher(reader);
-			searcher.setSimilarity(new BM25Similarity());
-			for (MsnQueryDAO queryDAO : queries) {
-				// System.out.println(queryCoutner++);
-				TopDocs topDocs = searcher
-						.search(buildQuery(queryDAO.text, TITLE_ATTRIB,
-								CONTENT_ATTRIB), MAX_HIT_COUNT);
-				for (int i = 0; i < topDocs.scoreDocs.length; i++) {
-					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					if (doc.get(DOCNAME_ATTRIB).equals(
-							queryDAO.getFirstRelDoc())) {
-						// //Prints the scoring logic for each query
-						// System.out.println(searcher.explain(query,
-						// hits[i].doc));
-						queryDAO.mrr = 1.0 / (i + 1);
-						break;
-					}
-				}
-				int precisionBoundry = topDocs.scoreDocs.length > 10 ? 10
-						: topDocs.scoreDocs.length;
-				for (int i = 0; i < precisionBoundry; i++) {
-					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					if (doc.get(DOCNAME_ATTRIB).equals(
-							queryDAO.getFirstRelDoc())) {
-						if (i < 3)
-							queryDAO.p3 = 0.3;
-						queryDAO.p10 = 0.1;
-						break;
-					}
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try (FileWriter fw = new FileWriter(RESULT_DIR + resultFileName)) {
-			for (MsnQueryDAO query : queries) {
-				fw.write(query.text + ", " + query.p3 + ", " + query.p10 + ", "
-						+ query.mrr + "\n");
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void runQueries(List<MsnQueryDAO> queries, String resultFileName) {
-		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
-				.get(this.indexDirPath)))) {
-			// // Code to print the terms of index
-			// Fields fields = MultiFields.getFields(reader);
-			// for (String field : fields) {
-			// Terms terms = fields.terms(field);
-			// TermsEnum termsEnum = terms.iterator();
-			// while (termsEnum.next() != null) {
-			// System.out.println(termsEnum.term().utf8ToString());
-			// }
-			// }
-			System.out.println("Number of docs in index: " + reader.numDocs());
-			IndexSearcher searcher = new IndexSearcher(reader);
-			searcher.setSimilarity(new BM25Similarity());
-			for (MsnQueryDAO queryDAO : queries) {
-				// System.out.println(queryCoutner++);
-				TopDocs topDocs = searcher
-						.search(buildQuery(queryDAO.text, TITLE_ATTRIB,
-								CONTENT_ATTRIB), 10);
-				int precisionBoundry = topDocs.scoreDocs.length > 10 ? 10
-						: topDocs.scoreDocs.length;
-				int sum = 0;
-				for (int i = 0; i < precisionBoundry; i++) {
-					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					String docName = doc.get(DOCNAME_ATTRIB);
-
-					if (queryDAO.getRelDocs().contains(docName)) {
-						sum++;
-					}
-				}
-				queryDAO.p10 = sum / 10.0;
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try (FileWriter fw = new FileWriter(RESULT_DIR + resultFileName)) {
-			for (MsnQueryDAO query : queries) {
-				fw.write(query.text + ", " + query.p3 + ", " + query.p10 + ", "
-						+ query.mrr + "\n");
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	protected Query buildQuery(String queryString, String field) {
-		QueryParser parser = new QueryParser(field, new StandardAnalyzer());
-		Query query = null;
-		try {
-			query = parser.parse(QueryParser.escape(queryString));
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		return query;
-	}
-
-	protected static Query buildQuery(String queryString, String... fields) {
-		MultiFieldQueryParser parser = new MultiFieldQueryParser(fields,
-				new StandardAnalyzer());
-		parser.setDefaultOperator(Operator.OR);
-		Query query = null;
-		try {
-			query = parser.parse(QueryParser.escape(queryString));
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		return query;
-	}
-
-	@Deprecated
-	protected Query buildBooleanQuery(String queryText) {
-		Query query = null;
-		QueryParser nameParser = new QueryParser(DOCNAME_ATTRIB,
-				new StandardAnalyzer());
-		Query nameQuery;
-		Query contentQuery;
-		try {
-			nameQuery = nameParser.parse(QueryParser.escape(queryText));
-			QueryParser contentParser = new QueryParser(CONTENT_ATTRIB,
-					new StandardAnalyzer());
-			contentQuery = contentParser.parse(QueryParser.escape(queryText));
-			BooleanQuery.Builder builder = new BooleanQuery.Builder();
-			builder.add(nameQuery, BooleanClause.Occur.SHOULD);
-			builder.add(contentQuery, BooleanClause.Occur.SHOULD);
-			query = builder.build();
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		return query;
-	}
-
-	public static List<MsnQueryDAO> loadQueries(String queryFile) {
-		List<MsnQueryDAO> queries = new ArrayList<MsnQueryDAO>();
-		try (BufferedReader br = new BufferedReader(new FileReader(queryFile))) {
-			String line;
-			String queryText;
-			String rel;
-			String prevQueryText = "";
-			while ((line = br.readLine()) != null) {
-				String[] queryFields = line.split(",");
-				queryText = queryFields[0].trim();
-				rel = queryFields[2].trim();
-				if (queryText.equals(prevQueryText)) {
-					queries.get(queries.size() - 1).addRelevantAnswer(rel);
-				} else {
-					queries.add(new MsnQueryDAO(queryText, rel));
-					prevQueryText = queryText;
-				}
-			}
-			System.out.println(" # of loaded queries: " + queries.size());
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return queries;
 	}
 
 	public void printIndexForTerm(String term) {
