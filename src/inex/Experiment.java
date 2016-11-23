@@ -70,7 +70,7 @@ public class Experiment {
 					queries, indexPath[i]);
 			for (int j = 0; j < resultList.size(); j++) {
 				preMap[j][i] = resultList.get(j).precisionAtK(20);
-				gain[i] += preMap[i][j];
+				gain[i] += preMap[j][i];
 			}
 		}
 		System.out.println(Arrays.toString(gain));
@@ -78,8 +78,9 @@ public class Experiment {
 		// writing results to file
 		FileWriter fw = null;
 		try {
-			fw = new FileWriter(RESULT_DIR + ".csv");
+			fw = new FileWriter(RESULT_DIR + "hanhan.csv");
 			for (int i = 0; i < preMap.length; i++) {
+				fw.write("\"" + queries.get(i).text + "\"" + ", ");
 				for (int j = 0; j < preMap[0].length - 1; j++) {
 					fw.write(preMap[i][j] + ", ");
 				}
