@@ -1,5 +1,7 @@
 package inex_msn;
 
+import inex.Experiment;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -28,9 +30,6 @@ import org.apache.lucene.util.BytesRef;
 
 public class MsnExperiment {
 
-	public static final String CONTENT_ATTRIB = "content";
-	public static final String DOCNAME_ATTRIB = "name";
-	public static final String TITLE_ATTRIB = "title";
 	public static final int MAX_HIT_COUNT = 100;
 
 	public static final String INDEX_DIR = "data/index/";
@@ -96,10 +95,10 @@ public class MsnExperiment {
 			Date index_t = new Date();
 			System.out.println("indexing ");
 			System.out.println("partition length: " + partitions.get(i).length);
-			InexIndexer.buildIndex(partitions.get(i), ie.indexDirPath);
+			InexMsnIndexer.buildIndex(partitions.get(i), ie.indexDirPath);
 			if (prevExperiment != null) {
 				System.out.println("updating index..");
-				InexIndexer.updateIndex(prevExperiment.indexDirPath, ie.indexDirPath);
+				InexMsnIndexer.updateIndex(prevExperiment.indexDirPath, ie.indexDirPath);
 			}
 			Date query_t = new Date();
 			prevExperiment = ie;
@@ -144,10 +143,10 @@ public class MsnExperiment {
 				System.out.println("indexing ");
 				System.out.println("partition length: "
 						+ partitions.get(i).length);
-				InexIndexer.buildIndex(partitions.get(i), ie.indexDirPath);
+				InexMsnIndexer.buildIndex(partitions.get(i), ie.indexDirPath);
 				if (prevExperiment != null) {
 					System.out.println("updating index..");
-					InexIndexer.updateIndex(prevExperiment.indexDirPath, ie.indexDirPath);
+					InexMsnIndexer.updateIndex(prevExperiment.indexDirPath, ie.indexDirPath);
 				}
 				Date query_t = new Date();
 				// System.out.println("running queries");
@@ -198,15 +197,15 @@ public class MsnExperiment {
 						IndexSearcher searcher = new IndexSearcher(reader);
 						searcher.setSimilarity(new BM25Similarity());
 						TopDocs topDocs = searcher.search(
-								MsnQueryServices.buildQuery(queryDAO.text, TITLE_ATTRIB,
-										CONTENT_ATTRIB), 10);
+								MsnQueryServices.buildQuery(queryDAO.text, Experiment.TITLE_ATTRIB,
+										Experiment.CONTENT_ATTRIB), 10);
 						int precisionBoundry = topDocs.scoreDocs.length > 10 ? 10
 								: topDocs.scoreDocs.length;
 						int sum = 0;
 						for (int j = 0; j < precisionBoundry; j++) {
 							Document doc = searcher
 									.doc(topDocs.scoreDocs[j].doc);
-							String docName = doc.get(DOCNAME_ATTRIB);
+							String docName = doc.get(Experiment.DOCNAME_ATTRIB);
 							if (queryDAO.getRelDocs().contains(docName)) {
 								sum++;
 							}
@@ -246,9 +245,9 @@ public class MsnExperiment {
 					int docid;
 					while ((docid = docs.nextDoc()) != DocIdSetIterator.NO_MORE_DOCS) {
 						System.out.println("  "
-								+ reader.document(docid).get(TITLE_ATTRIB)
+								+ reader.document(docid).get(Experiment.TITLE_ATTRIB)
 								+ " "
-								+ reader.document(docid).get(DOCNAME_ATTRIB));
+								+ reader.document(docid).get(Experiment.DOCNAME_ATTRIB));
 					}
 				}
 			}
@@ -277,7 +276,7 @@ public class MsnExperiment {
 							// System.out.println(docid);
 							// System.out.println(docs.freq());
 							System.out.println("  "
-									+ reader.document(docid).get(TITLE_ATTRIB));
+									+ reader.document(docid).get(Experiment.TITLE_ATTRIB));
 						}
 					}
 				}

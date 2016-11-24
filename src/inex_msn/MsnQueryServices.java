@@ -1,5 +1,7 @@
 package inex_msn;
 
+import inex.Experiment;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -37,12 +39,12 @@ public class MsnQueryServices {
 			for (MsnQueryDAO queryDAO : queries) {
 				// System.out.println(queryCoutner++);
 				TopDocs topDocs = searcher.search(
-						buildQuery(queryDAO.text, MsnExperiment.TITLE_ATTRIB,
-								MsnExperiment.CONTENT_ATTRIB),
+						buildQuery(queryDAO.text, Experiment.TITLE_ATTRIB,
+								Experiment.CONTENT_ATTRIB),
 						MsnExperiment.MAX_HIT_COUNT);
 				for (int i = 0; i < topDocs.scoreDocs.length; i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					if (doc.get(MsnExperiment.DOCNAME_ATTRIB).equals(
+					if (doc.get(Experiment.DOCNAME_ATTRIB).equals(
 							queryDAO.getFirstRelDoc())) {
 						// //Prints the scoring logic for each query
 						// System.out.println(searcher.explain(query,
@@ -55,7 +57,7 @@ public class MsnQueryServices {
 						: topDocs.scoreDocs.length;
 				for (int i = 0; i < precisionBoundry; i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					if (doc.get(MsnExperiment.DOCNAME_ATTRIB).equals(
+					if (doc.get(Experiment.DOCNAME_ATTRIB).equals(
 							queryDAO.getFirstRelDoc())) {
 						if (i < 3)
 							queryDAO.p3 = 0.3;
@@ -97,14 +99,14 @@ public class MsnQueryServices {
 			for (MsnQueryDAO queryDAO : queries) {
 				// System.out.println(queryCoutner++);
 				TopDocs topDocs = searcher.search(
-						buildQuery(queryDAO.text, MsnExperiment.TITLE_ATTRIB,
-								MsnExperiment.CONTENT_ATTRIB), 10);
+						buildQuery(queryDAO.text, Experiment.TITLE_ATTRIB,
+								Experiment.CONTENT_ATTRIB), 10);
 				int precisionBoundry = topDocs.scoreDocs.length > 10 ? 10
 						: topDocs.scoreDocs.length;
 				int sum = 0;
 				for (int i = 0; i < precisionBoundry; i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					String docName = doc.get(MsnExperiment.DOCNAME_ATTRIB);
+					String docName = doc.get(Experiment.DOCNAME_ATTRIB);
 
 					if (queryDAO.getRelDocs().contains(docName)) {
 						sum++;
@@ -153,14 +155,14 @@ public class MsnQueryServices {
 	@Deprecated
 	protected Query buildBooleanQuery(String queryText) {
 		Query query = null;
-		QueryParser nameParser = new QueryParser(MsnExperiment.DOCNAME_ATTRIB,
+		QueryParser nameParser = new QueryParser(Experiment.DOCNAME_ATTRIB,
 				new StandardAnalyzer());
 		Query nameQuery;
 		Query contentQuery;
 		try {
 			nameQuery = nameParser.parse(QueryParser.escape(queryText));
 			QueryParser contentParser = new QueryParser(
-					MsnExperiment.CONTENT_ATTRIB, new StandardAnalyzer());
+					Experiment.CONTENT_ATTRIB, new StandardAnalyzer());
 			contentQuery = contentParser.parse(QueryParser.escape(queryText));
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();
 			builder.add(nameQuery, BooleanClause.Occur.SHOULD);

@@ -1,6 +1,5 @@
 package inex;
 
-import inex_msn.MsnExperiment;
 import inex_msn.MsnQueryServices;
 
 import java.io.IOException;
@@ -29,8 +28,8 @@ public class QueryServices {
 			searcher.setSimilarity(new BM25Similarity());
 			for (InexQueryDAO queryDAO : queries) {
 				Query query = MsnQueryServices.buildQuery(queryDAO.text,
-						MsnExperiment.TITLE_ATTRIB,
-						MsnExperiment.CONTENT_ATTRIB);
+						Experiment.TITLE_ATTRIB,
+						Experiment.CONTENT_ATTRIB);
 				int threshold = 20;
 				TopDocs topDocs = searcher.search(query, threshold);
 				InexQueryResult result = new InexQueryResult();
@@ -38,7 +37,7 @@ public class QueryServices {
 				for (int i = 0; i < topDocs.scoreDocs.length; i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 					int docId = Integer.parseInt(doc
-							.get(MsnExperiment.DOCNAME_ATTRIB));
+							.get(Experiment.DOCNAME_ATTRIB));
 					result.returnedDocs.add(docId);
 				}
 				results.add(result);

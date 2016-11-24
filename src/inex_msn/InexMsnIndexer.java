@@ -1,11 +1,18 @@
 package inex_msn;
 
+import inex.Experiment;
+
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,7 +29,7 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
-public class InexIndexer{
+public class InexMsnIndexer{
 
 	static IndexWriterConfig getConfig(boolean append) {
 		IndexWriterConfig config;
@@ -187,11 +194,11 @@ public class InexIndexer{
 				System.out.println("!!! title not found in " + file.getName());
 			fileContent = fileContent.replaceAll("\\<.*?\\>", " ");
 			Document doc = new Document();
-			doc.add(new StringField(MsnExperiment.DOCNAME_ATTRIB, FilenameUtils
+			doc.add(new StringField(Experiment.DOCNAME_ATTRIB, FilenameUtils
 					.removeExtension(file.getName()), Field.Store.YES));
-			doc.add(new TextField(MsnExperiment.TITLE_ATTRIB, title,
+			doc.add(new TextField(Experiment.TITLE_ATTRIB, title,
 					Field.Store.YES));
-			doc.add(new TextField(MsnExperiment.CONTENT_ATTRIB, fileContent,
+			doc.add(new TextField(Experiment.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES));
 			// doc.add(new TextField(CONTENT_ATTRIB, new BufferedReader(
 			// new InputStreamReader(fis, StandardCharsets.UTF_8))));
@@ -205,16 +212,19 @@ public class InexIndexer{
 
 	static void indexFile(String filepath, IndexWriter writer) {
 		File file = new File(filepath);
-		try (InputStream fis = Files.newInputStream(file.toPath())) {
-			byte[] data = new byte[(int) file.length()];
-			fis.read(data);
-			Document doc = new Document();
-			String fileContent = new String(data, "UTF-8");
+		//try (InputStream is = Files.newInputStream(file.toPath())) {
+//		try (InputStream is =  new BufferedInputStream(new FileInputStream(file))) {
+		try{
+//			byte[] data = new byte[(int) file.length()];
+//			is.read(data);
+//			String fileContent = new String(data, "UTF-8");
+			String fileContent = new String(Files.readAllBytes(Paths.get(filepath)), StandardCharsets.UTF_8);
 			if (isRedirectingFile(fileContent))
 				return;
-			doc.add(new StringField(MsnExperiment.DOCNAME_ATTRIB, FilenameUtils
+			Document doc = new Document();
+			doc.add(new StringField(Experiment.DOCNAME_ATTRIB, FilenameUtils
 					.removeExtension(file.getName()), Field.Store.YES));
-			doc.add(new TextField(MsnExperiment.CONTENT_ATTRIB, fileContent,
+			doc.add(new TextField(Experiment.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES));
 			writer.addDocument(doc);
 		} catch (FileNotFoundException e) {

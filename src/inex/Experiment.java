@@ -3,6 +3,10 @@ package inex;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,28 +14,44 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import inex_msn.InexIndexer;
+import inex_msn.InexMsnIndexer;
 import inex_msn.Utils;
 
 public class Experiment {
 
-	final static String DATA_SET = "/scratch/data-sets/inex_13/";
-	final static String INDEX_DIR = "data/index/";
-	final static String QUERY_FILE = "data/queries/inex_ld/2013-ld-adhoc-topics.xml";
-	final static String QREL_FILE = "data/queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
-	final static String RESULT_DIR = "data/result/inex13_dbsize/";
+	public static final String CONTENT_ATTRIB = "content";
+	public static final String DOCNAME_ATTRIB = "name";
+	public static final String TITLE_ATTRIB = "title";
+	
+	static final String DATA_SET = "/scratch/data-sets/inex_13/";
+	static final String DATA_FOLDER = "data/";
+	static final String INDEX_DIR = DATA_FOLDER + "index/";
+	static final String QUERY_FILE = DATA_FOLDER + "queries/inex_ld/2013-ld-adhoc-topics.xml";
+	static final String QREL_FILE = DATA_FOLDER + "queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
+	static final String RESULT_DIR = DATA_FOLDER + "result/inex13_dbsize/";
 
 	public static void main(String[] args) {
 		randomizedDbSize();
 	}
 
-	public static void randomizedDbSize() {
-		System.out.println("listing files..");
-		int partitionNo = 10;
-		List<String> allFiles = Utils.listFilesForFolder(new File(DATA_SET
-				+ "/2c/c9"));
+	static void createFileList() {
+		List<String> allFiles = Utils.listFilesForFolder(new File(DATA_SET));
 		Collections.shuffle(allFiles);
-		System.out.println("partitioning file names..");
+		try {
+			Files.write(Paths.get("data/filelist.txt"), allFiles,
+					StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void randomizedDbSize() {
+		System.out.println(new Date().toString() + " listing files..");
+		int partitionNo = 10;
+		List<String> allFiles = Utils.listFilesForFolder(new File(DATA_SET));
+		Collections.shuffle(allFiles);
+		System.out
+				.println(new Date().toString() + " partitioning file names..");
 		ArrayList<String[]> partitions = Utils.partitionArray(
 				allFiles.toArray(new String[allFiles.size()]), partitionNo);
 		String prevIndexPath = null;
@@ -40,14 +60,14 @@ public class Experiment {
 			indexPath[i] = INDEX_DIR + "inex13_part" + i;
 
 		for (int i = 0; i < partitionNo; i++) {
-			System.out.println("iteration " + i);
+			System.out.println(new Date().toString() + " iteration " + i);
 			Date index_t = new Date();
 			System.out.println("indexing ");
 			System.out.println("partition length: " + partitions.get(i).length);
-			InexIndexer.buildIndex(partitions.get(i), indexPath[i], false);
+			InexMsnIndexer.buildIndex(partitions.get(i), indexPath[i], false);
 			if (prevIndexPath != null) {
 				System.out.println("updating index..");
-				InexIndexer.updateIndex(prevIndexPath, indexPath[i]);
+				InexMsnIndexer.updateIndex(prevIndexPath, indexPath[i]);
 			}
 			Date query_t = new Date();
 			prevIndexPath = indexPath[i];
@@ -61,7 +81,7 @@ public class Experiment {
 		List<InexQueryDAO> queries = new ArrayList<InexQueryDAO>();
 		queries.addAll(queriesMap.values());
 		// queries.add(queriesMap.get(2009002));
-		System.out.println("submitting queries");
+		System.out.println(new Date().toString() + " submitting queries");
 		double gain[] = new double[partitionNo];
 		double preMap[][] = new double[queries.size()][partitionNo];
 		for (int i = 0; i < partitionNo; i++) {
@@ -73,6 +93,7 @@ public class Experiment {
 				gain[i] += preMap[j][i];
 			}
 		}
+		System.out.println(new Date().toString() + " queries are done!");
 		System.out.println(Arrays.toString(gain));
 
 		// writing results to file
