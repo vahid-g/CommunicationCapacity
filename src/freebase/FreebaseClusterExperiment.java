@@ -24,7 +24,7 @@ public class FreebaseClusterExperiment {
 		FreebaseExperiment.ExperimentResult fr = new FreebaseExperiment.ExperimentResult();
 		fr.lostCount = new int[qCount][dCount];
 		fr.foundCount = new int[qCount][dCount];
-		fr = FreebaseExperiment.experiment_randomizedDatabaseSizeQuerySize(
+		fr = FreebaseExperiment.randomizedDatabaseSizeQuerySize_ExperimentResult(
 				expNo, qCount, dCount, CLUSTER_INDEX, tableName);
 		FileWriter fw = null;
 		try {
