@@ -28,9 +28,11 @@ public class ClusterExperiment {
 	// "queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
 	// static final String RESULT_DIR = DATA_FOLDER + "result/inex13_dbsize/";
 
-	final static String INDEX_PATH = "/scratch/ghadakcv/index/";
+
 
 	final static String DATA_FOLDER = "/scratch/cluster-share/ghadakcv/";
+//	final static String INDEX_PATH = "/scratch/ghadakcv/index/";
+	final static String INDEX_PATH = "/scratch/cluster-share/ghadakcv/index/";	
 	final static String DATA_SET = DATA_FOLDER + "inex_13/";
 	final static String FILE_LIST = DATA_FOLDER + "filelist.txt";
 	final static String QUERY_FILE = DATA_FOLDER
