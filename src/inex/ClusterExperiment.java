@@ -28,9 +28,11 @@ public class ClusterExperiment {
 	// "queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
 	// static final String RESULT_DIR = DATA_FOLDER + "result/inex13_dbsize/";
 
-	final static String INDEX_PATH = "/scratch/ghadakcv/index/";
+
 
 	final static String DATA_FOLDER = "/scratch/cluster-share/ghadakcv/";
+//	final static String INDEX_PATH = "/scratch/ghadakcv/index/";
+	final static String INDEX_PATH = "/scratch/cluster-share/ghadakcv/index/";	
 	final static String DATA_SET = DATA_FOLDER + "inex_13/";
 	final static String FILE_LIST = DATA_FOLDER + "filelist.txt";
 	final static String QUERY_FILE = DATA_FOLDER
@@ -40,15 +42,10 @@ public class ClusterExperiment {
 	final static String RESULT_DIR = DATA_FOLDER + "result/inex13_dbsize/";
 
 	public static void main(String[] args) {
-		File indexFile = new File(INDEX_PATH);
-		try {
-			FileUtils.deleteDirectory(indexFile);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		int expNo = Integer.parseInt(args[0]);
-		randomizedDbSizeSinglePartition(expNo);
-
+		String indexPath = INDEX_PATH + "exp_" + expNo;
+		randomizedDbSizeSinglePartition(expNo, indexPath);
+		File indexFile = new File(indexPath);
 		// cleanup
 		try {
 			FileUtils.deleteDirectory(indexFile);
@@ -66,7 +63,7 @@ public class ClusterExperiment {
 	 * @param expNo
 	 *            number of experiment that will also impact the partition size
 	 */
-	static void randomizedDbSizeSinglePartition(int expNo) {
+	static void randomizedDbSizeSinglePartition(int expNo, String indexPath) {
 		DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
 		System.out.println(df.format(new Date()) + " running experiment "
 				+ expNo);
@@ -79,7 +76,6 @@ public class ClusterExperiment {
 		}
 		List<String> expFileList = fileList.subList(0,
 				(int) ((expNo / 10.0) * fileList.size()));
-		String indexPath = INDEX_PATH + "exp_" + expNo;
 		System.out.println(df.format(new Date()) + " building index..");
 		InexMsnIndexer.buildIndex(expFileList.toArray(new String[0]),
 				indexPath, false);
