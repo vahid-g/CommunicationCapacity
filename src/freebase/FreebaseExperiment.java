@@ -2,6 +2,7 @@ package freebase;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -23,8 +24,10 @@ public class FreebaseExperiment {
 	static final int PARTITION_COUNT = 10;
 
 	public static void main(String[] args) {
-		for (int i = 0; i < 5; i++)
-			randomizedDatabaseSize("tbl_all", 1);
+		for (int i = 0; i < 5; i++){
+			System.out.println("Running rand_" + i);
+			randomizedDatabaseSize("tbl_all", i);
+		}
 	}
 
 	/**
@@ -195,11 +198,11 @@ public class FreebaseExperiment {
 	 */
 	public static void randomizedDatabaseSize(String tableName, int experimentNo) {
 		String attribs[] = { "name", "description" };
-		System.out.println("Loading queries..");
+		System.out.println("  Loading queries..");
 		List<FreebaseQuery> queries = FreebaseDataManager
 				.getQueriesByRelevancyTable(tableName);
 		String indexPaths[] = new String[PARTITION_COUNT];
-		System.out.println("Loading tuples into docs..");
+		System.out.println("  Loading tuples into docs..");
 		String indexQuery = FreebaseDataManager.buildDataQuery(tableName,
 				attribs);
 		Document[] docs = FreebaseDataManager.loadTuplesToDocuments(indexQuery,
@@ -207,24 +210,31 @@ public class FreebaseExperiment {
 		Utils.shuffleArray(docs);
 
 		for (int i = 0; i < PARTITION_COUNT; i++) {
-			System.out.println("Building index " + i + "..");
+			System.out.println("    Building index " + i + "..");
 			indexPaths[i] = FreebaseExperiment.INDEX_BASE + tableName + "_" + i
 					+ "/";
 			int l = (int) (((i + 1.0) / PARTITION_COUNT) * docs.length);
-			FreebaseDataManager.createIndex(Arrays.copyOf(docs, l), attribs,
+			FreebaseDataManager.createIndex(docs, l, attribs,
 					indexPaths[i]);
 		}
-		System.out.println("submitting queries..");
+		System.out.println("  Submitting queries..");
+		List<List<FreebaseQueryResult>> resultList = new ArrayList<List<FreebaseQueryResult>>();
+		for (int i = 0; i < PARTITION_COUNT; i++) {
+			List<FreebaseQueryResult> fqrList = FreebaseDataManager
+					.runFreebaseQueries(queries, indexPaths[i]);
+			resultList.add(fqrList);
+		}
+		System.out.println("  Writing queries to file..");
 		FileWriter fw = null;
 		try {
 			fw = new FileWriter(FreebaseExperiment.RESULT_DIR + tableName
-					+ "rand_p3_part_" + experimentNo + ".csv");
-			for (FreebaseQuery query : queries) {
+					+ "_p3_rand_" + experimentNo + ".csv");
+			for (int h = 0; h < queries.size(); h++) {
+				FreebaseQuery query = queries.get(h);
 				fw.write(query.id + ", " + query.text.replace("\"", "") + ", "
 						+ query.frequency + ", ");
 				for (int i = 0; i < PARTITION_COUNT; i++) {
-					FreebaseQueryResult fqr = FreebaseDataManager
-							.runFreebaseQuery(query, indexPaths[i]);
+					FreebaseQueryResult fqr = resultList.get(i).get(h);
 					fw.write(fqr.p3() + ", ");
 				}
 				fw.write("\n");

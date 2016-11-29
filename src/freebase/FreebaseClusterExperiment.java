@@ -12,14 +12,14 @@ public class FreebaseClusterExperiment {
 
 	public static void main(String[] args) {
 		int expNo = Integer.parseInt(args[0]);
-		FreebaseClusterExperiment.experiment_randomizedDatabaseSizeQuerySize(
+		FreebaseClusterExperiment.randomizedDatabaseSizeQuerySize(
 				expNo, 3, 10, "tbl_all");
 	}
 
 	// randomized database size query size experiment
 	// output: two files with rows as query set instances and columns as
 	// database instances showing number of queries that gained and lost p@3
-	public static void experiment_randomizedDatabaseSizeQuerySize(int expNo,
+	public static void randomizedDatabaseSizeQuerySize(int expNo,
 			int qCount, int dCount, String tableName) {
 		FreebaseExperiment.ExperimentResult fr = new FreebaseExperiment.ExperimentResult();
 		fr.lostCount = new int[qCount][dCount];
