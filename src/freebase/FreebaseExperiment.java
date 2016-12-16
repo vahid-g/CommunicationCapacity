@@ -1,5 +1,6 @@
 package freebase;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,6 +23,17 @@ public class FreebaseExperiment {
 	static final String RESULT_DIR = DATA_FOLDER + "result/freebase_dbsize/";
 
 	static final int PARTITION_COUNT = 10;
+	
+	static {
+		File indexBase = new File(INDEX_BASE);
+		if (!indexBase.exists()){
+			indexBase.mkdir();
+		}
+		File resultDir = new File(RESULT_DIR);
+		if (!resultDir.exists()){
+			resultDir.mkdir();
+		}
+	}
 
 	public static void main(String[] args) {
 		// for (int i = 0; i < 5; i++){
@@ -50,8 +62,8 @@ public class FreebaseExperiment {
 			fw = new FileWriter(FreebaseExperiment.RESULT_DIR + tableName + "_top3.csv");
 			for (FreebaseQueryResult fqr : fqrList) {
 				FreebaseQuery query = fqr.freebaseQuery;
-				fw.write(query.id + ", " + query.text + ", " + query.frequency + ", " + ", " + fqr.precisionAtK(3)
-						+ fqr.top3Hits[0] + fqr.top3Hits[1] + fqr.top3Hits[2] + "\n");
+				fw.write(query.id + ", " + query.text + ", " + query.wiki + "," + query.frequency + ", " + fqr.precisionAtK(3) + ", "
+						+ fqr.top3Hits[0] + "," + fqr.top3Hits[1] + ", " + fqr.top3Hits[2] + "\n");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
