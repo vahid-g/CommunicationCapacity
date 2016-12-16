@@ -16,7 +16,8 @@ public class FreebaseQuery {
 	HashMap<String, String> attribs;
 	String fbid;
 	int relRank;
-
+	
+	@Deprecated 
 	String[] hits = new String[3];
 
 	public double mrr() {
@@ -24,6 +25,7 @@ public class FreebaseQuery {
 		else return 0;
 	}
 
+	@Deprecated
 	public double p3() {
 		if (relRank != -1 && relRank < 4)
 			return 0.3;

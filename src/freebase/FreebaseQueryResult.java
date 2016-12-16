@@ -2,9 +2,13 @@ package freebase;
 
 public class FreebaseQueryResult {
 	
-	int relRank = -1;
+	public FreebaseQueryResult(FreebaseQuery fq) {
+		this.freebaseQuery = fq;
+	}
 	
+	int relRank = -1;
 	String[] top3Hits = new String[3];
+	FreebaseQuery freebaseQuery;
 	
 	public double mrr() {
 		if (relRank != -1) return 1.0 / relRank;
