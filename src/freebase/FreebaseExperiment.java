@@ -422,7 +422,7 @@ public class FreebaseExperiment {
 					.createIndex(nrelDocs, l, attribs, indexPaths[i]);
 			int m = (int) (((i + 1.0) / PARTITION_COUNT) * relDocs.length);
 			FreebaseDataManager.createIndex(relDocs, m, attribs, indexPaths[i],
-					false);
+					true);
 		}
 		System.out.println("Submitting queries..");
 		List<List<FreebaseQueryResult>> resultList = new ArrayList<List<FreebaseQueryResult>>();
