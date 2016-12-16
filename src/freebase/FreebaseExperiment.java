@@ -62,8 +62,9 @@ public class FreebaseExperiment {
 			fw = new FileWriter(FreebaseExperiment.RESULT_DIR + tableName + "_top3.csv");
 			for (FreebaseQueryResult fqr : fqrList) {
 				FreebaseQuery query = fqr.freebaseQuery;
-				fw.write(query.id + ", " + query.text + ", " + query.wiki + "," + query.frequency + ", " + fqr.precisionAtK(3) + ", "
-						+ fqr.top3Hits[0] + "," + fqr.top3Hits[1] + ", " + fqr.top3Hits[2] + "\n");
+				fw.write(query.id + ", " + query.text + ", " + query.wiki + "," + query.fbid + "," 
+				+ query.frequency + ", " + fqr.precisionAtK(3) + ", "+ fqr.top3Hits[0] + "," 
+						+ fqr.top3Hits[1] + ", " + fqr.top3Hits[2] + "\n");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
