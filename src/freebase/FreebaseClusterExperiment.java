@@ -6,7 +6,7 @@ import java.io.IOException;
 public class FreebaseClusterExperiment {
 
 	final static String CLUSTER_DATA_FOLDER = "/scratch/cluster-share/ghadakcv/";
-	final static String CLUSTER_INDEX = FreebaseExperiment.DATA_FOLDER
+	final static String CLUSTER_INDEX = FreebaseDatabaseSizeExperiment.DATA_FOLDER
 			+ "index/";
 	final static String CLUSTER_RESULTS = "result/";
 
@@ -21,10 +21,10 @@ public class FreebaseClusterExperiment {
 	// database instances showing number of queries that gained and lost p@3
 	public static void randomizedDatabaseSizeQuerySize(int expNo,
 			int qCount, int dCount, String tableName) {
-		FreebaseExperiment.ExperimentResult fr = new FreebaseExperiment.ExperimentResult();
+		FreebaseDatabaseSizeExperiment.ExperimentResult fr = new FreebaseDatabaseSizeExperiment.ExperimentResult();
 		fr.lostCount = new int[qCount][dCount];
 		fr.foundCount = new int[qCount][dCount];
-		fr = FreebaseExperiment.randomizedDatabaseSizeQuerySize_ExperimentResult(
+		fr = FreebaseDatabaseSizeExperiment.randomizedDatabaseSizeQuerySize_ExperimentResult(
 				expNo, qCount, dCount, CLUSTER_INDEX, tableName);
 		FileWriter fw = null;
 		try {
