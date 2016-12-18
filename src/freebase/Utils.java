@@ -2,7 +2,7 @@ package freebase;
 
 import java.util.Random;
 
-import freebase.FreebaseExperiment.ExperimentResult;
+import freebase.FreebaseDatabaseSizeExperiment.ExperimentResult;
 
 public class Utils {
 

@@ -8,10 +8,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.TreeMap;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.lucene.document.Document;
 
-public class FreebaseExperiment {
+public class FreebaseDatabaseSizeExperiment {
 
 	static class ExperimentResult {
 		int[][] lostCount;
@@ -23,24 +28,35 @@ public class FreebaseExperiment {
 	static final String RESULT_DIR = DATA_FOLDER + "result/freebase_dbsize/";
 
 	static final int PARTITION_COUNT = 10;
-	
+
 	static {
 		File indexBase = new File(INDEX_BASE);
-		if (!indexBase.exists()){
+		if (!indexBase.exists()) {
 			indexBase.mkdir();
 		}
 		File resultDir = new File(RESULT_DIR);
-		if (!resultDir.exists()){
+		if (!resultDir.exists()) {
 			resultDir.mkdir();
 		}
 	}
 
+	private static final Logger LOGGER = Logger.getLogger(FreebaseDatabaseSizeExperiment.class.getName());
+
+	static {
+		LOGGER.setUseParentHandlers(false);
+		Handler handler = new ConsoleHandler();
+		handler.setLevel(Level.ALL);
+		LOGGER.addHandler(handler);
+		LOGGER.setLevel(Level.ALL);
+	}
+
 	public static void main(String[] args) {
 		// for (int i = 0; i < 5; i++){
-		// System.out.println("Running rand_" + i);
+		// LOGGER.log(Level.INFO, "Running rand_" + i);
 		// randomizedDatabaseSize("tbl_all", i);
 		// }
-		singleTable("tbl_all");
+
+		databaseSizeStratified("tbl_all", 0.33);
 	}
 
 	/**
@@ -51,96 +67,31 @@ public class FreebaseExperiment {
 	 */
 	public static void singleTable(String tableName) {
 		String attribs[] = { "name", "description" };
-		List<FreebaseQuery> queries = FreebaseDataManager.getQueriesByRelevancyTable(tableName);
-		String indexPath = FreebaseExperiment.INDEX_BASE + tableName + "/";
+		List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesByRelevantTable(tableName);
+		String indexPath = FreebaseDatabaseSizeExperiment.INDEX_BASE + tableName + "/";
 		String dataQuery = FreebaseDataManager.buildDataQuery(tableName, attribs);
 		FreebaseDataManager.createIndex(FreebaseDataManager.loadTuplesToDocumentArray(dataQuery, attribs), attribs,
 				indexPath);
 		List<FreebaseQueryResult> fqrList = FreebaseDataManager.runFreebaseQueries(queries, indexPath);
 		FileWriter fw = null;
 		try {
-			fw = new FileWriter(FreebaseExperiment.RESULT_DIR + tableName + "_mrr.csv");
+			fw = new FileWriter(FreebaseDatabaseSizeExperiment.RESULT_DIR + tableName + "_top3.csv");
 			for (FreebaseQueryResult fqr : fqrList) {
 				FreebaseQuery query = fqr.freebaseQuery;
-				fw.write(query.id + ", " + query.text + ", " + query.wiki + "," + query.fbid + "," 
-				+ query.frequency + ", " + fqr.mrr() + ", "+ fqr.top3Hits[0] + "," 
-						+ fqr.top3Hits[1] + ", " + fqr.top3Hits[2] + "\n");
+				fw.write(query.id + ", " + query.text + ", " + query.wiki + "," + query.fbid + "," + query.frequency
+						+ ", " + fqr.precisionAtK(3) + ", " + fqr.top3Hits[0] + "," + fqr.top3Hits[1] + ", "
+						+ fqr.top3Hits[2] + "\n");
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.toString());
 		} finally {
 			if (fw != null) {
 				try {
 					fw.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					LOGGER.log(Level.SEVERE, e.toString());
 				}
 			}
-		}
-	}
-
-	/**
-	 * schema capacity experiment. queries selected based on specific set of
-	 * keywords and submitted to a smaller table with keywords dropped
-	 * 
-	 * @param tableName
-	 * @param pattern
-	 */
-	public static void schemaCapacitySmallerTable(String tableName, String pattern) {
-		// String[] table = { "tbl_tv_program", "tbl_album", "tbl_book" };
-		// String[] pattern = {
-		// "program| tv| television| serie| show | show$| film | film$| movie",
-		// "music|record|song|sound| art |album",
-		// "book|theme|novel|notes|writing|manuscript|story" };
-
-		String attribs[] = { FreebaseDataManager.NAME_ATTRIB, FreebaseDataManager.DESC_ATTRIB };
-		String indexPath = FreebaseExperiment.INDEX_BASE + tableName + "/";
-		// createIndex(tableName, attribs, indexPath);
-		String sql = "select * from query where text REGEXP '" + pattern + "' and fbid in (select fbid from "
-				+ tableName + ");";
-		List<FreebaseQuery> queries = FreebaseDataManager.getQueriesBySqlQuery(sql);
-		FreebaseDataManager.removeKeyword(queries, pattern);
-		try (FileWriter fw = new FileWriter(
-				FreebaseExperiment.RESULT_DIR + "t-" + tableName + " q-" + tableName + " a-name" + ".csv");) {
-			for (FreebaseQuery query : queries) {
-				FreebaseDataManager.runQuery(query, indexPath);
-				fw.write(query.id + ", " + query.text + ", " + query.wiki + ", " + query.p3() + ", "
-						+ query.precisionAtK(10) + ", " + query.precisionAtK(20) + ", " + query.mrr() + ","
-						+ query.hits[0] + ", " + query.hits[1] + "\n");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * schema capacity experiment. queries selected based on specific set of
-	 * keywords and submitted to a larger table. Note that the keywords are not
-	 * dropped.
-	 * 
-	 * @param tableName
-	 * @param pattern
-	 * @param queryTableName
-	 */
-	public static void schemaCapacityLargerTable(String tableName, String pattern, String queryTableName) {
-		String attribs[] = { FreebaseDataManager.NAME_ATTRIB, FreebaseDataManager.DESC_ATTRIB,
-				FreebaseDataManager.SEMANTIC_TYPE_ATTRIB };
-		String indexPath = FreebaseExperiment.INDEX_BASE + tableName + "/";
-		// createIndex(tableName, attribs, indexPath);
-		String sql = "select * from query where text REGEXP '" + pattern + "' and fbid in (select fbid from "
-				+ queryTableName + ");";
-		List<FreebaseQuery> queries = FreebaseDataManager.getQueriesBySqlQuery(sql);
-		FreebaseDataManager.annotateSemanticType(queries, pattern);
-		try (FileWriter fw = new FileWriter(
-				FreebaseExperiment.RESULT_DIR + "t-" + tableName + " q-" + queryTableName + " a-name" + ".csv");) {
-			for (FreebaseQuery query : queries) {
-				FreebaseDataManager.runQuery(query, indexPath);
-				fw.write(query.id + ", " + query.text + ", " + query.wiki + ", " + query.p3() + ", "
-						+ query.precisionAtK(10) + ", " + query.precisionAtK(20) + ", " + query.mrr() + ","
-						+ query.hits[0] + ", " + query.hits[1] + "\n");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 
@@ -151,18 +102,18 @@ public class FreebaseExperiment {
 	 * @param tableName
 	 */
 	public static void databaseSize(String tableName) {
-		System.out.println("Loading queries..");
-		List<FreebaseQuery> queries = FreebaseDataManager.getQueriesByRelevancyTable(tableName);
+		LOGGER.log(Level.INFO, "Loading queries..");
+		List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesByRelevantTable(tableName);
 		String indexPaths[] = new String[PARTITION_COUNT];
 		for (int i = 0; i < PARTITION_COUNT; i++) {
-			System.out.println("Building index " + i + "..");
-			indexPaths[i] = FreebaseExperiment.INDEX_BASE + tableName + "_" + i + "/";
+			LOGGER.log(Level.INFO, "Building index " + i + "..");
+			indexPaths[i] = FreebaseDatabaseSizeExperiment.INDEX_BASE + tableName + "_" + i + "/";
 			// missing create index
 		}
-		System.out.println("submitting queries..");
+		LOGGER.log(Level.INFO, "submitting queries..");
 		FileWriter fw = null;
 		try {
-			fw = new FileWriter(FreebaseExperiment.RESULT_DIR + tableName + "_mrr.csv");
+			fw = new FileWriter(FreebaseDatabaseSizeExperiment.RESULT_DIR + tableName + "_mrr.csv");
 			for (FreebaseQuery query : queries) {
 				fw.write(query.id + ", " + query.text + ", " + query.frequency + ", ");
 				for (int i = 0; i < PARTITION_COUNT; i++) {
@@ -172,13 +123,97 @@ public class FreebaseExperiment {
 				fw.write("\n");
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.toString());
 		} finally {
 			if (fw != null) {
 				try {
 					fw.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					LOGGER.log(Level.SEVERE, e.toString());
+				}
+			}
+		}
+	}
+
+	/**
+	 * Database size experiment on a single table with selected query subset.
+	 * Picking different query subsets will result in different partitionings!
+	 * 
+	 * outputs: a file with rows associated with queries
+	 * 
+	 * @param tableName
+	 * @param easeThreshold
+	 *            a number between 0 and 1 specifying easiness of selected
+	 *            queries.
+	 * 
+	 */
+	public static void databaseSizeStratified(String tableName, double easeThreshold) {
+		LOGGER.log(Level.INFO, "Loading queries..");
+		String[] attribs = { "name", "description" };
+		String sql = "select * from query_hardness_full where hardness < " + easeThreshold + ";";
+		List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesFromSql(sql);
+
+		LOGGER.log(Level.INFO, "Loading tuples..");
+		String dataQuery = FreebaseDataManager.buildDataQuery(tableName, attribs);
+		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, attribs);
+		LOGGER.log(Level.INFO, "All docs: {0}", docs.size());
+		TreeMap<String, Document> docMap = new TreeMap<String, Document>();
+		for (Document doc : docs) {
+			docMap.put(doc.get(FreebaseDataManager.FBID_ATTRIB), doc);
+		}
+
+		LOGGER.log(Level.INFO, "Dividing tuples..");
+		List<Document> rels = new ArrayList<Document>();
+		for (FreebaseQuery query : queries) {
+			Document doc = docMap.get(query.fbid);
+			rels.add(doc);
+			docMap.remove(query.fbid);
+		}
+		docs.removeAll(rels);
+		LOGGER.log(Level.INFO, "NonRel docs: {0}", docs.size());
+		LOGGER.log(Level.INFO, "Rel docs: {0}", rels.size());
+		double l1 = docs.size();
+		double l2 = rels.size();
+
+		String indexPaths[] = new String[PARTITION_COUNT];
+		for (int i = 0; i < PARTITION_COUNT; i++) {
+			LOGGER.log(Level.INFO, "Building index " + i + "..");
+			indexPaths[i] = FreebaseDatabaseSizeExperiment.INDEX_BASE + tableName + "_" + i + "/";
+			FreebaseDataManager.createIndex(docs, (int) (l1 * (i + 1.0) / PARTITION_COUNT), attribs, indexPaths[i]);
+			FreebaseDataManager.appendIndex(rels, (int) (l2 * (i + 1.0) / PARTITION_COUNT), attribs, indexPaths[i]);
+		}
+
+		LOGGER.log(Level.INFO, "Submitting Queries..");
+		List<List<FreebaseQueryResult>> results = new ArrayList<List<FreebaseQueryResult>>();
+		for (int i = 0; i < PARTITION_COUNT; i++) {
+			List<FreebaseQueryResult> fqrList = FreebaseDataManager.runFreebaseQueries(queries, indexPaths[i]);
+			results.add(fqrList);
+		}
+		
+		LOGGER.log(Level.INFO, "Writing results to file..");
+		FileWriter fw = null;
+		try {
+			fw = new FileWriter(FreebaseDatabaseSizeExperiment.RESULT_DIR + tableName 
+					+ "_p@3_stratified_hards_0_33.csv");
+			for (int i = 0; i < queries.size(); i++) {
+				FreebaseQuery query = queries.get(i);
+				fw.write(query.id + ", " + query.text + ", " + query.frequency + ", ");
+				for (int j = 0; j < PARTITION_COUNT; j++) {
+					FreebaseQueryResult fqr = results.get(j).get(i);
+					if (fqr.freebaseQuery != query)
+						LOGGER.log(Level.SEVERE, "----Alarm!");
+					fw.write(fqr.precisionAtK(3) + ", ");
+				}
+				fw.write("\n");
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.toString());
+		} finally {
+			if (fw != null) {
+				try {
+					fw.close();
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE, e.toString());
 				}
 			}
 		}
@@ -193,31 +228,31 @@ public class FreebaseExperiment {
 	 */
 	public static void randomizedDatabaseSize(String tableName, int experimentNo) {
 		String attribs[] = { "name", "description" };
-		System.out.println("  Loading queries..");
-		List<FreebaseQuery> queries = FreebaseDataManager.getQueriesByRelevancyTable(tableName);
+		LOGGER.log(Level.INFO, "  Loading queries..");
+		List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesByRelevantTable(tableName);
 		String indexPaths[] = new String[PARTITION_COUNT];
-		System.out.println("  Loading tuples into docs..");
+		LOGGER.log(Level.INFO, "  Loading tuples into docs..");
 
 		String indexQuery = FreebaseDataManager.buildDataQuery(tableName, attribs);
 		Document[] docs = FreebaseDataManager.loadTuplesToDocumentArray(indexQuery, attribs);
 		Utils.shuffleArray(docs);
 
 		for (int i = 0; i < PARTITION_COUNT; i++) {
-			System.out.println("    Building index " + i + "..");
-			indexPaths[i] = FreebaseExperiment.INDEX_BASE + tableName + "_" + i + "/";
+			indexPaths[i] = FreebaseDatabaseSizeExperiment.INDEX_BASE + tableName + "_" + i + "/";
 			int l = (int) (((i + 1.0) / PARTITION_COUNT) * docs.length);
 			FreebaseDataManager.createIndex(docs, l, attribs, indexPaths[i]);
 		}
-		System.out.println("  Submitting queries..");
+		LOGGER.log(Level.INFO, "  Submitting queries..");
 		List<List<FreebaseQueryResult>> resultList = new ArrayList<List<FreebaseQueryResult>>();
 		for (int i = 0; i < PARTITION_COUNT; i++) {
 			List<FreebaseQueryResult> fqrList = FreebaseDataManager.runFreebaseQueries(queries, indexPaths[i]);
 			resultList.add(fqrList);
 		}
-		System.out.println("  Writing queries to file..");
+		LOGGER.log(Level.INFO, "  Writing queries to file..");
 		FileWriter fw = null;
 		try {
-			fw = new FileWriter(FreebaseExperiment.RESULT_DIR + tableName + "_p3_rand_" + experimentNo + ".csv");
+			fw = new FileWriter(
+					FreebaseDatabaseSizeExperiment.RESULT_DIR + tableName + "_p3_rand_" + experimentNo + ".csv");
 			for (int h = 0; h < queries.size(); h++) {
 				FreebaseQuery query = queries.get(h);
 				fw.write(query.id + ", " + query.text.replace("\"", "") + ", " + query.frequency + ", ");
@@ -228,13 +263,13 @@ public class FreebaseExperiment {
 				fw.write("\n");
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.toString());
 		} finally {
 			if (fw != null) {
 				try {
 					fw.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					LOGGER.log(Level.SEVERE, e.toString());
 				}
 			}
 		}
@@ -255,25 +290,25 @@ public class FreebaseExperiment {
 	public static ExperimentResult randomizedDatabaseSizeQuerySize_ExperimentResult(int experimentNo,
 			int queryPartitionCount, int dbPartitionCounts, String indexBase, String tableName) {
 		String attribs[] = { "name", "description" };
-		System.out.println(experimentNo + ". Loading queries..");
-		List<FreebaseQuery> queriesList = FreebaseDataManager.getQueriesByRelevancyTable(tableName);
+		LOGGER.log(Level.INFO, experimentNo + ". Loading queries..");
+		List<FreebaseQuery> queriesList = FreebaseDataManager.loadMsnQueriesByRelevantTable(tableName);
 		long seed = System.nanoTime();
 		Collections.shuffle(queriesList, new Random(seed));
 
-		System.out.println(experimentNo + ". Loading tuples into docs..");
+		LOGGER.log(Level.INFO, experimentNo + ". Loading tuples into docs..");
 		String indexPaths[] = new String[dbPartitionCounts];
 		String indexQuery = FreebaseDataManager.buildDataQuery(tableName, attribs);
 		Document[] docs = FreebaseDataManager.loadTuplesToDocumentArray(indexQuery, attribs);
 		Utils.shuffleArray(docs);
 
-		System.out.println(experimentNo + ".Building index..");
+		LOGGER.log(Level.INFO, experimentNo + ".Building index..");
 		for (int i = 0; i < dbPartitionCounts; i++) {
 			indexPaths[i] = INDEX_BASE + experimentNo + "_" + tableName + "_" + i + "/";
 			int l = (int) (((i + 1.0) / dbPartitionCounts) * docs.length);
 			FreebaseDataManager.createIndex(Arrays.copyOf(docs, l), attribs, indexPaths[i]);
 		}
 
-		System.out.println(experimentNo + ". submitting queries..");
+		LOGGER.log(Level.INFO, experimentNo + ". submitting queries..");
 		int[][] foundCounter = new int[queryPartitionCount][dbPartitionCounts];
 		int[][] lostCounter = new int[queryPartitionCount][dbPartitionCounts];
 		for (int i = 0; i < queryPartitionCount; i++) {
@@ -322,15 +357,15 @@ public class FreebaseExperiment {
 		fr.lostCount = new int[qCount][dCount];
 		fr.foundCount = new int[qCount][dCount];
 		for (int i = 0; i < expCount; i++) {
-			System.out.println("====== exp iteration " + i);
-			er[i] = FreebaseExperiment.randomizedDatabaseSizeQuerySize_ExperimentResult(i, qCount, dCount,
-					FreebaseExperiment.INDEX_BASE, "media");
+			LOGGER.log(Level.INFO, "====== exp iteration " + i);
+			er[i] = FreebaseDatabaseSizeExperiment.randomizedDatabaseSizeQuerySize_ExperimentResult(i, qCount, dCount,
+					FreebaseDatabaseSizeExperiment.INDEX_BASE, "media");
 			fr.lostCount = Utils.addMatrix(fr.lostCount, er[i].lostCount);
 			fr.foundCount = Utils.addMatrix(fr.foundCount, er[i].foundCount);
 		}
 		FileWriter fw = null;
 		try {
-			fw = new FileWriter(FreebaseExperiment.RESULT_DIR + "result_lost.csv");
+			fw = new FileWriter(FreebaseDatabaseSizeExperiment.RESULT_DIR + "result_lost.csv");
 			for (int i = 0; i < qCount; i++) {
 				for (int j = 0; j < dCount - 1; j++) {
 					fw.write(fr.lostCount[i][j] / ((double) expCount) + ",");
@@ -338,15 +373,15 @@ public class FreebaseExperiment {
 				fw.write(fr.lostCount[i][dCount - 1] / ((double) expCount) + "\n");
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.toString());
 		}
 		try {
 			fw.close();
 		} catch (IOException e1) {
-			e1.printStackTrace();
+			LOGGER.log(Level.SEVERE, e1.toString());
 		}
 		try {
-			fw = new FileWriter(FreebaseExperiment.RESULT_DIR + "result_found.csv");
+			fw = new FileWriter(FreebaseDatabaseSizeExperiment.RESULT_DIR + "result_found.csv");
 			for (int i = 0; i < qCount; i++) {
 				for (int j = 0; j < dCount - 1; j++) {
 					fw.write(fr.foundCount[i][j] / ((double) expCount) + ",");
@@ -354,7 +389,7 @@ public class FreebaseExperiment {
 				fw.write(fr.foundCount[i][dCount - 1] / ((double) expCount) + "\n");
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.toString());
 		}
 		try {
 			fw.close();
@@ -373,47 +408,38 @@ public class FreebaseExperiment {
 	public static void randomizedDatabaseSizeStratified(int experimentNo) {
 		String tableName = "tbl_all";
 		String attribs[] = { "name", "description" };
-		System.out.println("Loading queries..");
-		List<FreebaseQuery> queries = FreebaseDataManager
-				.getQueriesByRelevancyTable(tableName);
+		LOGGER.log(Level.INFO, "Loading queries..");
+		List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesByRelevantTable(tableName);
 		String indexPaths[] = new String[PARTITION_COUNT];
-		System.out.println("Loading tuples into docs..");
-		String indexQueryRel = FreebaseDataManager.buildDataQuery(
-				"tbl_all_rel", attribs);
-		String indexQueryNrel = FreebaseDataManager.buildDataQuery(
-				"tbl_all_nrel", attribs);
-		Document[] relDocs = FreebaseDataManager.loadTuplesToDocumentArray(
-				indexQueryRel + " order by frequency DESC", attribs);
-		Document[] nrelDocs = FreebaseDataManager.loadTuplesToDocumentArray(
-				indexQueryNrel, attribs);
+		LOGGER.log(Level.INFO, "Loading tuples into docs..");
+		String indexQueryRel = FreebaseDataManager.buildDataQuery("tbl_all_rel", attribs);
+		String indexQueryNrel = FreebaseDataManager.buildDataQuery("tbl_all_nrel", attribs);
+		Document[] relDocs = FreebaseDataManager.loadTuplesToDocumentArray(indexQueryRel + " order by frequency DESC",
+				attribs);
+		Document[] nrelDocs = FreebaseDataManager.loadTuplesToDocumentArray(indexQueryNrel, attribs);
 		Utils.shuffleArray(nrelDocs);
 		for (int i = 0; i < PARTITION_COUNT; i++) {
-			System.out.println("Building index " + i + "..");
-			indexPaths[i] = FreebaseExperiment.INDEX_BASE + tableName + "_" + i
-					+ "/";
+			LOGGER.log(Level.INFO, "Building index " + i + "..");
+			indexPaths[i] = FreebaseDatabaseSizeExperiment.INDEX_BASE + tableName + "_" + i + "/";
 			int l = (int) (((i + 1.0) / PARTITION_COUNT) * nrelDocs.length);
-			FreebaseDataManager
-					.createIndex(nrelDocs, l, attribs, indexPaths[i]);
+			FreebaseDataManager.createIndex(nrelDocs, l, attribs, indexPaths[i]);
 			int m = (int) (((i + 1.0) / PARTITION_COUNT) * relDocs.length);
-			FreebaseDataManager.createIndex(relDocs, m, attribs, indexPaths[i],
-					true);
+			FreebaseDataManager.createIndex(relDocs, m, attribs, indexPaths[i], true);
 		}
-		System.out.println("Submitting queries..");
+		LOGGER.log(Level.INFO, "Submitting queries..");
 		List<List<FreebaseQueryResult>> resultList = new ArrayList<List<FreebaseQueryResult>>();
 		for (int i = 0; i < PARTITION_COUNT; i++) {
-			List<FreebaseQueryResult> fqrList = FreebaseDataManager
-					.runFreebaseQueries(queries, indexPaths[i]);
+			List<FreebaseQueryResult> fqrList = FreebaseDataManager.runFreebaseQueries(queries, indexPaths[i]);
 			resultList.add(fqrList);
 		}
-		System.out.println("Writing queries to file..");
+		LOGGER.log(Level.INFO, "Writing queries to file..");
 		FileWriter fw = null;
 		try {
-			fw = new FileWriter(FreebaseExperiment.RESULT_DIR + tableName
-					+ "_p3_rand_" + experimentNo + ".csv");
+			fw = new FileWriter(
+					FreebaseDatabaseSizeExperiment.RESULT_DIR + tableName + "_p3_rand_" + experimentNo + ".csv");
 			for (int h = 0; h < queries.size(); h++) {
 				FreebaseQuery query = queries.get(h);
-				fw.write(query.id + ", " + query.text.replace("\"", "") + ", "
-						+ query.frequency + ", ");
+				fw.write(query.id + ", " + query.text.replace("\"", "") + ", " + query.frequency + ", ");
 				for (int i = 0; i < PARTITION_COUNT; i++) {
 					FreebaseQueryResult fqr = resultList.get(i).get(h);
 					fw.write(fqr.p3() + ", ");
@@ -421,13 +447,13 @@ public class FreebaseExperiment {
 				fw.write("\n");
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.toString());
 		} finally {
 			if (fw != null) {
 				try {
 					fw.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					LOGGER.log(Level.SEVERE, e.toString());
 				}
 			}
 		}
