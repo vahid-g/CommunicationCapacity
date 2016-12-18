@@ -59,11 +59,11 @@ public class FreebaseExperiment {
 		List<FreebaseQueryResult> fqrList = FreebaseDataManager.runFreebaseQueries(queries, indexPath);
 		FileWriter fw = null;
 		try {
-			fw = new FileWriter(FreebaseExperiment.RESULT_DIR + tableName + "_top3.csv");
+			fw = new FileWriter(FreebaseExperiment.RESULT_DIR + tableName + "_mrr.csv");
 			for (FreebaseQueryResult fqr : fqrList) {
 				FreebaseQuery query = fqr.freebaseQuery;
 				fw.write(query.id + ", " + query.text + ", " + query.wiki + "," + query.fbid + "," 
-				+ query.frequency + ", " + fqr.precisionAtK(3) + ", "+ fqr.top3Hits[0] + "," 
+				+ query.frequency + ", " + fqr.mrr() + ", "+ fqr.top3Hits[0] + "," 
 						+ fqr.top3Hits[1] + ", " + fqr.top3Hits[2] + "\n");
 			}
 		} catch (Exception e) {
