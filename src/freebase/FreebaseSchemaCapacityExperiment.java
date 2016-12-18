@@ -24,7 +24,7 @@ public class FreebaseSchemaCapacityExperiment {
 //		createIndex(tableName, attribs, indexPath);
 		String sql = "select * from query where text REGEXP '" + pattern + "' and fbid in (select fbid from "
 				+ tableName + ");";
-		List<FreebaseQuery> queries = FreebaseDataManager.getQueriesBySqlQuery(sql);
+		List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesFromSql(sql);
 		FreebaseDataManager.removeKeyword(queries, pattern);
 		try (FileWriter fw = new FileWriter(
 				FreebaseDatabaseSizeExperiment.RESULT_DIR + "t-" + tableName + " q-" + tableName + " a-name" + ".csv");) {
@@ -55,7 +55,7 @@ public class FreebaseSchemaCapacityExperiment {
 //		createIndex(tableName, attribs, indexPath);
 		String sql = "select * from query where text REGEXP '" + pattern + "' and fbid in (select fbid from "
 				+ queryTableName + ");";
-		List<FreebaseQuery> queries = FreebaseDataManager.getQueriesBySqlQuery(sql);
+		List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesFromSql(sql);
 		FreebaseDataManager.annotateSemanticType(queries, pattern);
 		try (FileWriter fw = new FileWriter(
 				FreebaseDatabaseSizeExperiment.RESULT_DIR + "t-" + tableName + " q-" + queryTableName + " a-name" + ".csv");) {
