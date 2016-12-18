@@ -14,6 +14,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.naming.PartialResultException;
+
 import inex_msn.InexMsnIndexer;
 import inex_msn.Utils;
 
@@ -29,6 +31,8 @@ public class Experiment {
 	static final String QUERY_FILE = DATA_FOLDER + "queries/inex_ld/2013-ld-adhoc-topics.xml";
 	static final String QREL_FILE = DATA_FOLDER + "queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
 	static final String RESULT_DIR = DATA_FOLDER + "result/inex13_dbsize/";
+	
+	static final String FILE_LIST = DATA_FOLDER + "filelist_proc.txt";
 
 	public static void main(String[] args) {
 		randomizedDbSize();
