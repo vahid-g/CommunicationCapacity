@@ -4,6 +4,9 @@ import java.io.FileWriter;
 import java.util.List;
 
 public class FreebaseSchemaCapacityExperiment {
+	
+	static final String INDEX_BASE = FreebaseDirectoryInfo.INDEX_DIR;
+	static final String RESULT_DIR = FreebaseDirectoryInfo.RESULT_DIR;
 
 	/**
 	 * schema capacity experiment. queries selected based on specific set of
@@ -20,14 +23,14 @@ public class FreebaseSchemaCapacityExperiment {
 		// "book|theme|novel|notes|writing|manuscript|story" };
 
 		String attribs[] = { FreebaseDataManager.NAME_ATTRIB, FreebaseDataManager.DESC_ATTRIB };
-		String indexPath = FreebaseDatabaseSizeExperiment.INDEX_BASE + tableName + "/";
+		String indexPath = INDEX_BASE + tableName + "/";
 //		createIndex(tableName, attribs, indexPath);
 		String sql = "select * from query where text REGEXP '" + pattern + "' and fbid in (select fbid from "
 				+ tableName + ");";
 		List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesFromSql(sql);
 		FreebaseDataManager.removeKeyword(queries, pattern);
 		try (FileWriter fw = new FileWriter(
-				FreebaseDatabaseSizeExperiment.RESULT_DIR + "t-" + tableName + " q-" + tableName + " a-name" + ".csv");) {
+				FreebaseDirectoryInfo.RESULT_DIR + "t-" + tableName + " q-" + tableName + " a-name" + ".csv");) {
 			for (FreebaseQuery query : queries) {
 				FreebaseDataManager.runQuery(query, indexPath);
 				fw.write(query.id + ", " + query.text + ", " + query.wiki + ", " + query.p3() + ", "
@@ -51,14 +54,14 @@ public class FreebaseSchemaCapacityExperiment {
 	public static void schemaCapacityLargerTable(String tableName, String pattern, String queryTableName) {
 		String attribs[] = { FreebaseDataManager.NAME_ATTRIB, FreebaseDataManager.DESC_ATTRIB,
 				FreebaseDataManager.SEMANTIC_TYPE_ATTRIB };
-		String indexPath = FreebaseDatabaseSizeExperiment.INDEX_BASE + tableName + "/";
+		String indexPath = INDEX_BASE + tableName + "/";
 //		createIndex(tableName, attribs, indexPath);
 		String sql = "select * from query where text REGEXP '" + pattern + "' and fbid in (select fbid from "
 				+ queryTableName + ");";
 		List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesFromSql(sql);
 		FreebaseDataManager.annotateSemanticType(queries, pattern);
 		try (FileWriter fw = new FileWriter(
-				FreebaseDatabaseSizeExperiment.RESULT_DIR + "t-" + tableName + " q-" + queryTableName + " a-name" + ".csv");) {
+				FreebaseDirectoryInfo.RESULT_DIR + "t-" + tableName + " q-" + queryTableName + " a-name" + ".csv");) {
 			for (FreebaseQuery query : queries) {
 				FreebaseDataManager.runQuery(query, indexPath);
 				fw.write(query.id + ", " + query.text + ", " + query.wiki + ", " + query.p3() + ", "
