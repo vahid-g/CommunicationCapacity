@@ -24,10 +24,10 @@ public class FreebaseDatabaseSizeExperiment {
 
 	static final int PARTITION_COUNT = 10;
 	static final Logger LOGGER = Logger.getLogger(FreebaseDatabaseSizeExperiment.class.getName());
-	static final String INDEX_BASE = FreebaseDirectoryInfo.CLUSTER_INDEX_DIR;
-	static final String RESULT_DIR = FreebaseDirectoryInfo.CLUSTER_RESULT_DIR;
+	static final String INDEX_BASE = FreebaseDirectoryInfo.INDEX_DIR;
+	static final String RESULT_DIR = FreebaseDirectoryInfo.RESULT_DIR;
 
-	// initilalizing
+	// initializing
 	static {
 		LOGGER.setUseParentHandlers(false);
 		Handler handler = new ConsoleHandler();
@@ -44,9 +44,10 @@ public class FreebaseDatabaseSizeExperiment {
 	}
 
 	public static void main(String[] args) {
-		int expNo = Integer.parseInt(args[0]);
-		double threshold = Double.parseDouble(args[1]);
-		databaseSizeStratified(expNo, threshold);
+		for (int i = 0; i < 5; i++) {
+			double threshold = Double.parseDouble(args[1]);
+			databaseSizeStratified(i, threshold);
+		}
 	}
 
 	/**
@@ -150,7 +151,7 @@ public class FreebaseDatabaseSizeExperiment {
 
 		LOGGER.log(Level.INFO, "Loading tuples..");
 		String dataQuery = FreebaseDataManager.buildDataQuery(tableName, attribs);
-		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, attribs);
+		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, attribs, 1000);
 		Collections.shuffle(docs);
 		LOGGER.log(Level.INFO, "All docs: {0}", docs.size());
 		List<Document> rels = new ArrayList<Document>();
@@ -187,8 +188,10 @@ public class FreebaseDatabaseSizeExperiment {
 		FileWriter fw_p3 = null;
 		FileWriter fw_mrr = null;
 		try {
-			fw_p3 = new FileWriter(RESULT_DIR + expNo + "_" + tableName + "_p3_stratified_hards_" + easeThreshold + ".csv");
-			fw_mrr = new FileWriter(RESULT_DIR + expNo + "_" + tableName + "_mrr_stratified_hards_" + easeThreshold + ".csv");
+			fw_p3 = new FileWriter(
+					RESULT_DIR + expNo + "_" + tableName + "_p3_stratified_hards_" + easeThreshold + ".csv");
+			fw_mrr = new FileWriter(
+					RESULT_DIR + expNo + "_" + tableName + "_mrr_stratified_hards_" + easeThreshold + ".csv");
 			for (int i = 0; i < queries.size(); i++) {
 				FreebaseQuery query = queries.get(i);
 				fw_p3.write(query.id + ", " + query.text + ", " + query.frequency + ", ");
