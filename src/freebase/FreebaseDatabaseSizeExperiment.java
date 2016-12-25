@@ -45,11 +45,11 @@ public class FreebaseDatabaseSizeExperiment {
 	}
 
 	public static void main(String[] args) {
-//		for (int i = 0; i < 5; i++) {
-//			double threshold = Double.parseDouble(args[1]);
-//			databaseSizeStratified(i, threshold);
-//		}
-		
+		// for (int i = 0; i < 5; i++) {
+		// double threshold = Double.parseDouble(args[1]);
+		// databaseSizeStratified(i, threshold);
+		// }
+
 		singleTable("tbl_all");
 	}
 
@@ -67,7 +67,7 @@ public class FreebaseDatabaseSizeExperiment {
 		Map<String, Integer> weights = FreebaseDataManager.loadQueryWeights();
 		LOGGER.log(Level.INFO, "Loaded " + weights.size() + " weights");
 		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, attribs, 
-				1024, weights);
+				Integer.MIN_VALUE, weights);
 		FreebaseDataManager.createIndex(docs, attribs, indexPath);
 		List<FreebaseQueryResult> fqrList = FreebaseDataManager.runFreebaseQueries(queries, indexPath);
 		FileWriter fw = null;
