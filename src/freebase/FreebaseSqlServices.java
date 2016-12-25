@@ -3,27 +3,9 @@ package freebase;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
 
 public class FreebaseSqlServices {
-
-	public static void createShuffledTable(String tableName, String newTableName) {
-		Statement stmt = null;
-		try (Connection databaseConnection = FreebaseDataManager.getDatabaseConnection()) {
-			stmt = databaseConnection.createStatement();
-			stmt.executeUpdate("create table " + newTableName
-					+ " as select * from table " + tableName
-					+ " order by rand()");
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (stmt != null)
-					stmt.close();
-			} catch (SQLException se) {
-				se.printStackTrace();
-			}
-		}
-	}
 
 	public static void deleteTable(String tableName) {
 		Statement stmt = null;
@@ -62,6 +44,24 @@ public class FreebaseSqlServices {
 					st.close();
 			} catch (SQLException e2) {
 				e2.printStackTrace();
+			}
+		}
+	}
+
+	public static void createShuffledTable(String tableName, String newTableName) {
+		Statement stmt = null;
+		try (Connection databaseConnection = FreebaseDataManager.getDatabaseConnection()) {
+			stmt = databaseConnection.createStatement();
+			stmt.executeUpdate(
+					"create table " + newTableName + " as select * from table " + tableName + " order by rand()");
+		} catch (Exception e) {
+			FreebaseDataManager.LOGGER.log(Level.SEVERE, e.toString());
+		} finally {
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException se) {
+				FreebaseDataManager.LOGGER.log(Level.SEVERE, se.toString());
 			}
 		}
 	}

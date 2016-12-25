@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.TreeSet;
 import java.util.logging.ConsoleHandler;
@@ -44,10 +45,12 @@ public class FreebaseDatabaseSizeExperiment {
 	}
 
 	public static void main(String[] args) {
-		for (int i = 0; i < 5; i++) {
-			double threshold = Double.parseDouble(args[1]);
-			databaseSizeStratified(i, threshold);
-		}
+//		for (int i = 0; i < 5; i++) {
+//			double threshold = Double.parseDouble(args[1]);
+//			databaseSizeStratified(i, threshold);
+//		}
+		
+		singleTable("tbl_all");
 	}
 
 	/**
@@ -61,12 +64,15 @@ public class FreebaseDatabaseSizeExperiment {
 		List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesByRelevantTable(tableName);
 		String indexPath = INDEX_BASE + tableName + "/";
 		String dataQuery = FreebaseDataManager.buildDataQuery(tableName, attribs);
-		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, attribs);
+		Map<String, Integer> weights = FreebaseDataManager.loadQueryWeights();
+		LOGGER.log(Level.INFO, "Loaded " + weights.size() + " weights");
+		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, attribs, 
+				1024, weights);
 		FreebaseDataManager.createIndex(docs, attribs, indexPath);
 		List<FreebaseQueryResult> fqrList = FreebaseDataManager.runFreebaseQueries(queries, indexPath);
 		FileWriter fw = null;
 		try {
-			fw = new FileWriter(RESULT_DIR + tableName + "_top3.csv");
+			fw = new FileWriter(RESULT_DIR + tableName + "_top3_weighted.csv");
 			for (FreebaseQueryResult fqr : fqrList) {
 				FreebaseQuery query = fqr.freebaseQuery;
 				fw.write(query.id + ", " + query.text + ", " + query.wiki + "," + query.fbid + "," + query.frequency
@@ -463,6 +469,5 @@ public class FreebaseDatabaseSizeExperiment {
 			e1.printStackTrace();
 		}
 	}
-	
 
 }
