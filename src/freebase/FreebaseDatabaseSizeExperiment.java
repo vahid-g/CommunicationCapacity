@@ -5,9 +5,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -21,6 +23,17 @@ public class FreebaseDatabaseSizeExperiment {
 	static class ExperimentResult {
 		int[][] lostCount;
 		int[][] foundCount;
+	}
+
+	static class ExperimentConfig {
+		String tableName = "tbl_all";
+		String expNo = "0";
+		double hardness = 1;
+		double partitionPercentage = 1;
+
+		String getName() {
+			return expNo + "_" + tableName + "_p" + partitionPercentage + "_h" + hardness;
+		}
 	}
 
 	static final int PARTITION_COUNT = 10;
@@ -50,7 +63,12 @@ public class FreebaseDatabaseSizeExperiment {
 		// databaseSizeStratified(i, threshold);
 		// }
 
-		singleTable("tbl_all");
+		// singleTable("tbl_all");
+
+		ExperimentConfig config = new ExperimentConfig();
+		config.partitionPercentage = 0.4;
+		List<FreebaseQueryResult> result = partialSingleTable(config);
+		writeFreebaseQueryResults(result, config.getName() + ".csv");
 	}
 
 	/**
@@ -66,8 +84,7 @@ public class FreebaseDatabaseSizeExperiment {
 		String dataQuery = FreebaseDataManager.buildDataQuery(tableName, attribs);
 		Map<String, Integer> weights = FreebaseDataManager.loadQueryWeights();
 		LOGGER.log(Level.INFO, "Loaded " + weights.size() + " weights");
-		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, attribs, 
-				Integer.MIN_VALUE, weights);
+		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, attribs, Integer.MIN_VALUE, weights);
 		FreebaseDataManager.createIndex(docs, attribs, indexPath);
 		List<FreebaseQueryResult> fqrList = FreebaseDataManager.runFreebaseQueries(queries, indexPath);
 		FileWriter fw = null;
@@ -85,6 +102,76 @@ public class FreebaseDatabaseSizeExperiment {
 			if (fw != null) {
 				try {
 					fw.close();
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE, e.toString());
+				}
+			}
+		}
+	}
+
+	public static List<FreebaseQueryResult> partialSingleTable(ExperimentConfig config) {
+		LOGGER.log(Level.INFO, "Loading queries..");
+		String[] attribs = { "name", "description" };
+		double hardnessThreshold = 1;
+		String sql = "select * from query_hardness_full where hardness < " + hardnessThreshold + ";";
+		List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesFromSql(sql);
+
+		String indexPaths = INDEX_BASE + config.getName() + "/";
+		LOGGER.log(Level.INFO, "Loading tuples..");
+		String dataQuery = FreebaseDataManager.buildDataQuery(config.tableName, attribs);
+		TreeMap<String, Integer> weights = FreebaseDataManager.loadQueryWeights();
+		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, attribs, Integer.MIN_VALUE, weights);
+		Collections.shuffle(docs);
+		LOGGER.log(Level.INFO, "All docs: {0}", docs.size());
+		List<Document> rels = new ArrayList<Document>();
+		List<Document> nonRels = new ArrayList<Document>();
+		for (Document doc : docs) {
+			String fbid = doc.get(FreebaseDataManager.FBID_ATTRIB);
+			if (weights.containsKey(fbid))
+				rels.add(doc);
+			else
+				nonRels.add(doc);
+		}
+		Collections.sort(rels, new Comparator<Document>() {
+			@Override
+			public int compare(Document o1, Document o2) {
+				Double w1 = Double.parseDouble(o1.get(FreebaseDataManager.FREQ_ATTRIB));
+				Double w2 = Double.parseDouble(o2.get(FreebaseDataManager.FREQ_ATTRIB));
+				return w1.compareTo(w2); 
+				
+			}
+		});
+		LOGGER.log(Level.INFO, "Highest weight: " + rels.get(0).get(FreebaseDataManager.FREQ_ATTRIB));
+		docs = null;
+		LOGGER.log(Level.INFO, "NonRel docs: {0}", nonRels.size());
+		LOGGER.log(Level.INFO, "Rel docs: {0}", rels.size());
+		LOGGER.log(Level.INFO, "All docs: {0}", rels.size() + nonRels.size());
+		LOGGER.log(Level.INFO, "Building index " + "..");
+		FreebaseDataManager.createIndex(nonRels, (int) (config.partitionPercentage * nonRels.size()), attribs,
+				indexPaths);
+		FreebaseDataManager.appendIndex(rels, (int) (config.partitionPercentage * rels.size()), attribs, indexPaths);
+		LOGGER.log(Level.INFO, "Submitting Queries..");
+		List<FreebaseQueryResult> fqrList = FreebaseDataManager.runFreebaseQueries(queries, indexPaths);
+		return fqrList;
+	}
+
+	public static void writeFreebaseQueryResults(List<FreebaseQueryResult> fqrList, String resultFileName) {
+		LOGGER.log(Level.INFO, "Writing results to file..");
+		FileWriter fw_p3 = null;
+		try {
+			fw_p3 = new FileWriter(RESULT_DIR + resultFileName);
+			for (FreebaseQueryResult fqr : fqrList) {
+				FreebaseQuery query = fqr.freebaseQuery;
+				fw_p3.write(query.id + ", " + query.text + ", " + query.frequency + ", ");
+				fw_p3.write(fqr.p3() + ", " + fqr.mrr() + "\n");
+			}
+			fw_p3.write("\n");
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.toString());
+		} finally {
+			if (fw_p3 != null) {
+				try {
+					fw_p3.close();
 				} catch (IOException e) {
 					LOGGER.log(Level.SEVERE, e.toString());
 				}

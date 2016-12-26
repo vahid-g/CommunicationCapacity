@@ -30,5 +30,10 @@ public class FreebaseQueryResult {
 			return 0;
 		}
 	}
+	
+	@Override
+	public String toString() {
+		return freebaseQuery.id + ", " + freebaseQuery.text + ", " + freebaseQuery.frequency;
+	}
 
 }
