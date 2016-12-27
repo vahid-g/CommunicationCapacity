@@ -66,7 +66,7 @@ public class FreebaseDatabaseSizeExperiment {
 		// singleTable("tbl_all");
 
 		ExperimentConfig config = new ExperimentConfig();
-		config.partitionPercentage = 0.4;
+		config.partitionPercentage = 0.3;
 		List<FreebaseQueryResult> result = partialSingleTable(config);
 		writeFreebaseQueryResults(result, config.getName() + ".csv");
 	}
@@ -116,11 +116,12 @@ public class FreebaseDatabaseSizeExperiment {
 		String sql = "select * from query_hardness_full where hardness < " + hardnessThreshold + ";";
 		List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesFromSql(sql);
 
-		String indexPaths = INDEX_BASE + config.getName() + "/";
 		LOGGER.log(Level.INFO, "Loading tuples..");
 		String dataQuery = FreebaseDataManager.buildDataQuery(config.tableName, attribs);
 		TreeMap<String, Integer> weights = FreebaseDataManager.loadQueryWeights();
-		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, attribs, Integer.MIN_VALUE, weights);
+		// System.out.println(Collections.max(weights.values()));
+		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, 
+				attribs, Integer.MIN_VALUE, weights);
 		Collections.shuffle(docs);
 		LOGGER.log(Level.INFO, "All docs: {0}", docs.size());
 		List<Document> rels = new ArrayList<Document>();
@@ -135,10 +136,9 @@ public class FreebaseDatabaseSizeExperiment {
 		Collections.sort(rels, new Comparator<Document>() {
 			@Override
 			public int compare(Document o1, Document o2) {
-				Double w1 = Double.parseDouble(o1.get(FreebaseDataManager.FREQ_ATTRIB));
-				Double w2 = Double.parseDouble(o2.get(FreebaseDataManager.FREQ_ATTRIB));
-				return w1.compareTo(w2); 
-				
+				Float w1 = Float.parseFloat(o1.get(FreebaseDataManager.FREQ_ATTRIB));
+				Float w2 = Float.parseFloat(o2.get(FreebaseDataManager.FREQ_ATTRIB));
+				return w2.compareTo(w1);
 			}
 		});
 		LOGGER.log(Level.INFO, "Highest weight: " + rels.get(0).get(FreebaseDataManager.FREQ_ATTRIB));
@@ -147,6 +147,7 @@ public class FreebaseDatabaseSizeExperiment {
 		LOGGER.log(Level.INFO, "Rel docs: {0}", rels.size());
 		LOGGER.log(Level.INFO, "All docs: {0}", rels.size() + nonRels.size());
 		LOGGER.log(Level.INFO, "Building index " + "..");
+		String indexPaths = INDEX_BASE + config.getName() + "/";
 		FreebaseDataManager.createIndex(nonRels, (int) (config.partitionPercentage * nonRels.size()), attribs,
 				indexPaths);
 		FreebaseDataManager.appendIndex(rels, (int) (config.partitionPercentage * rels.size()), attribs, indexPaths);
