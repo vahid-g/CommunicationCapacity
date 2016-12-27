@@ -2,8 +2,6 @@ package freebase;
 
 import java.util.Random;
 
-import freebase.FreebaseDatabaseSizeExperiment.ExperimentResult;
-
 public class Utils {
 
 	static void shuffleArray(Object[] ar) {

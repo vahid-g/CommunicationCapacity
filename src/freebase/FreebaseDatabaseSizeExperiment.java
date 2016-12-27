@@ -114,7 +114,8 @@ public class FreebaseDatabaseSizeExperiment {
 		String dataQuery = FreebaseDataManager.buildDataQuery(config.tableName, attribs);
 		TreeMap<String, Integer> weights = FreebaseDataManager.loadQueryWeights();
 		// System.out.println(Collections.max(weights.values()));
-		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, attribs, Integer.MIN_VALUE, weights);
+		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, attribs, 
+				FreebaseDataManager.MAX_FETCH, weights);
 		Collections.shuffle(docs);
 		LOGGER.log(Level.INFO, "All docs: {0}", docs.size());
 		List<Document> rels = new ArrayList<Document>();
