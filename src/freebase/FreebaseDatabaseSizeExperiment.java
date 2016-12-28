@@ -16,14 +16,6 @@ import java.util.logging.Logger;
 
 import org.apache.lucene.document.Document;
 
-/**
- * @author vahid
- *
- */
-/**
- * @author vahid
- *
- */
 public class FreebaseDatabaseSizeExperiment {
 
     static final int PARTITION_COUNT = 10;
