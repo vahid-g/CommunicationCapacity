@@ -1,5 +1,7 @@
 package freebase;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class Utils {
@@ -24,6 +26,38 @@ public class Utils {
 			}
 		}
 		return c;
+	}
+
+	public static List<FreebaseQuery> sampleFreebaseQueries(
+			List<FreebaseQuery> queries, int n) {
+		double[] pdf = new double[queries.size()];
+		double sum = 0;
+		for (FreebaseQuery query : queries) {
+			sum += query.frequency;
+		}
+		for (int i = 0; i < queries.size(); i++) {
+			pdf[i] = queries.get(i).frequency / sum;
+		}
+		double[] cdf = new double[queries.size()];
+		sum = 0;
+		for (int i = 1; i < queries.size(); i++) {
+			cdf[i] = pdf[i] + sum;
+			sum = cdf[i];
+		}
+		Random rand = new Random();
+		List<FreebaseQuery> sampledQueries = new ArrayList<FreebaseQuery>();
+		while (sampledQueries.size() < n){
+			double r = rand.nextDouble();
+			int index = 0;
+			while (r > cdf[index])
+				index++;
+			if (sampledQueries.contains(queries.get(index))){
+				continue;
+			} else {
+				sampledQueries.add(queries.get(index));
+			}
+		}
+		return sampledQueries;
 	}
 
 }
