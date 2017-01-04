@@ -69,9 +69,10 @@ public class FreebaseDatabaseSizeExperiment {
 		ExperimentConfig config = new ExperimentConfig();
 		config.partitionPercentage = 0.3;
 		// List<FreebaseQueryResult> result = partialSingleTable(config);
-		List<FreebaseQueryResult> result = partialSingleTableMixedQueriesSampled(config);
+		// List<FreebaseQueryResult> result = partialSingleTableMixedQueriesSampled(config);
+		List<FreebaseQueryResult> result = partialSingleTableMixed(config);
 		writeFreebaseQueryResults(result, config.getFullName()
-				+ "_sampledquery.csv");
+				+ ".csv");
 
 	}
 
@@ -130,6 +131,78 @@ public class FreebaseDatabaseSizeExperiment {
 		String indexPaths = INDEX_BASE + config.getFullName() + "/";
 		FreebaseDataManager.createIndex(docs,
 				(int) (config.partitionPercentage * docs.size()),
+				config.attribs, indexPaths);
+		LOGGER.log(Level.INFO, "Submitting Queries..");
+		List<FreebaseQueryResult> fqrList = FreebaseDataManager
+				.runFreebaseQueries(queries, indexPaths);
+		return fqrList;
+	}
+
+	/**
+	 * 
+	 * Selects a subset of queries based on hardness config param. Then selects
+	 * a partition of database based on the partitionPercentage config param and
+	 * builds index on it. This partition is based on equal percentages of
+	 * relevant and non-relevant tuples. Then runs the selected queries on this
+	 * indexed partition. Note that this method also considers weight for tuples
+	 * (deduced based on weights of queries).
+	 * 
+	 * @param config
+	 * @return
+	 */
+	public static List<FreebaseQueryResult> partialSingleTableMixed(
+			ExperimentConfig config) {
+		LOGGER.log(Level.INFO, "Loading queries..");
+		String sql = "select * from query_hardness_full where hardness < "
+				+ config.hardness + ";";
+		List<FreebaseQuery> queries = FreebaseDataManager
+				.loadMsnQueriesFromSql(sql);
+	
+		LOGGER.log(Level.INFO, "Loading tuples..");
+		String dataQuery = FreebaseDataManager.buildDataQuery(config.tableName,
+				config.attribs);
+		TreeMap<String, Integer> weights = FreebaseDataManager
+				.loadQueryWeights(queries);
+		// System.out.println(Collections.max(weights.values()));
+		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(
+				dataQuery, config.attribs, FreebaseDataManager.MAX_FETCH,
+				weights);
+		Collections.shuffle(docs);
+		LOGGER.log(Level.INFO, "All docs: {0}", docs.size());
+		List<Document> rels = new ArrayList<Document>();
+		List<Document> nonRels = new ArrayList<Document>();
+		for (Document doc : docs) {
+			String fbid = doc.get(FreebaseDataManager.FBID_ATTRIB);
+			if (weights.containsKey(fbid))
+				rels.add(doc);
+			else
+				nonRels.add(doc);
+		}
+		Collections.sort(rels, new Comparator<Document>() {
+			@Override
+			public int compare(Document o1, Document o2) {
+				Float w1 = Float.parseFloat(o1
+						.get(FreebaseDataManager.FREQ_ATTRIB));
+				Float w2 = Float.parseFloat(o2
+						.get(FreebaseDataManager.FREQ_ATTRIB));
+				return w2.compareTo(w1);
+			}
+		});
+		LOGGER.log(
+				Level.INFO,
+				"Highest weight: "
+						+ rels.get(0).get(FreebaseDataManager.FREQ_ATTRIB));
+		docs = null;
+		LOGGER.log(Level.INFO, "NonRel docs: {0}", nonRels.size());
+		LOGGER.log(Level.INFO, "Rel docs: {0}", rels.size());
+		LOGGER.log(Level.INFO, "All docs: {0}", rels.size() + nonRels.size());
+		LOGGER.log(Level.INFO, "Building index " + "..");
+		String indexPaths = INDEX_BASE + config.getFullName() + "/";
+		FreebaseDataManager.createIndex(nonRels,
+				(int) (config.partitionPercentage * nonRels.size()),
+				config.attribs, indexPaths);
+		FreebaseDataManager.appendIndex(rels,
+				(int) (config.partitionPercentage * rels.size()),
 				config.attribs, indexPaths);
 		LOGGER.log(Level.INFO, "Submitting Queries..");
 		List<FreebaseQueryResult> fqrList = FreebaseDataManager
@@ -426,78 +499,6 @@ public class FreebaseDatabaseSizeExperiment {
 				}
 			}
 		}
-	}
-
-	/**
-	 * 
-	 * Selects a subset of queries based on hardness config param. Then selects
-	 * a partition of database based on the partitionPercentage config param and
-	 * builds index on it. This partition is based on equal percentages of
-	 * relevant and non-relevant tuples. Then runs the selected queries on this
-	 * indexed partition. Note that this method also considers weight for tuples
-	 * (deduced based on weights of queries).
-	 * 
-	 * @param config
-	 * @return
-	 */
-	public static List<FreebaseQueryResult> partialSingleTableMixed(
-			ExperimentConfig config) {
-		LOGGER.log(Level.INFO, "Loading queries..");
-		String sql = "select * from query_hardness_full where hardness < "
-				+ config.hardness + ";";
-		List<FreebaseQuery> queries = FreebaseDataManager
-				.loadMsnQueriesFromSql(sql);
-
-		LOGGER.log(Level.INFO, "Loading tuples..");
-		String dataQuery = FreebaseDataManager.buildDataQuery(config.tableName,
-				config.attribs);
-		TreeMap<String, Integer> weights = FreebaseDataManager
-				.loadQueryWeights();
-		// System.out.println(Collections.max(weights.values()));
-		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(
-				dataQuery, config.attribs, FreebaseDataManager.MAX_FETCH,
-				weights);
-		Collections.shuffle(docs);
-		LOGGER.log(Level.INFO, "All docs: {0}", docs.size());
-		List<Document> rels = new ArrayList<Document>();
-		List<Document> nonRels = new ArrayList<Document>();
-		for (Document doc : docs) {
-			String fbid = doc.get(FreebaseDataManager.FBID_ATTRIB);
-			if (weights.containsKey(fbid))
-				rels.add(doc);
-			else
-				nonRels.add(doc);
-		}
-		Collections.sort(rels, new Comparator<Document>() {
-			@Override
-			public int compare(Document o1, Document o2) {
-				Float w1 = Float.parseFloat(o1
-						.get(FreebaseDataManager.FREQ_ATTRIB));
-				Float w2 = Float.parseFloat(o2
-						.get(FreebaseDataManager.FREQ_ATTRIB));
-				return w2.compareTo(w1);
-			}
-		});
-		LOGGER.log(
-				Level.INFO,
-				"Highest weight: "
-						+ rels.get(0).get(FreebaseDataManager.FREQ_ATTRIB));
-		docs = null;
-		LOGGER.log(Level.INFO, "NonRel docs: {0}", nonRels.size());
-		LOGGER.log(Level.INFO, "Rel docs: {0}", rels.size());
-		LOGGER.log(Level.INFO, "All docs: {0}", rels.size() + nonRels.size());
-		LOGGER.log(Level.INFO, "Building index " + "..");
-		String indexPaths = INDEX_BASE + config.getFullName() + "/";
-		FreebaseDataManager.createIndex(nonRels,
-				(int) (config.partitionPercentage * nonRels.size()),
-				config.attribs, indexPaths);
-		FreebaseDataManager.appendIndex(rels,
-				(int) (config.partitionPercentage * rels.size()),
-				config.attribs, indexPaths);
-		LOGGER.log(Level.INFO, "Submitting Queries..");
-		List<FreebaseQueryResult> fqrList = FreebaseDataManager
-				.runFreebaseQueries(queries, indexPaths);
-		return fqrList;
 	}
 
 }
