@@ -1,6 +1,7 @@
 package freebase;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -40,7 +41,7 @@ public class Utils {
 		}
 		double[] cdf = new double[queries.size()];
 		sum = 0;
-		for (int i = 1; i < queries.size(); i++) {
+		for (int i = 0; i < queries.size(); i++) {
 			cdf[i] = pdf[i] + sum;
 			sum = cdf[i];
 		}
