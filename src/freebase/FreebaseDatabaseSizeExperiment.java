@@ -255,7 +255,8 @@ public class FreebaseDatabaseSizeExperiment {
 	List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesFromSql(sql);
 	List<FreebaseQuery> trainQueries = Utils.sampleFreebaseQueries(queries, queries.size() / sampleSize);
 	List<FreebaseQuery> testQueries = Utils.sampleFreebaseQueries(queries, queries.size() / sampleSize);
-
+	LOGGER.log(Level.INFO, "train size: " + trainQueries.size());
+	LOGGER.log(Level.INFO, "test size: " + testQueries.size());
 	LOGGER.log(Level.INFO, "Loading tuples..");
 	String dataQuery = FreebaseDataManager.buildDataQuery(config.tableName, config.attribs);
 	TreeMap<String, Integer> weights = FreebaseDataManager.loadQueryWeights(trainQueries);
@@ -283,7 +284,7 @@ public class FreebaseDatabaseSizeExperiment {
 	    LOGGER.log(Level.INFO, "Submitting queries..");
 	    List<FreebaseQueryResult> resultList = FreebaseDataManager.runFreebaseQueries(testQueries, indexPaths[i]);
 	    Map<FreebaseQuery, FreebaseQueryResult> resultMap = FreebaseDataManager.convertResultListToMap(resultList);
-	    for (FreebaseQuery query : resultMap.keySet()) {
+	    for (FreebaseQuery query : testQueries) {
 		List<FreebaseQueryResult> list = results.get(query);
 		list.add(resultMap.get(query));
 	    }
