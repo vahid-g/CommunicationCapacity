@@ -30,7 +30,8 @@ public class Utils {
 	return c;
     }
 
-    public static List<FreebaseQuery> sampleFreebaseQueries(List<FreebaseQuery> queries, int n) {
+    public static List<FreebaseQuery> sampleFreebaseQueries(
+	    List<FreebaseQuery> queries, int n) {
 	Map<FreebaseQuery, Integer> freqMap = new HashMap<FreebaseQuery, Integer>();
 	for (FreebaseQuery query : queries) {
 	    if (freqMap.containsKey(query))
@@ -66,8 +67,9 @@ public class Utils {
 	}
 	return cdf;
     }
-    
-    private static double[] getPdf(Map<FreebaseQuery, Integer> freqMap, List<FreebaseQuery> queries) {
+
+    private static double[] getPdf(Map<FreebaseQuery, Integer> freqMap,
+	    List<FreebaseQuery> queries) {
 	double[] pdf = new double[queries.size()];
 	double sum = 0;
 	for (Integer freq : freqMap.values())
@@ -78,4 +80,15 @@ public class Utils {
 	return pdf;
     }
 
+    public static List<FreebaseQueryInstance> flattenFreebaseQueries(
+	    List<FreebaseQuery> queries) {
+	List<FreebaseQueryInstance> flatList = new ArrayList<FreebaseQueryInstance>();
+	for (FreebaseQuery query : queries){
+	    for (int i = 0; i < query.frequency; i++){
+		flatList.add(new FreebaseQueryInstance(i, query));
+	    }
+	}
+	return flatList;
+    }
+    
 }

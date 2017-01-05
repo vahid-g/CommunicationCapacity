@@ -85,7 +85,7 @@ public class FreebaseDatabaseSizeExperiment {
 
 	ExperimentConfig config = new ExperimentConfig();
 	config.partitionCount = 2;
-	Map<FreebaseQuery, List<FreebaseQueryResult>> results = databaseSize(config);
+	Map<FreebaseQueryInstance, List<FreebaseQueryResult>> results = databaseSize(config);
 	writeFreebaseQueryResults(results, "exp10_" + config.tableName + "_h"
 		+ config.hardness + "_ss50.csv");
     }
@@ -288,25 +288,27 @@ public class FreebaseDatabaseSizeExperiment {
      * @param tableName
      * @return a list of FreebaseQueryResults objects.
      */
-    public static Map<FreebaseQuery, List<FreebaseQueryResult>> databaseSize(
+    public static Map<FreebaseQueryInstance, List<FreebaseQueryResult>> databaseSize(
 	    ExperimentConfig config) {
-	int sampleSize = 2;
 	LOGGER.log(Level.INFO, "Loading queries..");
 	String sql = "select * from query_hardness_full where hardness < "
 		+ config.hardness + ";";
-	List<FreebaseQuery> queries = FreebaseDataManager
+	List<FreebaseQuery> queryList = FreebaseDataManager
 		.loadMsnQueriesFromSql(sql);
-	List<FreebaseQuery> trainQueries = Utils.sampleFreebaseQueries(queries,
-		queries.size() / sampleSize);
-	List<FreebaseQuery> testQueries = Utils.sampleFreebaseQueries(queries,
-		queries.size() / sampleSize);
+	List<FreebaseQueryInstance> flatQueryList = Utils.flattenFreebaseQueries(queryList);
+	// random sampling
+	Collections.shuffle(flatQueryList);
+	List<FreebaseQueryInstance> trainQueries = flatQueryList.subList(0, flatQueryList.size() / 2);
+	List<FreebaseQueryInstance> testQueries = new ArrayList<FreebaseQueryInstance>();
+	testQueries.addAll(flatQueryList);
+	testQueries.removeAll(trainQueries);
 	LOGGER.log(Level.INFO, "train size: " + trainQueries.size());
 	LOGGER.log(Level.INFO, "test size: " + testQueries.size());
 	LOGGER.log(Level.INFO, "Loading tuples..");
 	String dataQuery = FreebaseDataManager.buildDataQuery(config.tableName,
 		config.attribs);
 	TreeMap<String, Integer> weights = FreebaseDataManager
-		.loadQueryWeights(trainQueries);
+		.loadQueryInstanceWeights(trainQueries);
 	List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(
 		dataQuery, config.attribs, FreebaseDataManager.MAX_FETCH,
 		weights);
@@ -314,9 +316,10 @@ public class FreebaseDatabaseSizeExperiment {
 	Collections.sort(docs, new DocumentFreqComparator());
 
 	String indexPaths[] = new String[config.partitionCount];
-	Map<FreebaseQuery, List<FreebaseQueryResult>> results = new HashMap<FreebaseQuery, List<FreebaseQueryResult>>();
-	for (FreebaseQuery query : testQueries)
+	Map<FreebaseQueryInstance, List<FreebaseQueryResult>> results = new HashMap<FreebaseQueryInstance, List<FreebaseQueryResult>>();
+	for (FreebaseQueryInstance query : testQueries){
 	    results.put(query, new ArrayList<FreebaseQueryResult>());
+	}
 	for (int i = 0; i < config.partitionCount; i++) {
 	    LOGGER.log(Level.INFO, "Building index " + i + "..");
 	    indexPaths[i] = INDEX_BASE + config.tableName + "_" + i + "/";
@@ -324,11 +327,9 @@ public class FreebaseDatabaseSizeExperiment {
 		    (int) (((i + 1.0) / 10.0) * docs.size()), config.attribs,
 		    indexPaths[i]);
 	    LOGGER.log(Level.INFO, "Submitting queries..");
-	    List<FreebaseQueryResult> resultList = FreebaseDataManager
-		    .runFreebaseQueries(testQueries, indexPaths[i]);
-	    Map<FreebaseQuery, FreebaseQueryResult> resultMap = FreebaseDataManager
-		    .convertResultListToMap(resultList);
-	    for (FreebaseQuery query : testQueries) {
+	    Map<FreebaseQueryInstance, FreebaseQueryResult> resultMap = FreebaseDataManager
+		    .runFreebaseQueryInstances(testQueries, indexPaths[i]);
+	    for (FreebaseQueryInstance query : testQueries) {
 		List<FreebaseQueryResult> list = results.get(query);
 		list.add(resultMap.get(query));
 	    }
@@ -492,15 +493,16 @@ public class FreebaseDatabaseSizeExperiment {
      *            : output csv file name
      */
     static void writeFreebaseQueryResults(
-	    Map<FreebaseQuery, List<FreebaseQueryResult>> fqrMap,
+	    Map<FreebaseQueryInstance, List<FreebaseQueryResult>> fqrMap,
 	    String resultFileName) {
 	LOGGER.log(Level.INFO, "Writing results to file..");
 	FileWriter fw = null;
 	try {
 	    fw = new FileWriter(RESULT_DIR + resultFileName);
-	    for (FreebaseQuery query : fqrMap.keySet()) {
+	    for (FreebaseQueryInstance queryInstance : fqrMap.keySet()) {
+		FreebaseQuery query = queryInstance.freebaseQuery;
 		fw.write(query.id + ", " + query.text + ", " + query.frequency
-			+ ", ");
+			+ ", " + queryInstance.instanceId + ", ");
 		List<FreebaseQueryResult> list = fqrMap.get(query);
 		for (FreebaseQueryResult fqr : list) {
 		    fw.write(fqr.p3() + ", ");

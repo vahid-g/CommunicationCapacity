@@ -19,7 +19,7 @@ public class FreebaseQuery {
 	
 	@Deprecated 
 	String[] hits = new String[3];
-
+	
 	public double mrr() {
 		if (relRank != -1) return 1.0 / relRank;
 		else return 0;
