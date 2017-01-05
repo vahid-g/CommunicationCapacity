@@ -60,12 +60,11 @@ public class FreebaseDatabaseSizeExperiment {
 
     static class ExperimentConfig {
 	String tableName = "tbl_all";
+	String[] attribs = { "name", "description" };
 	String name = "exp";
 	double hardness = 1; // this is exclusive
+	double trainSize = 1;
 	double partitionPercentage = 1;
-	int partitionCount = 10;
-	String[] attribs = { "name", "description" };
-	double trainSize = 0.7;
 
 	String getFullName() {
 	    return name + "_" + tableName + "_p" + partitionPercentage + "_h"
@@ -80,11 +79,13 @@ public class FreebaseDatabaseSizeExperiment {
 
     public static void main(String[] args) {
 
+	ExperimentConfig config = new ExperimentConfig();
+	
 	// singleTable("tbl_all");
 	// writeFreebaseQueryResults(resultList, config.getFullName() +
 	// ".csv");
 
-	// ExperimentConfig config = new ExperimentConfig();
+	
 	// config.partitionCount = 2;
 	// Map<FreebaseQueryInstance, List<FreebaseQueryResult>> results =
 	// databaseSize(config);
@@ -92,6 +93,8 @@ public class FreebaseDatabaseSizeExperiment {
 	// + config.hardness + "_ss" + (int)(config.trainSize * 100) + ".csv");
 	
 	
+	List<FreebaseQueryResult> resultList = weightedSingleTablePartition(config);
+	writeFreebaseQueryResults(resultList, config.getFullName());
 
     }
 
@@ -134,7 +137,7 @@ public class FreebaseDatabaseSizeExperiment {
 	String dataQuery = FreebaseDataManager.buildDataQuery(config.tableName,
 		config.attribs);
 	TreeMap<String, Integer> weights = FreebaseDataManager
-		.loadQueryWeights();
+		.loadQueryWeights(queries);
 	// System.out.println(Collections.max(weights.values()));
 	List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(
 		dataQuery, config.attribs, FreebaseDataManager.MAX_FETCH,
@@ -294,7 +297,7 @@ public class FreebaseDatabaseSizeExperiment {
      * @return a list of FreebaseQueryResults objects.
      */
     public static Map<FreebaseQuery, List<FreebaseQueryResult>> databaseSize(
-	    ExperimentConfig config) {
+	    ExperimentConfig config, int partitionCount) {
 	LOGGER.log(Level.INFO, "Loading queries..");
 	String sql = "select * from query_hardness_full where hardness < "
 		+ config.hardness + ";";
@@ -324,16 +327,16 @@ public class FreebaseDatabaseSizeExperiment {
 	Collections.shuffle(docs);
 	Collections.sort(docs, new DocumentFreqComparator());
 
-	String indexPaths[] = new String[config.partitionCount];
+	String indexPaths[] = new String[partitionCount];
 	Map<FreebaseQuery, List<FreebaseQueryResult>> results = new HashMap<FreebaseQuery, List<FreebaseQueryResult>>();
 	for (FreebaseQuery query : testQueries) {
 	    results.put(query, new ArrayList<FreebaseQueryResult>());
 	}
-	for (int i = 0; i < config.partitionCount; i++) {
+	for (int i = 0; i < partitionCount; i++) {
 	    LOGGER.log(Level.INFO, "Building index " + i + "..");
 	    indexPaths[i] = INDEX_BASE + config.tableName + "_" + i + "/";
 	    FreebaseDataManager.createIndex(docs,
-		    (int) (((i + 1.0) / config.partitionCount) * docs.size()),
+		    (int) (((i + 1.0) / partitionCount) * docs.size()),
 		    config.attribs, indexPaths[i]);
 	    LOGGER.log(Level.INFO, "Submitting queries..");
 	    List<FreebaseQueryResult> resultList = FreebaseDataManager
