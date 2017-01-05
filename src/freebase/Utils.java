@@ -80,12 +80,12 @@ public class Utils {
 	return pdf;
     }
 
-    public static List<FreebaseQueryInstance> flattenFreebaseQueries(
+    public static List<FreebaseQuery> flattenFreebaseQueries(
 	    List<FreebaseQuery> queries) {
-	List<FreebaseQueryInstance> flatList = new ArrayList<FreebaseQueryInstance>();
+	List<FreebaseQuery> flatList = new ArrayList<FreebaseQuery>();
 	for (FreebaseQuery query : queries){
 	    for (int i = 0; i < query.frequency; i++){
-		flatList.add(new FreebaseQueryInstance(i, query));
+		flatList.add(new FreebaseQuery(i, query));
 	    }
 	}
 	return flatList;

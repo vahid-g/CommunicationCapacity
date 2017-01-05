@@ -3,41 +3,27 @@ package freebase;
 import java.util.HashMap;
 
 public class FreebaseQuery {
-	public FreebaseQuery(int id, HashMap<String, String> attribs) {
-		this.id = id;
-		this.attribs = attribs;
-		this.relRank = -1;
-	}
 
-	int id;
-	int frequency;
-	String text;
-	String wiki;
-	HashMap<String, String> attribs;
-	String fbid;
-	int relRank;
-	
-	@Deprecated 
-	String[] hits = new String[3];
-	
-	public double mrr() {
-		if (relRank != -1) return 1.0 / relRank;
-		else return 0;
-	}
+    int id;
+    int frequency;
+    String text;
+    String wiki;
+    HashMap<String, String> attribs;
+    String fbid;
+    int instanceId;
 
-	public double p3() {
-		if (relRank != -1 && relRank < 4)
-			return 0.3;
-		else
-			return 0;
-	}
+    public FreebaseQuery(int id, HashMap<String, String> attribs) {
+	this.id = id;
+	this.attribs = attribs;
+    }
 
+    public FreebaseQuery(int instanceId, FreebaseQuery query) {
+	this.id = query.id;
+	this.frequency = query.frequency;
+	this.text = query.text;
+	this.wiki = query.wiki;
+	this.fbid = query.fbid;
+	this.instanceId = instanceId;
+    }
 
-	public double precisionAtK(int k){
-		if (relRank != -1 && relRank <= k){
-			return 1.0 / k;
-		} else {
-			return 0;
-		}
-	}
 }
