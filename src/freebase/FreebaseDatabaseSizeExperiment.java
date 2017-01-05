@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.ConsoleHandler;
@@ -62,13 +64,17 @@ public class FreebaseDatabaseSizeExperiment {
 	// }
 
 	// singleTable("tbl_all");
+	Map<FreebaseQuery, List<FreebaseQueryResult>> results = new HashMap<FreebaseQuery, List<FreebaseQueryResult>>();
+	for (int i = 1; i <= 10; i++) {
+	    ExperimentConfig config = new ExperimentConfig();
+	    config.partitionPercentage = i / 1.0;
+	    List<FreebaseQueryResult> resultList = partialSingleTableMixedQueriesSampled(config);
+	    Map<FreebaseQuery, FreebaseQueryResult> resultMap = FreebaseDataManager.convertResultListToMap(resultList);
 
-	ExperimentConfig config = new ExperimentConfig();
-	config.partitionPercentage = 0.3;
-	// List<FreebaseQueryResult> result = partialSingleTable(config);
-	// List<FreebaseQueryResult> result = partialSingleTableMixed(config);
-	List<FreebaseQueryResult> result = partialSingleTableMixedQueriesSampled(config);
-	writeFreebaseQueryResults(result, config.getFullName() + ".csv");
+	    // writeFreebaseQueryResults(resultList, config.getFullName() +
+	    // ".csv");
+
+	}
 
     }
 
@@ -193,10 +199,16 @@ public class FreebaseDatabaseSizeExperiment {
 	LOGGER.log(Level.INFO, "Loading queries..");
 	String sql = "select * from query_hardness_full where hardness < " + config.hardness + ";";
 	List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesFromSql(sql);
-	List<FreebaseQuery> trianQueries = Utils.sampleFreebaseQueries(queries, queries.size() / sampleSize);
+	List<FreebaseQuery> trainQueries = Utils.sampleFreebaseQueries(queries, queries.size() / sampleSize);
+	List<FreebaseQuery> testQueries = Utils.sampleFreebaseQueries(queries, queries.size() / sampleSize);
+	return partialSingleTableMixedQueriesSampled(config, trainQueries, testQueries);
+    }
+
+    public static List<FreebaseQueryResult> partialSingleTableMixedQueriesSampled(ExperimentConfig config,
+	    List<FreebaseQuery> trainQueries, List<FreebaseQuery> testQueries) {
 	LOGGER.log(Level.INFO, "Loading tuples..");
 	String dataQuery = FreebaseDataManager.buildDataQuery(config.tableName, config.attribs);
-	TreeMap<String, Integer> weights = FreebaseDataManager.loadQueryWeights(trianQueries);
+	TreeMap<String, Integer> weights = FreebaseDataManager.loadQueryWeights(trainQueries);
 	// System.out.println(Collections.max(weights.values()));
 	List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, config.attribs,
 		FreebaseDataManager.MAX_FETCH, weights);
@@ -231,7 +243,6 @@ public class FreebaseDatabaseSizeExperiment {
 	FreebaseDataManager.appendIndex(rels, (int) (config.partitionPercentage * rels.size()), config.attribs,
 		indexPaths);
 	LOGGER.log(Level.INFO, "Submitting Queries..");
-	List<FreebaseQuery> testQueries = Utils.sampleFreebaseQueries(queries, queries.size() / sampleSize);
 	List<FreebaseQueryResult> fqrList = FreebaseDataManager.runFreebaseQueries(testQueries, indexPaths);
 	return fqrList;
     }
