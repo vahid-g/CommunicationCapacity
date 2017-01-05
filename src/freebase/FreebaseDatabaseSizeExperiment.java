@@ -50,11 +50,11 @@ public class FreebaseDatabaseSizeExperiment {
 	    Comparator<Document> {
 	@Override
 	public int compare(Document o1, Document o2) {
-	Float w1 = Float.parseFloat(o1
-		.get(FreebaseDataManager.FREQ_ATTRIB));
-	Float w2 = Float.parseFloat(o2
-		.get(FreebaseDataManager.FREQ_ATTRIB));
-	return w2.compareTo(w1);
+	    Float w1 = Float
+		    .parseFloat(o1.get(FreebaseDataManager.FREQ_ATTRIB));
+	    Float w2 = Float
+		    .parseFloat(o2.get(FreebaseDataManager.FREQ_ATTRIB));
+	    return w2.compareTo(w1);
 	}
     }
 
@@ -65,6 +65,7 @@ public class FreebaseDatabaseSizeExperiment {
 	double partitionPercentage = 1;
 	int partitionCount = 10;
 	String[] attribs = { "name", "description" };
+	double trainSize = 0.7;
 
 	String getFullName() {
 	    return name + "_" + tableName + "_p" + partitionPercentage + "_h"
@@ -84,10 +85,11 @@ public class FreebaseDatabaseSizeExperiment {
 	// ".csv");
 
 	ExperimentConfig config = new ExperimentConfig();
-	config.partitionCount = 2;
+	config.partitionCount = 10;
+	config.trainSize = 0.9;
 	Map<FreebaseQueryInstance, List<FreebaseQueryResult>> results = databaseSize(config);
 	writeFreebaseQueryResults(results, "exp10_" + config.tableName + "_h"
-		+ config.hardness + "_ss50.csv");
+		+ config.hardness + "_ss" + (config.trainSize * 100) + ".csv");
     }
 
     /**
@@ -295,10 +297,12 @@ public class FreebaseDatabaseSizeExperiment {
 		+ config.hardness + ";";
 	List<FreebaseQuery> queryList = FreebaseDataManager
 		.loadMsnQueriesFromSql(sql);
-	List<FreebaseQueryInstance> flatQueryList = Utils.flattenFreebaseQueries(queryList);
+	List<FreebaseQueryInstance> flatQueryList = Utils
+		.flattenFreebaseQueries(queryList);
 	// random sampling
 	Collections.shuffle(flatQueryList);
-	List<FreebaseQueryInstance> trainQueries = flatQueryList.subList(0, flatQueryList.size() / 2);
+	List<FreebaseQueryInstance> trainQueries = flatQueryList.subList(0,
+		(int) (flatQueryList.size() * config.trainSize));
 	List<FreebaseQueryInstance> testQueries = new ArrayList<FreebaseQueryInstance>();
 	testQueries.addAll(flatQueryList);
 	testQueries.removeAll(trainQueries);
@@ -317,7 +321,7 @@ public class FreebaseDatabaseSizeExperiment {
 
 	String indexPaths[] = new String[config.partitionCount];
 	Map<FreebaseQueryInstance, List<FreebaseQueryResult>> results = new HashMap<FreebaseQueryInstance, List<FreebaseQueryResult>>();
-	for (FreebaseQueryInstance query : testQueries){
+	for (FreebaseQueryInstance query : testQueries) {
 	    results.put(query, new ArrayList<FreebaseQueryResult>());
 	}
 	for (int i = 0; i < config.partitionCount; i++) {
@@ -502,13 +506,10 @@ public class FreebaseDatabaseSizeExperiment {
 	    for (FreebaseQueryInstance queryInstance : fqrMap.keySet()) {
 		FreebaseQuery query = queryInstance.freebaseQuery;
 		fw.write(query.id + ", " + query.text + ", " + query.frequency
-			+ ", " + queryInstance.instanceId + ", ");
-		List<FreebaseQueryResult> list = fqrMap.get(query);
+			+ ", " + queryInstance.instanceId);
+		List<FreebaseQueryResult> list = fqrMap.get(queryInstance);
 		for (FreebaseQueryResult fqr : list) {
-		    fw.write(fqr.p3() + ", ");
-		}
-		for (FreebaseQueryResult fqr : list) {
-		    fw.write(fqr.p3() * query.frequency + ", ");
+		    fw.write(", " + fqr.p3());
 		}
 		fw.write("\n");
 	    }
