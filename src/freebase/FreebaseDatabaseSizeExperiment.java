@@ -18,6 +18,14 @@ import java.util.logging.Logger;
 
 import org.apache.lucene.document.Document;
 
+/**
+ * @author vahid
+ *
+ */
+/**
+ * @author vahid
+ *
+ */
 public class FreebaseDatabaseSizeExperiment {
 
     static final int PARTITION_COUNT = 10;
@@ -68,7 +76,7 @@ public class FreebaseDatabaseSizeExperiment {
 	for (int i = 1; i <= 10; i++) {
 	    ExperimentConfig config = new ExperimentConfig();
 	    config.partitionPercentage = i / 1.0;
-	    List<FreebaseQueryResult> resultList = partialSingleTableMixedQueriesSampled(config);
+	    List<FreebaseQueryResult> resultList = weightedSingleTablePartitionMixedSampledQueries(config);
 	    Map<FreebaseQuery, FreebaseQueryResult> resultMap = FreebaseDataManager.convertResultListToMap(resultList);
 
 	    // writeFreebaseQueryResults(resultList, config.getFullName() +
@@ -94,7 +102,15 @@ public class FreebaseDatabaseSizeExperiment {
 	return fqrList;
     }
 
-    public static List<FreebaseQueryResult> partialSingleTable(ExperimentConfig config) {
+    
+    /**
+     * Load tuple weights from the qury log and runs the queries on a partition of the table. Size of partition 
+     * is decided based on config.
+     * 
+     * @param config
+     * @return List of FreebaseQueryResult
+     */
+    public static List<FreebaseQueryResult> weightedSingleTablePartition(ExperimentConfig config) {
 	LOGGER.log(Level.INFO, "Loading queries..");
 	String sql = "select * from query_hardness_full where hardness < " + config.hardness + ";";
 	List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesFromSql(sql);
@@ -123,6 +139,58 @@ public class FreebaseDatabaseSizeExperiment {
 	return fqrList;
     }
 
+    
+    /**
+     * Picks two samples of query log as train and test sets. Then runs the weightedSingleTableSampled experiment
+     * using these sets. This experiment loads the tuple weights based on train set, builds an index and runs 
+     * the test queries over the built index; 
+     * 
+     * @param config
+     * @return
+     */
+    public static List<FreebaseQueryResult> weightedSingleTablePartitionSampledQueries(ExperimentConfig config) {
+	int sampleSize = 3;
+	LOGGER.log(Level.INFO, "Loading queries..");
+	String sql = "select * from query_hardness_full where hardness < " + config.hardness + ";";
+	List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesFromSql(sql);
+	List<FreebaseQuery> trainQueries = Utils.sampleFreebaseQueries(queries, queries.size() / sampleSize);
+	List<FreebaseQuery> testQueries = Utils.sampleFreebaseQueries(queries, queries.size() / sampleSize);
+	return weightedSingleTablePartitionSampledQueries(config, trainQueries, testQueries);
+    }
+
+    
+    /**
+     * Estimates tuples wieghts based on train query set, creates index and runs the test queries over this index
+     * @param config
+     * @param trainQueries
+     * @param testQueries
+     * @return
+     */
+    public static List<FreebaseQueryResult> weightedSingleTablePartitionSampledQueries(ExperimentConfig config,
+	    List<FreebaseQuery> trainQueries, List<FreebaseQuery> testQueries) {
+	LOGGER.log(Level.INFO, "Loading tuples..");
+	String dataQuery = FreebaseDataManager.buildDataQuery(config.tableName, config.attribs);
+	TreeMap<String, Integer> weights = FreebaseDataManager.loadQueryWeights(trainQueries);
+	List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(dataQuery, config.attribs,
+		FreebaseDataManager.MAX_FETCH, weights);
+	Collections.shuffle(docs);
+	Collections.sort(docs, new Comparator<Document>() {
+	    @Override
+	    public int compare(Document o1, Document o2) {
+		Float w1 = Float.parseFloat(o1.get(FreebaseDataManager.FREQ_ATTRIB));
+		Float w2 = Float.parseFloat(o2.get(FreebaseDataManager.FREQ_ATTRIB));
+		return w2.compareTo(w1);
+	    }
+	});
+	LOGGER.log(Level.INFO, "Building index " + "..");
+	String indexPaths = INDEX_BASE + config.getFullName() + "/";
+	FreebaseDataManager.createIndex(docs, (int) (config.partitionPercentage * docs.size()), config.attribs,
+		indexPaths);
+	LOGGER.log(Level.INFO, "Submitting Queries..");
+	List<FreebaseQueryResult> fqrList = FreebaseDataManager.runFreebaseQueries(testQueries, indexPaths);
+	return fqrList;
+    }
+
     /**
      * 
      * Selects a subset of queries based on hardness config param. Then selects
@@ -135,7 +203,7 @@ public class FreebaseDatabaseSizeExperiment {
      * @param config
      * @return
      */
-    public static List<FreebaseQueryResult> partialSingleTableMixed(ExperimentConfig config) {
+    public static List<FreebaseQueryResult> weightedSignleTablePartitionMixed(ExperimentConfig config) {
 	LOGGER.log(Level.INFO, "Loading queries..");
 	String sql = "select * from query_hardness_full where hardness < " + config.hardness + ";";
 	List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesFromSql(sql);
@@ -183,28 +251,26 @@ public class FreebaseDatabaseSizeExperiment {
 
     /**
      * 
-     * Selects a subset of queries based on hardness config param and samples
-     * them! Then selects a partition of database based on the
-     * partitionPercentage config param and builds index on it. This partition
-     * is based on equal percentages of relevant and non-relevant tuples. Then
-     * runs a new sample of queries on this indexed partition. Note that this
-     * method also considers weight for tuples (deduced based on weights of
-     * queries).
+     * Selects a partition of database based on the partitionPercentage config
+     * param and builds index on it. This partition is based on equal
+     * percentages of relevant and non-relevant tuples. Then runs test queries
+     * this indexed partition. Note that this method considers weight for tuples
+     * (deduced based on weights of queries).
      * 
      * @param config
      * @return
      */
-    public static List<FreebaseQueryResult> partialSingleTableMixedQueriesSampled(ExperimentConfig config) {
+    public static List<FreebaseQueryResult> weightedSingleTablePartitionMixedSampledQueries(ExperimentConfig config) {
 	int sampleSize = 3;
 	LOGGER.log(Level.INFO, "Loading queries..");
 	String sql = "select * from query_hardness_full where hardness < " + config.hardness + ";";
 	List<FreebaseQuery> queries = FreebaseDataManager.loadMsnQueriesFromSql(sql);
 	List<FreebaseQuery> trainQueries = Utils.sampleFreebaseQueries(queries, queries.size() / sampleSize);
 	List<FreebaseQuery> testQueries = Utils.sampleFreebaseQueries(queries, queries.size() / sampleSize);
-	return partialSingleTableMixedQueriesSampled(config, trainQueries, testQueries);
+	return weightedSingleTablePartitionMixedSampledQueries(config, trainQueries, testQueries);
     }
 
-    public static List<FreebaseQueryResult> partialSingleTableMixedQueriesSampled(ExperimentConfig config,
+    public static List<FreebaseQueryResult> weightedSingleTablePartitionMixedSampledQueries(ExperimentConfig config,
 	    List<FreebaseQuery> trainQueries, List<FreebaseQuery> testQueries) {
 	LOGGER.log(Level.INFO, "Loading tuples..");
 	String dataQuery = FreebaseDataManager.buildDataQuery(config.tableName, config.attribs);
