@@ -25,7 +25,6 @@ public class FreebaseQuery {
 		else return 0;
 	}
 
-	@Deprecated
 	public double p3() {
 		if (relRank != -1 && relRank < 4)
 			return 0.3;
