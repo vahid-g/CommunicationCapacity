@@ -62,37 +62,35 @@ public class FreebaseDatabaseSizeExperiment {
 	String tableName = "tbl_all";
 	String[] attribs = { "name", "description" };
 	String name = "exp";
-	double hardness = 1; // this is exclusive
+	double maxMrr = 0.5; // this is exclusive
 	double trainSize = 1;
-	double partitionPercentage = 1;
+	double partitionSize = 0.3;
 
 	String getFullName() {
-	    return name + "_" + tableName + "_p" + partitionPercentage + "_h"
-		    + hardness;
+	    return name + "_" + tableName + "_p" + partitionSize + "_h"
+		    + maxMrr + ".csv";
 	}
 
 	String getIndexDir() {
 	    return INDEX_BASE + tableName + "_p"
-		    + (int) (partitionPercentage * 100) + "/";
+		    + (int) (partitionSize * 100) + "/";
 	}
     }
 
     public static void main(String[] args) {
 
 	ExperimentConfig config = new ExperimentConfig();
-	
+
 	// singleTable("tbl_all");
 	// writeFreebaseQueryResults(resultList, config.getFullName() +
 	// ".csv");
 
-	
 	// config.partitionCount = 2;
 	// Map<FreebaseQueryInstance, List<FreebaseQueryResult>> results =
 	// databaseSize(config);
 	// writeFreebaseQueryResults(results, "exp10_" + config.tableName + "_h"
 	// + config.hardness + "_ss" + (int)(config.trainSize * 100) + ".csv");
-	
-	
+
 	List<FreebaseQueryResult> resultList = weightedSingleTablePartition(config);
 	writeFreebaseQueryResults(resultList, config.getFullName());
 
@@ -128,11 +126,9 @@ public class FreebaseDatabaseSizeExperiment {
     public static List<FreebaseQueryResult> weightedSingleTablePartition(
 	    ExperimentConfig config) {
 	LOGGER.log(Level.INFO, "Loading queries..");
-	String sql = "select * from query_hardness_full where hardness < "
-		+ config.hardness + ";";
 	List<FreebaseQuery> queries = FreebaseDataManager
-		.loadMsnQueriesFromSql(sql);
-
+		.loadMsnQueriesWithMaxMrr(config.maxMrr);
+	// queries = Utils.flattenFreebaseQueries(queries);
 	LOGGER.log(Level.INFO, "Loading tuples..");
 	String dataQuery = FreebaseDataManager.buildDataQuery(config.tableName,
 		config.attribs);
@@ -147,10 +143,14 @@ public class FreebaseDatabaseSizeExperiment {
 		Level.INFO,
 		"Highest weight: "
 			+ docs.get(0).get(FreebaseDataManager.FREQ_ATTRIB));
+	LOGGER.log(
+		Level.INFO,
+		"Least weight: "
+			+ docs.get(docs.size() - 1).get(FreebaseDataManager.FREQ_ATTRIB));
 	LOGGER.log(Level.INFO, "Building index " + "..");
 	String indexPaths = INDEX_BASE + config.getFullName() + "/";
 	FreebaseDataManager.createIndex(docs,
-		(int) (config.partitionPercentage * docs.size()),
+		(int) (config.partitionSize * docs.size()),
 		config.attribs, indexPaths);
 	LOGGER.log(Level.INFO, "Submitting Queries..");
 	List<FreebaseQueryResult> fqrList = FreebaseDataManager
@@ -171,8 +171,8 @@ public class FreebaseDatabaseSizeExperiment {
 	    ExperimentConfig config) {
 	int sampleSize = 3;
 	LOGGER.log(Level.INFO, "Loading queries..");
-	String sql = "select * from query_hardness_full where hardness < "
-		+ config.hardness + ";";
+	String sql = "select * from query_mrr_hard where mrr < "
+		+ config.maxMrr + ";";
 	List<FreebaseQuery> queries = FreebaseDataManager
 		.loadMsnQueriesFromSql(sql);
 	List<FreebaseQuery> trainQueries = Utils.sampleFreebaseQueries(queries,
@@ -208,7 +208,7 @@ public class FreebaseDatabaseSizeExperiment {
 	LOGGER.log(Level.INFO, "Building index " + "..");
 	String indexPaths = INDEX_BASE + config.getFullName() + "/";
 	FreebaseDataManager.createIndex(docs,
-		(int) (config.partitionPercentage * docs.size()),
+		(int) (config.partitionSize * docs.size()),
 		config.attribs, indexPaths);
 	LOGGER.log(Level.INFO, "Submitting Queries..");
 	List<FreebaseQueryResult> fqrList = FreebaseDataManager
@@ -231,8 +231,8 @@ public class FreebaseDatabaseSizeExperiment {
 	    ExperimentConfig config) {
 	int sampleSize = 3;
 	LOGGER.log(Level.INFO, "Loading queries..");
-	String sql = "select * from query_hardness_full where hardness < "
-		+ config.hardness + ";";
+	String sql = "select * from query_mrr_hard where mrr < "
+		+ config.maxMrr + ";";
 	List<FreebaseQuery> queries = FreebaseDataManager
 		.loadMsnQueriesFromSql(sql);
 	List<FreebaseQuery> trainQueries = Utils.sampleFreebaseQueries(queries,
@@ -278,10 +278,10 @@ public class FreebaseDatabaseSizeExperiment {
 	LOGGER.log(Level.INFO, "Building index " + "..");
 	String indexPaths = INDEX_BASE + config.getFullName() + "/";
 	FreebaseDataManager.createIndex(nonRels,
-		(int) (config.partitionPercentage * nonRels.size()),
+		(int) (config.partitionSize * nonRels.size()),
 		config.attribs, indexPaths);
 	FreebaseDataManager.appendIndex(rels,
-		(int) (config.partitionPercentage * rels.size()),
+		(int) (config.partitionSize * rels.size()),
 		config.attribs, indexPaths);
 	LOGGER.log(Level.INFO, "Submitting Queries..");
 	List<FreebaseQueryResult> fqrList = FreebaseDataManager
@@ -299,8 +299,8 @@ public class FreebaseDatabaseSizeExperiment {
     public static Map<FreebaseQuery, List<FreebaseQueryResult>> databaseSize(
 	    ExperimentConfig config, int partitionCount) {
 	LOGGER.log(Level.INFO, "Loading queries..");
-	String sql = "select * from query_hardness_full where hardness < "
-		+ config.hardness + ";";
+	String sql = "select * from query_mrr_hard where mrr < "
+		+ config.maxMrr + ";";
 	List<FreebaseQuery> queryList = FreebaseDataManager
 		.loadMsnQueriesFromSql(sql);
 	List<FreebaseQuery> flatQueryList = Utils
@@ -341,7 +341,8 @@ public class FreebaseDatabaseSizeExperiment {
 	    LOGGER.log(Level.INFO, "Submitting queries..");
 	    List<FreebaseQueryResult> resultList = FreebaseDataManager
 		    .runFreebaseQueries(testQueries, indexPaths[i]);
-	    Map<FreebaseQuery, FreebaseQueryResult> resultMap = FreebaseDataManager.convertResultListToMap(resultList);
+	    Map<FreebaseQuery, FreebaseQueryResult> resultMap = FreebaseDataManager
+		    .convertResultListToMap(resultList);
 	    for (FreebaseQuery query : testQueries) {
 		List<FreebaseQueryResult> list = results.get(query);
 		list.add(resultMap.get(query));
@@ -365,8 +366,8 @@ public class FreebaseDatabaseSizeExperiment {
     public static List<List<FreebaseQueryResult>> databaseSizeStratified(
 	    ExperimentConfig config) {
 	LOGGER.log(Level.INFO, "Loading queries..");
-	String sql = "select * from query_hardness_full where hardness < "
-		+ config.hardness + ";";
+	String sql = "select * from query_mrr_hard where mrr < "
+		+ config.maxMrr + ";";
 	List<FreebaseQuery> queries = FreebaseDataManager
 		.loadMsnQueriesFromSql(sql);
 
