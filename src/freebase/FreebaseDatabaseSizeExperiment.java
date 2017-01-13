@@ -69,13 +69,18 @@ public class FreebaseDatabaseSizeExperiment {
 		// writeFreebaseQueryResults(fqrList, "tbl_all_weighted_mrr.csv");
 
 		// for computing optimal database size
-		Map<FreebaseQuery, List<FreebaseQueryResult>> fqrMap = databaseSizeOptimalFlat(10);
+		// Map<FreebaseQuery, List<FreebaseQueryResult>> fqrMap =
+		// databaseSizeOptimalFlat(10);
 		// Map<FreebaseQuery, List<FreebaseQueryResult>> fqrMap =
 		// databaseSize(10,
 		// 0.5);
-		writeFreebaseQueryResults(fqrMap, "tbl_all_optimal_flat_alpha1.csv");
+
+		Map<FreebaseQuery, List<FreebaseQueryResult>> fqrMap = databaseSize(10,
+				0.5);
+
+		writeFreebaseQueryResults(fqrMap, "tbl_all_trained_alpha1_train50_fine10.csv");
 	}
-	
+
 	/**
 	 * runs all queries from "query" table on a single table instance
 	 * 
@@ -283,12 +288,10 @@ public class FreebaseDatabaseSizeExperiment {
 			results.put(query, new ArrayList<FreebaseQueryResult>());
 		}
 		for (int i = 0; i < partitionCount; i++) {
-			if (i != 0 && i != partitionCount - 1)
-				continue;
 			LOGGER.log(Level.INFO, "Building index " + i + "..");
 			indexPaths[i] = INDEX_BASE + TBL_NAME + "_" + i + "/";
 			FreebaseDataManager.createIndex(docs,
-					(int) (((i + 1.0) / partitionCount) * docs.size()),
+					(int) (((i + 1.0) / (partitionCount * 10)) * docs.size()),
 					ATTRIBS, indexPaths[i]);
 			LOGGER.log(Level.INFO, "Submitting queries..");
 			List<FreebaseQueryResult> resultList = FreebaseDataManager
