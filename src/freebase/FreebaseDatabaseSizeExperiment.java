@@ -64,12 +64,14 @@ public class FreebaseDatabaseSizeExperiment {
 		String[] attribs = {"name", "description"};
 		String name = "exp";
 		double maxMrr = 1; // this is exclusive
-		double trainSize = 0.6;
+		double trainSize = 0.5;
 		double partitionSize = 0.5;
+		float smoothingParam = 1;
+		
 
 		String getFullName() {
 			return name + "_" + tableName + "_p" + partitionSize + "_h"
-					+ maxMrr;
+					+ maxMrr + "_sp" + smoothingParam;
 		}
 
 		String getIndexDir() {
@@ -265,7 +267,7 @@ public class FreebaseDatabaseSizeExperiment {
 				.loadQueryInstanceWeights(trainQueries);
 		List<Document> docs = FreebaseDataManager.loadTuplesToDocuments(
 				dataQuery, config.attribs, FreebaseDataManager.MAX_FETCH,
-				weights);
+				weights, config.smoothingParam);
 		Collections.shuffle(docs);
 		Collections.sort(docs, new DocumentFreqComparator());
 
