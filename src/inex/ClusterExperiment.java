@@ -1,6 +1,6 @@
 package inex;
 
-import inex_msn.InexMsnIndexer;
+import inex_old.InexIndexer;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -77,7 +77,7 @@ public class ClusterExperiment {
 		List<String> expFileList = fileList.subList(0,
 				(int) ((expNo / 10.0) * fileList.size()));
 		System.out.println(df.format(new Date()) + " building index..");
-		InexMsnIndexer.buildIndex(expFileList.toArray(new String[0]),
+		InexIndexer.buildIndex(expFileList.toArray(new String[0]),
 				indexPath, false);
 
 		// running queries

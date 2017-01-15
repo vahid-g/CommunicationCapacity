@@ -16,8 +16,8 @@ import java.util.List;
 
 import javax.naming.PartialResultException;
 
-import inex_msn.InexMsnIndexer;
-import inex_msn.Utils;
+import inex_old.InexIndexer;
+import inex_old.Utils;
 
 public class Experiment {
 
@@ -68,10 +68,10 @@ public class Experiment {
 			Date index_t = new Date();
 			System.out.println("indexing ");
 			System.out.println("partition length: " + partitions.get(i).length);
-			InexMsnIndexer.buildIndex(partitions.get(i), indexPath[i], false);
+			InexIndexer.buildIndex(partitions.get(i), indexPath[i], false);
 			if (prevIndexPath != null) {
 				System.out.println("updating index..");
-				InexMsnIndexer.updateIndex(prevIndexPath, indexPath[i]);
+				InexIndexer.updateIndex(prevIndexPath, indexPath[i]);
 			}
 			Date query_t = new Date();
 			prevIndexPath = indexPath[i];

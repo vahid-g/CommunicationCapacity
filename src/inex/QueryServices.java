@@ -1,6 +1,6 @@
 package inex;
 
-import inex_msn.MsnQueryServices;
+import inex_old.InexMsnQueryServices;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -27,7 +27,7 @@ public class QueryServices {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			searcher.setSimilarity(new BM25Similarity());
 			for (InexQueryDAO queryDAO : queries) {
-				Query query = MsnQueryServices.buildQuery(queryDAO.text,
+				Query query = InexMsnQueryServices.buildQuery(queryDAO.text,
 						Experiment.TITLE_ATTRIB,
 						Experiment.CONTENT_ATTRIB);
 				int threshold = 20;
