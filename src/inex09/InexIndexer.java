@@ -1,22 +1,20 @@
 package inex09;
 
-import inex13.Experiment;
-
-import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -28,8 +26,13 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
+import org.json.JSONObject;
 
-public class InexIndexer{
+public class InexIndexer {
+
+	public static final String CONTENT_ATTRIB = "content";
+	public static final String DOCNAME_ATTRIB = "name";
+	public static final String TITLE_ATTRIB = "title";
 
 	static IndexWriterConfig getConfig(boolean append) {
 		IndexWriterConfig config;
@@ -194,12 +197,12 @@ public class InexIndexer{
 				System.out.println("!!! title not found in " + file.getName());
 			fileContent = fileContent.replaceAll("\\<.*?\\>", " ");
 			Document doc = new Document();
-			doc.add(new StringField(Experiment.DOCNAME_ATTRIB, FilenameUtils
+			doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils
 					.removeExtension(file.getName()), Field.Store.YES));
-			doc.add(new TextField(Experiment.TITLE_ATTRIB, title,
-					Field.Store.YES));
-			doc.add(new TextField(Experiment.CONTENT_ATTRIB, fileContent,
-					Field.Store.YES));
+			TextField titleField = new TextField(TITLE_ATTRIB, title, Field.Store.YES);
+			doc.add(titleField);
+			TextField contentField = new TextField(CONTENT_ATTRIB, fileContent, Field.Store.YES);
+			doc.add(contentField);
 			// doc.add(new TextField(CONTENT_ATTRIB, new BufferedReader(
 			// new InputStreamReader(fis, StandardCharsets.UTF_8))));
 			writer.addDocument(doc);
@@ -212,20 +215,21 @@ public class InexIndexer{
 
 	static void indexFile(String filepath, IndexWriter writer) {
 		File file = new File(filepath);
-		//try (InputStream is = Files.newInputStream(file.toPath())) {
-//		try (InputStream is =  new BufferedInputStream(new FileInputStream(file))) {
-		try{
-//			byte[] data = new byte[(int) file.length()];
-//			is.read(data);
-//			String fileContent = new String(data, "UTF-8");
-			String fileContent = new String(Files.readAllBytes(Paths.get(filepath)), StandardCharsets.UTF_8);
+		// try (InputStream is = Files.newInputStream(file.toPath())) {
+		// try (InputStream is = new BufferedInputStream(new
+		// FileInputStream(file))) {
+		try {
+			// byte[] data = new byte[(int) file.length()];
+			// is.read(data);
+			// String fileContent = new String(data, "UTF-8");
+			String fileContent = new String(Files.readAllBytes(Paths
+					.get(filepath)), StandardCharsets.UTF_8);
 			if (isRedirectingFile(fileContent))
 				return;
 			Document doc = new Document();
-			doc.add(new StringField(Experiment.DOCNAME_ATTRIB, FilenameUtils
+			doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils
 					.removeExtension(file.getName()), Field.Store.YES));
-			doc.add(new TextField(Experiment.CONTENT_ATTRIB, fileContent,
-					Field.Store.YES));
+			doc.add(new TextField(CONTENT_ATTRIB, fileContent, Field.Store.YES));
 			writer.addDocument(doc);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -238,5 +242,7 @@ public class InexIndexer{
 		int length = fileContent.length() > 8 ? 8 : fileContent.length();
 		return (fileContent.substring(0, length).equals("REDIRECT"));
 	}
+
+	
 
 }
