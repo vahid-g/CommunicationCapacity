@@ -11,6 +11,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -244,14 +245,22 @@ public class InexIndexer {
 		return (fileContent.substring(0, length).equals("REDIRECT"));
 	}
 	
-	public static void buildIndex(Map<String, Integer> datasetFilePaths, String indexPath) {
+	public static void buildIndex(Map<String, Integer> fileCountMap, String indexPath) {
+		int N = 0;
+		for (float n_i : fileCountMap.values()){
+			N += n_i;
+		}
+		int V = fileCountMap.size();
+		int alpha = 1;
+		
 		FSDirectory directory = null;
 		IndexWriter writer = null;
 		try {
 			directory = FSDirectory.open(Paths.get(indexPath));
 			writer = new IndexWriter(directory, getConfig(false));
-			for (String filePath : datasetFilePaths.keySet()) {
-				
+			for (String filePath : fileCountMap.keySet()) {
+				float smoothed = (float) ((fileCountMap.get(filePath) + alpha)/(N + V * alpha));
+				indexXmlFileWithWeight(new File(filePath), writer, smoothed);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -267,7 +276,7 @@ public class InexIndexer {
 		}
 	}
 	
-	static void indexXmlFileWithWeight(File file, IndexWriter writer, int weight) {
+	static void indexXmlFileWithWeight(File file, IndexWriter writer, float weight) {
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];
 			fis.read(data);
