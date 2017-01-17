@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -242,7 +243,64 @@ public class InexIndexer {
 		int length = fileContent.length() > 8 ? 8 : fileContent.length();
 		return (fileContent.substring(0, length).equals("REDIRECT"));
 	}
-
 	
+	public static void buildIndex(Map<String, Integer> datasetFilePaths, String indexPath) {
+		FSDirectory directory = null;
+		IndexWriter writer = null;
+		try {
+			directory = FSDirectory.open(Paths.get(indexPath));
+			writer = new IndexWriter(directory, getConfig(false));
+			for (String filePath : datasetFilePaths.keySet()) {
+				
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (writer != null)
+				try {
+					writer.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			if (directory != null)
+				directory.close();
+		}
+	}
+	
+	static void indexXmlFileWithWeight(File file, IndexWriter writer, int weight) {
+		try (InputStream fis = Files.newInputStream(file.toPath())) {
+			byte[] data = new byte[(int) file.length()];
+			fis.read(data);
+			String fileContent = new String(data, "UTF-8");
+			int length = fileContent.length() > 8 ? 8 : fileContent.length();
+			if (fileContent.substring(0, length).equals("REDIRECT")) {
+				return;
+			}
+			Pattern p = Pattern.compile(".*<title>(.*?)</title>.*",
+					Pattern.DOTALL);
+			Matcher m = p.matcher(fileContent);
+			m.find();
+			String title = "";
+			if (m.matches())
+				title = m.group(1);
+			else
+				System.out.println("!!! title not found in " + file.getName());
+			fileContent = fileContent.replaceAll("\\<.*?\\>", " ");
+			Document doc = new Document();
+			doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils
+					.removeExtension(file.getName()), Field.Store.YES));
+			TextField titleField = new TextField(TITLE_ATTRIB, title, Field.Store.YES);
+			titleField.setBoost(weight);
+			doc.add(titleField);
+			TextField contentField = new TextField(CONTENT_ATTRIB, fileContent, Field.Store.YES);
+			contentField.setBoost(weight);
+			doc.add(contentField);
+			writer.addDocument(doc);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 }
