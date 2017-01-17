@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.ConsoleHandler;
@@ -22,7 +21,7 @@ import freebase.FreebaseDatabaseSizeExperiment;
 
 public class InexMsnExperiment {
 
-	static final String DATASET_PATH = "/scratch/data-sets/inex_09/";
+	static final String DATASET_PATH = "/scratch/data-sets/inex_09/000";
 	static final String FILE_COUNT_FILE_PATH = "data/file_count.csv";
 	static final String QUERY_QID_FILE_PATH = "data/queries/msn/query_qid.csv";
 	static final String QID_QREL_FILE_PATH = "data/queries/msn/qid_qrel.csv";
@@ -37,7 +36,7 @@ public class InexMsnExperiment {
 		handler.setLevel(Level.ALL);
 		LOGGER.addHandler(handler);
 		LOGGER.setLevel(Level.ALL);
-		
+
 		File indexDir = new File(INDEX_BASE);
 		if (!indexDir.exists())
 			indexDir.mkdirs();
@@ -53,31 +52,37 @@ public class InexMsnExperiment {
 				FILE_COUNT_FILE_PATH))) {
 			String line;
 			while ((line = br.readLine()) != null) {
+				if (!line.contains(","))
+					continue;
 				String[] splits = line.split(",");
-				fileCountMap.put(splits[0], Integer.parseInt(splits[1]));
+				fileCountMap.put(splits[0], Integer.parseInt(splits[1].trim()));
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		LOGGER.log(Level.INFO, "Sorting files..");
-		int expNo = Integer.parseInt(args[0]);
-		int size = (int)(fileCountMap.size() * (expNo / 10.0));
-		Map<String, Integer> fileCountSorted = Utils.sortByValue(fileCountMap, size);
-		
+		// int expNo = Integer.parseInt(args[0]);
+		int expNo = 1;
+		int size = (int) (fileCountMap.size() * (expNo / 10.0));
+		Map<String, Integer> fileCountSorted = Utils.sortByValue(fileCountMap,
+				size);
+
+		String indexName = INDEX_BASE + "index_inex_" + expNo;
 		LOGGER.log(Level.INFO, "Building index..");
-		InexIndexer.buildIndex(fileCountMap, INDEX_BASE + "index_inex_" + expNo);
-		
+		InexIndexer.buildIndex(fileCountMap, indexName);
+
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
 				QUERY_QID_FILE_PATH, QID_QREL_FILE_PATH);
 		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
-				INDEX_BASE);
-		
+				indexName);
+
 		LOGGER.log(Level.INFO, "Writing results..");
-		try (FileWriter fw = new FileWriter(RESULT_DIR + "inex.csv")) {
+		try (FileWriter fw = new FileWriter(RESULT_DIR + "inex_" + expNo
+				+ ".csv")) {
 			for (MsnQueryResult mqr : results) {
 				fw.write(mqr.msnQuery.text + ", " + mqr.precisionAtK(3) + ", "
 						+ mqr.mrr() + "\n");
