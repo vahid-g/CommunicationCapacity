@@ -21,12 +21,22 @@ import freebase.FreebaseDatabaseSizeExperiment;
 
 public class InexMsnExperiment {
 
-	static final String DATASET_PATH = "/scratch/data-sets/inex_09/000";
+	static final String DATASET_PATH = "/scratch/data-sets/inex_09/";
 	static final String FILE_COUNT_FILE_PATH = "data/file_count.csv";
 	static final String QUERY_QID_FILE_PATH = "data/queries/msn/query_qid.csv";
 	static final String QID_QREL_FILE_PATH = "data/queries/msn/qid_qrel.csv";
 	static final String INDEX_BASE = "data/index/index09/";
 	static final String RESULT_DIR = "data/result/";
+
+	// static final String DATA_DIR = "/scratch/cluster-share/ghadakcv/";
+	// static final String DATASET_PATH = DATA_DIR + "inex_09";
+	// static final String FILE_COUNT_FILE_PATH = DATA_DIR + "file_count.csv";
+	// static final String QUERY_QID_FILE_PATH = DATA_DIR
+	// + "queries/msn/query_qid.csv";
+	// static final String QID_QREL_FILE_PATH = DATA_DIR
+	// + "queries/msn/qid_qrel.csv";
+	// static final String INDEX_BASE = DATA_DIR + "index/index09/";
+	// static final String RESULT_DIR = DATA_DIR + "result/";
 
 	static final Logger LOGGER = Logger
 			.getLogger(FreebaseDatabaseSizeExperiment.class.getName());
@@ -46,6 +56,18 @@ public class InexMsnExperiment {
 	}
 
 	public static void main(String[] args) {
+		// int expNo = Integer.parseInt(args[0]);
+		for (int i = 1; i <= 10; i++) {
+			int expNo = i;
+			long start_t = System.currentTimeMillis();
+			exp(expNo);
+			long end_t = System.currentTimeMillis();
+			LOGGER.log(Level.INFO, "Time spent for experiment " + expNo
+					+ " is " + (end_t - start_t) / 1000);
+		}
+	}
+
+	public static void exp(int expNo) {
 		LOGGER.log(Level.INFO, "Loading files list and counts");
 		Map<String, Integer> fileCountMap = new HashMap<String, Integer>();
 		try (BufferedReader br = new BufferedReader(new FileReader(
@@ -64,15 +86,13 @@ public class InexMsnExperiment {
 		}
 
 		LOGGER.log(Level.INFO, "Sorting files..");
-		// int expNo = Integer.parseInt(args[0]);
-		int expNo = 1;
 		int size = (int) (fileCountMap.size() * (expNo / 10.0));
 		Map<String, Integer> fileCountSorted = Utils.sortByValue(fileCountMap,
 				size);
 
 		String indexName = INDEX_BASE + "index_inex_" + expNo;
 		LOGGER.log(Level.INFO, "Building index..");
-		InexIndexer.buildIndex(fileCountMap, indexName);
+		InexIndexer.buildIndex(fileCountSorted, indexName);
 
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
@@ -109,36 +129,4 @@ public class InexMsnExperiment {
 			e.printStackTrace();
 		}
 	}
-
-	public static void exp1() { // partitioning independent of related
-								// tuples
-		List<String> allFiles = Utils.listFilesForFolder(new File("???"));
-		Collections.shuffle(allFiles);
-		int partitionNo = 10;
-		ArrayList<String[]> partitions = Utils.partitionArray(
-				allFiles.toArray(new String[allFiles.size()]), partitionNo);
-		String prevExperiment = null;
-
-		for (int i = 0; i < partitionNo; i++) {
-			System.out.println("iteration " + i);
-			Date index_t = new Date();
-			System.out.println("indexing ");
-			System.out.println("partition length: " + partitions.get(i).length);
-			InexIndexer.buildIndex(partitions.get(i), "???");
-			if (prevExperiment != null) {
-				System.out.println("updating index..");
-				InexIndexer.updateIndex("???", "???");
-			}
-			Date query_t = new Date();
-			prevExperiment = "???";
-			System.out.println("indexing time "
-					+ (query_t.getTime() - index_t.getTime()) / 60000 + "mins");
-
-			System.out.println("querying time "
-					+ (new Date().getTime() - query_t.getTime()) / 60000
-					+ "mins");
-
-		}
-	}
-
 }
