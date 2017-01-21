@@ -76,9 +76,9 @@ public class FreebaseDatabaseSizeExperiment {
 		// 0.5);
 
 		Map<FreebaseQuery, List<FreebaseQueryResult>> fqrMap = databaseSize(10,
-				0.5);
+				0.8);
 
-		writeFreebaseQueryResults(fqrMap, "tbl_all_trained_alpha1_train50_fine10.csv");
+		writeFreebaseQueryResults(fqrMap, "tbl_all_trained_alpha1_train80_fine10.csv");
 	}
 
 	/**
@@ -255,6 +255,11 @@ public class FreebaseDatabaseSizeExperiment {
 	 * @param tableName
 	 * @return a list of FreebaseQueryResults objects.
 	 */
+	/**
+	 * @param partitionCount
+	 * @param trainSize
+	 * @return
+	 */
 	public static Map<FreebaseQuery, List<FreebaseQueryResult>> databaseSize(
 			int partitionCount, double trainSize) {
 		LOGGER.log(Level.INFO, "Loading queries..");
@@ -291,7 +296,7 @@ public class FreebaseDatabaseSizeExperiment {
 			LOGGER.log(Level.INFO, "Building index " + i + "..");
 			indexPaths[i] = INDEX_BASE + TBL_NAME + "_" + i + "/";
 			FreebaseDataManager.createIndex(docs,
-					(int) (((i + 1.0) / (partitionCount * 10)) * docs.size()),
+					(int) (((i + 1.0) / (partitionCount)) * docs.size()),
 					ATTRIBS, indexPaths[i]);
 			LOGGER.log(Level.INFO, "Submitting queries..");
 			List<FreebaseQueryResult> resultList = FreebaseDataManager
