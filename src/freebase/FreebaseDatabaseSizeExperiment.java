@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -75,10 +76,11 @@ public class FreebaseDatabaseSizeExperiment {
 		// databaseSize(10,
 		// 0.5);
 
-		Map<FreebaseQuery, List<FreebaseQueryResult>> fqrMap = databaseSize(10,
-				0.8);
-
-		writeFreebaseQueryResults(fqrMap, "tbl_all_trained_alpha1_train80_fine10.csv");
+//		Map<FreebaseQuery, List<FreebaseQueryResult>> fqrMap = databaseSize(10,
+//				0.8);
+//		writeFreebaseQueryResults(fqrMap, "tbl_all_trained_alpha1_train80.csv");
+		
+		generateDistributions(0.8);
 	}
 
 	/**
@@ -309,6 +311,71 @@ public class FreebaseDatabaseSizeExperiment {
 			}
 		}
 		return results;
+	}
+
+	public static void generateDistributions(double trainSize) {
+		LOGGER.log(Level.INFO, "Loading queries..");
+		List<FreebaseQuery> queryList = FreebaseDataManager
+				.loadMsnQueriesWithMaxMrr(queryTableName, 1);
+		List<FreebaseQuery> flatQueryList = Utils
+				.flattenFreebaseQueries(queryList);
+		// random sampling
+		Collections.shuffle(flatQueryList);
+		List<FreebaseQuery> trainQueries = flatQueryList.subList(0,
+				(int) (flatQueryList.size() * trainSize));
+		List<FreebaseQuery> testQueries = new ArrayList<FreebaseQuery>();
+		testQueries.addAll(flatQueryList);
+		testQueries.removeAll(trainQueries);
+		System.out.println("train size: " + trainQueries.size());
+		System.out.println("test size: " + testQueries.size());
+		// generating distributions
+		HashMap<String, Integer> cuntMap = new HashMap<String, Integer>();
+		for (FreebaseQuery query : trainQueries) {
+			if (cuntMap.containsKey(query.text)) {
+				cuntMap.put(query.text, cuntMap.get(query.text) + 1);
+			} else {
+				cuntMap.put(query.text, 1);
+			}
+		}
+		HashMap<String, Integer> cuntMap2 = new HashMap<String, Integer>();
+		for (FreebaseQuery query : testQueries) {
+			if (cuntMap2.containsKey(query.text)) {
+				cuntMap2.put(query.text, cuntMap2.get(query.text) + 1);
+			} else {
+				cuntMap2.put(query.text, 1);
+			}
+		}
+		FileWriter fw = null;
+		try {
+			fw = new FileWriter(RESULT_DIR + "train_cunts.csv");
+			for (String key : cuntMap.keySet())
+				fw.write(key + ", " + cuntMap.get(key) + "\n");
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.toString());
+		} finally {
+			if (fw != null) {
+				try {
+					fw.close();
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE, e.toString());
+				}
+			}
+		}
+		try {
+			fw = new FileWriter(RESULT_DIR + "test_cunts.csv");
+			for (String key : cuntMap2.keySet())
+				fw.write(key + ", " + cuntMap2.get(key) + ", " + cuntMap.get(key) + "\n");
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.toString());
+		} finally {
+			if (fw != null) {
+				try {
+					fw.close();
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE, e.toString());
+				}
+			}
+		}
 	}
 
 	/**
