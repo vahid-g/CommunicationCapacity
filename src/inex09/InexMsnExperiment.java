@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.ConsoleHandler;
@@ -56,28 +57,27 @@ public class InexMsnExperiment {
 	}
 
 	public static void main(String[] args) {
-		// int expNo = Integer.parseInt(args[0]);
-		for (int i = 1; i <= 10; i++) {
-			int expNo = i;
-			long start_t = System.currentTimeMillis();
-			exp(expNo);
-			long end_t = System.currentTimeMillis();
-			LOGGER.log(Level.INFO, "Time spent for experiment " + expNo
-					+ " is " + (end_t - start_t) / 1000);
-		}
+		int expNo = Integer.parseInt(args[0]);
+		long start_t = System.currentTimeMillis();
+		exp(expNo);
+		long end_t = System.currentTimeMillis();
+		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
+				+ (end_t - start_t) / 1000);
 	}
 
 	public static void exp(int expNo) {
 		LOGGER.log(Level.INFO, "Loading files list and counts");
-		Map<String, Integer> fileCountMap = new HashMap<String, Integer>();
+		Map<String, Integer> titleCountMap = new HashMap<String, Integer>();
 		try (BufferedReader br = new BufferedReader(new FileReader(
 				FILE_COUNT_FILE_PATH))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (!line.contains(","))
 					continue;
-				String[] splits = line.split(",");
-				fileCountMap.put(splits[0], Integer.parseInt(splits[1].trim()));
+				String title = line.substring(0, line.lastIndexOf(", "));
+				Integer count = Integer.parseInt(line.substring(
+						line.lastIndexOf(",") + 1).trim());
+				titleCountMap.put(title, count);
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -86,9 +86,10 @@ public class InexMsnExperiment {
 		}
 
 		LOGGER.log(Level.INFO, "Sorting files..");
-		int size = (int) (fileCountMap.size() * (expNo / 10.0));
-		Map<String, Integer> fileCountSorted = Utils.sortByValue(fileCountMap,
+		int size = (int) (titleCountMap.size() * (expNo / 10.0));
+		Map<String, Integer> fileCountSorted = Utils.sortByValue(titleCountMap,
 				size);
+		
 
 		String indexName = INDEX_BASE + "index_inex_" + expNo;
 		LOGGER.log(Level.INFO, "Building index..");
