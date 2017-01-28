@@ -14,12 +14,12 @@ import java.util.Map;
 public class MergeCountTitle {
 
 	public static void main(String[] args) {
-		// Path countFilePath = Paths.get("/scratch/data-sets/small_counts");
-		// Path dataFilePath = Paths.get("/scratch/data-sets/grep_9.out");
-		Path countFilePath = Paths.get("/scratch/cluster-share/ghadakcv/"
-				+ args[0]);
-		Path dataFilePath = Paths.get("/scratch/cluster-share/ghadakcv/"
-				+ args[1]);
+		Path countFilePath = Paths.get("/scratch/data-sets/part00");
+		Path dataFilePath = Paths.get("/scratch/data-sets/grep_00.out");
+		// Path countFilePath = Paths.get("/scratch/cluster-share/ghadakcv/"
+		// + args[0]);
+		// Path dataFilePath = Paths.get("/scratch/cluster-share/ghadakcv/"
+		// + args[1]);
 		List<String> pathTitles;
 		try {
 			pathTitles = Files.readAllLines(dataFilePath,
@@ -37,9 +37,8 @@ public class MergeCountTitle {
 				countMap.put(path, 0);
 			}
 			try (BufferedReader br = Files.newBufferedReader(countFilePath,
-					Charset.forName("UTF-8"))) {
+					Charset.forName("UTF-16"))) {
 				String line = br.readLine();
-				String prevLine = null;
 				do {
 					String[] fields = line.split(" ");
 					String title = fields[0].replace("_", " ");
@@ -48,18 +47,10 @@ public class MergeCountTitle {
 						Integer oldFreq = countMap.get(path);
 						Integer newFreq = Integer.parseInt(fields[1]);
 						countMap.put(path, oldFreq + newFreq);
-						// System.out.println("found key: " + title + " freq: "
-						// + newFreq);
 					} else {
-						System.err.println("missing key: " + title);
+						// System.err.println("missing key: " + title);
 					}
-					try {
-						prevLine = line;
-						line = br.readLine();
-					} catch (MalformedInputException e) {
-						System.err.println("malformed: " + prevLine);
-					}
-
+					line = br.readLine();
 				} while (line != null);
 			} catch (IOException e) {
 				e.printStackTrace();
