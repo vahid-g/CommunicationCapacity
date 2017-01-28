@@ -13,16 +13,15 @@ import java.util.Map;
 public class MergeCountTitle {
 
 	public static void main(String[] args) {
-//		Path countFilePath = Paths.get("/scratch/data-sets/part00");
-//		Path dataFilePath = Paths.get("/scratch/data-sets/grep_00.out");
-		Path countFilePath = Paths.get("/scratch/cluster-share/ghadakcv/"
-				+ args[0]);
-		Path dataFilePath = Paths.get("/scratch/cluster-share/ghadakcv/"
-				+ args[1]);
+		// Path countFilePath = Paths.get("/scratch/data-sets/part00");
+		// Path dataFilePath = Paths.get("/scratch/data-sets/grep_00.out");
+		Path countFilePath = Paths.get("/scratch/cluster-share/ghadakcv/" + args[0]);
+		Path dataFilePath = Paths.get("/scratch/cluster-share/ghadakcv/" + args[1]);
+//		Path countFilePath = Paths.get("pagecount.txt");
+//		Path dataFilePath = Paths.get("grep.txt");
 		List<String> pathTitles;
 		try {
-			pathTitles = Files.readAllLines(dataFilePath,
-					Charset.forName("UTF-8"));
+			pathTitles = Files.readAllLines(dataFilePath, Charset.forName("UTF-8"));
 			Map<String, Integer> countMap = new HashMap<String, Integer>();
 			Map<String, String> titlePathMap = new HashMap<String, String>();
 			for (String pt : pathTitles) {
@@ -32,11 +31,10 @@ public class MergeCountTitle {
 				String[] pair = pt.split(";");
 				String title = pair[1];
 				String path = pair[0];
-				titlePathMap.put(title, path);
+				titlePathMap.put(title.trim(), path);
 				countMap.put(path, 0);
 			}
-			try (BufferedReader br = Files.newBufferedReader(countFilePath,
-					Charset.forName("UTF-16"))) {
+			try (BufferedReader br = Files.newBufferedReader(countFilePath, Charset.forName("ASCII"))) {
 				String line = br.readLine();
 				do {
 					String[] fields = line.split(" ");
