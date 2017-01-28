@@ -3,7 +3,6 @@ package data_processing;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.MalformedInputException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,12 +13,12 @@ import java.util.Map;
 public class MergeCountTitle {
 
 	public static void main(String[] args) {
-		Path countFilePath = Paths.get("/scratch/data-sets/part00");
-		Path dataFilePath = Paths.get("/scratch/data-sets/grep_00.out");
-		// Path countFilePath = Paths.get("/scratch/cluster-share/ghadakcv/"
-		// + args[0]);
-		// Path dataFilePath = Paths.get("/scratch/cluster-share/ghadakcv/"
-		// + args[1]);
+//		Path countFilePath = Paths.get("/scratch/data-sets/part00");
+//		Path dataFilePath = Paths.get("/scratch/data-sets/grep_00.out");
+		Path countFilePath = Paths.get("/scratch/cluster-share/ghadakcv/"
+				+ args[0]);
+		Path dataFilePath = Paths.get("/scratch/cluster-share/ghadakcv/"
+				+ args[1]);
 		List<String> pathTitles;
 		try {
 			pathTitles = Files.readAllLines(dataFilePath,
