@@ -47,6 +47,11 @@ public class InexMsnExperiment {
 		LOGGER.addHandler(handler);
 		LOGGER.setLevel(Level.ALL);
 		File indexDir = new File(INDEX_BASE);
+		try {
+			FileUtils.deleteDirectory(indexDir);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		if (!indexDir.exists())
 			indexDir.mkdirs();
 		File resultDir = new File(RESULT_DIR);
