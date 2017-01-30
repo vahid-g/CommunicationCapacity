@@ -100,7 +100,7 @@ public class InexQueryServices {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 					String docName = doc.get(Experiment.DOCNAME_ATTRIB);
 					if (msnQuery.qrels.contains(docName)) {
-						mqr.rank = i + 0;
+						mqr.rank = i + 1;
 						break;
 					}
 					// TODO: handle multiple relevant answers
