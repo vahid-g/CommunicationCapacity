@@ -40,32 +40,28 @@ public class InexMsnExperiment {
 
 	static final Logger LOGGER = Logger
 			.getLogger(FreebaseDatabaseSizeExperiment.class.getName());
-	static {
+
+	public static void main(String[] args) {
+		// initializations 
 		LOGGER.setUseParentHandlers(false);
 		Handler handler = new ConsoleHandler();
 		handler.setLevel(Level.ALL);
 		LOGGER.addHandler(handler);
 		LOGGER.setLevel(Level.ALL);
-		File indexDir = new File(INDEX_BASE);
-		try {
-			FileUtils.deleteDirectory(indexDir);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		if (!indexDir.exists())
-			indexDir.mkdirs();
+		File indexBaseDir = new File(INDEX_BASE);
+		if (!indexBaseDir.exists())
+			indexBaseDir.mkdirs();
 		File resultDir = new File(RESULT_DIR);
 		if (!resultDir.exists())
 			resultDir.mkdirs();
-	}
-
-	public static void main(String[] args) {
+		
+		
 		int expNo = Integer.parseInt(args[0]);
 		long start_t = System.currentTimeMillis();
 		exp(expNo);
 		long end_t = System.currentTimeMillis();
 		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
-				+ (end_t - start_t) / 1000);
+				+ (end_t - start_t) / 60000 + " minutes");
 	}
 
 	public static void exp(int expNo) {
@@ -102,6 +98,7 @@ public class InexMsnExperiment {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
 				QUERY_QID_FILE_PATH, QID_QREL_FILE_PATH);
+		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
 				indexName);
 		LOGGER.log(Level.INFO, "Writing results..");

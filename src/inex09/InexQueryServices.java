@@ -49,7 +49,7 @@ public class InexQueryServices {
 			// }
 			System.out.println("Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
-			searcher.setSimilarity(new BM25Similarity());
+			// searcher.setSimilarity(new BM25Similarity());
 			for (InexQueryDAO queryDAO : queries) {
 				// System.out.println(queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.text,
@@ -82,13 +82,14 @@ public class InexQueryServices {
 		}
 	}
 
-	public static List<MsnQueryResult> runMsnQueries(List<MsnQuery> queries, String indexPath) {
+	public static List<MsnQueryResult> runMsnQueries(List<MsnQuery> queries,
+			String indexPath) {
 		List<MsnQueryResult> results = new ArrayList<MsnQueryResult>();
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
 				.get(indexPath)))) {
 			System.out.println("Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
-			searcher.setSimilarity(new BM25Similarity());
+			// searcher.setSimilarity(new BM25Similarity());
 			for (MsnQuery msnQuery : queries) {
 				// System.out.println(queryCoutner++);
 				Query query = buildLuceneQuery(msnQuery.text,
@@ -193,5 +194,5 @@ public class InexQueryServices {
 		}
 		return queryList;
 	}
-	
+
 }
