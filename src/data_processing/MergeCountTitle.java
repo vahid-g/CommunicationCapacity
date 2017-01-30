@@ -17,8 +17,8 @@ public class MergeCountTitle {
 		// Path dataFilePath = Paths.get("/scratch/data-sets/grep_00.out");
 		Path countFilePath = Paths.get("/scratch/cluster-share/ghadakcv/" + args[0]);
 		Path dataFilePath = Paths.get("/scratch/cluster-share/ghadakcv/" + args[1]);
-//		Path countFilePath = Paths.get("pagecount.txt");
-//		Path dataFilePath = Paths.get("grep.txt");
+		// Path countFilePath = Paths.get("part00");
+		// Path dataFilePath = Paths.get("grep.txt");
 		List<String> pathTitles;
 		try {
 			pathTitles = Files.readAllLines(dataFilePath, Charset.forName("UTF-8"));
@@ -34,7 +34,7 @@ public class MergeCountTitle {
 				titlePathMap.put(title.trim(), path);
 				countMap.put(path, 0);
 			}
-			try (BufferedReader br = Files.newBufferedReader(countFilePath, Charset.forName("ASCII"))) {
+			try (BufferedReader br = Files.newBufferedReader(countFilePath, Charset.forName("ISO-8859-1"))) {
 				String line = br.readLine();
 				do {
 					String[] fields = line.split(" ");

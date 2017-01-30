@@ -18,22 +18,20 @@ import freebase.FreebaseDatabaseSizeExperiment;
 
 public class InexMsnExperiment {
 
-	static final String DATASET_PATH = "/scratch/data-sets/inex_09/";
-	static final String PATH_COUNT_FILE = "data/file_count.csv";
-	static final String QUERY_QID_FILE_PATH = "data/queries/msn/query_qid.csv";
-	static final String QID_QREL_FILE_PATH = "data/queries/msn/qid_qrel.csv";
-	static final String INDEX_BASE = "data/index/index09/";
-	static final String RESULT_DIR = "data/result/";
+//	static final String DATASET_PATH = "/scratch/data-sets/inex_09/";
+//	static final String PATH_COUNT_FILE = "data/file_count.csv";
+//	static final String QUERY_QID_FILE_PATH = "data/queries/msn/query_qid.csv";
+//	static final String QID_QREL_FILE_PATH = "data/queries/msn/qid_qrel.csv";
+//	static final String INDEX_BASE = "data/index/index09/";
+//	static final String RESULT_DIR = "data/result/";
 
-	// static final String DATA_DIR = "/scratch/cluster-share/ghadakcv/";
-	// static final String DATASET_PATH = DATA_DIR + "inex_09";
-	// static final String FILE_COUNT_FILE_PATH = DATA_DIR + "file_count.csv";
-	// static final String QUERY_QID_FILE_PATH = DATA_DIR
-	// + "queries/msn/query_qid.csv";
-	// static final String QID_QREL_FILE_PATH = DATA_DIR
-	// + "queries/msn/qid_qrel.csv";
-	// static final String INDEX_BASE = DATA_DIR + "index/index09/";
-	// static final String RESULT_DIR = DATA_DIR + "result/";
+	static final String CLUSTER_BASE = "/scratch/cluster-share/ghadakcv/";
+	static final String DATASET_PATH = CLUSTER_BASE + "inex_09";
+	static final String PATH_COUNT_FILE = CLUSTER_BASE + "data/file_count.csv";
+	static final String QUERY_QID_FILE_PATH = CLUSTER_BASE + "data/msn/query_qid.csv";
+	static final String QID_QREL_FILE_PATH = CLUSTER_BASE + "data/msn/qid_qrel.csv";
+	static final String INDEX_BASE = "/scratch/ghadakcv/index09/";
+	static final String RESULT_DIR = CLUSTER_BASE + "data/result/";
 
 	static final Logger LOGGER = Logger
 			.getLogger(FreebaseDatabaseSizeExperiment.class.getName());
@@ -70,9 +68,8 @@ public class InexMsnExperiment {
 			while ((line = br.readLine()) != null) {
 				if (!line.contains(","))
 					continue;
-				String path = line.substring(0, line.lastIndexOf(", "));
-				Integer count = Integer.parseInt(line.substring(
-						line.lastIndexOf(",") + 1).trim());
+				String path = CLUSTER_BASE + line.split(",")[0];
+				Integer count = Integer.parseInt(line.split(",")[1].trim());
 				if (pathCountMap.containsKey(path))
 					pathCountMap.put(path, count + pathCountMap.get(path));
 				else
@@ -83,15 +80,15 @@ public class InexMsnExperiment {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountMap.size());
 		LOGGER.log(Level.INFO, "Sorting files..");
-		int size = (int) (pathCountMap.size() * (expNo / 10.0));
-		Map<String, Integer> fileCountSorted = Utils.sortByValue(pathCountMap,
-				size);
+		int subsetSize = (int) (pathCountMap.size() * (expNo / 10.0));
+		Map<String, Integer> pathCountSorted = Utils.sortByValue(pathCountMap,
+				subsetSize);
 
 		String indexName = INDEX_BASE + "index_inex_" + expNo;
 		LOGGER.log(Level.INFO, "Building index..");
-		InexIndexer.buildIndex(fileCountSorted, indexName);
+		InexIndexer.buildIndex(pathCountSorted, indexName);
 
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
