@@ -6,6 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +16,8 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.apache.commons.io.FileUtils;
 
 import freebase.FreebaseDatabaseSizeExperiment;
 
@@ -41,7 +46,6 @@ public class InexMsnExperiment {
 		handler.setLevel(Level.ALL);
 		LOGGER.addHandler(handler);
 		LOGGER.setLevel(Level.ALL);
-
 		File indexDir = new File(INDEX_BASE);
 		if (!indexDir.exists())
 			indexDir.mkdirs();
@@ -95,7 +99,6 @@ public class InexMsnExperiment {
 				QUERY_QID_FILE_PATH, QID_QREL_FILE_PATH);
 		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
 				indexName);
-
 		LOGGER.log(Level.INFO, "Writing results..");
 		try (FileWriter fw = new FileWriter(RESULT_DIR + "inex_" + expNo
 				+ ".csv")) {
@@ -103,6 +106,8 @@ public class InexMsnExperiment {
 				fw.write(mqr.msnQuery.text + ", " + mqr.precisionAtK(3) + ", "
 						+ mqr.mrr() + "\n");
 			}
+			LOGGER.log(Level.INFO, "cleanup..");
+			FileUtils.deleteDirectory(new File(indexName));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -159,7 +159,7 @@ public class InexQueryServices {
 			String line;
 			while ((line = br.readLine()) != null) {
 				String qid = line.split(" ")[0];
-				String qrel = line.split(" ")[3];
+				String qrel = line.split(" ")[2];
 				if (qidQrelMap.containsKey(qid)) {
 					List<String> rels = qidQrelMap.get(qid);
 					rels.add(qrel);
