@@ -105,7 +105,7 @@ public class InexMsnExperiment {
 		try (FileWriter fw = new FileWriter(RESULT_DIR + "inex_" + expNo
 				+ ".csv")) {
 			for (MsnQueryResult mqr : results) {
-				fw.write(mqr.msnQuery.text + ", " + mqr.precisionAtK(3) + ", "
+				fw.write("\"" + mqr.msnQuery.text.replace(",", "") + "\", " + mqr.precisionAtK(3) + ", "
 						+ mqr.mrr() + "\n");
 			}
 			LOGGER.log(Level.INFO, "cleanup..");
