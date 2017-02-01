@@ -6,9 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +61,14 @@ public class InexMsnExperiment {
 				+ (end_t - start_t) / 60000 + " minutes");
 	}
 
+	/**
+	 * 
+	 * This method loads Msn queries, and page visits of wikipedia. Then based on expNo, it selects a part
+	 * of wikipedia with top page visits and builds an index on that. Then it runs msn queries on it and 
+	 * prints the results to a file.
+	 * 
+	 * @param expNo
+	 */
 	public static void exp(int expNo) {
 		LOGGER.log(Level.INFO, "Loading files list and counts");
 		Map<String, Integer> pathCountMap = new HashMap<String, Integer>();
@@ -115,6 +120,10 @@ public class InexMsnExperiment {
 		}
 	}
 
+	
+	/**
+	 * This runs all msn queries on all wikipedia without considering weights. 
+	 */
 	public static void exp0() {
 		List<String> allFiles = Utils
 				.listFilesForFolder(new File(DATASET_PATH));
