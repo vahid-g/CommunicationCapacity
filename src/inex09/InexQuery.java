@@ -2,7 +2,7 @@ package inex09;
 
 import java.util.ArrayList;
 
-public class InexQueryDAO {
+public class InexQuery {
 
 	String text;
 	private ArrayList<String> relDocs;
@@ -10,7 +10,7 @@ public class InexQueryDAO {
 	double p3;
 	double p10;
 
-	public InexQueryDAO(String text, String relDoc) {
+	public InexQuery(String text, String relDoc) {
 		this.text = text;
 		this.relDocs = new ArrayList<String>();
 		this.relDocs.add(relDoc);

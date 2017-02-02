@@ -10,5 +10,7 @@ public class ClusterDirectoryInfo {
 	static final String LOCAL_INDEX_BASE = "/scratch/ghadakcv/index09/";
 	static final String GLOBAL_INDEX_BASE = "/scratch/cluster-share/ghadakcv/index/";
 	static final String RESULT_DIR = CLUSTER_BASE + "data/result/";
+	
+	static final String INEX9_QUERY_FILE = CLUSTER_BASE + "data/inex9_queries/queries.csv";
 
 }

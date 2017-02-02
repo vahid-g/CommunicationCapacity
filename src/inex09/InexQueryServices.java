@@ -28,7 +28,7 @@ import org.apache.lucene.store.FSDirectory;
 
 public class InexQueryServices {
 
-	public static void runInexQueries(List<InexQueryDAO> queries,
+	public static void runInexQueries(List<InexQuery> queries,
 			String resultFile, String indexPath) {
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
 				.get(indexPath)))) {
@@ -44,7 +44,7 @@ public class InexQueryServices {
 			System.out.println("Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
 			// searcher.setSimilarity(new BM25Similarity());
-			for (InexQueryDAO queryDAO : queries) {
+			for (InexQuery queryDAO : queries) {
 				// System.out.println(queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.text,
 						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
@@ -67,7 +67,7 @@ public class InexQueryServices {
 			e.printStackTrace();
 		}
 		try (FileWriter fw = new FileWriter(resultFile)) {
-			for (InexQueryDAO query : queries) {
+			for (InexQuery query : queries) {
 				fw.write(query.text + ", " + query.p3 + ", " + query.p10 + ", "
 						+ query.mrr + "\n");
 			}
@@ -120,8 +120,8 @@ public class InexQueryServices {
 		return query;
 	}
 
-	public static List<InexQueryDAO> loadInexQueries(String queryFile) {
-		List<InexQueryDAO> queries = new ArrayList<InexQueryDAO>();
+	public static List<InexQuery> loadInexQueries(String queryFile) {
+		List<InexQuery> queries = new ArrayList<InexQuery>();
 		try (BufferedReader br = new BufferedReader(new FileReader(queryFile))) {
 			String line;
 			String queryText;
@@ -134,7 +134,7 @@ public class InexQueryServices {
 				if (queryText.equals(prevQueryText)) {
 					queries.get(queries.size() - 1).addRelevantAnswer(rel);
 				} else {
-					queries.add(new InexQueryDAO(queryText, rel));
+					queries.add(new InexQuery(queryText, rel));
 					prevQueryText = queryText;
 				}
 			}

@@ -69,9 +69,9 @@ public class InexExperiment {
 
 	public static void runSingleQuery() { // run a single query and print index
 		InexExperiment ie = new InexExperiment("DESC_NAME_09_1");
-		List<InexQueryDAO> queries = InexQueryServices.loadInexQueries(QUERY_DIR
+		List<InexQuery> queries = InexQueryServices.loadInexQueries(QUERY_DIR
 				+ "inex09/queries.csv");
-		InexQueryDAO query = queries.get(0);
+		InexQuery query = queries.get(0);
 		System.out.println(query);
 		// List<Document> result = ie.runQuery(query);
 		// for (Document doc : result.subList(0, 100)) {
@@ -182,7 +182,7 @@ public class InexExperiment {
 	}
 
 	public static void runTotalQueriesOnPartitionedIndex() { 
-		List<InexQueryDAO> queries = InexQueryServices.loadInexQueries("data/query-log/inex09/queries_uniq.csv");
+		List<InexQuery> queries = InexQueryServices.loadInexQueries("data/query-log/inex09/queries_uniq.csv");
 		String[] indexPath = new String[10];
 		for (int i = 0; i < 10; i++) {
 			indexPath[i] = INDEX_DIR + "desc_name_trec_indie_2_" + i;
@@ -190,7 +190,7 @@ public class InexExperiment {
 		FileWriter fw = null;
 		try {
 			fw = new FileWriter(RESULT_DIR + "???");
-			for (InexQueryDAO queryDAO : queries) {
+			for (InexQuery queryDAO : queries) {
 				for (int i = 0; i < 10; i++) {
 					try (IndexReader reader = DirectoryReader.open(FSDirectory
 							.open(Paths.get(indexPath[i])))) {

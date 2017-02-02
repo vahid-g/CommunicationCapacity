@@ -21,8 +21,6 @@ import freebase.FreebaseDatabaseSizeExperiment;
 public class InexExperimentWithPageCount {
 
 	static final Logger LOGGER = Logger.getLogger(FreebaseDatabaseSizeExperiment.class.getName());
-
-	
 	
 	public static void main(String[] args) {
 		// initializations
@@ -33,7 +31,7 @@ public class InexExperimentWithPageCount {
 		LOGGER.setLevel(Level.ALL);
 	}
 	
-	public static void createIndexOnShare(){
+	public static void exp(int expNo){
 		LOGGER.log(Level.INFO, "Loading files path and counts");
 		Map<String, Integer> pathCountMap = new HashMap<String, Integer>();
 		try (BufferedReader br = new BufferedReader(new FileReader(
@@ -56,6 +54,8 @@ public class InexExperimentWithPageCount {
 		}
 		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountMap.size());
 		LOGGER.log(Level.INFO, "Sorting files..");
+		
+		
 		int subsetSize = (int) (pathCountMap.size() * (expNo / 10.0));
 		Map<String, Integer> pathCountSorted = Utils.sortByValue(pathCountMap,
 				subsetSize);
@@ -65,13 +65,11 @@ public class InexExperimentWithPageCount {
 		InexIndexer.buildIndex(pathCountSorted, indexName);
 		
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
-				ClusterDirectoryInfo.QUERY_QID_FILE_PATH, ClusterDirectoryInfo.QID_QREL_FILE_PATH);
+		List<InexQuery> queries = InexQueryServices.loadInexQueries(ClusterDirectoryInfo.INEX9_QUERY_FILE);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
-				indexName);
-		LOGGER.log(Level.INFO, "Writing results..");
-		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR + "inex_" + expNo
+		InexQueryServices.runInexQueries(queries, "??", indexName);
+		/*LOGGER.log(Level.INFO, "Writing results..");
+		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR + "inexinex_" + expNo
 				+ ".csv")) {
 			for (MsnQueryResult mqr : results) {
 				fw.write("\"" + mqr.msnQuery.text.replace(",", "") + "\", " + mqr.precisionAtK(3) + ", "
@@ -81,7 +79,7 @@ public class InexExperimentWithPageCount {
 			FileUtils.deleteDirectory(new File(indexName));
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		}*/
 		
 	}
 
