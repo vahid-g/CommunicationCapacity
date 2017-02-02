@@ -27,14 +27,6 @@ public class InexMsnExperiment {
 //	static final String INDEX_BASE = "data/index/index09/";
 //	static final String RESULT_DIR = "data/result/";
 
-	static final String CLUSTER_BASE = "/scratch/cluster-share/ghadakcv/";
-	static final String DATASET_PATH = CLUSTER_BASE + "inex_09";
-	static final String PATH_COUNT_FILE = CLUSTER_BASE + "data/file_count.csv";
-	static final String QUERY_QID_FILE_PATH = CLUSTER_BASE + "data/msn/query_qid.csv";
-	static final String QID_QREL_FILE_PATH = CLUSTER_BASE + "data/msn/qid_qrel.csv";
-	static final String INDEX_BASE = "/scratch/ghadakcv/index09/";
-	static final String RESULT_DIR = CLUSTER_BASE + "data/result/";
-
 	static final Logger LOGGER = Logger
 			.getLogger(FreebaseDatabaseSizeExperiment.class.getName());
 
@@ -45,10 +37,10 @@ public class InexMsnExperiment {
 		handler.setLevel(Level.ALL);
 		LOGGER.addHandler(handler);
 		LOGGER.setLevel(Level.ALL);
-		File indexBaseDir = new File(INDEX_BASE);
+		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE);
 		if (!indexBaseDir.exists())
 			indexBaseDir.mkdirs();
-		File resultDir = new File(RESULT_DIR);
+		File resultDir = new File(ClusterDirectoryInfo.RESULT_DIR);
 		if (!resultDir.exists())
 			resultDir.mkdirs();
 		
@@ -73,12 +65,12 @@ public class InexMsnExperiment {
 		LOGGER.log(Level.INFO, "Loading files list and counts");
 		Map<String, Integer> pathCountMap = new HashMap<String, Integer>();
 		try (BufferedReader br = new BufferedReader(new FileReader(
-				PATH_COUNT_FILE))) {
+				ClusterDirectoryInfo.PATH_COUNT_FILE))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (!line.contains(","))
 					continue;
-				String path = CLUSTER_BASE + line.split(",")[0];
+				String path = ClusterDirectoryInfo.CLUSTER_BASE + line.split(",")[0];
 				Integer count = Integer.parseInt(line.split(",")[1].trim());
 				if (pathCountMap.containsKey(path))
 					pathCountMap.put(path, count + pathCountMap.get(path));
@@ -96,18 +88,18 @@ public class InexMsnExperiment {
 		Map<String, Integer> pathCountSorted = Utils.sortByValue(pathCountMap,
 				subsetSize);
 
-		String indexName = INDEX_BASE + "index_inex_" + expNo;
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE + "index_inex_" + expNo;
 		LOGGER.log(Level.INFO, "Building index..");
 		InexIndexer.buildIndex(pathCountSorted, indexName);
 
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
-				QUERY_QID_FILE_PATH, QID_QREL_FILE_PATH);
+				ClusterDirectoryInfo.QUERY_QID_FILE_PATH, ClusterDirectoryInfo.QID_QREL_FILE_PATH);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
 				indexName);
 		LOGGER.log(Level.INFO, "Writing results..");
-		try (FileWriter fw = new FileWriter(RESULT_DIR + "inex_" + expNo
+		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR + "inex_" + expNo
 				+ ".csv")) {
 			for (MsnQueryResult mqr : results) {
 				fw.write("\"" + mqr.msnQuery.text.replace(",", "") + "\", " + mqr.precisionAtK(3) + ", "
@@ -126,13 +118,13 @@ public class InexMsnExperiment {
 	 */
 	public static void exp0() {
 		List<String> allFiles = Utils
-				.listFilesForFolder(new File(DATASET_PATH));
-		InexIndexer.buildIndex(allFiles.toArray(new String[0]), INDEX_BASE);
+				.listFilesForFolder(new File(ClusterDirectoryInfo.DATASET_PATH));
+		InexIndexer.buildIndex(allFiles.toArray(new String[0]), ClusterDirectoryInfo.LOCAL_INDEX_BASE);
 		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
-				QUERY_QID_FILE_PATH, QID_QREL_FILE_PATH);
+				ClusterDirectoryInfo.QUERY_QID_FILE_PATH, ClusterDirectoryInfo.QID_QREL_FILE_PATH);
 		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
-				INDEX_BASE);
-		try (FileWriter fw = new FileWriter(RESULT_DIR + "inex.csv")) {
+				ClusterDirectoryInfo.LOCAL_INDEX_BASE);
+		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR + "inex.csv")) {
 			for (MsnQueryResult mqr : results) {
 				fw.write(mqr.msnQuery.text + ", " + mqr.precisionAtK(3) + ", "
 						+ mqr.mrr() + "\n");
