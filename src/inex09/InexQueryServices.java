@@ -48,8 +48,8 @@ public class InexQueryServices {
 				// System.out.println(queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.text,
 						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
-				TopDocs topDocs = searcher.search(query, 10);
-				int precisionBoundry = topDocs.scoreDocs.length > 10
+				TopDocs topDocs = searcher.search(query, 20);
+				int precisionBoundry = topDocs.scoreDocs.length > 20
 						? 10
 						: topDocs.scoreDocs.length;
 				int sum = 0;
