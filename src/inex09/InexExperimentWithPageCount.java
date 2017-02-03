@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +28,16 @@ public class InexExperimentWithPageCount {
 		handler.setLevel(Level.ALL);
 		LOGGER.addHandler(handler);
 		LOGGER.setLevel(Level.ALL);
+		
+		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE);
+		if (!indexBaseDir.exists())
+			indexBaseDir.mkdirs();
+		File resultDir = new File(ClusterDirectoryInfo.RESULT_DIR);
+		if (!resultDir.exists())
+			resultDir.mkdirs();
+		
+		int expNo = Integer.parseInt(args[0]);
+		exp(expNo);
 	}
 	
 	public static void exp(int expNo){
@@ -54,20 +63,24 @@ public class InexExperimentWithPageCount {
 		}
 		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountMap.size());
 		LOGGER.log(Level.INFO, "Sorting files..");
-		
-		
 		int subsetSize = (int) (pathCountMap.size() * (expNo / 10.0));
 		Map<String, Integer> pathCountSorted = Utils.sortByValue(pathCountMap,
 				subsetSize);
 
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "index_inex_" + expNo;
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE + "index_inex_" + expNo;
 		LOGGER.log(Level.INFO, "Building index..");
 		InexIndexer.buildIndex(pathCountSorted, indexName);
 		
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<InexQuery> queries = InexQueryServices.loadInexQueries(ClusterDirectoryInfo.INEX9_QUERY_FILE);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		InexQueryServices.runInexQueries(queries, "??", indexName);
+		InexQueryServices.runInexQueries(queries, ClusterDirectoryInfo.RESULT_DIR + "inexinex_" + expNo
+				+ ".csv", indexName);
+		try {
+			FileUtils.deleteDirectory(new File(indexName));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		/*LOGGER.log(Level.INFO, "Writing results..");
 		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR + "inexinex_" + expNo
 				+ ".csv")) {
