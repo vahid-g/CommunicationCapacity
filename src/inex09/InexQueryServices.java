@@ -90,7 +90,7 @@ public class InexQueryServices {
 				// System.out.println(queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.text,
 						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
-				TopDocs topDocs = searcher.search(query, 20);
+				TopDocs topDocs = searcher.search(query, RESULT_COUNT);
 				InexQueryResult iqr = new InexQueryResult(queryDAO);
 				for (int i = 0; i < Math.min(RESULT_COUNT, topDocs.scoreDocs.length); i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
