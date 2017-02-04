@@ -79,6 +79,7 @@ public class InexExperimentWithPageCount {
 				for (InexQueryResult iqr : iqrList) {
 					fw.write(iqr.toString());
 				}
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
