@@ -14,8 +14,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.naming.PartialResultException;
-
 import inex09.InexIndexer;
 import inex09.Utils;
 

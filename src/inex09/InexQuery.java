@@ -1,11 +1,12 @@
 package inex09;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class InexQuery {
 
 	String text;
-	private ArrayList<String> relDocs;
+	List<String> relDocs;
 	double mrr;
 	double p3;
 	double p10;
@@ -29,7 +30,7 @@ public class InexQuery {
 		return "query: " + this.text + " relDoc: " + this.relDocs.get(0);
 	}
 
-	public ArrayList<String> getRelDocs() {
+	public List<String> getRelDocs() {
 		return relDocs;
 	}
 

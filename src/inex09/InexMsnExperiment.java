@@ -94,7 +94,7 @@ public class InexMsnExperiment {
 
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
-				ClusterDirectoryInfo.QUERY_QID_FILE_PATH, ClusterDirectoryInfo.QID_QREL_FILE_PATH);
+				ClusterDirectoryInfo.MSN_QUERY_QID, ClusterDirectoryInfo.MSN_QID_QREL);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
 				indexName);
@@ -121,7 +121,7 @@ public class InexMsnExperiment {
 				.listFilesForFolder(new File(ClusterDirectoryInfo.DATASET_PATH));
 		InexIndexer.buildIndex(allFiles.toArray(new String[0]), ClusterDirectoryInfo.LOCAL_INDEX_BASE);
 		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
-				ClusterDirectoryInfo.QUERY_QID_FILE_PATH, ClusterDirectoryInfo.QID_QREL_FILE_PATH);
+				ClusterDirectoryInfo.MSN_QUERY_QID, ClusterDirectoryInfo.MSN_QID_QREL);
 		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
 				ClusterDirectoryInfo.LOCAL_INDEX_BASE);
 		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR + "inex.csv")) {

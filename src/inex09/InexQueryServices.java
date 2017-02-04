@@ -27,7 +27,10 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
 
 public class InexQueryServices {
+	
+	final static int RESULT_COUNT = 50;
 
+	@Deprecated
 	public static void runInexQueries(List<InexQuery> queries,
 			String resultFile, String indexPath) {
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
@@ -48,9 +51,9 @@ public class InexQueryServices {
 				// System.out.println(queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.text,
 						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
-				TopDocs topDocs = searcher.search(query, 20);
-				int precisionBoundry = topDocs.scoreDocs.length > 20
-						? 10
+				TopDocs topDocs = searcher.search(query, RESULT_COUNT);
+				int precisionBoundry = topDocs.scoreDocs.length > RESULT_COUNT
+						? RESULT_COUNT
 						: topDocs.scoreDocs.length;
 				int sum = 0;
 				for (int i = 0; i < precisionBoundry; i++) {
@@ -74,6 +77,32 @@ public class InexQueryServices {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static List<InexQueryResult> runInexQueries(List<InexQuery> queries, String indexPath) {
+		List<InexQueryResult> iqrList = new ArrayList<InexQueryResult>();
+		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
+				.get(indexPath)))) {
+			System.out.println("Number of docs in index: " + reader.numDocs());
+			IndexSearcher searcher = new IndexSearcher(reader);
+			// searcher.setSimilarity(new BM25Similarity());
+			for (InexQuery queryDAO : queries) {
+				// System.out.println(queryCoutner++);
+				Query query = buildLuceneQuery(queryDAO.text,
+						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
+				TopDocs topDocs = searcher.search(query, 20);
+				InexQueryResult iqr = new InexQueryResult(queryDAO);
+				for (int i = 0; i < Math.min(RESULT_COUNT, topDocs.scoreDocs.length); i++) {
+					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
+					String docName = doc.get(Experiment.DOCNAME_ATTRIB);
+					iqr.topResults.add(docName);
+				}
+				iqrList.add(iqr);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return iqrList;
 	}
 
 	public static List<MsnQueryResult> runMsnQueries(List<MsnQuery> queries,
