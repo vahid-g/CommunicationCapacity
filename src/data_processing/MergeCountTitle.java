@@ -38,11 +38,11 @@ public class MergeCountTitle {
 				String line = br.readLine();
 				do {
 					String[] fields = line.split(" ");
-					String title = fields[0].replace("_", " ");
+					String title = fields[1].replace("_", " ");
 					if (titlePathMap.containsKey(title)) {
 						String path = titlePathMap.get(title);
 						Integer oldFreq = countMap.get(path);
-						Integer newFreq = Integer.parseInt(fields[1]);
+						Integer newFreq = Integer.parseInt(fields[2]);
 						countMap.put(path, oldFreq + newFreq);
 					} else {
 						// System.err.println("missing key: " + title);
