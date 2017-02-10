@@ -28,21 +28,25 @@ public class MergeCountTitle {
 			Map<String, Integer> pathCountMap = new HashMap<String, Integer>();
 			Map<String, String> titlePathMap = new HashMap<String, String>();
 			for (String pathTitle : pathTitles) {
-				Pattern pat = Pattern.compile("(inex_13/[0-9/]+.xml):(.*)");
+				Pattern pat = Pattern.compile("../(inex_13/[0-9[a-f]/]+.xml):(.*)");
 				Matcher mat = pat.matcher(pathTitle);
 				if (mat.find()) {
 					try {
 						String path = mat.group(1);
 						String title = mat.group(2);
-						titlePathMap.put(title.trim(), path);
 						pathCountMap.put(path, 0);
+						titlePathMap.put(title.trim(), path);
 					} catch (IllegalStateException e1) {
 						e1.printStackTrace();
 					} catch (IndexOutOfBoundsException e2) {
 						e2.printStackTrace();
 					}
+				} else {
+					System.err.println("couldn't find: " + pathTitle);
 				}
 			}
+			System.err.println("init file size: " + pathTitles.size());
+			System.err.println("map size:" + pathCountMap.size());
 			try (BufferedReader br = Files.newBufferedReader(countFilePath,
 					Charset.forName("ISO-8859-1"))) {
 				String line = br.readLine();
