@@ -28,7 +28,7 @@ public class MergeCountTitle {
 			Map<String, Integer> pathCountMap = new HashMap<String, Integer>();
 			Map<String, String> titlePathMap = new HashMap<String, String>();
 			for (String pathTitle : pathTitles) {
-				Pattern pat = Pattern.compile("inex_13/([0-9/]+.xml):(.*)");
+				Pattern pat = Pattern.compile("(inex_13/[0-9/]+.xml):(.*)");
 				Matcher mat = pat.matcher(pathTitle);
 				if (mat.find()) {
 					try {
