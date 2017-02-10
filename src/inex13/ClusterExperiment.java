@@ -1,7 +1,5 @@
 package inex13;
 
-import inex09.InexIndexer;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -19,31 +17,14 @@ import org.apache.commons.io.FileUtils;
 
 public class ClusterExperiment {
 
-	// static final String DATA_SET = "/scratch/data-sets/inex_13/";
-	// static final String DATA_FOLDER = "data/";
-	// static final String INDEX_DIR = DATA_FOLDER + "index/";
-	// static final String QUERY_FILE = DATA_FOLDER +
-	// "queries/inex_ld/2013-ld-adhoc-topics.xml";
-	// static final String QREL_FILE = DATA_FOLDER +
-	// "queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
-	// static final String RESULT_DIR = DATA_FOLDER + "result/inex13_dbsize/";
-
-
-
-	final static String DATA_FOLDER = "/scratch/cluster-share/ghadakcv/";
-//	final static String INDEX_PATH = "/scratch/ghadakcv/index/";
-	final static String INDEX_PATH = "/scratch/cluster-share/ghadakcv/index/";	
-	final static String DATA_SET = DATA_FOLDER + "inex_13/";
-	final static String FILE_LIST = DATA_FOLDER + "filelist.txt";
-	final static String QUERY_FILE = DATA_FOLDER
-			+ "queries/inex_ld/2013-ld-adhoc-topics.xml";
-	final static String QREL_FILE = DATA_FOLDER
-			+ "queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
-	final static String RESULT_DIR = DATA_FOLDER + "result/inex13_dbsize/";
 
 	public static void main(String[] args) {
-		int expNo = Integer.parseInt(args[0]);
-		String indexPath = INDEX_PATH + "exp_" + expNo;
+		
+	}
+	
+	static void runOldExp(){
+		int expNo = Integer.parseInt("???");
+		String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "exp_" + expNo;
 		randomizedDbSizeSinglePartition(expNo, indexPath);
 		File indexFile = new File(indexPath);
 		// cleanup
@@ -77,7 +58,7 @@ public class ClusterExperiment {
 		List<String> expFileList = fileList.subList(0,
 				(int) ((expNo / 10.0) * fileList.size()));
 		System.out.println(df.format(new Date()) + " building index..");
-		InexIndexer.buildIndex(expFileList.toArray(new String[0]),
+		inex09.InexIndexer.buildIndex(expFileList.toArray(new String[0]),
 				indexPath, false);
 
 		// running queries

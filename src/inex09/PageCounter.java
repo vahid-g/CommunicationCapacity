@@ -20,7 +20,7 @@ public class PageCounter {
 
 	public static void main(String[] args) {
 		List<String> allFiles = Utils.listFilesForFolder(new File(
-				ClusterDirectoryInfo.DATASET_PATH));
+				ClusterDirectoryInfo.DATASET09_PATH));
 		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.PATH_COUNT_FILE)) {
 			for (String filename : allFiles) {
 				File file = new File(filename);

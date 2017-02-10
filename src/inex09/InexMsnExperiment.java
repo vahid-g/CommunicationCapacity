@@ -37,7 +37,7 @@ public class InexMsnExperiment {
 		handler.setLevel(Level.ALL);
 		LOGGER.addHandler(handler);
 		LOGGER.setLevel(Level.ALL);
-		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE);
+		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE09);
 		if (!indexBaseDir.exists())
 			indexBaseDir.mkdirs();
 		File resultDir = new File(ClusterDirectoryInfo.RESULT_DIR);
@@ -88,7 +88,7 @@ public class InexMsnExperiment {
 		Map<String, Integer> pathCountSorted = Utils.sortByValue(pathCountMap,
 				subsetSize);
 
-		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE + "index_inex_" + expNo;
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE09 + "index_inex_" + expNo;
 		LOGGER.log(Level.INFO, "Building index..");
 		InexIndexer.buildIndex(pathCountSorted, indexName);
 
@@ -118,12 +118,12 @@ public class InexMsnExperiment {
 	 */
 	public static void exp0() {
 		List<String> allFiles = Utils
-				.listFilesForFolder(new File(ClusterDirectoryInfo.DATASET_PATH));
-		InexIndexer.buildIndex(allFiles.toArray(new String[0]), ClusterDirectoryInfo.LOCAL_INDEX_BASE);
+				.listFilesForFolder(new File(ClusterDirectoryInfo.DATASET09_PATH));
+		InexIndexer.buildIndex(allFiles.toArray(new String[0]), ClusterDirectoryInfo.LOCAL_INDEX_BASE09);
 		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
 				ClusterDirectoryInfo.MSN_QUERY_QID, ClusterDirectoryInfo.MSN_QID_QREL);
 		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
-				ClusterDirectoryInfo.LOCAL_INDEX_BASE);
+				ClusterDirectoryInfo.LOCAL_INDEX_BASE09);
 		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR + "inex.csv")) {
 			for (MsnQueryResult mqr : results) {
 				fw.write(mqr.msnQuery.text + ", " + mqr.precisionAtK(3) + ", "

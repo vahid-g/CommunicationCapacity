@@ -3,9 +3,13 @@ package inex13;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -24,27 +28,31 @@ import org.apache.lucene.store.FSDirectory;
  */
 public class InexIndexer {
 
-	static IndexWriterConfig getConfig(boolean append) {
-		IndexWriterConfig config;
-		config = new IndexWriterConfig(new StandardAnalyzer());
-		if (append)
-			config.setOpenMode(OpenMode.APPEND);
-		else
-			config.setOpenMode(OpenMode.CREATE);
-		config.setRAMBufferSizeMB(1024.00);
-		config.setSimilarity(new BM25Similarity());
-		return config;
-	}
+	public static void buildIndex(
+			List<Map.Entry<String, Integer>> fileCountList, String indexPath) {
+		// computing smoothing params
+		int N = 0;
+		for (Map.Entry<String, Integer> entry : fileCountList) {
+			N += entry.getValue();
+		}
+		int V = fileCountList.size();
+		float alpha = 1.0f;
 
-
-	public static void buildIndex(String[] datasetFilePaths, String indexPath) {
+		// indexing
 		FSDirectory directory = null;
 		IndexWriter writer = null;
 		try {
 			directory = FSDirectory.open(Paths.get(indexPath));
-			writer = new IndexWriter(directory, getConfig(false));
-			for (String filePath : datasetFilePaths) {
-					indexFile(filePath, writer);
+			IndexWriterConfig config = new IndexWriterConfig(
+					new StandardAnalyzer());
+			config.setOpenMode(OpenMode.CREATE);
+			config.setRAMBufferSizeMB(1024.00);
+			writer = new IndexWriter(directory, config);
+			for (Map.Entry<String, Integer> entry : fileCountList) {
+				float count = (float) entry.getValue();
+				float smoothed = (count + alpha) / (N + V * alpha);
+				indexXmlFileWithWeight(new File(entry.getKey()), writer,
+						smoothed);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -60,54 +68,43 @@ public class InexIndexer {
 		}
 	}
 
-	public static void updateIndex(String prevIndexPath, String indexPath) {
-		FSDirectory prevIndexDir = null;
-		FSDirectory currentDir = null;
-		IndexWriter writer = null;
-		try {
-			prevIndexDir = FSDirectory.open(Paths.get(prevIndexPath));
-			currentDir = FSDirectory.open(Paths.get(indexPath));
-			writer = new IndexWriter(currentDir, getConfig(true));
-			writer.addIndexes(prevIndexDir);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (writer != null)
-				try {
-					writer.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			if (prevIndexDir != null)
-				prevIndexDir.close();
-			if (currentDir != null)
-				currentDir.close();
-		}
-	}
-
-	static void indexFile(String filepath, IndexWriter writer) {
-		File file = new File(filepath);
-		try {
-			String fileContent = new String(Files.readAllBytes(Paths
-					.get(filepath)), StandardCharsets.UTF_8);
-			if (isRedirectingFile(fileContent))
+	static void indexXmlFileWithWeight(File file, IndexWriter writer,
+			float weight) {
+		try (InputStream fis = Files.newInputStream(file.toPath())) {
+			byte[] data = new byte[(int) file.length()];
+			fis.read(data);
+			String fileContent = new String(data, "UTF-8");
+			if (fileContent.contains("<listitem>REDIRECT")) {
 				return;
+			}
+			Pattern p = Pattern.compile(".*<title>(.*?)</title>.*",
+					Pattern.DOTALL);
+			Matcher m = p.matcher(fileContent);
+			m.find();
+			String title = "";
+			if (m.matches())
+				title = m.group(1);
+			else
+				System.out.println("!!! title not found in " + file.getName());
+			fileContent = fileContent.replaceAll("<[^>]*>", " ").trim();
+			
 			Document doc = new Document();
-			doc.add(new StringField(Experiment.DOCNAME_ATTRIB, FilenameUtils
+			doc.add(new StringField(inex09.InexIndexer.DOCNAME_ATTRIB, FilenameUtils
 					.removeExtension(file.getName()), Field.Store.YES));
-			doc.add(new TextField(Experiment.CONTENT_ATTRIB, fileContent,
-					Field.Store.YES));
+			TextField titleField = new TextField(inex09.InexIndexer.TITLE_ATTRIB, title,
+					Field.Store.YES);
+			titleField.setBoost(weight);
+			doc.add(titleField);
+			TextField contentField = new TextField(inex09.InexIndexer.CONTENT_ATTRIB, fileContent,
+					Field.Store.YES);
+			contentField.setBoost(weight);
+			doc.add(contentField);
 			writer.addDocument(doc);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	private static boolean isRedirectingFile(String fileContent) {
-		int length = fileContent.length() > 8 ? 8 : fileContent.length();
-		return (fileContent.substring(0, length).equals("REDIRECT"));
 	}
 
 }

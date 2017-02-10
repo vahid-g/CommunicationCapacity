@@ -211,13 +211,7 @@ public class InexIndexer {
 
 	static void indexFile(String filepath, IndexWriter writer) {
 		File file = new File(filepath);
-		// try (InputStream is = Files.newInputStream(file.toPath())) {
-		// try (InputStream is = new BufferedInputStream(new
-		// FileInputStream(file))) {
 		try {
-			// byte[] data = new byte[(int) file.length()];
-			// is.read(data);
-			// String fileContent = new String(data, "UTF-8");
 			String fileContent = new String(Files.readAllBytes(Paths
 					.get(filepath)), StandardCharsets.UTF_8);
 			if (isRedirectingFile(fileContent))

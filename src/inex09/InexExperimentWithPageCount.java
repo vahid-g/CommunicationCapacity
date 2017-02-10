@@ -30,7 +30,7 @@ public class InexExperimentWithPageCount {
 		LOGGER.addHandler(handler);
 		LOGGER.setLevel(Level.ALL);
 
-		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE);
+		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE09);
 		if (!indexBaseDir.exists())
 			indexBaseDir.mkdirs();
 		File resultDir = new File(ClusterDirectoryInfo.RESULT_DIR);
@@ -42,7 +42,7 @@ public class InexExperimentWithPageCount {
 	}
 
 	public static void exp(int expNo) {
-		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE + "index_inex_" + expNo;
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE09 + "index_inex_" + expNo;
 		try {
 			LOGGER.log(Level.INFO, "Loading files path and counts");
 			Map<String, Integer> pathCountMap = new HashMap<String, Integer>();
