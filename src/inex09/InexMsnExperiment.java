@@ -65,7 +65,7 @@ public class InexMsnExperiment {
 		LOGGER.log(Level.INFO, "Loading files list and counts");
 		Map<String, Integer> pathCountMap = new HashMap<String, Integer>();
 		try (BufferedReader br = new BufferedReader(new FileReader(
-				ClusterDirectoryInfo.PATH_COUNT_FILE))) {
+				ClusterDirectoryInfo.PATH_COUNT_FILE09))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (!line.contains(","))
