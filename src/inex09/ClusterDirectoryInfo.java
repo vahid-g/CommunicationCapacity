@@ -5,6 +5,8 @@ public class ClusterDirectoryInfo {
 	public static final String CLUSTER_BASE = "/scratch/cluster-share/ghadakcv/";
 	public static final String MSN_QUERY_QID = CLUSTER_BASE + "data/msn/query_qid.csv";
 	public static final String MSN_QID_QREL = CLUSTER_BASE + "data/msn/qid_qrel.csv";
+	public static final String MSN_QUERY_QID_S = CLUSTER_BASE + "data/msn/query_qid_small.csv";
+	public static final String MSN_QUERY_QID_B = CLUSTER_BASE + "data/msn/query_qid_big.csv";
 	
 	public static final String RESULT_DIR = CLUSTER_BASE + "data/result/";
 	

@@ -207,7 +207,7 @@ public class InexQueryServices {
 				String qid = line.substring(index + 1);
 				if (qidQrelMap.containsKey(qid)) {
 					List<String> qrels = qidQrelMap.get(qid);
-					queryList.add(new MsnQuery(text, qrels));
+					queryList.add(new MsnQuery(text, qrels, Integer.parseInt(qid)));
 				}
 			}
 		} catch (FileNotFoundException e) {
