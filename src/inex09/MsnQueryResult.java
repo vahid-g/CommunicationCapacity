@@ -8,6 +8,7 @@ public class MsnQueryResult {
 
 	MsnQuery msnQuery;
 	int rank = -1;
+	String[] top3 = new String[3];
 
 	public double mrr() {
 		if (rank != -1)
