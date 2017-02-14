@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,6 +29,9 @@ import org.apache.lucene.store.FSDirectory;
  * @author ghadakcv This class is based on the InexMsnIndexer class
  */
 public class InexIndexer {
+	
+	static final Logger LOGGER = Logger
+			.getLogger(InexIndexer.class.getName());
 
 	public static void buildIndex(
 			List<PathVisitCountTuple> fileCountList, String indexPath, float gamma) {
@@ -77,17 +82,15 @@ public class InexIndexer {
 			if (fileContent.contains("<listitem>REDIRECT")) {
 				return;
 			}
-			Pattern p = Pattern.compile(".*<title>(.*?)</title>.*",
+			Pattern p = Pattern.compile("<article id=\"\\d*\" title=\"(.*?)\">",
 					Pattern.DOTALL);
 			Matcher m = p.matcher(fileContent);
-			m.find();
 			String title = "";
-			if (m.matches())
+			if (m.find())
 				title = m.group(1);
 			else
-				System.out.println("!!! title not found in " + file.getName());
+				LOGGER.log(Level.INFO, "Title not found in " + file.getName());
 			fileContent = fileContent.replaceAll("<[^>]*>", " ").trim();
-			
 			Document doc = new Document();
 			doc.add(new StringField(inex09.InexIndexer.DOCNAME_ATTRIB, FilenameUtils
 					.removeExtension(file.getName()), Field.Store.YES));
