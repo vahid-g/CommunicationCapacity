@@ -122,7 +122,7 @@ public class InexQueryServices {
 				for (int i = 0; i < topDocs.scoreDocs.length; i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 					String docName = doc.get(Experiment.DOCNAME_ATTRIB);
-					if (i < 4){
+					if (i < 3){
 						mqr.top3[i] = docName;
 					}
 					if (msnQuery.qrels.contains(docName)) {
