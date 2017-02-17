@@ -16,6 +16,8 @@ public class ClusterDirectoryInfo {
 	public static final String GLOBAL_INDEX_BASE09 = "/scratch/cluster-share/ghadakcv/index09/";
 	public static final String INEX9_QUERY_FILE = CLUSTER_BASE
 			+ "data/inex9_queries/queries.csv";
+	public static final String INEX10_QUERY_FILE = CLUSTER_BASE
+			+ "data/inex10_queries/queries.csv";
 	public static final String PATH_COUNT_FILE09 = CLUSTER_BASE + "data/path_counts/pathcount_09_0103.csv";
 	
 	//2013 files

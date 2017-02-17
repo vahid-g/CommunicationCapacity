@@ -1,7 +1,5 @@
 package inex09;
 
-import inex13.Experiment;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -24,7 +22,10 @@ import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
+
+import inex13.Experiment;
 
 public class InexQueryServices {
 	
@@ -85,7 +86,7 @@ public class InexQueryServices {
 				.get(indexPath)))) {
 			System.out.println("Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
-			// searcher.setSimilarity(new BM25Similarity());
+			searcher.setSimilarity(new BM25Similarity());
 			for (InexQuery queryDAO : queries) {
 				// System.out.println(queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.text,

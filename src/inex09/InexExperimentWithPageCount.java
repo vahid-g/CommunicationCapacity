@@ -9,27 +9,17 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 
-import freebase.FreebaseDatabaseSizeExperiment;
-
 public class InexExperimentWithPageCount {
 
-	static final Logger LOGGER = Logger.getLogger(FreebaseDatabaseSizeExperiment.class.getName());
+	static final Logger LOGGER = Logger.getLogger(InexExperimentWithPageCount.class.getName());
 
 	public static void main(String[] args) {
 		// initializations
-		LOGGER.setUseParentHandlers(false);
-		Handler handler = new ConsoleHandler();
-		handler.setLevel(Level.ALL);
-		LOGGER.addHandler(handler);
-		LOGGER.setLevel(Level.ALL);
-
 		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE09);
 		if (!indexBaseDir.exists())
 			indexBaseDir.mkdirs();
@@ -53,10 +43,7 @@ public class InexExperimentWithPageCount {
 						continue;
 					String path = ClusterDirectoryInfo.CLUSTER_BASE + line.split(",")[0];
 					Integer count = Integer.parseInt(line.split(",")[1].trim());
-					if (pathCountMap.containsKey(path))
-						pathCountMap.put(path, count + pathCountMap.get(path));
-					else
-						pathCountMap.put(path, count);
+					pathCountMap.put(path, count);
 				}
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
@@ -72,6 +59,7 @@ public class InexExperimentWithPageCount {
 
 			LOGGER.log(Level.INFO, "Loading and running queries..");
 			List<InexQuery> queries = InexQueryServices.loadInexQueries(ClusterDirectoryInfo.INEX9_QUERY_FILE);
+			queries.addAll(InexQueryServices.loadInexQueries(ClusterDirectoryInfo.INEX10_QUERY_FILE));
 			LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 			List<InexQueryResult> iqrList = InexQueryServices.runInexQueries(queries, indexName);
 			LOGGER.log(Level.INFO, "Writing results..");
@@ -79,7 +67,7 @@ public class InexExperimentWithPageCount {
 				for (InexQueryResult iqr : iqrList) {
 					fw.write(iqr.toString());
 				}
-				
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

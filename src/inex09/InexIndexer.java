@@ -20,6 +20,7 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
 public class InexIndexer {
@@ -36,7 +37,7 @@ public class InexIndexer {
 		else
 			config.setOpenMode(OpenMode.CREATE);
 		config.setRAMBufferSizeMB(1024.00);
-		// config.setSimilarity(new BM25Similarity());
+		config.setSimilarity(new BM25Similarity());
 		return config;
 	}
 
