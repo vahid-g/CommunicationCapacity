@@ -67,8 +67,7 @@ public class InexIndexer {
 		buildIndex(datasetFilePaths, indexPath, true);
 	}
 
-	public static void buildIndex(String[] datasetFilePaths, String indexPath,
-			boolean isXml) {
+	public static void buildIndex(String[] datasetFilePaths, String indexPath, boolean isXml) {
 		FSDirectory directory = null;
 		IndexWriter writer = null;
 		try {
@@ -128,8 +127,7 @@ public class InexIndexer {
 			writer = new IndexWriter(writeDir, getConfig(false));
 			for (int i = 0; i < inputIndexPaths.length; i++) {
 				System.out.println(inputIndexPaths[i]);
-				inputDirs[i] = FSDirectory.open(Paths
-						.get(InexExperiment.INDEX_DIR + inputIndexPaths[i]));
+				inputDirs[i] = FSDirectory.open(Paths.get(InexExperiment.INDEX_DIR + inputIndexPaths[i]));
 			}
 			writer.addIndexes(inputDirs);
 		} catch (IOException e) {
@@ -153,8 +151,7 @@ public class InexIndexer {
 	static void indexFileFolder(String filePath, IndexWriter writer) {
 		File file = new File(filePath);
 		if (!file.exists()) {
-			System.out.println("File " + file.getAbsolutePath()
-					+ " does not exist!");
+			System.out.println("File " + file.getAbsolutePath() + " does not exist!");
 			return;
 		} else {
 			if (file.isDirectory()) {
@@ -181,8 +178,7 @@ public class InexIndexer {
 			if (fileContent.substring(0, length).equals("REDIRECT")) {
 				return;
 			}
-			Pattern p = Pattern.compile(".*<title>(.*?)</title>.*",
-					Pattern.DOTALL);
+			Pattern p = Pattern.compile(".*<title>(.*?)</title>.*", Pattern.DOTALL);
 			Matcher m = p.matcher(fileContent);
 			m.find();
 			String title = "";
@@ -192,13 +188,10 @@ public class InexIndexer {
 				System.out.println("!!! title not found in " + file.getName());
 			fileContent = fileContent.replaceAll("\\<.*?\\>", " ");
 			Document doc = new Document();
-			doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils
-					.removeExtension(file.getName()), Field.Store.YES));
-			TextField titleField = new TextField(TITLE_ATTRIB, title,
-					Field.Store.YES);
+			doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils.removeExtension(file.getName()), Field.Store.YES));
+			TextField titleField = new TextField(TITLE_ATTRIB, title, Field.Store.YES);
 			doc.add(titleField);
-			TextField contentField = new TextField(CONTENT_ATTRIB, fileContent,
-					Field.Store.YES);
+			TextField contentField = new TextField(CONTENT_ATTRIB, fileContent, Field.Store.YES);
 			doc.add(contentField);
 			// doc.add(new TextField(CONTENT_ATTRIB, new BufferedReader(
 			// new InputStreamReader(fis, StandardCharsets.UTF_8))));
@@ -213,13 +206,11 @@ public class InexIndexer {
 	static void indexFile(String filepath, IndexWriter writer) {
 		File file = new File(filepath);
 		try {
-			String fileContent = new String(Files.readAllBytes(Paths
-					.get(filepath)), StandardCharsets.UTF_8);
+			String fileContent = new String(Files.readAllBytes(Paths.get(filepath)), StandardCharsets.UTF_8);
 			if (isRedirectingFile(fileContent))
 				return;
 			Document doc = new Document();
-			doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils
-					.removeExtension(file.getName()), Field.Store.YES));
+			doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils.removeExtension(file.getName()), Field.Store.YES));
 			doc.add(new TextField(CONTENT_ATTRIB, fileContent, Field.Store.YES));
 			writer.addDocument(doc);
 		} catch (FileNotFoundException e) {
@@ -234,8 +225,7 @@ public class InexIndexer {
 		return (fileContent.substring(0, length).equals("REDIRECT"));
 	}
 
-	public static void buildIndex(Map<String, Integer> fileCountMap,
-			String indexPath) {
+	public static void buildIndex(Map<String, Integer> fileCountMap, String indexPath) {
 		int N = 0;
 		for (float n_i : fileCountMap.values()) {
 			N += n_i;
@@ -267,8 +257,43 @@ public class InexIndexer {
 		}
 	}
 
-	static void indexXmlFileWithWeight(File file, IndexWriter writer,
-			float weight) {
+	public static void buildIndex(Map<String, Integer> fileCountMap, String indexPath, float gamma) {
+		int N = 0;
+		for (float n_i : fileCountMap.values()) {
+			N += n_i;
+		}
+		int V = fileCountMap.size();
+		float alpha = 1.0f;
+
+		FSDirectory directory = null;
+		IndexWriter writer = null;
+		try {
+			directory = FSDirectory.open(Paths.get(indexPath));
+			writer = new IndexWriter(directory, getConfig(false));
+			for (String filePath : fileCountMap.keySet()) {
+				float count = (float) fileCountMap.get(filePath);
+				float smoothed = (count + alpha) / (N + V * alpha);
+				indexXmlFileWithWeight(new File(filePath), writer, smoothed, gamma);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (writer != null)
+				try {
+					writer.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			if (directory != null)
+				directory.close();
+		}
+	}
+
+	static void indexXmlFileWithWeight(File file, IndexWriter writer, float weight) {
+		indexXmlFileWithWeight(file, writer, weight, 0.5f);
+	};
+
+	static void indexXmlFileWithWeight(File file, IndexWriter writer, float weight, float gamma) {
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];
 			fis.read(data);
@@ -277,26 +302,21 @@ public class InexIndexer {
 			if (fileContent.substring(0, length).equals("REDIRECT")) {
 				return;
 			}
-			Pattern p = Pattern.compile(".*<title>(.*?)</title>.*",
-					Pattern.DOTALL);
+			Pattern p = Pattern.compile(".*<title>(.*?)</title>.*", Pattern.DOTALL);
 			Matcher m = p.matcher(fileContent);
-			m.find();
 			String title = "";
-			if (m.matches())
+			if (m.find())
 				title = m.group(1);
 			else
 				System.out.println("!!! title not found in " + file.getName());
-			fileContent = fileContent.replaceAll("\\<.*?\\>", " ");
+			fileContent = fileContent.replaceAll("<[^>]*>", " ").trim();
 			Document doc = new Document();
-			doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils
-					.removeExtension(file.getName()), Field.Store.YES));
-			TextField titleField = new TextField(TITLE_ATTRIB, title,
-					Field.Store.YES);
-			titleField.setBoost(weight);
+			doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils.removeExtension(file.getName()), Field.Store.YES));
+			TextField titleField = new TextField(TITLE_ATTRIB, title, Field.Store.YES);
+			titleField.setBoost(weight * gamma);
 			doc.add(titleField);
-			TextField contentField = new TextField(CONTENT_ATTRIB, fileContent,
-					Field.Store.YES);
-			contentField.setBoost(weight);
+			TextField contentField = new TextField(CONTENT_ATTRIB, fileContent, Field.Store.YES);
+			contentField.setBoost(weight * (1 - gamma));
 			doc.add(contentField);
 			writer.addDocument(doc);
 		} catch (FileNotFoundException e) {

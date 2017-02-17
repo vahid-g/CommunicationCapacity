@@ -9,14 +9,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
-
-import freebase.FreebaseDatabaseSizeExperiment;
 
 public class InexMsnExperiment {
 
@@ -39,11 +36,65 @@ public class InexMsnExperiment {
 		if (!resultDir.exists())
 			resultDir.mkdirs();
 
-		int expNo = Integer.parseInt(args[0]);
-		long start_t = System.currentTimeMillis();
-		exp(expNo);
-		long end_t = System.currentTimeMillis();
-		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is " + (end_t - start_t) / 60000 + " minutes");
+		// int expNo = Integer.parseInt(args[0]);
+		// long start_t = System.currentTimeMillis();
+		// exp(expNo);
+		// long end_t = System.currentTimeMillis();
+		// LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
+		// + (end_t - start_t) / 60000 + " minutes");
+
+		float gamma = Float.parseFloat(args[0]);
+		gridSearchExperiment(gamma);
+	}
+
+	static void gridSearchExperiment(float gamma) {
+		LOGGER.log(Level.INFO, "Loading files list and counts");
+		Map<String, Integer> pathCountMap = new HashMap<String, Integer>();
+		try (BufferedReader br = new BufferedReader(new FileReader(ClusterDirectoryInfo.PATH_COUNT_FILE09))) {
+			String line;
+			while ((line = br.readLine()) != null) {
+				if (!line.contains(","))
+					continue;
+				String path = ClusterDirectoryInfo.CLUSTER_BASE + line.split(",")[0];
+				Integer count = Integer.parseInt(line.split(",")[1].trim());
+				Random rand = new Random();
+				if (rand.nextDouble() < 0.2) { // samples 20%
+					if (pathCountMap.containsKey(path))
+						pathCountMap.put(path, count + pathCountMap.get(path));
+					else
+						pathCountMap.put(path, count);
+				}
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountMap.size());
+		// Note! don't need to sort path_counts based on weight
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "inex09_grid_" + (gamma * 10);
+		LOGGER.log(Level.INFO, "Building index..");
+		InexIndexer.buildIndex(pathCountMap, indexName, gamma);
+		LOGGER.log(Level.INFO, "Loading and running queries..");
+		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_S,
+				ClusterDirectoryInfo.MSN_QID_QREL);
+		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
+		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries, indexName);
+		LOGGER.log(Level.INFO, "Writing results to file..");
+		try (FileWriter fw = new FileWriter(
+				ClusterDirectoryInfo.RESULT_DIR + "inex09_grid_" + Float.toString(gamma).replace(",", "") + ".csv")) {
+			for (MsnQueryResult mqr : results) {
+				fw.write(mqr.toString());
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			LOGGER.log(Level.INFO, "cleanup..");
+			FileUtils.deleteDirectory(new File(indexName));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
