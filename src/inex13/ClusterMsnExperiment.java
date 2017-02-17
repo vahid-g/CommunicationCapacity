@@ -1,5 +1,10 @@
 package inex13;
 
+import inex09.ClusterDirectoryInfo;
+import inex09.InexQueryServices;
+import inex09.MsnQuery;
+import inex09.MsnQueryResult;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,18 +13,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
-
-import freebase.FreebaseDatabaseSizeExperiment;
-import inex09.ClusterDirectoryInfo;
-import inex09.InexQueryServices;
-import inex09.MsnQuery;
-import inex09.MsnQueryResult;
 
 public class ClusterMsnExperiment {
 
