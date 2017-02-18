@@ -43,10 +43,17 @@ public class InexMsnExperiment {
 		// LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
 		// + (end_t - start_t) / 60000 + " minutes");
 
-		float gamma = Float.parseFloat(args[0]);
-		gridSearchExperiment(gamma);
+		// float gamma = Float.parseFloat(args[0]);
+		// gridSearchExperiment(gamma);
 	}
 
+	
+	/**
+	 * This experiment does the grid search to find the best params for weighting title vs. body in 
+	 * the retrieval scoring formula.  
+	 * 
+	 * @param gamma: weight of title
+	 */
 	static void gridSearchExperiment(float gamma) {
 		LOGGER.log(Level.INFO, "Loading files list and counts");
 		Map<String, Integer> pathCountMap = new HashMap<String, Integer>();
