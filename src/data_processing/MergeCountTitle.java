@@ -15,17 +15,15 @@ import java.util.regex.Pattern;
 public class MergeCountTitle {
 
 	public static void main(String[] args) {
-		Path countFilePath = Paths.get("/scratch/cluster-share/ghadakcv/"
-				+ args[0]);
-		Path pathToTitleFile = Paths.get("/scratch/cluster-share/ghadakcv/"
-				+ args[1]);
+		Path countFilePath = Paths.get("/scratch/cluster-share/ghadakcv/" + args[0]);
+		Path pathToTitleFile = Paths.get("/scratch/cluster-share/ghadakcv/" + args[1]);
 		// Path countFilePath = Paths.get("count.txt");
 		// Path pathToTitleFile = Paths.get("grep.txt");
 		List<String> pathTitles;
 		try {
-			pathTitles = Files.readAllLines(pathToTitleFile,
-					Charset.forName("UTF-8"));
-			Map<String, Integer> pathCountMap = new HashMap<String, Integer>();
+			pathTitles = Files.readAllLines(pathToTitleFile, Charset.forName("UTF-8"));
+			Map<String, Integer> pathToCountMap = new HashMap<String, Integer>();
+			Map<String, String> pathToTitleMap = new HashMap<String, String>();
 			Map<String, String> titlePathMap = new HashMap<String, String>();
 			for (String pathTitle : pathTitles) {
 				Pattern pat = Pattern.compile("../(inex_13/[0-9[a-f]/]+.xml):(.*)");
@@ -34,7 +32,8 @@ public class MergeCountTitle {
 					try {
 						String path = mat.group(1);
 						String title = mat.group(2);
-						pathCountMap.put(path, 0);
+						pathToCountMap.put(path, 0);
+						pathToTitleMap.put(path, title);
 						titlePathMap.put(title.trim(), path);
 					} catch (IllegalStateException e1) {
 						e1.printStackTrace();
@@ -46,22 +45,21 @@ public class MergeCountTitle {
 				}
 			}
 			System.err.println("init file size: " + pathTitles.size());
-			System.err.println("map size:" + pathCountMap.size());
-			try (BufferedReader br = Files.newBufferedReader(countFilePath,
-					Charset.forName("ISO-8859-1"))) {
+			System.err.println("map size:" + pathToCountMap.size());
+			try (BufferedReader br = Files.newBufferedReader(countFilePath, Charset.forName("ISO-8859-1"))) {
 				String line = br.readLine();
 				do {
 					Pattern pat = Pattern.compile("en (.+) (\\d+) \\d+");
 					Matcher mat = pat.matcher(line);
 					if (mat.find()) {
 						try {
-							String title = mat.group(1).replace("_",  " ");
+							String title = mat.group(1).replace("_", " ");
 							String count = mat.group(2);
 							if (titlePathMap.containsKey(title)) {
 								String path = titlePathMap.get(title);
-								Integer oldFreq = pathCountMap.get(path);
+								Integer oldFreq = pathToCountMap.get(path);
 								Integer newFreq = Integer.parseInt(count);
-								pathCountMap.put(path, oldFreq + newFreq);
+								pathToCountMap.put(path, oldFreq + newFreq);
 							} else {
 								// System.err.println("missing key: " + title);
 							}
@@ -76,8 +74,9 @@ public class MergeCountTitle {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			for (Map.Entry<String, Integer> entry : pathCountMap.entrySet()) {
-				System.out.println(entry.getKey() + ", " + entry.getValue());
+			for (Map.Entry<String, Integer> entry : pathToCountMap.entrySet()) {
+				System.out
+						.println(entry.getKey() + ", " + entry.getValue() + ", " + pathToTitleMap.get(entry.getKey()));
 			}
 		} catch (IOException e1) {
 			e1.printStackTrace();

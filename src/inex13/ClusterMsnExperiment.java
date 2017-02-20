@@ -22,13 +22,20 @@ public class ClusterMsnExperiment {
 
 	static final Logger LOGGER = Logger.getLogger(ClusterMsnExperiment.class.getName());
 
-	static class PathVisitCountTuple {
+	static class PathCountTitle {
 		String path;
 		Integer visitCount;
+		String title;
 
-		public PathVisitCountTuple(String path, Integer visitCount) {
+		public PathCountTitle(String path, Integer visitCount) {
 			this.path = path;
 			this.visitCount = visitCount;
+		}
+		
+		public PathCountTitle(String path, Integer visitCount, String title) {
+			this.path = path;
+			this.visitCount = visitCount;
+			this.title = title;
 		}
 	}
 
@@ -51,7 +58,7 @@ public class ClusterMsnExperiment {
 	}
 
 	static void gridSearchExperiment(float gamma) {
-		List<PathVisitCountTuple> pathCountList = loadFilePathPageVisit();
+		List<PathCountTitle> pathCountList = loadFilePathPageVisit();
 		// TODO sort?
 		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "inex13_grid_" + (gamma * 10);
@@ -80,7 +87,7 @@ public class ClusterMsnExperiment {
 
 	public static void exp(int expNo) {
 		LOGGER.log(Level.INFO, "Loading files list and counts");
-		List<PathVisitCountTuple> pathCountList = loadFilePathPageVisit();
+		List<PathCountTitle> pathCountList = loadFilePathPageVisit();
 		pathCountList = pathCountList.subList(0, (int) ((expNo / 10.0) * pathCountList.size()));
 		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
 		LOGGER.log(Level.INFO, "Building index..");
@@ -103,18 +110,46 @@ public class ClusterMsnExperiment {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void expText(int expNo) {
+		LOGGER.log(Level.INFO, "Loading files list and counts");
+		List<PathCountTitle> pathCountList = loadFilePathPageVisit();
+		pathCountList = pathCountList.subList(0, (int) ((expNo / 10.0) * pathCountList.size()));
+		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
+		LOGGER.log(Level.INFO, "Building index..");
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "inex13_" + expNo;
+		InexIndexer.buildIndexOnText(pathCountList, indexName, 0); // TODO set gamma
 
-	private static List<PathVisitCountTuple> loadFilePathPageVisit() {
+		LOGGER.log(Level.INFO, "Loading and running queries..");
+		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_B,
+				ClusterDirectoryInfo.MSN_QID_QREL);
+		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
+		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries, indexName);
+		LOGGER.log(Level.INFO, "Writing results..");
+		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR + "inex_" + expNo + ".csv")) {
+			for (MsnQueryResult mqr : results) {
+				fw.write(mqr.toString());
+			}
+			LOGGER.log(Level.INFO, "cleanup..");
+			FileUtils.deleteDirectory(new File(indexName));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static List<PathCountTitle> loadFilePathPageVisit() {
 		LOGGER.log(Level.INFO, "Loading files list and sorted counts..");
-		List<PathVisitCountTuple> pathCountList = new ArrayList<PathVisitCountTuple>();
+		List<PathCountTitle> pathCountList = new ArrayList<PathCountTitle>();
 		try (BufferedReader br = new BufferedReader(new FileReader(ClusterDirectoryInfo.PATH_COUNT_FILE13))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (!line.contains(","))
 					continue;
-				String path = ClusterDirectoryInfo.CLUSTER_BASE + line.split(",")[0];
-				Integer count = Integer.parseInt(line.split(",")[1].trim());
-				pathCountList.add(new PathVisitCountTuple(path, count));
+				String[] fields = line.split(", ");
+				String path = ClusterDirectoryInfo.CLUSTER_BASE + fields[0];
+				Integer count = Integer.parseInt(fields[1].trim());
+				String title = fields[3].trim();
+				pathCountList.add(new PathCountTitle(path, count, title));
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

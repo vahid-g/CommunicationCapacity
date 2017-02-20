@@ -118,7 +118,7 @@ public class InexQueryServices {
 				// System.out.println(queryCoutner++);
 				Query query = buildLuceneQuery(msnQuery.text,
 						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
-				TopDocs topDocs = searcher.search(query, 10);
+				TopDocs topDocs = searcher.search(query, 20);
 				MsnQueryResult mqr = new MsnQueryResult(msnQuery);
 				for (int i = 0; i < topDocs.scoreDocs.length; i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
