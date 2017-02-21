@@ -29,7 +29,7 @@ import inex13.Experiment;
 
 public class InexQueryServices {
 	
-	final static int RESULT_COUNT = 50;
+	final static int TOP_DOC_COUNT = 50;
 
 	@Deprecated
 	public static void runInexQueries(List<InexQuery> queries,
@@ -52,9 +52,9 @@ public class InexQueryServices {
 				// System.out.println(queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.text,
 						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
-				TopDocs topDocs = searcher.search(query, RESULT_COUNT);
-				int precisionBoundry = topDocs.scoreDocs.length > RESULT_COUNT
-						? RESULT_COUNT
+				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
+				int precisionBoundry = topDocs.scoreDocs.length > TOP_DOC_COUNT
+						? TOP_DOC_COUNT
 						: topDocs.scoreDocs.length;
 				int sum = 0;
 				for (int i = 0; i < precisionBoundry; i++) {
@@ -91,9 +91,9 @@ public class InexQueryServices {
 				// System.out.println(queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.text,
 						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
-				TopDocs topDocs = searcher.search(query, RESULT_COUNT);
+				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				InexQueryResult iqr = new InexQueryResult(queryDAO);
-				for (int i = 0; i < Math.min(RESULT_COUNT, topDocs.scoreDocs.length); i++) {
+				for (int i = 0; i < Math.min(TOP_DOC_COUNT, topDocs.scoreDocs.length); i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 					String docName = doc.get(Experiment.DOCNAME_ATTRIB);
 					iqr.topResults.add(docName);
@@ -118,13 +118,14 @@ public class InexQueryServices {
 				// System.out.println(queryCoutner++);
 				Query query = buildLuceneQuery(msnQuery.text,
 						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
-				TopDocs topDocs = searcher.search(query, 10);
+				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				MsnQueryResult mqr = new MsnQueryResult(msnQuery);
 				for (int i = 0; i < topDocs.scoreDocs.length; i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 					String docName = doc.get(Experiment.DOCNAME_ATTRIB);
 					if (i < 3){
-						mqr.top3[i] = docName;
+						String title = doc.get(Experiment.TITLE_ATTRIB);
+						mqr.results.add(docName + ": " + title);
 					}
 					if (msnQuery.qrels.contains(docName)) {
 						mqr.rank = i + 1;

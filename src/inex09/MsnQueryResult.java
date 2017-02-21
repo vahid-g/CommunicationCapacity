@@ -1,5 +1,8 @@
 package inex09;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MsnQueryResult {
 
 	public MsnQueryResult(MsnQuery msnQuery) {
@@ -8,7 +11,7 @@ public class MsnQueryResult {
 
 	MsnQuery msnQuery;
 	int rank = -1;
-	String[] top3 = new String[3];
+	List<String> results = new ArrayList<String>();
 
 	public double mrr() {
 		if (rank != -1)
@@ -27,7 +30,18 @@ public class MsnQueryResult {
 
 	@Override
 	public String toString() {
-		return "\"" + msnQuery.text.replace(",", "") + "\", " + precisionAtK(3) + ", " + mrr() + "\n";
+		return "\"" + msnQuery.text.replace(", ", "") + "\", " + precisionAtK(3) + ", " + mrr();
+	}
+	
+	public String fullResult() {
+		StringBuilder sb = new StringBuilder();
+		for (String result : results){ 
+			sb.append(result + ", ");
+		}
+		String resultTuples = sb.toString();
+		if (resultTuples.length() > 2)
+			resultTuples = resultTuples.substring(0, resultTuples.length() - 2);
+		return this.toString() + ", " + resultTuples;
 	}
 
 }
