@@ -302,13 +302,14 @@ public class InexIndexer {
 			if (fileContent.substring(0, length).equals("REDIRECT")) {
 				return;
 			}
-			Pattern p = Pattern.compile(".*<title>(.*?)</title>.*", Pattern.DOTALL);
+			Pattern p = Pattern.compile("<title>(.*?)</title>", Pattern.DOTALL);
 			Matcher m = p.matcher(fileContent);
 			String title = "";
 			if (m.find())
 				title = m.group(1);
 			else
 				System.out.println("!!! title not found in " + file.getName());
+			title.replaceAll("<[^>]*>", " ").replaceAll("\n", " ").replaceAll("\r",  " ").trim();
 			fileContent = fileContent.replaceAll("<[^>]*>", " ").trim();
 			Document doc = new Document();
 			doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils.removeExtension(file.getName()), Field.Store.YES));
