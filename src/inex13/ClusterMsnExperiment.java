@@ -58,7 +58,7 @@ public class ClusterMsnExperiment {
 	}
 
 	static void gridSearchExperiment(float gamma) {
-		List<PathCountTitle> pathCountList = loadFilePathPageVisit(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+		List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 		// TODO sort?
 		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "inex13_grid_" + (gamma * 10);
@@ -87,7 +87,7 @@ public class ClusterMsnExperiment {
 
 	public static void exp(int expNo) {
 		LOGGER.log(Level.INFO, "Loading files list and counts");
-		List<PathCountTitle> pathCountList = loadFilePathPageVisit(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+		List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 		pathCountList = pathCountList.subList(0, (int) ((expNo / 10.0) * pathCountList.size()));
 		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
 		LOGGER.log(Level.INFO, "Building index..");
@@ -113,7 +113,7 @@ public class ClusterMsnExperiment {
 	
 	public static void expText(int expNo) {
 		LOGGER.log(Level.INFO, "Loading files list and counts");
-		List<PathCountTitle> pathCountList = loadFilePathPageVisit(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+		List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 		pathCountList = pathCountList.subList(0, (int) ((expNo / 10.0) * pathCountList.size()));
 		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
 		LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).visitCount);
@@ -139,12 +139,13 @@ public class ClusterMsnExperiment {
 		}
 	}
 
-	private static List<PathCountTitle> loadFilePathPageVisit(String pathCountTitleFile) {
+	private static List<PathCountTitle> loadFilePathCountTitle(String pathCountTitleFile) {
 		LOGGER.log(Level.INFO, "Loading files list and sorted counts..");
 		List<PathCountTitle> pathCountList = new ArrayList<PathCountTitle>();
 		try (BufferedReader br = new BufferedReader(new FileReader(pathCountTitleFile))) {
 			String line;
 			while ((line = br.readLine()) != null) {
+				try {
 				if (!line.contains(","))
 					continue;
 				String[] fields = line.split(",");
@@ -152,6 +153,9 @@ public class ClusterMsnExperiment {
 				Integer count = Integer.parseInt(fields[1].trim());
 				String title = fields[2].trim();
 				pathCountList.add(new PathCountTitle(path, count, title));
+				} catch (Exception e) {
+					LOGGER.log(Level.WARNING, "Couldn't read PathCountTitle: " + line);
+				}
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
