@@ -52,7 +52,7 @@ public class ClusterMsnExperiment {
 
 		int expNo = Integer.parseInt(args[0]);
 		long start_t = System.currentTimeMillis();
-		exp(expNo);
+		expText(expNo);
 		long end_t = System.currentTimeMillis();
 		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is " + (end_t - start_t) / 60000 + " minutes");
 	}
