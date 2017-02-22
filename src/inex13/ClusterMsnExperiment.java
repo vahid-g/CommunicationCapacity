@@ -147,10 +147,10 @@ public class ClusterMsnExperiment {
 			while ((line = br.readLine()) != null) {
 				if (!line.contains(","))
 					continue;
-				String[] fields = line.split(", ");
+				String[] fields = line.split(",");
 				String path = ClusterDirectoryInfo.CLUSTER_BASE + fields[0];
 				Integer count = Integer.parseInt(fields[1].trim());
-				String title = fields[3].trim();
+				String title = fields[2].trim();
 				pathCountList.add(new PathCountTitle(path, count, title));
 			}
 		} catch (FileNotFoundException e) {
