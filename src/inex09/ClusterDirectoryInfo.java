@@ -24,7 +24,8 @@ public class ClusterDirectoryInfo {
 	public static final String DATASET13_PATH = CLUSTER_BASE + "inex_13";
 	public static final String LOCAL_INDEX_BASE13 = "/scratch/ghadakcv/index13/";
 	public static final String GLOBAL_INDEX_BASE13 = "/scratch/cluster-share/ghadakcv/index13/";
-	public static final String PATH_COUNT_FILE13 = CLUSTER_BASE + "data/file_count.csv";
+	public static final String PATH_COUNT_FILE13 = CLUSTER_BASE + "data/path_counts/pathcount_13_0103_text.csv";
+	
 	
 
 	

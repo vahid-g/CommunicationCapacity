@@ -1,5 +1,7 @@
 package inex09;
 
+import inex13.Experiment;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -10,6 +12,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -25,11 +29,12 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
-import inex13.Experiment;
-
 public class InexQueryServices {
-	
+
 	final static int TOP_DOC_COUNT = 50;
+
+	static final Logger LOGGER = Logger.getLogger(InexQueryServices.class
+			.getName());
 
 	@Deprecated
 	public static void runInexQueries(List<InexQuery> queries,
@@ -42,14 +47,14 @@ public class InexQueryServices {
 			// Terms terms = fields.terms(field);
 			// TermsEnum termsEnum = terms.iterator();
 			// while (termsEnum.next() != null) {
-			// System.out.println(termsEnum.term().utf8ToString());
+			// LOGGER.log(Level.INFO,termsEnum.term().utf8ToString());
 			// }
 			// }
-			System.out.println("Number of docs in index: " + reader.numDocs());
+			LOGGER.log(Level.INFO,"Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
 			// searcher.setSimilarity(new BM25Similarity());
 			for (InexQuery queryDAO : queries) {
-				// System.out.println(queryCoutner++);
+				// LOGGER.log(Level.INFO,queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.text,
 						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
@@ -79,21 +84,23 @@ public class InexQueryServices {
 			e.printStackTrace();
 		}
 	}
-	
-	public static List<InexQueryResult> runInexQueries(List<InexQuery> queries, String indexPath) {
+
+	public static List<InexQueryResult> runInexQueries(List<InexQuery> queries,
+			String indexPath) {
 		List<InexQueryResult> iqrList = new ArrayList<InexQueryResult>();
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
 				.get(indexPath)))) {
-			System.out.println("Number of docs in index: " + reader.numDocs());
+			LOGGER.log(Level.INFO,"Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
 			searcher.setSimilarity(new BM25Similarity());
 			for (InexQuery queryDAO : queries) {
-				// System.out.println(queryCoutner++);
+				// LOGGER.log(Level.INFO,queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.text,
 						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				InexQueryResult iqr = new InexQueryResult(queryDAO);
-				for (int i = 0; i < Math.min(TOP_DOC_COUNT, topDocs.scoreDocs.length); i++) {
+				for (int i = 0; i < Math.min(TOP_DOC_COUNT,
+						topDocs.scoreDocs.length); i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 					String docName = doc.get(Experiment.DOCNAME_ATTRIB);
 					iqr.topResults.add(docName);
@@ -111,11 +118,11 @@ public class InexQueryServices {
 		List<MsnQueryResult> results = new ArrayList<MsnQueryResult>();
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
 				.get(indexPath)))) {
-			System.out.println("Number of docs in index: " + reader.numDocs());
+			LOGGER.log(Level.INFO,"Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
 			// searcher.setSimilarity(new BM25Similarity());
 			for (MsnQuery msnQuery : queries) {
-				// System.out.println(queryCoutner++);
+				// LOGGER.log(Level.INFO,queryCoutner++);
 				Query query = buildLuceneQuery(msnQuery.text,
 						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
@@ -123,7 +130,7 @@ public class InexQueryServices {
 				for (int i = 0; i < topDocs.scoreDocs.length; i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 					String docName = doc.get(Experiment.DOCNAME_ATTRIB);
-					if (i < 3){
+					if (i < 10) {
 						String title = doc.get(Experiment.TITLE_ATTRIB);
 						mqr.results.add(docName + ": " + title);
 					}
@@ -172,7 +179,7 @@ public class InexQueryServices {
 					prevQueryText = queryText;
 				}
 			}
-			System.out.println(" # of loaded queries: " + queries.size());
+			LOGGER.log(Level.INFO," # of loaded queries: " + queries.size());
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -212,7 +219,8 @@ public class InexQueryServices {
 				String qid = line.substring(index + 1);
 				if (qidQrelMap.containsKey(qid)) {
 					List<String> qrels = qidQrelMap.get(qid);
-					queryList.add(new MsnQuery(text, qrels, Integer.parseInt(qid)));
+					queryList.add(new MsnQuery(text, qrels, Integer
+							.parseInt(qid)));
 				}
 			}
 		} catch (FileNotFoundException e) {

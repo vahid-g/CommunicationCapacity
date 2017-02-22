@@ -30,7 +30,7 @@ public class MsnQueryResult {
 
 	@Override
 	public String toString() {
-		return "\"" + msnQuery.text.replace(", ", "") + "\", " + precisionAtK(3) + ", " + mrr();
+		return "\"" + msnQuery.text.replace(",", " ").replace("\"", " ") + "\", " + precisionAtK(3) + ", " + mrr();
 	}
 	
 	public String fullResult() {
