@@ -215,7 +215,7 @@ public class InexQueryServices {
 			String line;
 			while ((line = br.readLine()) != null) {
 				int index = line.lastIndexOf(" ");
-				String text = line.substring(0, index);
+				String text = line.substring(0, index).replace(",", "").replace("\"", "");
 				String qid = line.substring(index + 1);
 				if (qidQrelMap.containsKey(qid)) {
 					List<String> qrels = qidQrelMap.get(qid);
