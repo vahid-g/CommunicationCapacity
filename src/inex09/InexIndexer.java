@@ -288,6 +288,29 @@ public class InexIndexer {
 				directory.close();
 		}
 	}
+	
+	public static void buildPlainIndex(Map<String, Integer> fileCountMap, String indexPath, float gamma) {
+		FSDirectory directory = null;
+		IndexWriter writer = null;
+		try {
+			directory = FSDirectory.open(Paths.get(indexPath));
+			writer = new IndexWriter(directory, getConfig(false));
+			for (String filePath : fileCountMap.keySet()) {
+				indexXmlFileWithWeight(new File(filePath), writer, 1, gamma);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (writer != null)
+				try {
+					writer.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			if (directory != null)
+				directory.close();
+		}
+	}
 
 	static void indexXmlFileWithWeight(File file, IndexWriter writer, float weight) {
 		indexXmlFileWithWeight(file, writer, weight, 0.5f);

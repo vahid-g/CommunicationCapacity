@@ -39,13 +39,63 @@ public class InexMsnExperiment {
 
 		int expNo = Integer.parseInt(args[0]);
 		long start_t = System.currentTimeMillis();
-		exp(expNo, 0.9f);
+		expPlain(expNo, 0.9f);
 		long end_t = System.currentTimeMillis();
 		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
 				+ (end_t - start_t) / 60000 + " minutes");
 
 		// float gamma = Float.parseFloat(args[0]);
 		// gridSearchExperiment(gamma);
+		
+	}
+	
+	/**
+	 * 
+	 * This method loads Msn queries, and page visits of wikipedia. Then based
+	 * on expNo, it selects a part of wikipedia with top page visits and builds
+	 * an index on that. This experiment doesn't weight documents!
+	 * 
+	 * Then it runs msn queries on it and prints the results
+	 * to a file. Also in the scoring, it multiplies weight of title by gamma
+	 * and weight of body by (1 - gamma)
+	 * 
+	 * @param expNo
+	 *            : this impcats the size of picked subset
+	 * @param gamma
+	 *            : this is the weight of title score
+	 */
+	public static void expPlain(int expNo, float gamma) {
+		Map<String, Integer> pathCountMap = loadPathCountMap(ClusterDirectoryInfo.PATH_COUNT_FILE09);
+		LOGGER.log(Level.INFO,
+				"Number of loaded path_counts: " + pathCountMap.size());
+		LOGGER.log(Level.INFO, "Sorting files..");
+		int subsetSize = (int) (pathCountMap.size() * (expNo / 10.0));
+		Map<String, Integer> pathCountSorted = Utils.sortByValue(pathCountMap,
+				subsetSize);
+
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE09 + "index09_"
+				+ expNo;
+		LOGGER.log(Level.INFO, "Building index..");
+		InexIndexer.buildIndex(pathCountSorted, indexName, gamma);
+
+		LOGGER.log(Level.INFO, "Loading and running queries..");
+		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
+				ClusterDirectoryInfo.MSN_QUERY_QID_B,
+				ClusterDirectoryInfo.MSN_QID_QREL);
+		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
+		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
+				indexName);
+		LOGGER.log(Level.INFO, "Writing results..");
+		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
+				+ "msn09_" + expNo + ".csv")) {
+			for (MsnQueryResult mqr : results) {
+				fw.write(mqr.fullResult() + "\n");
+			}
+			LOGGER.log(Level.INFO, "cleanup..");
+			FileUtils.deleteDirectory(new File(indexName));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
