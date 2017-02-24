@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.Level;
@@ -60,13 +61,13 @@ public class InexIndexer {
 						smoothed, gamma);
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 		} finally {
 			if (writer != null)
 				try {
 					writer.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 				}
 			if (directory != null)
 				directory.close();
@@ -100,13 +101,13 @@ public class InexIndexer {
 						smoothed, gamma);
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 		} finally {
 			if (writer != null)
 				try {
 					writer.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 				}
 			if (directory != null)
 				directory.close();
@@ -135,10 +136,12 @@ public class InexIndexer {
 			contentField.setBoost((1 - gamma) * weight);
 			doc.add(contentField);
 			writer.addDocument(doc);
+		} catch (NoSuchFileException e) {
+			LOGGER.log(Level.WARNING, "File not found: " + pct.title + " " + pct.path);
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 		}
 	}
 
@@ -173,9 +176,9 @@ public class InexIndexer {
 			doc.add(contentField);
 			writer.addDocument(doc);
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 		}
 	}
 
