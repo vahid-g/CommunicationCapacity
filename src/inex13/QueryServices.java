@@ -7,6 +7,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import old_experiments.Experiment13Old;
+
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -28,8 +30,8 @@ public class QueryServices {
 			searcher.setSimilarity(new BM25Similarity());
 			for (InexQueryDAO queryDAO : queries) {
 				Query query = InexQueryServices.buildLuceneQuery(queryDAO.text,
-						Experiment.TITLE_ATTRIB,
-						Experiment.CONTENT_ATTRIB);
+						Experiment13Old.TITLE_ATTRIB,
+						Experiment13Old.CONTENT_ATTRIB);
 				int threshold = 20;
 				TopDocs topDocs = searcher.search(query, threshold);
 				InexQueryResult result = new InexQueryResult();
@@ -37,7 +39,7 @@ public class QueryServices {
 				for (int i = 0; i < topDocs.scoreDocs.length; i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 					int docId = Integer.parseInt(doc
-							.get(Experiment.DOCNAME_ATTRIB));
+							.get(Experiment13Old.DOCNAME_ATTRIB));
 					result.returnedDocs.add(docId);
 				}
 				results.add(result);

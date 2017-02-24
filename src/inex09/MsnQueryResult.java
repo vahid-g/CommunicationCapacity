@@ -10,8 +10,8 @@ public class MsnQueryResult {
 	}
 
 	MsnQuery msnQuery;
-	int rank = -1;
-	List<String> results = new ArrayList<String>();
+	public int rank = -1;
+	public List<String> results = new ArrayList<String>();
 
 	public double mrr() {
 		if (rank != -1)

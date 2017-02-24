@@ -125,13 +125,13 @@ public class InexIndexer {
 			// return;
 			// }
 			Document doc = new Document();
-			doc.add(new StringField(inex09.InexIndexer.DOCNAME_ATTRIB, FilenameUtils
+			doc.add(new StringField(inex09.InexWikiIndexer.DOCNAME_ATTRIB, FilenameUtils
 					.removeExtension(file.getName()), Field.Store.YES));
-			TextField titleField = new TextField(inex09.InexIndexer.TITLE_ATTRIB, pct.title,
+			TextField titleField = new TextField(inex09.InexWikiIndexer.TITLE_ATTRIB, pct.title,
 					Field.Store.YES);
 			titleField.setBoost(gamma * weight);
 			doc.add(titleField);
-			TextField contentField = new TextField(inex09.InexIndexer.CONTENT_ATTRIB, fileContent,
+			TextField contentField = new TextField(inex09.InexWikiIndexer.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES);
 			contentField.setBoost((1 - gamma) * weight);
 			doc.add(contentField);
@@ -164,13 +164,13 @@ public class InexIndexer {
 				LOGGER.log(Level.INFO, "Title not found in " + file.getName());
 			fileContent = fileContent.replaceAll("<[^>]*>", " ").trim();
 			Document doc = new Document();
-			doc.add(new StringField(inex09.InexIndexer.DOCNAME_ATTRIB, FilenameUtils
+			doc.add(new StringField(inex09.InexWikiIndexer.DOCNAME_ATTRIB, FilenameUtils
 					.removeExtension(file.getName()), Field.Store.YES));
-			TextField titleField = new TextField(inex09.InexIndexer.TITLE_ATTRIB, title,
+			TextField titleField = new TextField(inex09.InexWikiIndexer.TITLE_ATTRIB, title,
 					Field.Store.YES);
 			titleField.setBoost(gamma * weight);
 			doc.add(titleField);
-			TextField contentField = new TextField(inex09.InexIndexer.CONTENT_ATTRIB, fileContent,
+			TextField contentField = new TextField(inex09.InexWikiIndexer.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES);
 			contentField.setBoost((1 - gamma) * weight);
 			doc.add(contentField);

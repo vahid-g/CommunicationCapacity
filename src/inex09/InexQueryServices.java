@@ -1,11 +1,8 @@
 package inex09;
 
-import inex13.Experiment;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -36,55 +33,6 @@ public class InexQueryServices {
 	static final Logger LOGGER = Logger.getLogger(InexQueryServices.class
 			.getName());
 
-	@Deprecated
-	public static void runInexQueries(List<InexQuery> queries,
-			String resultFile, String indexPath) {
-		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
-				.get(indexPath)))) {
-			// // Code to print the terms of index
-			// Fields fields = MultiFields.getFields(reader);
-			// for (String field : fields) {
-			// Terms terms = fields.terms(field);
-			// TermsEnum termsEnum = terms.iterator();
-			// while (termsEnum.next() != null) {
-			// LOGGER.log(Level.INFO,termsEnum.term().utf8ToString());
-			// }
-			// }
-			LOGGER.log(Level.INFO,"Number of docs in index: " + reader.numDocs());
-			IndexSearcher searcher = new IndexSearcher(reader);
-			// searcher.setSimilarity(new BM25Similarity());
-			for (InexQuery queryDAO : queries) {
-				// LOGGER.log(Level.INFO,queryCoutner++);
-				Query query = buildLuceneQuery(queryDAO.text,
-						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
-				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
-				int precisionBoundry = topDocs.scoreDocs.length > TOP_DOC_COUNT
-						? TOP_DOC_COUNT
-						: topDocs.scoreDocs.length;
-				int sum = 0;
-				for (int i = 0; i < precisionBoundry; i++) {
-					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					String docName = doc.get(Experiment.DOCNAME_ATTRIB);
-
-					if (queryDAO.getRelDocs().contains(docName)) {
-						sum++;
-					}
-				}
-				queryDAO.p10 = sum / 10.0;
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try (FileWriter fw = new FileWriter(resultFile)) {
-			for (InexQuery query : queries) {
-				fw.write(query.text + ", " + query.p3 + ", " + query.p10 + ", "
-						+ query.mrr + "\n");
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
 	public static List<InexQueryResult> runInexQueries(List<InexQuery> queries,
 			String indexPath) {
 		List<InexQueryResult> iqrList = new ArrayList<InexQueryResult>();
@@ -96,13 +44,13 @@ public class InexQueryServices {
 			for (InexQuery queryDAO : queries) {
 				// LOGGER.log(Level.INFO,queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.text,
-						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
+						InexWikiIndexer.TITLE_ATTRIB, InexWikiIndexer.CONTENT_ATTRIB);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				InexQueryResult iqr = new InexQueryResult(queryDAO);
 				for (int i = 0; i < Math.min(TOP_DOC_COUNT,
 						topDocs.scoreDocs.length); i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					String docName = doc.get(Experiment.DOCNAME_ATTRIB);
+					String docName = doc.get(InexWikiIndexer.DOCNAME_ATTRIB);
 					iqr.topResults.add(docName);
 				}
 				iqrList.add(iqr);
@@ -124,14 +72,14 @@ public class InexQueryServices {
 			for (MsnQuery msnQuery : queries) {
 				// LOGGER.log(Level.INFO,queryCoutner++);
 				Query query = buildLuceneQuery(msnQuery.text,
-						Experiment.TITLE_ATTRIB, Experiment.CONTENT_ATTRIB);
+						InexWikiIndexer.TITLE_ATTRIB, InexWikiIndexer.CONTENT_ATTRIB);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				MsnQueryResult mqr = new MsnQueryResult(msnQuery);
 				for (int i = 0; i < topDocs.scoreDocs.length; i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					String docName = doc.get(Experiment.DOCNAME_ATTRIB);
+					String docName = doc.get(InexWikiIndexer.DOCNAME_ATTRIB);
 					if (i < 10) {
-						String title = doc.get(Experiment.TITLE_ATTRIB);
+						String title = doc.get(InexWikiIndexer.TITLE_ATTRIB);
 						mqr.results.add(docName + ": " + title);
 					}
 					if (msnQuery.qrels.contains(docName)) {

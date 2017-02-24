@@ -24,7 +24,7 @@ public class QueryParser {
 				"data/queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels");
 	}
 
-	static HashMap<Integer, InexQueryDAO> buildQueries(String path, String qrelPath) {
+	public static HashMap<Integer, InexQueryDAO> buildQueries(String path, String qrelPath) {
 		HashMap<Integer, InexQueryDAO> map = new HashMap<Integer, InexQueryDAO>();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(true);

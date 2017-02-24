@@ -5,12 +5,15 @@ import java.util.List;
 
 public class InexQuery {
 
-	String text;
-	List<String> relDocs;
-	double mrr;
-	double p3;
-	double p10;
-
+	int id;
+	public String text;
+	public List<String> relDocs;
+	public double mrr;
+	public double p3;
+	public double p10;
+	
+	
+	
 	public InexQuery(String text, String relDoc) {
 		this.text = text;
 		this.relDocs = new ArrayList<String>();

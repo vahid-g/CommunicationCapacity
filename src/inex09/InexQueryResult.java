@@ -6,7 +6,7 @@ import java.util.List;
 public class InexQueryResult {
 
 	InexQuery query;
-	List<String> topResults = new ArrayList<String>();
+	public List<String> topResults = new ArrayList<String>();
 
 	public InexQueryResult(InexQuery query) {
 		this.query = query;

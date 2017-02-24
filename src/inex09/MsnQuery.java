@@ -5,8 +5,8 @@ import java.util.List;
 public class MsnQuery {
 	
 	
-	String text;
-	List<String> qrels;
+	public String text;
+	public List<String> qrels;
 	
 	int qid;
 	
