@@ -32,6 +32,13 @@ public class InexIndexer {
 	public static final Logger LOGGER = Logger.getLogger(InexIndexer.class
 			.getName());
 
+	private static IndexWriterConfig getIndexWriterConfig() {
+		IndexWriterConfig config = new IndexWriterConfig(new StandardAnalyzer());
+		config.setOpenMode(OpenMode.CREATE);
+		config.setRAMBufferSizeMB(1024.00);
+		return config;
+	}
+
 	public static void buildIndex(List<PathCountTitle> fileCountList,
 			String indexPath, float gamma) {
 		// computing smoothing params
@@ -47,10 +54,7 @@ public class InexIndexer {
 		IndexWriter writer = null;
 		try {
 			directory = FSDirectory.open(Paths.get(indexPath));
-			IndexWriterConfig config = new IndexWriterConfig(
-					new StandardAnalyzer());
-			config.setOpenMode(OpenMode.CREATE);
-			config.setRAMBufferSizeMB(1024.00);
+			IndexWriterConfig config = getIndexWriterConfig();
 			writer = new IndexWriter(directory, config);
 			for (PathCountTitle entry : fileCountList) {
 				float count = (float) entry.visitCount;
@@ -74,81 +78,7 @@ public class InexIndexer {
 		}
 	}
 
-	public static void buildIndexOnText(List<PathCountTitle> fileCountList,
-			String indexPath, float gamma) {
-		// computing smoothing params
-		int N = 0;
-		for (PathCountTitle entry : fileCountList) {
-			N += entry.visitCount;
-		}
-		int V = fileCountList.size();
-		float alpha = 1.0f;
-
-		// indexing
-		FSDirectory directory = null;
-		IndexWriter writer = null;
-		try {
-			directory = FSDirectory.open(Paths.get(indexPath));
-			IndexWriterConfig config = new IndexWriterConfig(
-					new StandardAnalyzer());
-			config.setOpenMode(OpenMode.CREATE);
-			config.setRAMBufferSizeMB(1024.00);
-			writer = new IndexWriter(directory, config);
-			for (PathCountTitle entry : fileCountList) {
-				float count = (float) entry.visitCount;
-				float smoothed = (count + alpha) / (N + V * alpha);
-				indexTxtFileWithWeight(entry, writer, smoothed, gamma);
-			}
-		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
-		} finally {
-			if (writer != null)
-				try {
-					writer.close();
-				} catch (IOException e) {
-					LOGGER.log(Level.SEVERE,
-							e.toString() + "\n" + e.fillInStackTrace());
-				}
-			if (directory != null)
-				directory.close();
-		}
-	}
-
-	static void indexTxtFileWithWeight(PathCountTitle pct, IndexWriter writer,
-			float weight, float gamma) {
-		File file = new File(pct.path);
-		try (InputStream fis = Files.newInputStream(file.toPath())) {
-			byte[] data = new byte[(int) file.length()];
-			fis.read(data);
-			String fileContent = new String(data, "UTF-8");
-			// if (fileContent.contains("REDIRECT")) {
-			// return;
-			// }
-			Document doc = new Document();
-			doc.add(new StringField(inex09.WikiIndexer.DOCNAME_ATTRIB,
-					FilenameUtils.removeExtension(file.getName()),
-					Field.Store.YES));
-			TextField titleField = new TextField(
-					inex09.WikiIndexer.TITLE_ATTRIB, pct.title, Field.Store.YES);
-			titleField.setBoost(gamma * weight);
-			doc.add(titleField);
-			TextField contentField = new TextField(
-					inex09.WikiIndexer.CONTENT_ATTRIB, fileContent,
-					Field.Store.YES);
-			contentField.setBoost((1 - gamma) * weight);
-			doc.add(contentField);
-			writer.addDocument(doc);
-		} catch (NoSuchFileException e) {
-			LOGGER.log(Level.WARNING, "File not found: " + pct.title + " "
-					+ pct.path);
-		} catch (FileNotFoundException e) {
-			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
-		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
-		}
-	}
-
-	public static void indexXmlFileWithWeight(File file, IndexWriter writer,
+	static void indexXmlFileWithWeight(File file, IndexWriter writer,
 			float weight, float gamma) {
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];
@@ -180,6 +110,104 @@ public class InexIndexer {
 			contentField.setBoost((1 - gamma) * weight);
 			doc.add(contentField);
 			writer.addDocument(doc);
+		} catch (FileNotFoundException e) {
+			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
+		}
+	}
+
+	public static void buildIndexOnText(List<PathCountTitle> fileCountList,
+			String indexPath, float gamma) {
+		// computing smoothing params
+		int N = 0;
+		for (PathCountTitle entry : fileCountList) {
+			N += entry.visitCount;
+		}
+		int V = fileCountList.size();
+		float alpha = 1.0f;
+
+		// indexing
+		FSDirectory directory = null;
+		IndexWriter writer = null;
+		try {
+			directory = FSDirectory.open(Paths.get(indexPath));
+			IndexWriterConfig config = getIndexWriterConfig();
+			writer = new IndexWriter(directory, config);
+			for (PathCountTitle entry : fileCountList) {
+				float count = (float) entry.visitCount;
+				float smoothed = (count + alpha) / (N + V * alpha);
+				indexTxtFileWithWeight(entry, writer, smoothed, gamma);
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
+		} finally {
+			if (writer != null)
+				try {
+					writer.close();
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE,
+							e.toString() + "\n" + e.fillInStackTrace());
+				}
+			if (directory != null)
+				directory.close();
+		}
+	}
+
+	public static void buildIndexOnTextWless(
+			List<PathCountTitle> fileCountList, String indexPath, float gamma) {
+		// indexing
+		FSDirectory directory = null;
+		IndexWriter writer = null;
+		try {
+			directory = FSDirectory.open(Paths.get(indexPath));
+			IndexWriterConfig config = getIndexWriterConfig();
+			writer = new IndexWriter(directory, config);
+			for (PathCountTitle entry : fileCountList) {
+				indexTxtFileWithWeight(entry, writer, 1, gamma);
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
+		} finally {
+			if (writer != null)
+				try {
+					writer.close();
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE,
+							e.toString() + "\n" + e.fillInStackTrace());
+				}
+			if (directory != null)
+				directory.close();
+		}
+	}
+
+	static void indexTxtFileWithWeight(PathCountTitle pct, IndexWriter writer,
+			float fieldBoost, float gamma) {
+		File file = new File(pct.path);
+		try (InputStream fis = Files.newInputStream(file.toPath())) {
+			byte[] data = new byte[(int) file.length()];
+			fis.read(data);
+			String fileContent = new String(data, "UTF-8");
+			// if (fileContent.contains("REDIRECT")) {
+			// return;
+			// }
+			Document doc = new Document();
+			doc.add(new StringField(inex09.WikiIndexer.DOCNAME_ATTRIB,
+					FilenameUtils.removeExtension(file.getName()),
+					Field.Store.YES));
+			TextField titleField = new TextField(
+					inex09.WikiIndexer.TITLE_ATTRIB, pct.title, Field.Store.YES);
+			titleField.setBoost(gamma * fieldBoost);
+			doc.add(titleField);
+			TextField contentField = new TextField(
+					inex09.WikiIndexer.CONTENT_ATTRIB, fileContent,
+					Field.Store.YES);
+			contentField.setBoost((1 - gamma) * fieldBoost);
+			doc.add(contentField);
+			writer.addDocument(doc);
+		} catch (NoSuchFileException e) {
+			LOGGER.log(Level.WARNING, "File not found: " + pct.title + " "
+					+ pct.path);
 		} catch (FileNotFoundException e) {
 			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 		} catch (IOException e) {

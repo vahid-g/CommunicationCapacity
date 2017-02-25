@@ -76,38 +76,6 @@ public class ClusterMsnExperiment {
 		}
 	}
 
-	public static void exp(int expNo) {
-		LOGGER.log(Level.INFO, "Loading files list and counts");
-		List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
-		pathCountList = pathCountList.subList(0,
-				(int) ((expNo / 10.0) * pathCountList.size()));
-		LOGGER.log(Level.INFO,
-				"Number of loaded path_counts: " + pathCountList.size());
-		LOGGER.log(Level.INFO, "Building index..");
-		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "inex13_"
-				+ expNo;
-		InexIndexer.buildIndex(pathCountList, indexName, 0); // TODO set gamma
-
-		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
-				ClusterDirectoryInfo.MSN_QUERY_QID_B,
-				ClusterDirectoryInfo.MSN_QID_QREL);
-		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
-				indexName);
-		LOGGER.log(Level.INFO, "Writing results..");
-		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
-				+ "inex_" + expNo + ".csv")) {
-			for (MsnQueryResult mqr : results) {
-				fw.write(mqr.toString());
-			}
-			LOGGER.log(Level.INFO, "cleanup..");
-			FileUtils.deleteDirectory(new File(indexName));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
 	public static void expText(int expNo, int totalExp) {
 		List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 		double total = (double) totalExp;
