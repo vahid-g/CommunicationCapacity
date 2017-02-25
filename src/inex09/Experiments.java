@@ -29,8 +29,9 @@ public class Experiments {
 			resultDir.mkdirs();
 
 		int expNo = Integer.parseInt(args[0]);
+		double totalCount = Double.parseDouble(args[1]);
 		long start_t = System.currentTimeMillis();
-		expMsnWless(expNo, 0.9f);
+		expMsnWless(expNo, 0.9f, totalCount);
 		long end_t = System.currentTimeMillis();
 		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
 				+ (end_t - start_t) / 60000 + " minutes");
@@ -54,13 +55,14 @@ public class Experiments {
 	 *            : this impcats the size of picked subset
 	 * @param gamma
 	 *            : this is the weight of title score
+	 * @param totalCount TODO
 	 */
-	public static void expMsnWless(int expNo, float gamma) {
+	public static void expMsnWless(int expNo, float gamma, double totalCount) {
 		Map<String, Integer> pathCountMap = loadPathCountMap(ClusterDirectoryInfo.PATH_COUNT_FILE09);
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + pathCountMap.size());
 		LOGGER.log(Level.INFO, "Sorting files..");
-		int subsetSize = (int) (pathCountMap.size() * (expNo / 10.0));
+		int subsetSize = (int) (pathCountMap.size() * (expNo / totalCount));
 		Map<String, Integer> pathCountSorted = Utils.sortByValue(pathCountMap,
 				subsetSize);
 
@@ -78,7 +80,7 @@ public class Experiments {
 				indexName);
 		LOGGER.log(Level.INFO, "Writing results..");
 		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
-				+ "msn09_" + expNo + ".csv")) {
+				+ "msn09_" + totalCount + "_" + expNo + ".csv")) {
 			for (MsnQueryResult mqr : results) {
 				fw.write(mqr.fullResult() + "\n");
 			}

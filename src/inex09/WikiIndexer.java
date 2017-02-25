@@ -31,7 +31,7 @@ public class WikiIndexer {
 	private static IndexWriterConfig getConfig() {
 		IndexWriterConfig config;
 		config = new IndexWriterConfig(new StandardAnalyzer());
-		config.setOpenMode(OpenMode.APPEND);
+		config.setOpenMode(OpenMode.CREATE);
 		config.setRAMBufferSizeMB(1024.00);
 		config.setSimilarity(new BM25Similarity());
 		return config;
