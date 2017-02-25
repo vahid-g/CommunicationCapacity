@@ -91,7 +91,7 @@ public class ClusterMsnExperiment {
 		LOGGER.log(Level.INFO, "Building index..");
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "index13_"
 				+ expNo;
-		InexIndexer.buildIndexOnText(pathCountList, indexName, 0.9f);
+		InexIndexer.buildIndexOnTextWless(pathCountList, indexName, 0.9f);
 
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
