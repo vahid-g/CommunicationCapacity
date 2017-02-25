@@ -1,7 +1,5 @@
 package inex13;
 
-import inex13.ClusterMsnExperiment.PathCountTitle;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -30,12 +28,12 @@ import org.apache.lucene.store.FSDirectory;
  * @author ghadakcv This class is based on the InexMsnIndexer class
  */
 public class InexIndexer {
-	
-	static final Logger LOGGER = Logger
-			.getLogger(InexIndexer.class.getName());
 
-	public static void buildIndex(
-			List<PathCountTitle> fileCountList, String indexPath, float gamma) {
+	public static final Logger LOGGER = Logger.getLogger(InexIndexer.class
+			.getName());
+
+	public static void buildIndex(List<PathCountTitle> fileCountList,
+			String indexPath, float gamma) {
 		// computing smoothing params
 		int N = 0;
 		for (PathCountTitle entry : fileCountList) {
@@ -57,25 +55,27 @@ public class InexIndexer {
 			for (PathCountTitle entry : fileCountList) {
 				float count = (float) entry.visitCount;
 				float smoothed = (count + alpha) / (N + V * alpha);
-				indexXmlFileWithWeight(new File(entry.path), writer,
-						smoothed, gamma);
+				InexIndexer.indexXmlFileWithWeight(new File(entry.path),
+						writer, smoothed, gamma);
 			}
 		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
+			InexIndexer.LOGGER.log(Level.SEVERE,
+					e.toString() + "\n" + e.fillInStackTrace());
 		} finally {
 			if (writer != null)
 				try {
 					writer.close();
 				} catch (IOException e) {
-					LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
+					InexIndexer.LOGGER.log(Level.SEVERE, e.toString() + "\n"
+							+ e.fillInStackTrace());
 				}
 			if (directory != null)
 				directory.close();
 		}
 	}
-	
-	public static void buildIndexOnText(
-			List<PathCountTitle> fileCountList, String indexPath, float gamma) {
+
+	public static void buildIndexOnText(List<PathCountTitle> fileCountList,
+			String indexPath, float gamma) {
 		// computing smoothing params
 		int N = 0;
 		for (PathCountTitle entry : fileCountList) {
@@ -97,8 +97,7 @@ public class InexIndexer {
 			for (PathCountTitle entry : fileCountList) {
 				float count = (float) entry.visitCount;
 				float smoothed = (count + alpha) / (N + V * alpha);
-				indexTxtFileWithWeight(entry, writer,
-						smoothed, gamma);
+				indexTxtFileWithWeight(entry, writer, smoothed, gamma);
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
@@ -107,13 +106,14 @@ public class InexIndexer {
 				try {
 					writer.close();
 				} catch (IOException e) {
-					LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
+					LOGGER.log(Level.SEVERE,
+							e.toString() + "\n" + e.fillInStackTrace());
 				}
 			if (directory != null)
 				directory.close();
 		}
 	}
-	
+
 	static void indexTxtFileWithWeight(PathCountTitle pct, IndexWriter writer,
 			float weight, float gamma) {
 		File file = new File(pct.path);
@@ -125,19 +125,22 @@ public class InexIndexer {
 			// return;
 			// }
 			Document doc = new Document();
-			doc.add(new StringField(inex09.InexWikiIndexer.DOCNAME_ATTRIB, FilenameUtils
-					.removeExtension(file.getName()), Field.Store.YES));
-			TextField titleField = new TextField(inex09.InexWikiIndexer.TITLE_ATTRIB, pct.title,
-					Field.Store.YES);
+			doc.add(new StringField(inex09.WikiIndexer.DOCNAME_ATTRIB,
+					FilenameUtils.removeExtension(file.getName()),
+					Field.Store.YES));
+			TextField titleField = new TextField(
+					inex09.WikiIndexer.TITLE_ATTRIB, pct.title, Field.Store.YES);
 			titleField.setBoost(gamma * weight);
 			doc.add(titleField);
-			TextField contentField = new TextField(inex09.InexWikiIndexer.CONTENT_ATTRIB, fileContent,
+			TextField contentField = new TextField(
+					inex09.WikiIndexer.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES);
 			contentField.setBoost((1 - gamma) * weight);
 			doc.add(contentField);
 			writer.addDocument(doc);
 		} catch (NoSuchFileException e) {
-			LOGGER.log(Level.WARNING, "File not found: " + pct.title + " " + pct.path);
+			LOGGER.log(Level.WARNING, "File not found: " + pct.title + " "
+					+ pct.path);
 		} catch (FileNotFoundException e) {
 			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 		} catch (IOException e) {
@@ -145,7 +148,7 @@ public class InexIndexer {
 		}
 	}
 
-	static void indexXmlFileWithWeight(File file, IndexWriter writer,
+	public static void indexXmlFileWithWeight(File file, IndexWriter writer,
 			float weight, float gamma) {
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];
@@ -154,8 +157,8 @@ public class InexIndexer {
 			if (fileContent.contains("<listitem>REDIRECT")) {
 				return;
 			}
-			Pattern p = Pattern.compile("<article id=\"\\d*\" title=\"(.*?)\">",
-					Pattern.DOTALL);
+			Pattern p = Pattern.compile(
+					"<article id=\"\\d*\" title=\"(.*?)\">", Pattern.DOTALL);
 			Matcher m = p.matcher(fileContent);
 			String title = "";
 			if (m.find())
@@ -164,13 +167,15 @@ public class InexIndexer {
 				LOGGER.log(Level.INFO, "Title not found in " + file.getName());
 			fileContent = fileContent.replaceAll("<[^>]*>", " ").trim();
 			Document doc = new Document();
-			doc.add(new StringField(inex09.InexWikiIndexer.DOCNAME_ATTRIB, FilenameUtils
-					.removeExtension(file.getName()), Field.Store.YES));
-			TextField titleField = new TextField(inex09.InexWikiIndexer.TITLE_ATTRIB, title,
-					Field.Store.YES);
+			doc.add(new StringField(inex09.WikiIndexer.DOCNAME_ATTRIB,
+					FilenameUtils.removeExtension(file.getName()),
+					Field.Store.YES));
+			TextField titleField = new TextField(
+					inex09.WikiIndexer.TITLE_ATTRIB, title, Field.Store.YES);
 			titleField.setBoost(gamma * weight);
 			doc.add(titleField);
-			TextField contentField = new TextField(inex09.InexWikiIndexer.CONTENT_ATTRIB, fileContent,
+			TextField contentField = new TextField(
+					inex09.WikiIndexer.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES);
 			contentField.setBoost((1 - gamma) * weight);
 			doc.add(contentField);

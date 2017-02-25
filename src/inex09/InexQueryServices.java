@@ -46,13 +46,13 @@ public class InexQueryServices {
 			for (InexQuery queryDAO : queries) {
 				// LOGGER.log(Level.INFO,queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.text,
-						InexWikiIndexer.TITLE_ATTRIB, InexWikiIndexer.CONTENT_ATTRIB);
+						WikiIndexer.TITLE_ATTRIB, WikiIndexer.CONTENT_ATTRIB);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				InexQueryResult iqr = new InexQueryResult(queryDAO);
 				for (int i = 0; i < Math.min(TOP_DOC_COUNT,
 						topDocs.scoreDocs.length); i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					String docName = doc.get(InexWikiIndexer.DOCNAME_ATTRIB);
+					String docName = doc.get(WikiIndexer.DOCNAME_ATTRIB);
 					iqr.topResults.add(docName);
 				}
 				iqrList.add(iqr);
@@ -74,14 +74,14 @@ public class InexQueryServices {
 			for (MsnQuery msnQuery : queries) {
 				// LOGGER.log(Level.INFO,queryCoutner++);
 				Query query = buildLuceneQuery(msnQuery.text,
-						InexWikiIndexer.TITLE_ATTRIB, InexWikiIndexer.CONTENT_ATTRIB);
+						WikiIndexer.TITLE_ATTRIB, WikiIndexer.CONTENT_ATTRIB);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				MsnQueryResult mqr = new MsnQueryResult(msnQuery);
 				for (int i = 0; i < topDocs.scoreDocs.length; i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					String docName = doc.get(InexWikiIndexer.DOCNAME_ATTRIB);
+					String docName = doc.get(WikiIndexer.DOCNAME_ATTRIB);
 					if (i < 10) {
-						String title = doc.get(InexWikiIndexer.TITLE_ATTRIB);
+						String title = doc.get(WikiIndexer.TITLE_ATTRIB);
 						mqr.results.add(docName + ": " + title);
 					}
 					if (msnQuery.qrels.contains(docName)) {

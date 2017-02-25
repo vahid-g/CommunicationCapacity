@@ -23,23 +23,6 @@ public class ClusterMsnExperiment {
 	static final Logger LOGGER = Logger.getLogger(ClusterMsnExperiment.class
 			.getName());
 
-	static class PathCountTitle {
-		String path;
-		Integer visitCount;
-		String title;
-
-		public PathCountTitle(String path, Integer visitCount) {
-			this.path = path;
-			this.visitCount = visitCount;
-		}
-
-		public PathCountTitle(String path, Integer visitCount, String title) {
-			this.path = path;
-			this.visitCount = visitCount;
-			this.title = title;
-		}
-	}
-
 	public static void main(String[] args) {
 		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE13);
 		if (!indexBaseDir.exists())
