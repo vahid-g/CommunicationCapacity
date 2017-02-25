@@ -18,11 +18,9 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import freebase.FreebaseDataManager;
-
 public class Utils {
 
-	static final Logger LOGGER = Logger.getLogger(FreebaseDataManager.class
+	static final Logger LOGGER = Logger.getLogger(Utils.class
 			.getName());
 	static {
 		LOGGER.setUseParentHandlers(false);

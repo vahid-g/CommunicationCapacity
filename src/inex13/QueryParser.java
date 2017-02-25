@@ -1,5 +1,7 @@
 package inex13;
 
+import inex09.InexQuery;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,8 +26,8 @@ public class QueryParser {
 				"data/queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels");
 	}
 
-	public static HashMap<Integer, InexQueryDAO> buildQueries(String path, String qrelPath) {
-		HashMap<Integer, InexQueryDAO> map = new HashMap<Integer, InexQueryDAO>();
+	public static HashMap<Integer, InexQuery> buildQueries(String path, String qrelPath) {
+		HashMap<Integer, InexQuery> map = new HashMap<Integer, InexQuery>();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(true);
 		dbf.setValidating(true);
@@ -40,7 +42,7 @@ public class QueryParser {
 				int id = Integer.parseInt(node.getAttributes()
 						.getNamedItem("id").getNodeValue());
 				String queryText = getText(findSubNode("title", node));
-				map.put(id, new InexQueryDAO(id, queryText));
+				map.put(id, new InexQuery(id, queryText));
 			}
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
@@ -63,9 +65,9 @@ public class QueryParser {
 				if (m.find()){
 					if (m.group(3).equals("1")){
 						int id = Integer.parseInt(m.group(1));
-						int relId = Integer.parseInt(m.group(2));
-						InexQueryDAO dao = map.get(id);
-						dao.relDocIds.add(relId);
+						String rel = m.group(2);
+						InexQuery query = map.get(id);
+						query.relDocs.add(rel);
 					}
 				} else {
 					System.out.println("regex failed!!!");

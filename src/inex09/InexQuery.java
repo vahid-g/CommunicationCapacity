@@ -13,6 +13,10 @@ public class InexQuery {
 	public double p10;
 	
 	
+	public InexQuery(int id, String text){
+		this.id = id;
+		this.text = text;
+	}
 	
 	public InexQuery(String text, String relDoc) {
 		this.text = text;

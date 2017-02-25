@@ -5,14 +5,14 @@ import java.util.List;
 
 public class InexQueryResult {
 
-	InexQuery query;
+	public InexQuery query;
 	public List<String> topResults = new ArrayList<String>();
 
 	public InexQueryResult(InexQuery query) {
 		this.query = query;
 	}
 
-	double precisionAtK(int k) {
+	public double precisionAtK(int k) {
 		double count = 0;
 		for (int i = 0; i < Math.min(k, topResults.size()); i++) {
 			if (query.relDocs.contains(topResults.get(i))) {
