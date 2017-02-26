@@ -37,12 +37,12 @@ public class WikiIndexer {
 		return config;
 	}
 
-	static void buildIndex(Map<String, Integer> fileCountMap,
+	static void buildIndexBoosted(Map<String, Integer> fileCountMap,
 			String indexPath) {
-		buildIndex(fileCountMap, indexPath, 0.5f);
+		buildIndexBoosted(fileCountMap, indexPath, 0.5f);
 	}
 
-	static void buildIndex(Map<String, Integer> fileCountMap,
+	static void buildIndexBoosted(Map<String, Integer> fileCountMap,
 			String indexPath, float gamma) {
 		int N = 0;
 		for (float n_i : fileCountMap.values()) {
@@ -59,7 +59,7 @@ public class WikiIndexer {
 			for (String filePath : fileCountMap.keySet()) {
 				float count = (float) fileCountMap.get(filePath);
 				float smoothed = (count + alpha) / (N + V * alpha);
-				indexXmlFileWithWeight(new File(filePath), writer, smoothed,
+				indexXmlFileWithBoosting(new File(filePath), writer, smoothed,
 						gamma);
 			}
 		} catch (IOException e) {
@@ -84,7 +84,7 @@ public class WikiIndexer {
 			directory = FSDirectory.open(Paths.get(indexPath));
 			writer = new IndexWriter(directory, getConfig());
 			for (String filePath : fileCountMap.keySet()) {
-				indexXmlFileWithWeight(new File(filePath), writer, 1, gamma);
+				indexXmlFileWithBoosting(new File(filePath), writer, 1, gamma);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -100,7 +100,7 @@ public class WikiIndexer {
 		}
 	}
 
-	private static void indexXmlFileWithWeight(File file, IndexWriter writer,
+	private static void indexXmlFileWithBoosting(File file, IndexWriter writer,
 			float weight, float gamma) {
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];

@@ -16,8 +16,7 @@ import org.apache.commons.io.FileUtils;
 
 public class Experiments {
 
-	static final Logger LOGGER = Logger.getLogger(Experiments.class
-			.getName());
+	static final Logger LOGGER = Logger.getLogger(Experiments.class.getName());
 
 	public static void main(String[] args) {
 		// initializations
@@ -31,10 +30,9 @@ public class Experiments {
 		int expNo = Integer.parseInt(args[0]);
 		int totalCount = Integer.parseInt(args[1]);
 		long start_t = System.currentTimeMillis();
-		expMsnWless(expNo, 0.9f, totalCount);
+		expMsn(expNo, 0.9f, totalCount);
 		long end_t = System.currentTimeMillis();
-		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
-				+ (end_t - start_t) / 60000 + " minutes");
+		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is " + (end_t - start_t) / 60000 + " minutes");
 
 		// float gamma = Float.parseFloat(args[0]);
 		// gridSearchExperiment(gamma);
@@ -45,7 +43,9 @@ public class Experiments {
 	 * 
 	 * This method loads Msn queries, and page visits of wikipedia. Then based
 	 * on expNo, it selects a part of wikipedia with top page visits and builds
-	 * an index on that. This experiment doesn't weight documents!
+	 * an index on that.
+	 * 
+	 * It has the option to do score boosting with page counts (look below).
 	 * 
 	 * Then it runs msn queries on it and prints the results to a file. Also in
 	 * the scoring, it multiplies weight of title by gamma and weight of body by
@@ -54,84 +54,36 @@ public class Experiments {
 	 * @param expNo
 	 *            : this impcats the size of picked subset
 	 * @param gamma
-	 *            : this is the weight of title score
-	 * @param totalCount TODO
+	 *            : this is the weight of title score vs. body score
+	 * @param totalCount
+	 *            TODO
 	 */
-	public static void expMsnWless(int expNo, float gamma, int totalCount) {
+	public static void expMsn(int expNo, float gamma, int totalCount) {
 		Map<String, Integer> pathCountMap = loadPathCountMap(ClusterDirectoryInfo.PATH_COUNT_FILE09);
-		LOGGER.log(Level.INFO,
-				"Number of loaded path_counts: " + pathCountMap.size());
+		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountMap.size());
 		LOGGER.log(Level.INFO, "Sorting files..");
-		double doubleCount = (double)totalCount;
+		double doubleCount = (double) totalCount;
 		int subsetSize = (int) (pathCountMap.size() * (expNo / doubleCount));
-		Map<String, Integer> pathCountSorted = Utils.sortByValue(pathCountMap,
-				subsetSize);
+		Map<String, Integer> pathCountSorted = Utils.sortByValue(pathCountMap, subsetSize);
 
-		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE09 + "index09_"
-				+ expNo;
+		String indexPath = ClusterDirectoryInfo.LOCAL_INDEX_BASE09 + "index09_" + expNo;
 		LOGGER.log(Level.INFO, "Building index..");
-		WikiIndexer.buildIndexWless(pathCountSorted, indexName, gamma);
+		// WikiIndexer.buildIndexWless(pathCountSorted, indexPath, gamma);
+		WikiIndexer.buildIndexBoosted(pathCountSorted, indexPath, gamma);
 
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
-				ClusterDirectoryInfo.MSN_QUERY_QID_B,
+		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_B,
 				ClusterDirectoryInfo.MSN_QID_QREL);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
-				indexName);
+		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries, indexPath);
 		LOGGER.log(Level.INFO, "Writing results..");
-		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
-				+ "msn09_" + totalCount + "_" + expNo + ".csv")) {
+		try (FileWriter fw = new FileWriter(
+				ClusterDirectoryInfo.RESULT_DIR + "msn09_" + totalCount + "_" + expNo + ".csv")) {
 			for (MsnQueryResult mqr : results) {
 				fw.write(mqr.fullResult() + "\n");
 			}
 			LOGGER.log(Level.INFO, "cleanup..");
-			FileUtils.deleteDirectory(new File(indexName));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * 
-	 * This method loads Msn queries, and page visits of wikipedia. Then based
-	 * on expNo, it selects a part of wikipedia with top page visits and builds
-	 * an index on that. Then it runs msn queries on it and prints the results
-	 * to a file. Also in the scoring, it multiplies weight of title by gamma
-	 * and weight of body by (1 - gamma)
-	 * 
-	 * @param expNo
-	 *            : this impcats the size of picked subset
-	 * @param gamma
-	 *            : this is the weight of title score
-	 */
-	public static void expMSN(int expNo, float gamma) {
-		Map<String, Integer> pathCountMap = loadPathCountMap(ClusterDirectoryInfo.PATH_COUNT_FILE09);
-		LOGGER.log(Level.INFO, "Sorting files..");
-		int subsetSize = (int) (pathCountMap.size() * (expNo / 10.0));
-		Map<String, Integer> pathCountSorted = Utils.sortByValue(pathCountMap,
-				subsetSize);
-
-		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE09 + "index09_"
-				+ expNo;
-		LOGGER.log(Level.INFO, "Building index..");
-		WikiIndexer.buildIndex(pathCountSorted, indexName, gamma);
-
-		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
-				ClusterDirectoryInfo.MSN_QUERY_QID_B,
-				ClusterDirectoryInfo.MSN_QID_QREL);
-		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
-				indexName);
-		LOGGER.log(Level.INFO, "Writing results..");
-		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
-				+ "msn09_" + expNo + ".csv")) {
-			for (MsnQueryResult mqr : results) {
-				fw.write(mqr.fullResult() + "\n");
-			}
-			LOGGER.log(Level.INFO, "cleanup..");
-			FileUtils.deleteDirectory(new File(indexName));
+			FileUtils.deleteDirectory(new File(indexPath));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -147,21 +99,17 @@ public class Experiments {
 	public static void gridSearchExperiment(float gamma) {
 		Map<String, Integer> pathCountMap = loadPathCountMap(ClusterDirectoryInfo.PATH_COUNT_FILE09);
 		// Note! don't need to sort path_counts based on weight
-		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13
-				+ "inex09_grid_" + (gamma * 10);
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "inex09_grid_" + (gamma * 10);
 		LOGGER.log(Level.INFO, "Building index..");
-		WikiIndexer.buildIndex(pathCountMap, indexName, gamma);
+		WikiIndexer.buildIndexBoosted(pathCountMap, indexName, gamma);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
-				ClusterDirectoryInfo.MSN_QUERY_QID_S,
+		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_S,
 				ClusterDirectoryInfo.MSN_QID_QREL);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries,
-				indexName);
+		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
-				+ "inex09_grid_" + Float.toString(gamma).replace(",", "")
-				+ ".csv")) {
+		try (FileWriter fw = new FileWriter(
+				ClusterDirectoryInfo.RESULT_DIR + "inex09_grid_" + Float.toString(gamma).replace(",", "") + ".csv")) {
 			for (MsnQueryResult mqr : results) {
 				fw.write(mqr.toString());
 			}
@@ -185,23 +133,17 @@ public class Experiments {
 		Map<String, Integer> pathCountMap = loadPathCountMap(ClusterDirectoryInfo.PATH_COUNT_FILE09);
 		LOGGER.log(Level.INFO, "Sorting files..");
 		int subsetSize = (int) (pathCountMap.size() * (expNo / 10.0));
-		Map<String, Integer> pathCountSorted = Utils.sortByValue(pathCountMap,
-				subsetSize);
+		Map<String, Integer> pathCountSorted = Utils.sortByValue(pathCountMap, subsetSize);
 		LOGGER.log(Level.INFO, "Building index..");
-		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE09
-				+ "index_inex_" + expNo;
-		WikiIndexer.buildIndex(pathCountSorted, indexName);
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE09 + "index_inex_" + expNo;
+		WikiIndexer.buildIndexBoosted(pathCountSorted, indexName);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<InexQuery> queries = InexQueryServices
-				.loadInexQueries(ClusterDirectoryInfo.INEX9_QUERY_FILE);
-		queries.addAll(InexQueryServices
-				.loadInexQueries(ClusterDirectoryInfo.INEX10_QUERY_FILE));
+		List<InexQuery> queries = InexQueryServices.loadInexQueries(ClusterDirectoryInfo.INEX9_QUERY_FILE);
+		queries.addAll(InexQueryServices.loadInexQueries(ClusterDirectoryInfo.INEX10_QUERY_FILE));
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<InexQueryResult> iqrList = InexQueryServices.runInexQueries(
-				queries, indexName);
+		List<InexQueryResult> iqrList = InexQueryServices.runInexQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results..");
-		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
-				+ "inex_" + expNo + ".csv")) {
+		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR + "inex_" + expNo + ".csv")) {
 			for (InexQueryResult iqr : iqrList) {
 				fw.write(iqr.toString());
 			}
@@ -222,17 +164,16 @@ public class Experiments {
 		}
 
 	}
+
 	private static Map<String, Integer> loadPathCountMap(String pathCountFile) {
 		LOGGER.log(Level.INFO, "Loading files list and counts");
 		Map<String, Integer> pathCountMap = new HashMap<String, Integer>();
-		try (BufferedReader br = new BufferedReader(new FileReader(
-				pathCountFile))) {
+		try (BufferedReader br = new BufferedReader(new FileReader(pathCountFile))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				if (!line.contains(","))
 					continue;
-				String path = ClusterDirectoryInfo.CLUSTER_BASE
-						+ line.split(",")[0];
+				String path = ClusterDirectoryInfo.CLUSTER_BASE + line.split(",")[0];
 				Integer count = Integer.parseInt(line.split(",")[1].trim());
 				pathCountMap.put(path, count);
 			}
@@ -241,8 +182,7 @@ public class Experiments {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		LOGGER.log(Level.INFO,
-				"Number of loaded path_counts: " + pathCountMap.size());
+		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountMap.size());
 		return pathCountMap;
 	}
 
