@@ -30,12 +30,12 @@ public class MsnQueryResult {
 
 	@Override
 	public String toString() {
-		return "\"" + msnQuery.text.replace(",", " ").replace("\"", " ") + "\", " + precisionAtK(3) + ", " + precisionAtK(3) + ", " + mrr();
+		return "\"" + msnQuery.text.replace(",", " ").replace("\"", " ") + "\", " + precisionAtK(3) + ", " + mrr();
 	}
-	
+
 	public String fullResult() {
 		StringBuilder sb = new StringBuilder();
-		for (String result : results){ 
+		for (String result : results) {
 			sb.append(result + ", ");
 		}
 		String resultTuples = sb.toString();
