@@ -29,7 +29,7 @@ public class Experiments {
 			resultDir.mkdirs();
 
 		int expNo = Integer.parseInt(args[0]);
-		double totalCount = Double.parseDouble(args[1]);
+		int totalCount = Integer.parseInt(args[1]);
 		long start_t = System.currentTimeMillis();
 		expMsnWless(expNo, 0.9f, totalCount);
 		long end_t = System.currentTimeMillis();
@@ -57,12 +57,13 @@ public class Experiments {
 	 *            : this is the weight of title score
 	 * @param totalCount TODO
 	 */
-	public static void expMsnWless(int expNo, float gamma, double totalCount) {
+	public static void expMsnWless(int expNo, float gamma, int totalCount) {
 		Map<String, Integer> pathCountMap = loadPathCountMap(ClusterDirectoryInfo.PATH_COUNT_FILE09);
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + pathCountMap.size());
 		LOGGER.log(Level.INFO, "Sorting files..");
-		int subsetSize = (int) (pathCountMap.size() * (expNo / totalCount));
+		double doubleCount = (double)totalCount;
+		int subsetSize = (int) (pathCountMap.size() * (expNo / doubleCount));
 		Map<String, Integer> pathCountSorted = Utils.sortByValue(pathCountMap,
 				subsetSize);
 
