@@ -51,7 +51,7 @@ public class ClusterMsnExperiment {
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13
 				+ "inex13_grid_" + (gamma * 10);
 		LOGGER.log(Level.INFO, "Building index..");
-		InexIndexer.buildIndex(pathCountList, indexName, gamma);
+		InexIndexer.buildBoostedIndex(pathCountList, indexName, gamma);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
 				ClusterDirectoryInfo.MSN_QUERY_QID_S,
@@ -91,8 +91,8 @@ public class ClusterMsnExperiment {
 		LOGGER.log(Level.INFO, "Building index..");
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "index13_"
 				+ expNo;
-		InexIndexer.buildIndexOnTextWless(pathCountList, indexName, 0.9f);
-
+//		InexIndexer.buildTextIndex(pathCountList, indexName, 0.9f);
+		InexIndexer.buildBoostedTextIndex(pathCountList, indexName, 0.9f);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(
 				ClusterDirectoryInfo.MSN_QUERY_QID_B,

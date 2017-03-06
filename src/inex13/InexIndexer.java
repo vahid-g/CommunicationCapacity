@@ -39,7 +39,7 @@ public class InexIndexer {
 		return config;
 	}
 
-	public static void buildIndex(List<PathCountTitle> fileCountList,
+	public static void buildBoostedIndex(List<PathCountTitle> fileCountList,
 			String indexPath, float gamma) {
 		// computing smoothing params
 		int N = 0;
@@ -117,7 +117,7 @@ public class InexIndexer {
 		}
 	}
 
-	public static void buildIndexOnText(List<PathCountTitle> fileCountList,
+	public static void buildBoostedTextIndex(List<PathCountTitle> fileCountList,
 			String indexPath, float gamma) {
 		// computing smoothing params
 		int N = 0;
@@ -154,7 +154,7 @@ public class InexIndexer {
 		}
 	}
 
-	public static void buildIndexOnTextWless(
+	public static void buildTextIndex(
 			List<PathCountTitle> fileCountList, String indexPath, float gamma) {
 		// indexing
 		FSDirectory directory = null;
