@@ -32,7 +32,18 @@ public class InexQueryResult {
 
 	@Override
 	public String toString() {
-		return query.text + ", " + precisionAtK(3) + ", " + precisionAtK(10) + ", " + precisionAtK(20) + ", " + mrr()
-				+ "\n";
+		return query.text + ", " + precisionAtK(3) + ", " + precisionAtK(10)
+				+ ", " + precisionAtK(20) + ", " + mrr() + "\n";
+	}
+
+	public String top10() {
+		int limit = topResults.size() > 10 ? 10 : topResults.size();
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < limit - 1; i++){
+			sb.append(topResults.get(i) + ",");
+		}
+		sb.append(topResults.get(limit - 1));
+		String resultTuples = sb.toString();
+		return query.text + "," + resultTuples;
 	}
 }

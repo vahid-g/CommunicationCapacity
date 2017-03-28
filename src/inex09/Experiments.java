@@ -72,10 +72,10 @@ public class Experiments {
 		WikiIndexer.buildIndexBoosted(pathCountSorted, indexPath, gamma);
 
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_B,
+		List<MsnQuery> queries = QueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_B,
 				ClusterDirectoryInfo.MSN_QID_QREL);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries, indexPath);
+		List<MsnQueryResult> results = QueryServices.runMsnQueries(queries, indexPath);
 		LOGGER.log(Level.INFO, "Writing results..");
 		try (FileWriter fw = new FileWriter(
 				ClusterDirectoryInfo.RESULT_DIR + "msn09_" + totalCount + "_" + expNo + ".csv")) {
@@ -103,10 +103,10 @@ public class Experiments {
 		LOGGER.log(Level.INFO, "Building index..");
 		WikiIndexer.buildIndexBoosted(pathCountMap, indexName, gamma);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<MsnQuery> queries = InexQueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_S,
+		List<MsnQuery> queries = QueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_S,
 				ClusterDirectoryInfo.MSN_QID_QREL);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<MsnQueryResult> results = InexQueryServices.runMsnQueries(queries, indexName);
+		List<MsnQueryResult> results = QueryServices.runMsnQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(
 				ClusterDirectoryInfo.RESULT_DIR + "inex09_grid_" + Float.toString(gamma).replace(",", "") + ".csv")) {
@@ -138,10 +138,10 @@ public class Experiments {
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE09 + "index_inex_" + expNo;
 		WikiIndexer.buildIndexBoosted(pathCountSorted, indexName);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<InexQuery> queries = InexQueryServices.loadInexQueries(ClusterDirectoryInfo.INEX9_QUERY_FILE);
-		queries.addAll(InexQueryServices.loadInexQueries(ClusterDirectoryInfo.INEX10_QUERY_FILE));
+		List<InexQuery> queries = QueryServices.loadInexQueries(ClusterDirectoryInfo.INEX9_QUERY_FILE);
+		queries.addAll(QueryServices.loadInexQueries(ClusterDirectoryInfo.INEX10_QUERY_FILE));
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<InexQueryResult> iqrList = InexQueryServices.runInexQueries(queries, indexName);
+		List<InexQueryResult> iqrList = QueryServices.runInexQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results..");
 		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR + "inex_" + expNo + ".csv")) {
 			for (InexQueryResult iqr : iqrList) {
