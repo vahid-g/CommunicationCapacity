@@ -27,22 +27,21 @@ public class QueryParser {
 	}
 
 	public static HashMap<Integer, InexQuery> buildQueries(String path, String qrelPath) {
-		HashMap<Integer, InexQuery> map = new HashMap<Integer, InexQuery>();
+		HashMap<Integer, InexQuery> qidQueryMap = new HashMap<Integer, InexQuery>();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(true);
 		dbf.setValidating(true);
-		DocumentBuilder db;
-		Document doc;
 		try {
-			db = dbf.newDocumentBuilder();
-			doc = db.parse(path);
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			Document doc = db.parse(new File(path));
 			NodeList nodeList = doc.getElementsByTagName("topic");
 			for (int i = 0; i < nodeList.getLength(); i++) {
 				Node node = nodeList.item(i);
 				int id = Integer.parseInt(node.getAttributes()
 						.getNamedItem("id").getNodeValue());
 				String queryText = getText(findSubNode("title", node));
-				map.put(id, new InexQuery(id, queryText));
+				InexQuery iq = new InexQuery(id, queryText);
+				qidQueryMap.put(id, iq);
 			}
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
@@ -66,7 +65,7 @@ public class QueryParser {
 					if (m.group(3).equals("1")){
 						int id = Integer.parseInt(m.group(1));
 						String rel = m.group(2);
-						InexQuery query = map.get(id);
+						InexQuery query = qidQueryMap.get(id);
 						query.relDocs.add(rel);
 					}
 				} else {
@@ -77,7 +76,7 @@ public class QueryParser {
 			e.printStackTrace();
 		}
 		sc.close();
-		return map;
+		return qidQueryMap;
 	}
 
 	static Node findSubNode(String name, Node node) {

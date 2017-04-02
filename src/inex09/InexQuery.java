@@ -7,7 +7,7 @@ public class InexQuery {
 
 	int id;
 	public String text;
-	public List<String> relDocs;
+	public List<String> relDocs = new ArrayList<String>();
 	public double mrr;
 	public double p3;
 	public double p10;
@@ -34,7 +34,7 @@ public class InexQuery {
 
 	@Override
 	public String toString() {
-		return "query: " + this.text + " relDoc: " + this.relDocs.get(0);
+		return "query: " + this.text;
 	}
 
 	public List<String> getRelDocs() {

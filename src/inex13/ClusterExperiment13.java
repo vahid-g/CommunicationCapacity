@@ -37,13 +37,14 @@ public class ClusterExperiment13 {
 		// float gamma = Float.parseFloat(args[0]);
 		// gridSearchExperiment(gamma);
 
-		int expNo = Integer.parseInt(args[0]);
-		int totalExpNo = Integer.parseInt(args[1]);
-		long start_t = System.currentTimeMillis();
-		expTextInex13(expNo, totalExpNo);
-		long end_t = System.currentTimeMillis();
-		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
-				+ (end_t - start_t) / 60000 + " minutes");
+//		int expNo = Integer.parseInt(args[0]);
+//		int totalExpNo = Integer.parseInt(args[1]);
+//		long start_t = System.currentTimeMillis();
+//		expTextInex13(expNo, totalExpNo);
+//		long end_t = System.currentTimeMillis();
+//		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
+//				+ (end_t - start_t) / 60000 + " minutes");
+		
 	}
 
 	static void gridSearchExperiment(float gamma) {
@@ -155,7 +156,7 @@ public class ClusterExperiment13 {
 				fw2.write(iqr.top10() + "\n");
 			}
 			LOGGER.log(Level.INFO, "cleanup..");
-			FileUtils.deleteDirectory(new File(indexPath));
+			FileUtils.deleteDirectory(new File(indexPath)); //TODO: move this to outer layer
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
