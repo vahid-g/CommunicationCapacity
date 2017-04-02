@@ -50,8 +50,9 @@ public class QueryServices {
 				for (int i = 0; i < Math.min(TOP_DOC_COUNT,
 						topDocs.scoreDocs.length); i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					String docName = doc.get(WikiIndexer.DOCNAME_ATTRIB);
-					iqr.topResults.add(docName);
+//					String docName = doc.get(WikiIndexer.DOCNAME_ATTRIB);
+					String docTitle = doc.get(WikiIndexer.TITLE_ATTRIB);
+					iqr.topResults.add(docTitle);
 				}
 				iqrList.add(iqr);
 			}
