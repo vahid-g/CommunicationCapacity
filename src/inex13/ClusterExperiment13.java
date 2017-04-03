@@ -111,36 +111,46 @@ public class ClusterExperiment13 {
 	}
 
 	public static void expTextInex13(int expNo, int totalExp) {
-		List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
-		double total = (double) totalExp;
-		pathCountList = pathCountList.subList(0, (int) (((double) expNo / total) * pathCountList.size()));
-		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
-		LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).visitCount);
-		LOGGER.log(Level.INFO, "Smallest score: " + pathCountList.get(pathCountList.size() - 1).visitCount);
-		LOGGER.log(Level.INFO, "Building index..");
 		String indexPath = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "index13_" + expNo;
-		Wiki13Indexer.buildTextIndex(pathCountList, indexPath, 0.5f);
-		LOGGER.log(Level.INFO, "Loading and running queries..");
-		String QUERY_FILE = ClusterDirectoryInfo.CLUSTER_BASE + "data/inex_ld/2013-ld-adhoc-topics.xml";
-		String QREL_FILE = ClusterDirectoryInfo.CLUSTER_BASE + "data/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
-		HashMap<Integer, InexQuery> queriesMap = QueryParser.buildQueries(QUERY_FILE, QREL_FILE);
-		List<InexQuery> queries = new ArrayList<InexQuery>();
-		queries.addAll(queriesMap.values());
-		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<InexQueryResult> results = QueryServices.runInexQueries(queries, indexPath);
-		LOGGER.log(Level.INFO, "Writing results..");
-		String resultFileName = ClusterDirectoryInfo.RESULT_DIR + "inex13_" + totalExp + "_" + expNo + ".csv";
-		String top10FileName = ClusterDirectoryInfo.RESULT_DIR + "inex13_" + totalExp + "_" + expNo + "_top10.csv";
-		try (FileWriter fw = new FileWriter(resultFileName); FileWriter fw2 = new FileWriter(top10FileName)) {
-			for (InexQueryResult iqr : results) {
-				fw.write(iqr.toString() + "\n");
-				fw2.write(iqr.top10() + "\n");
+		try {
+			List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+			double total = (double) totalExp;
+			pathCountList = pathCountList.subList(0, (int) (((double) expNo / total) * pathCountList.size()));
+			LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
+			LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).visitCount);
+			LOGGER.log(Level.INFO, "Smallest score: " + pathCountList.get(pathCountList.size() - 1).visitCount);
+			LOGGER.log(Level.INFO, "Building index..");
+
+			Wiki13Indexer.buildTextIndex(pathCountList, indexPath, 0.5f);
+			LOGGER.log(Level.INFO, "Loading and running queries..");
+			String QUERY_FILE = ClusterDirectoryInfo.CLUSTER_BASE + "data/inex_ld/2013-ld-adhoc-topics.xml";
+			String QREL_FILE = ClusterDirectoryInfo.CLUSTER_BASE
+					+ "data/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
+			HashMap<Integer, InexQuery> queriesMap = QueryParser.buildQueries(QUERY_FILE, QREL_FILE);
+			List<InexQuery> queries = new ArrayList<InexQuery>();
+			queries.addAll(queriesMap.values());
+			LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
+			List<InexQueryResult> results = QueryServices.runInexQueries(queries, indexPath);
+			LOGGER.log(Level.INFO, "Writing results..");
+			String resultFileName = ClusterDirectoryInfo.RESULT_DIR + "inex13_" + totalExp + "_" + expNo + ".csv";
+			String top10FileName = ClusterDirectoryInfo.RESULT_DIR + "inex13_" + totalExp + "_" + expNo + "_top10.csv";
+			try (FileWriter fw = new FileWriter(resultFileName); FileWriter fw2 = new FileWriter(top10FileName)) {
+				for (InexQueryResult iqr : results) {
+					fw.write(iqr.toString() + "\n");
+					fw2.write(iqr.top10() + "\n");
+				}
+				LOGGER.log(Level.INFO, "cleanup..");
+
+				// to outer layer
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-			LOGGER.log(Level.INFO, "cleanup..");
-			FileUtils.deleteDirectory(new File(indexPath)); // TODO: move this
-															// to outer layer
-		} catch (IOException e) {
-			e.printStackTrace();
+		} finally {
+			try {
+				FileUtils.deleteDirectory(new File(indexPath));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
