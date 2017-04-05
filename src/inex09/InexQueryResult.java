@@ -33,7 +33,7 @@ public class InexQueryResult {
 	@Override
 	public String toString() {
 		return query.text + ", " + precisionAtK(3) + ", " + precisionAtK(10)
-				+ ", " + precisionAtK(20) + ", " + mrr() + "\n";
+				+ ", " + precisionAtK(20) + ", " + mrr();
 	}
 
 	public String top10() {
