@@ -1,8 +1,5 @@
 package data_processing;
 
-import inex09.ClusterDirectoryInfo;
-import inex09.Utils;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -18,6 +15,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.json.JSONObject;
+
+import wiki_inex09.ClusterDirectoryInfo;
+import wiki_inex09.Utils;
 
 public class PageCounter {
 

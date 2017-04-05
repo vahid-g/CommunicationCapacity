@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import inex09.InexQuery;
-import inex09.InexQueryResult;
+import wiki_inex09.InexQuery;
+import wiki_inex09.InexQueryResult;
 
 
 
