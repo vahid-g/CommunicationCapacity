@@ -23,7 +23,8 @@ import org.apache.commons.io.FileUtils;
 
 public class ClusterExperiment13 {
 
-	static final Logger LOGGER = Logger.getLogger(ClusterExperiment13.class.getName());
+	static final Logger LOGGER = Logger.getLogger(ClusterExperiment13.class
+			.getName());
 
 	public static void main(String[] args) {
 		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE13);
@@ -38,27 +39,34 @@ public class ClusterExperiment13 {
 
 		int expNo = Integer.parseInt(args[0]);
 		int totalExpNo = Integer.parseInt(args[1]);
+		float gamma = Float.parseFloat(args[2]);
 		long start_t = System.currentTimeMillis();
-		expTextInex13(expNo, totalExpNo);
+		expTextInex13(expNo, totalExpNo, gamma);
 		long end_t = System.currentTimeMillis();
-		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is " + (end_t - start_t) / 60000 + " minutes");
+		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
+				+ (end_t - start_t) / 60000 + " minutes");
 
 	}
 
 	static void gridSearchExperiment(float gamma) {
 		List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 		// TODO sort?
-		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
-		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "inex13_grid_" + (gamma * 10);
+		LOGGER.log(Level.INFO,
+				"Number of loaded path_counts: " + pathCountList.size());
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13
+				+ "inex13_grid_" + (gamma * 10);
 		LOGGER.log(Level.INFO, "Building index..");
 		Wiki13Indexer.buildBoostedIndex(pathCountList, indexName, gamma);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<MsnQuery> queries = QueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_S,
+		List<MsnQuery> queries = QueryServices.loadMsnQueries(
+				ClusterDirectoryInfo.MSN_QUERY_QID_S,
 				ClusterDirectoryInfo.MSN_QID_QREL);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<MsnQueryResult> results = QueryServices.runMsnQueries(queries, indexName);
+		List<MsnQueryResult> results = QueryServices.runMsnQueries(queries,
+				indexName);
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR + "inex13_grid_" + (gamma * 10) + ".csv")) {
+		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
+				+ "inex13_grid_" + (gamma * 10) + ".csv")) {
 			for (MsnQueryResult mqr : results) {
 				fw.write(mqr.toString());
 			}
@@ -74,25 +82,35 @@ public class ClusterExperiment13 {
 	}
 
 	public static void expText(int expNo, int totalExp) {
-		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "index13_" + expNo;
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "index13_"
+				+ expNo;
 		try {
 			List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 			double total = (double) totalExp;
-			pathCountList = pathCountList.subList(0, (int) (((double) expNo / total) * pathCountList.size()));
-			LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
-			LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).visitCount);
-			LOGGER.log(Level.INFO, "Smallest score: " + pathCountList.get(pathCountList.size() - 1).visitCount);
+			pathCountList = pathCountList.subList(0,
+					(int) (((double) expNo / total) * pathCountList.size()));
+			LOGGER.log(Level.INFO, "Number of loaded path_counts: "
+					+ pathCountList.size());
+			LOGGER.log(Level.INFO, "Best score: "
+					+ pathCountList.get(0).visitCount);
+			LOGGER.log(
+					Level.INFO,
+					"Smallest score: "
+							+ pathCountList.get(pathCountList.size() - 1).visitCount);
 			LOGGER.log(Level.INFO, "Building index..");
 			// InexIndexer.buildTextIndex(pathCountList, indexName, 0.9f);
 			Wiki13Indexer.buildBoostedTextIndex(pathCountList, indexName, 0.9f);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
-			List<MsnQuery> queries = QueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_B,
+			List<MsnQuery> queries = QueryServices.loadMsnQueries(
+					ClusterDirectoryInfo.MSN_QUERY_QID_B,
 					ClusterDirectoryInfo.MSN_QID_QREL);
-			LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-			List<MsnQueryResult> results = QueryServices.runMsnQueries(queries, indexName);
+			LOGGER.log(Level.INFO,
+					"Number of loaded queries: " + queries.size());
+			List<MsnQueryResult> results = QueryServices.runMsnQueries(queries,
+					indexName);
 			LOGGER.log(Level.INFO, "Writing results..");
-			try (FileWriter fw = new FileWriter(
-					ClusterDirectoryInfo.RESULT_DIR + "msn13_" + totalExp + "_" + expNo + ".csv")) {
+			try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
+					+ "msn13_" + totalExp + "_" + expNo + ".csv")) {
 				for (MsnQueryResult mqr : results) {
 					fw.write(mqr.fullResult() + "\n");
 				}
@@ -110,31 +128,47 @@ public class ClusterExperiment13 {
 		}
 	}
 
-	public static void expTextInex13(int expNo, int totalExp) {
-		String indexPath = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "index13_" + expNo;
+	public static void expTextInex13(int expNo, int totalExp, float gamma) {
+		String indexPath = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "index13_"
+				+ expNo;
 		try {
 			List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 			double total = (double) totalExp;
-			pathCountList = pathCountList.subList(0, (int) (((double) expNo / total) * pathCountList.size()));
-			LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
-			LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).visitCount);
-			LOGGER.log(Level.INFO, "Smallest score: " + pathCountList.get(pathCountList.size() - 1).visitCount);
+			pathCountList = pathCountList.subList(0,
+					(int) (((double) expNo / total) * pathCountList.size()));
+			LOGGER.log(Level.INFO, "Number of loaded path_counts: "
+					+ pathCountList.size());
+			LOGGER.log(Level.INFO, "Best score: "
+					+ pathCountList.get(0).visitCount);
+			LOGGER.log(
+					Level.INFO,
+					"Smallest score: "
+							+ pathCountList.get(pathCountList.size() - 1).visitCount);
 			LOGGER.log(Level.INFO, "Building index..");
 
-			Wiki13Indexer.buildTextIndex(pathCountList, indexPath, 0.5f);
+			Wiki13Indexer.buildTextIndex(pathCountList, indexPath, gamma);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
-			String QUERY_FILE = ClusterDirectoryInfo.CLUSTER_BASE + "data/inex_ld/2013-ld-adhoc-topics.xml";
+			String QUERY_FILE = ClusterDirectoryInfo.CLUSTER_BASE
+					+ "data/inex_ld/2013-ld-adhoc-topics.xml";
 			String QREL_FILE = ClusterDirectoryInfo.CLUSTER_BASE
 					+ "data/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
-			HashMap<Integer, InexQuery> queriesMap = QueryParser.buildQueries(QUERY_FILE, QREL_FILE);
+			HashMap<Integer, InexQuery> queriesMap = QueryParser.buildQueries(
+					QUERY_FILE, QREL_FILE);
 			List<InexQuery> queries = new ArrayList<InexQuery>();
 			queries.addAll(queriesMap.values());
-			LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-			List<InexQueryResult> results = QueryServices.runInexQueries(queries, indexPath);
+			LOGGER.log(Level.INFO,
+					"Number of loaded queries: " + queries.size());
+			List<InexQueryResult> results = QueryServices.runInexQueries(
+					queries, indexPath);
 			LOGGER.log(Level.INFO, "Writing results..");
-			String resultFileName = ClusterDirectoryInfo.RESULT_DIR + "inex13_" + totalExp + "_" + expNo + ".csv";
-			String top10FileName = ClusterDirectoryInfo.RESULT_DIR + "inex13_" + totalExp + "_" + expNo + "_top10.csv";
-			try (FileWriter fw = new FileWriter(resultFileName); FileWriter fw2 = new FileWriter(top10FileName)) {
+			String resultFileName = ClusterDirectoryInfo.RESULT_DIR
+					+ "inex13_g" + Float.toString(gamma).replace(".", "-")
+					+ totalExp + "_" + expNo + ".csv";
+			String top10FileName = ClusterDirectoryInfo.RESULT_DIR + "inex13_g"
+					+ Float.toString(gamma).replace(".", "-") + totalExp + "_"
+					+ expNo + "_top10.csv";
+			try (FileWriter fw = new FileWriter(resultFileName);
+					FileWriter fw2 = new FileWriter(top10FileName)) {
 				for (InexQueryResult iqr : results) {
 					fw.write(iqr.toString() + "\n");
 					fw2.write(iqr.top10() + "\n");
@@ -154,10 +188,12 @@ public class ClusterExperiment13 {
 		}
 	}
 
-	private static List<PathCountTitle> loadFilePathCountTitle(String pathCountTitleFile) {
+	private static List<PathCountTitle> loadFilePathCountTitle(
+			String pathCountTitleFile) {
 		LOGGER.log(Level.INFO, "Loading path-count-titles..");
 		List<PathCountTitle> pathCountList = new ArrayList<PathCountTitle>();
-		try (BufferedReader br = new BufferedReader(new FileReader(pathCountTitleFile))) {
+		try (BufferedReader br = new BufferedReader(new FileReader(
+				pathCountTitleFile))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				try {
@@ -169,7 +205,8 @@ public class ClusterExperiment13 {
 					String title = fields[2].trim();
 					pathCountList.add(new PathCountTitle(path, count, title));
 				} catch (Exception e) {
-					LOGGER.log(Level.WARNING, "Couldn't read PathCountTitle: " + line + " cause: " + e.toString());
+					LOGGER.log(Level.WARNING, "Couldn't read PathCountTitle: "
+							+ line + " cause: " + e.toString());
 				}
 			}
 		} catch (FileNotFoundException e) {
