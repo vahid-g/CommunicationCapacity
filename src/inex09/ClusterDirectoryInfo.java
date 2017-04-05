@@ -1,5 +1,7 @@
 package inex09;
 
+import java.io.File;
+
 public class ClusterDirectoryInfo {
 
 	public static final String CLUSTER_BASE = "/scratch/cluster-share/ghadakcv/";
@@ -25,6 +27,15 @@ public class ClusterDirectoryInfo {
 	public static final String LOCAL_INDEX_BASE13 = "/scratch/ghadakcv/index13/";
 	public static final String GLOBAL_INDEX_BASE13 = "/scratch/cluster-share/ghadakcv/index13/";
 	public static final String PATH_COUNT_FILE13 = CLUSTER_BASE + "data/path_counts/pathcount_13_0103_text.csv";
+	
+	static {
+		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE13);
+		if (!indexBaseDir.exists())
+			indexBaseDir.mkdirs();
+		File resultDir = new File(ClusterDirectoryInfo.RESULT_DIR);
+		if (!resultDir.exists())
+			resultDir.mkdirs();
+	}
 	
 	
 

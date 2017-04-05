@@ -27,12 +27,6 @@ public class ClusterExperiment13 {
 			.getName());
 
 	public static void main(String[] args) {
-		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE13);
-		if (!indexBaseDir.exists())
-			indexBaseDir.mkdirs();
-		File resultDir = new File(ClusterDirectoryInfo.RESULT_DIR);
-		if (!resultDir.exists())
-			resultDir.mkdirs();
 
 		// float gamma = Float.parseFloat(args[0]);
 		// gridSearchExperiment(gamma);
@@ -187,7 +181,7 @@ public class ClusterExperiment13 {
 			}
 		}
 	}
-
+	
 	private static List<PathCountTitle> loadFilePathCountTitle(
 			String pathCountTitleFile) {
 		LOGGER.log(Level.INFO, "Loading path-count-titles..");
