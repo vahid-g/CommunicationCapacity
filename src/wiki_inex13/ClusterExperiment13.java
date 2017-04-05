@@ -54,8 +54,8 @@ public class ClusterExperiment13 {
 				ClusterDirectoryInfo.MSN_QUERY_QID_S,
 				ClusterDirectoryInfo.MSN_QID_QREL);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<QueryResult> results = QueryServices.runQueries(queries,
-				indexName);
+		List<QueryResult> results = QueryServices
+				.runQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
 				+ "inex13_grid_" + (gamma * 10) + ".csv")) {
@@ -98,8 +98,8 @@ public class ClusterExperiment13 {
 					ClusterDirectoryInfo.MSN_QID_QREL);
 			LOGGER.log(Level.INFO,
 					"Number of loaded queries: " + queries.size());
-			List<QueryResult> results = QueryServices.runQueries(
-					queries, indexName);
+			List<QueryResult> results = QueryServices.runQueries(queries,
+					indexName);
 			LOGGER.log(Level.INFO, "Writing results..");
 			try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
 					+ "msn13_" + totalExp + "_" + expNo + ".csv")) {
@@ -140,18 +140,15 @@ public class ClusterExperiment13 {
 
 			Wiki13Indexer.buildTextIndex(pathCountList, indexPath, gamma);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
-			String QUERY_FILE = ClusterDirectoryInfo.CLUSTER_BASE
-					+ "data/inex_ld/2013-ld-adhoc-topics.xml";
-			String QREL_FILE = ClusterDirectoryInfo.CLUSTER_BASE
-					+ "data/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
-			HashMap<Integer, ExperimentQuery> queriesMap = QueryParser
-					.buildQueries(QUERY_FILE, QREL_FILE);
+			HashMap<Integer, ExperimentQuery> queriesMap = QueryServices
+					.buildQueries(ClusterDirectoryInfo.INEX13_QUERY_FILE,
+							ClusterDirectoryInfo.INEX13_QREL_FILE);
 			List<ExperimentQuery> queries = new ArrayList<ExperimentQuery>();
 			queries.addAll(queriesMap.values());
 			LOGGER.log(Level.INFO,
 					"Number of loaded queries: " + queries.size());
-			List<QueryResult> results = QueryServices.runQueries(
-					queries, indexPath);
+			List<QueryResult> results = QueryServices.runQueries(queries,
+					indexPath);
 			LOGGER.log(Level.INFO, "Writing results..");
 			String resultFileName = ClusterDirectoryInfo.RESULT_DIR + expNo
 					+ "_g" + Float.toString(gamma).replace(".", "") + "_"
