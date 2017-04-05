@@ -181,7 +181,32 @@ public class ClusterExperiment13 {
 			}
 		}
 	}
-	
+
+	// builds the index on cluster-share
+	public static void buildGlobalIndex(int expNo, int totalExp, float gamma) {
+		try {
+			String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE13 + totalExp
+					+ "_" + expNo + "_" + Float.toString(gamma).replace(".", "");
+			List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+			double total = (double) totalExp;
+			pathCountList = pathCountList.subList(0,
+					(int) (((double) expNo / total) * pathCountList.size()));
+			LOGGER.log(Level.INFO, "Number of loaded path_counts: "
+					+ pathCountList.size());
+			LOGGER.log(Level.INFO, "Best score: "
+					+ pathCountList.get(0).visitCount);
+			LOGGER.log(
+					Level.INFO,
+					"Smallest score: "
+							+ pathCountList.get(pathCountList.size() - 1).visitCount);
+			LOGGER.log(Level.INFO, "Building index..");
+
+			Wiki13Indexer.buildTextIndex(pathCountList, indexPath, gamma);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	private static List<PathCountTitle> loadFilePathCountTitle(
 			String pathCountTitleFile) {
 		LOGGER.log(Level.INFO, "Loading path-count-titles..");
