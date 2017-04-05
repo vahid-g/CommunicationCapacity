@@ -15,8 +15,7 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 
 import query.ExperimentQuery;
-import query.InexQueryResult;
-import query.MsnQueryResult;
+import query.QueryResult;
 import query.QueryServices;
 import wiki_inex09.ClusterDirectoryInfo;
 
@@ -55,12 +54,12 @@ public class ClusterExperiment13 {
 				ClusterDirectoryInfo.MSN_QUERY_QID_S,
 				ClusterDirectoryInfo.MSN_QID_QREL);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<MsnQueryResult> results = QueryServices.runMsnQueries(queries,
+		List<QueryResult> results = QueryServices.runQueries(queries,
 				indexName);
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
 				+ "inex13_grid_" + (gamma * 10) + ".csv")) {
-			for (MsnQueryResult mqr : results) {
+			for (QueryResult mqr : results) {
 				fw.write(mqr.toString());
 			}
 		} catch (IOException e) {
@@ -99,13 +98,13 @@ public class ClusterExperiment13 {
 					ClusterDirectoryInfo.MSN_QID_QREL);
 			LOGGER.log(Level.INFO,
 					"Number of loaded queries: " + queries.size());
-			List<MsnQueryResult> results = QueryServices.runMsnQueries(queries,
-					indexName);
+			List<QueryResult> results = QueryServices.runQueries(
+					queries, indexName);
 			LOGGER.log(Level.INFO, "Writing results..");
 			try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
 					+ "msn13_" + totalExp + "_" + expNo + ".csv")) {
-				for (MsnQueryResult mqr : results) {
-					fw.write(mqr.fullResult() + "\n");
+				for (QueryResult mqr : results) {
+					fw.write(mqr.toString() + "\n");
 				}
 				LOGGER.log(Level.INFO, "cleanup..");
 
@@ -145,13 +144,13 @@ public class ClusterExperiment13 {
 					+ "data/inex_ld/2013-ld-adhoc-topics.xml";
 			String QREL_FILE = ClusterDirectoryInfo.CLUSTER_BASE
 					+ "data/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
-			HashMap<Integer, ExperimentQuery> queriesMap = QueryParser.buildQueries(
-					QUERY_FILE, QREL_FILE);
+			HashMap<Integer, ExperimentQuery> queriesMap = QueryParser
+					.buildQueries(QUERY_FILE, QREL_FILE);
 			List<ExperimentQuery> queries = new ArrayList<ExperimentQuery>();
 			queries.addAll(queriesMap.values());
 			LOGGER.log(Level.INFO,
 					"Number of loaded queries: " + queries.size());
-			List<InexQueryResult> results = QueryServices.runInexQueries(
+			List<QueryResult> results = QueryServices.runQueries(
 					queries, indexPath);
 			LOGGER.log(Level.INFO, "Writing results..");
 			String resultFileName = ClusterDirectoryInfo.RESULT_DIR + expNo
@@ -162,7 +161,7 @@ public class ClusterExperiment13 {
 					+ totalExp + "_" + expNo + "_top10.csv";
 			try (FileWriter fw = new FileWriter(resultFileName);
 					FileWriter fw2 = new FileWriter(top10FileName)) {
-				for (InexQueryResult iqr : results) {
+				for (QueryResult iqr : results) {
 					fw.write(iqr.toString() + "\n");
 					fw2.write(iqr.top10() + "\n");
 				}

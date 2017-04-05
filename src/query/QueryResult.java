@@ -3,13 +3,13 @@ package query;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InexQueryResult {
+public class QueryResult {
 
 	public ExperimentQuery query;
 	public List<String> topResults = new ArrayList<String>();
 	public List<String> topResultsTitle = new ArrayList<String>();
 
-	public InexQueryResult(ExperimentQuery query) {
+	public QueryResult(ExperimentQuery query) {
 		this.query = query;
 	}
 

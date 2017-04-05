@@ -35,9 +35,9 @@ public class QueryServices {
 	static final Logger LOGGER = Logger
 			.getLogger(QueryServices.class.getName());
 
-	public static List<InexQueryResult> runInexQueries(List<ExperimentQuery> queries,
+	public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
 			String indexPath) {
-		List<InexQueryResult> iqrList = new ArrayList<InexQueryResult>();
+		List<QueryResult> iqrList = new ArrayList<QueryResult>();
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
 				.get(indexPath)))) {
 			LOGGER.log(Level.INFO,
@@ -49,7 +49,7 @@ public class QueryServices {
 				Query query = buildLuceneQuery(queryDAO.text,
 						WikiIndexer.TITLE_ATTRIB, WikiIndexer.CONTENT_ATTRIB);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
-				InexQueryResult iqr = new InexQueryResult(queryDAO);
+				QueryResult iqr = new QueryResult(queryDAO);
 				for (int i = 0; i < Math.min(TOP_DOC_COUNT,
 						topDocs.scoreDocs.length); i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
@@ -64,42 +64,6 @@ public class QueryServices {
 			e.printStackTrace();
 		}
 		return iqrList;
-	}
-
-	public static List<MsnQueryResult> runMsnQueries(List<ExperimentQuery> queries,
-			String indexPath) {
-		List<MsnQueryResult> results = new ArrayList<MsnQueryResult>();
-		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
-				.get(indexPath)))) {
-			LOGGER.log(Level.INFO,
-					"Number of docs in index: " + reader.numDocs());
-			IndexSearcher searcher = new IndexSearcher(reader);
-			// searcher.setSimilarity(new BM25Similarity());
-			for (ExperimentQuery msnQuery : queries) {
-				// LOGGER.log(Level.INFO,queryCoutner++);
-				Query query = buildLuceneQuery(msnQuery.text,
-						WikiIndexer.TITLE_ATTRIB, WikiIndexer.CONTENT_ATTRIB);
-				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
-				MsnQueryResult mqr = new MsnQueryResult(msnQuery);
-				for (int i = 0; i < topDocs.scoreDocs.length; i++) {
-					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					String docName = doc.get(WikiIndexer.DOCNAME_ATTRIB);
-					if (i < 10) {
-						String title = doc.get(WikiIndexer.TITLE_ATTRIB);
-						mqr.results.add(docName + ": " + title);
-					}
-					if (msnQuery.qrels.contains(docName)) {
-						mqr.rank = i + 1;
-						break;
-					}
-					// TODO: handle multiple relevant answers
-				}
-				results.add(mqr);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return results;
 	}
 
 	public static Query buildLuceneQuery(String queryString, String... fields) {
