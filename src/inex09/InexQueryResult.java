@@ -7,6 +7,7 @@ public class InexQueryResult {
 
 	public InexQuery query;
 	public List<String> topResults = new ArrayList<String>();
+	public List<String> topResultsTitle = new ArrayList<String>();
 
 	public InexQueryResult(InexQuery query) {
 		this.query = query;
@@ -37,12 +38,12 @@ public class InexQueryResult {
 	}
 
 	public String top10() {
-		int limit = topResults.size() > 10 ? 10 : topResults.size();
+		int limit = topResultsTitle.size() > 10 ? 10 : topResultsTitle.size();
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < limit - 1; i++){
-			sb.append(topResults.get(i) + ",");
+			sb.append(topResultsTitle.get(i) + ",");
 		}
-		sb.append(topResults.get(limit - 1));
+		sb.append(topResultsTitle.get(limit - 1));
 		String resultTuples = sb.toString();
 		return query.text + "," + resultTuples;
 	}
