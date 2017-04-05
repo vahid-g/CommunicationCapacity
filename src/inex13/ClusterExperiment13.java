@@ -161,12 +161,12 @@ public class ClusterExperiment13 {
 			List<InexQueryResult> results = QueryServices.runInexQueries(
 					queries, indexPath);
 			LOGGER.log(Level.INFO, "Writing results..");
-			String resultFileName = ClusterDirectoryInfo.RESULT_DIR
-					+ "inex13_g" + Float.toString(gamma).replace(".", "-")
+			String resultFileName = ClusterDirectoryInfo.RESULT_DIR + expNo
+					+ "_g" + Float.toString(gamma).replace(".", "") + "_"
 					+ totalExp + "_" + expNo + ".csv";
-			String top10FileName = ClusterDirectoryInfo.RESULT_DIR + "inex13_g"
-					+ Float.toString(gamma).replace(".", "-") + totalExp + "_"
-					+ expNo + "_top10.csv";
+			String top10FileName = ClusterDirectoryInfo.RESULT_DIR + expNo
+					+ "_g" + Float.toString(gamma).replace(".", "") + "_"
+					+ totalExp + "_" + expNo + "_top10.csv";
 			try (FileWriter fw = new FileWriter(resultFileName);
 					FileWriter fw2 = new FileWriter(top10FileName)) {
 				for (InexQueryResult iqr : results) {
