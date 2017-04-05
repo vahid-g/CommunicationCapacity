@@ -17,7 +17,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import wiki_inex09.InexQuery;
+import query.ExperimentQuery;
 
 public class QueryParser {
 
@@ -26,8 +26,8 @@ public class QueryParser {
 				"data/queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels");
 	}
 
-	public static HashMap<Integer, InexQuery> buildQueries(String path, String qrelPath) {
-		HashMap<Integer, InexQuery> qidQueryMap = new HashMap<Integer, InexQuery>();
+	public static HashMap<Integer, ExperimentQuery> buildQueries(String path, String qrelPath) {
+		HashMap<Integer, ExperimentQuery> qidQueryMap = new HashMap<Integer, ExperimentQuery>();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(true);
 		dbf.setValidating(true);
@@ -40,7 +40,7 @@ public class QueryParser {
 				int id = Integer.parseInt(node.getAttributes()
 						.getNamedItem("id").getNodeValue());
 				String queryText = getText(findSubNode("title", node));
-				InexQuery iq = new InexQuery(id, queryText);
+				ExperimentQuery iq = new ExperimentQuery(id, queryText);
 				qidQueryMap.put(id, iq);
 			}
 		} catch (ParserConfigurationException e) {
@@ -65,8 +65,8 @@ public class QueryParser {
 					if (m.group(3).equals("1")){
 						int id = Integer.parseInt(m.group(1));
 						String rel = m.group(2);
-						InexQuery query = qidQueryMap.get(id);
-						query.relDocs.add(rel);
+						ExperimentQuery query = qidQueryMap.get(id);
+						query.qrels.add(rel);
 					}
 				} else {
 					System.out.println("regex failed!!!");

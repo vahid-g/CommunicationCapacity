@@ -14,12 +14,11 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 
+import query.ExperimentQuery;
+import query.InexQueryResult;
+import query.MsnQueryResult;
+import query.QueryServices;
 import wiki_inex09.ClusterDirectoryInfo;
-import wiki_inex09.InexQuery;
-import wiki_inex09.InexQueryResult;
-import wiki_inex09.MsnQuery;
-import wiki_inex09.MsnQueryResult;
-import wiki_inex09.QueryServices;
 
 public class ClusterExperiment13 {
 
@@ -52,7 +51,7 @@ public class ClusterExperiment13 {
 		LOGGER.log(Level.INFO, "Building index..");
 		Wiki13Indexer.buildTextIndex(pathCountList, indexName, gamma);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<MsnQuery> queries = QueryServices.loadMsnQueries(
+		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
 				ClusterDirectoryInfo.MSN_QUERY_QID_S,
 				ClusterDirectoryInfo.MSN_QID_QREL);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
@@ -95,7 +94,7 @@ public class ClusterExperiment13 {
 			// InexIndexer.buildTextIndex(pathCountList, indexName, 0.9f);
 			Wiki13Indexer.buildBoostedTextIndex(pathCountList, indexName, 0.9f);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
-			List<MsnQuery> queries = QueryServices.loadMsnQueries(
+			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
 					ClusterDirectoryInfo.MSN_QUERY_QID_B,
 					ClusterDirectoryInfo.MSN_QID_QREL);
 			LOGGER.log(Level.INFO,
@@ -146,9 +145,9 @@ public class ClusterExperiment13 {
 					+ "data/inex_ld/2013-ld-adhoc-topics.xml";
 			String QREL_FILE = ClusterDirectoryInfo.CLUSTER_BASE
 					+ "data/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
-			HashMap<Integer, InexQuery> queriesMap = QueryParser.buildQueries(
+			HashMap<Integer, ExperimentQuery> queriesMap = QueryParser.buildQueries(
 					QUERY_FILE, QREL_FILE);
-			List<InexQuery> queries = new ArrayList<InexQuery>();
+			List<ExperimentQuery> queries = new ArrayList<ExperimentQuery>();
 			queries.addAll(queriesMap.values());
 			LOGGER.log(Level.INFO,
 					"Number of loaded queries: " + queries.size());

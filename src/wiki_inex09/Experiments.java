@@ -14,6 +14,11 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 
+import query.ExperimentQuery;
+import query.InexQueryResult;
+import query.MsnQueryResult;
+import query.QueryServices;
+
 public class Experiments {
 
 	static final Logger LOGGER = Logger.getLogger(Experiments.class.getName());
@@ -72,7 +77,7 @@ public class Experiments {
 		WikiIndexer.buildIndexBoosted(pathCountSorted, indexPath, gamma);
 
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<MsnQuery> queries = QueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_B,
+		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_B,
 				ClusterDirectoryInfo.MSN_QID_QREL);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		List<MsnQueryResult> results = QueryServices.runMsnQueries(queries, indexPath);
@@ -103,7 +108,7 @@ public class Experiments {
 		LOGGER.log(Level.INFO, "Building index..");
 		WikiIndexer.buildIndexBoosted(pathCountMap, indexName, gamma);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<MsnQuery> queries = QueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_S,
+		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_S,
 				ClusterDirectoryInfo.MSN_QID_QREL);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		List<MsnQueryResult> results = QueryServices.runMsnQueries(queries, indexName);
@@ -138,7 +143,7 @@ public class Experiments {
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE09 + "index_inex_" + expNo;
 		WikiIndexer.buildIndexBoosted(pathCountSorted, indexName);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<InexQuery> queries = QueryServices.loadInexQueries(ClusterDirectoryInfo.INEX9_QUERY_FILE);
+		List<ExperimentQuery> queries = QueryServices.loadInexQueries(ClusterDirectoryInfo.INEX9_QUERY_FILE);
 		queries.addAll(QueryServices.loadInexQueries(ClusterDirectoryInfo.INEX10_QUERY_FILE));
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		List<InexQueryResult> iqrList = QueryServices.runInexQueries(queries, indexName);
