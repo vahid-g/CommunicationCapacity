@@ -26,17 +26,18 @@ public class ClusterExperiment13 {
 
 	public static void main(String[] args) {
 
-		// float gamma = Float.parseFloat(args[0]);
-		// gridSearchExperiment(gamma);
+		float gamma = Float.parseFloat(args[0]);
+		gridSearchExperiment(gamma);
 
-		int expNo = Integer.parseInt(args[0]);
-		int totalExpNo = Integer.parseInt(args[1]);
-		float gamma = Float.parseFloat(args[2]);
-		long start_t = System.currentTimeMillis();
-		expTextInex13(expNo, totalExpNo, gamma);
-		long end_t = System.currentTimeMillis();
-		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
-				+ (end_t - start_t) / 60000 + " minutes");
+		// int expNo = Integer.parseInt(args[0]);
+		// int totalExpNo = Integer.parseInt(args[1]);
+		// // float gamma = Float.parseFloat(args[2]);
+		// long start_t = System.currentTimeMillis();
+		// // expTextInex13(expNo, totalExpNo, gamma);
+		// expText(expNo, totalExpNo);
+		// long end_t = System.currentTimeMillis();
+		// LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
+		// + (end_t - start_t) / 60000 + " minutes");
 
 	}
 
@@ -50,15 +51,20 @@ public class ClusterExperiment13 {
 		LOGGER.log(Level.INFO, "Building index..");
 		Wiki13Indexer.buildTextIndex(pathCountList, indexName, gamma);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
-				ClusterDirectoryInfo.MSN_QUERY_QID_S,
-				ClusterDirectoryInfo.MSN_QID_QREL);
+		// List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
+		// ClusterDirectoryInfo.MSN_QUERY_QID_S,
+		// ClusterDirectoryInfo.MSN_QID_QREL);
+		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
+				ClusterDirectoryInfo.INEX13_QUERY_FILE,
+				ClusterDirectoryInfo.INEX13_QREL_FILE);
+		queries = queries.subList(0, queries.size() / 5);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		List<QueryResult> results = QueryServices
 				.runQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
-				+ "inex13_grid_" + (gamma * 10) + ".csv")) {
+				+ "inex13_grid_" + Float.toString(gamma).replace(".", "")
+				+ ".csv")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.toString());
 			}
@@ -72,10 +78,9 @@ public class ClusterExperiment13 {
 			e.printStackTrace();
 		}
 	}
-
 	public static void expText(int expNo, int totalExp) {
-		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "index13_"
-				+ expNo;
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13
+				+ "msn_index13_" + expNo;
 		try {
 			List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 			double total = (double) totalExp;
@@ -90,8 +95,9 @@ public class ClusterExperiment13 {
 					"Smallest score: "
 							+ pathCountList.get(pathCountList.size() - 1).visitCount);
 			LOGGER.log(Level.INFO, "Building index..");
-			// InexIndexer.buildTextIndex(pathCountList, indexName, 0.9f);
-			Wiki13Indexer.buildBoostedTextIndex(pathCountList, indexName, 0.9f);
+			Wiki13Indexer.buildTextIndex(pathCountList, indexName, 0.9f);
+			// Wiki13Indexer.buildBoostedTextIndex(pathCountList, indexName,
+			// 0.9f);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
 			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
 					ClusterDirectoryInfo.MSN_QUERY_QID_B,
@@ -106,13 +112,12 @@ public class ClusterExperiment13 {
 				for (QueryResult mqr : results) {
 					fw.write(mqr.toString() + "\n");
 				}
-				LOGGER.log(Level.INFO, "cleanup..");
-
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		} finally {
 			try {
+				LOGGER.log(Level.INFO, "cleanup..");
 				FileUtils.deleteDirectory(new File(indexName));
 			} catch (IOException e) {
 				e.printStackTrace();

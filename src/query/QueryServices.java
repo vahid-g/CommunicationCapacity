@@ -161,7 +161,7 @@ public class QueryServices {
 						qrels.add(rel);
 					}
 				} else {
-					System.out.println("regex failed!!!");
+					LOGGER.log(Level.WARNING, "regex failed for line: " + line);
 				}
 			}
 		}
@@ -179,7 +179,8 @@ public class QueryServices {
 						.getNamedItem("id").getNodeValue());
 				String queryText = getText(findSubNode("title", node));
 				List<String> qrels = qidQrels.get(qid);
-				ExperimentQuery iq = new ExperimentQuery(qid, queryText, qrels);
+				ExperimentQuery iq = new ExperimentQuery(qid, queryText);
+				iq.addQrels(qrels);
 				queryList.add(iq);
 			}
 		} catch (ParserConfigurationException e) {

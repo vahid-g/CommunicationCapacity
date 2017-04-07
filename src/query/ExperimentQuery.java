@@ -8,24 +8,18 @@ public class ExperimentQuery {
 	int id;
 	public String text;
 	public List<String> qrels;
-	
-	public ExperimentQuery(int id, String text){
+
+	public ExperimentQuery(int id, String text) {
 		this.id = id;
 		this.text = text;
 		qrels = new ArrayList<String>();
 	}
-	
-	public ExperimentQuery(int id, String text, List<String> qrels){
-		this.id = id;
-		this.text = text;
-		this.qrels = qrels;
+
+	public void addQrels(List<String> qrels) {
+		if (qrels != null)
+			this.qrels.addAll(qrels);
 	}
-	
-	public ExperimentQuery(String text, String relDoc) {
-		this.text = text;
-		this.qrels.add(relDoc);
-	}
-	
+
 	public void setQrels(List<String> qrels) {
 		this.qrels = qrels;
 	}
