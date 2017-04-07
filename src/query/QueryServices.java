@@ -124,7 +124,7 @@ public class QueryServices {
 					ExperimentQuery query = new ExperimentQuery(
 							Integer.parseInt(qid), text);
 					List<String> qrels = qidQrelMap.get(qid);
-					query.setQrels(qrels);
+					query.addQrels(qrels);
 					queryList.add(query);
 				}
 			}

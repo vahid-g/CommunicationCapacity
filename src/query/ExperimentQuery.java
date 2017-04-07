@@ -20,10 +20,6 @@ public class ExperimentQuery {
 			this.qrels.addAll(qrels);
 	}
 
-	public void setQrels(List<String> qrels) {
-		this.qrels = qrels;
-	}
-
 	public String getFirstRelDoc() {
 		return qrels.get(0);
 	}
