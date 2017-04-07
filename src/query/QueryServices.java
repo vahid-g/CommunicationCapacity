@@ -147,8 +147,7 @@ public class QueryServices {
 				Pattern ptr = Pattern.compile("(\\d+)	Q0	(\\d+)	(1|0)");
 				Matcher m = ptr.matcher(line);
 				if (m.find()) {
-					if (m.group(3).equals("1")) { // sanity check that this is
-													// relevant answer
+					if (m.group(3).equals("1")) { 
 						Integer qid = Integer.parseInt(m.group(1));
 						String rel = m.group(2);
 						List<String> qrels;
@@ -181,6 +180,9 @@ public class QueryServices {
 				List<String> qrels = qidQrels.get(qid);
 				ExperimentQuery iq = new ExperimentQuery(qid, queryText);
 				iq.addQrels(qrels);
+				if (qrels == null){
+					LOGGER.log(Level.SEVERE, "no qrels for query: " + iq.id + " " + iq.text);
+				}
 				queryList.add(iq);
 			}
 		} catch (ParserConfigurationException e) {

@@ -44,6 +44,7 @@ public class ClusterExperiment13 {
 	static void gridSearchExperiment(float gamma) {
 		// Note that the path count should be sorted!
 		List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+		pathCountList = pathCountList.subList(0, pathCountList.size()/10);
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + pathCountList.size());
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13
