@@ -140,7 +140,7 @@ public class QueryServices {
 			String qrelPath) {
 		// building qid -> qrels map
 		HashMap<Integer, List<String>> qidQrels = new HashMap<Integer, List<String>>();
-		try (Scanner sc = new Scanner(qrelPath)) {
+		try (Scanner sc = new Scanner(new File(qrelPath))) {
 			String line;
 			while (sc.hasNextLine()) {
 				line = sc.nextLine();
@@ -163,6 +163,8 @@ public class QueryServices {
 					LOGGER.log(Level.WARNING, "regex failed for line: " + line);
 				}
 			}
+		} catch (FileNotFoundException e) {
+			LOGGER.log(Level.SEVERE, "QREL file not found!");
 		}
 
 		// loading queries
