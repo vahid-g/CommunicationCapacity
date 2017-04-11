@@ -26,25 +26,25 @@ public class ClusterExperiment13 {
 
 	public static void main(String[] args) {
 
-		float gamma = Float.parseFloat(args[0]);
-		gridSearchExperiment(gamma);
+		// float gamma = Float.parseFloat(args[0]);
+		// gridSearchExperiment(gamma);
 
-		// int expNo = Integer.parseInt(args[0]);
-		// int totalExpNo = Integer.parseInt(args[1]);
-		// // float gamma = Float.parseFloat(args[2]);
-		// long start_t = System.currentTimeMillis();
-		// // expTextInex13(expNo, totalExpNo, gamma);
+		int expNo = Integer.parseInt(args[0]);
+		int totalExpNo = Integer.parseInt(args[1]);
+		float gamma = 0.15f; // Float.parseFloat(args[2]);
+		long start_t = System.currentTimeMillis();
+		expTextInex13(expNo, totalExpNo, gamma);
 		// expText(expNo, totalExpNo);
-		// long end_t = System.currentTimeMillis();
-		// LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
-		// + (end_t - start_t) / 60000 + " minutes");
+		long end_t = System.currentTimeMillis();
+		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
+				+ (end_t - start_t) / 60000 + " minutes");
 
 	}
 
 	static void gridSearchExperiment(float gamma) {
 		// Note that the path count should be sorted!
 		List<PathCountTitle> pathCountList = loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
-		pathCountList = pathCountList.subList(0, pathCountList.size()/10);
+		pathCountList = pathCountList.subList(0, pathCountList.size() / 10);
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + pathCountList.size());
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13
@@ -143,7 +143,6 @@ public class ClusterExperiment13 {
 					"Smallest score: "
 							+ pathCountList.get(pathCountList.size() - 1).visitCount);
 			LOGGER.log(Level.INFO, "Building index..");
-
 			Wiki13Indexer.buildTextIndex(pathCountList, indexPath, gamma);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
 			HashMap<Integer, ExperimentQuery> queriesMap = QueryServices
@@ -156,12 +155,8 @@ public class ClusterExperiment13 {
 			List<QueryResult> results = QueryServices.runQueries(queries,
 					indexPath);
 			LOGGER.log(Level.INFO, "Writing results..");
-			String resultFileName = ClusterDirectoryInfo.RESULT_DIR + expNo
-					+ "_g" + Float.toString(gamma).replace(".", "") + "_"
-					+ totalExp + "_" + expNo + ".csv";
-			String top10FileName = ClusterDirectoryInfo.RESULT_DIR + expNo
-					+ "_g" + Float.toString(gamma).replace(".", "") + "_"
-					+ totalExp + "_" + expNo + "_top10.csv";
+			String resultFileName = ClusterDirectoryInfo.RESULT_DIR + expNo + ".csv";
+			String top10FileName = ClusterDirectoryInfo.RESULT_DIR + expNo + ".top";
 			try (FileWriter fw = new FileWriter(resultFileName);
 					FileWriter fw2 = new FileWriter(top10FileName)) {
 				for (QueryResult iqr : results) {
