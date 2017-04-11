@@ -67,7 +67,7 @@ public class ClusterExperiment13 {
 				+ "inex13_grid_" + Float.toString(gamma).replace(".", "")
 				+ ".csv")) {
 			for (QueryResult mqr : results) {
-				fw.write(mqr.toString());
+				fw.write(mqr.toString() + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
