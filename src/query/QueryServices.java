@@ -45,6 +45,12 @@ public class QueryServices {
 
 	static final Logger LOGGER = Logger
 			.getLogger(QueryServices.class.getName());
+	
+	public static void main(String[] args) {
+		String queryFile = "data/queries/inex_ld/2013-ld-adhoc-topics.xml";
+		String qrelsFile = "data/queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
+		loadInexQueries(queryFile, qrelsFile);
+	}
 
 	public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
 			String indexPath) {
