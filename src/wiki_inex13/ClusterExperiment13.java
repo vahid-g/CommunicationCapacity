@@ -34,11 +34,10 @@ public class ClusterExperiment13 {
 		float gamma = 0.15f; // Float.parseFloat(args[2]);
 		long start_t = System.currentTimeMillis();
 		expTextInex13(expNo, totalExpNo, gamma);
-		// expText(expNo, totalExpNo);
+//		expText(expNo, totalExpNo);
 		long end_t = System.currentTimeMillis();
 		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
 				+ (end_t - start_t) / 60000 + " minutes");
-
 	}
 
 	static void gridSearchExperiment(float gamma) {
@@ -155,8 +154,10 @@ public class ClusterExperiment13 {
 			List<QueryResult> results = QueryServices.runQueries(queries,
 					indexPath);
 			LOGGER.log(Level.INFO, "Writing results..");
-			String resultFileName = ClusterDirectoryInfo.RESULT_DIR + expNo + ".csv";
-			String top10FileName = ClusterDirectoryInfo.RESULT_DIR + expNo + ".top";
+			String resultFileName = ClusterDirectoryInfo.RESULT_DIR + expNo
+					+ ".csv";
+			String top10FileName = ClusterDirectoryInfo.RESULT_DIR + expNo
+					+ ".top";
 			try (FileWriter fw = new FileWriter(resultFileName);
 					FileWriter fw2 = new FileWriter(top10FileName)) {
 				for (QueryResult iqr : results) {
