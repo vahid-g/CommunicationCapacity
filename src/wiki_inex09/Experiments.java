@@ -77,7 +77,7 @@ public class Experiments {
 				+ expNo;
 		LOGGER.log(Level.INFO, "Building index..");
 		// WikiIndexer.buildIndexWless(pathCountSorted, indexPath, gamma);
-		WikiIndexer.buildIndexBoosted(pathCountSorted, indexPath, gamma);
+		new WikiIndexer().buildIndexBoosted(pathCountSorted, indexPath, gamma);
 
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
@@ -112,7 +112,7 @@ public class Experiments {
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13
 				+ "inex09_grid_" + (gamma * 10);
 		LOGGER.log(Level.INFO, "Building index..");
-		WikiIndexer.buildIndexBoosted(pathCountMap, indexName, gamma);
+		new WikiIndexer().buildIndexBoosted(pathCountMap, indexName, gamma);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
 				ClusterDirectoryInfo.MSN_QUERY_QID_S,
@@ -152,7 +152,7 @@ public class Experiments {
 		LOGGER.log(Level.INFO, "Building index..");
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE09
 				+ "index_inex_" + expNo;
-		WikiIndexer.buildIndexBoosted(pathCountSorted, indexName);
+		new WikiIndexer().buildIndexBoosted(pathCountSorted, indexName, 0.5f);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				ClusterDirectoryInfo.INEX9_QUERY_FILE,

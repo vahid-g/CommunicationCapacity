@@ -1,107 +1,30 @@
 package wiki_inex09;
 
+import indexing.GeneralIndexer;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.search.similarities.BM25Similarity;
-import org.apache.lucene.store.FSDirectory;
 
-public class WikiIndexer {
+public class WikiIndexer extends GeneralIndexer {
 
 	public static final String CONTENT_ATTRIB = "content";
 	public static final String DOCNAME_ATTRIB = "name";
 	public static final String TITLE_ATTRIB = "title";
 
-	private static IndexWriterConfig getConfig() {
-		IndexWriterConfig config;
-		config = new IndexWriterConfig(new StandardAnalyzer());
-		config.setOpenMode(OpenMode.CREATE);
-		config.setRAMBufferSizeMB(1024.00);
-		config.setSimilarity(new BM25Similarity());
-		return config;
-	}
-
-	static void buildIndexBoosted(Map<String, Integer> fileCountMap,
-			String indexPath) {
-		buildIndexBoosted(fileCountMap, indexPath, 0.5f);
-	}
-
-	static void buildIndexBoosted(Map<String, Integer> fileCountMap,
-			String indexPath, float gamma) {
-		int N = 0;
-		for (float n_i : fileCountMap.values()) {
-			N += n_i;
-		}
-		int V = fileCountMap.size();
-		float alpha = 1.0f;
-
-		FSDirectory directory = null;
-		IndexWriter writer = null;
-		try {
-			directory = FSDirectory.open(Paths.get(indexPath));
-			writer = new IndexWriter(directory, getConfig());
-			for (String filePath : fileCountMap.keySet()) {
-				float count = (float) fileCountMap.get(filePath);
-				float smoothed = (count + alpha) / (N + V * alpha);
-				indexXmlFileWithBoosting(new File(filePath), writer, smoothed,
-						gamma);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (writer != null)
-				try {
-					writer.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			if (directory != null)
-				directory.close();
-		}
-	}
-
-	static void buildIndexWless(Map<String, Integer> fileCountMap,
-			String indexPath, float gamma) {
-		FSDirectory directory = null;
-		IndexWriter writer = null;
-		try {
-			directory = FSDirectory.open(Paths.get(indexPath));
-			writer = new IndexWriter(directory, getConfig());
-			for (String filePath : fileCountMap.keySet()) {
-				indexXmlFileWithBoosting(new File(filePath), writer, 1, gamma);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (writer != null)
-				try {
-					writer.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			if (directory != null)
-				directory.close();
-		}
-	}
-
-	private static void indexXmlFileWithBoosting(File file, IndexWriter writer,
-			float weight, float gamma) {
+	protected void indexXmlFile(File file, IndexWriter writer, float weight,
+			float gamma) {
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];
 			fis.read(data);
