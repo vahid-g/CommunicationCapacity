@@ -8,9 +8,11 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -45,7 +47,7 @@ public class QueryServices {
 
 	static final Logger LOGGER = Logger
 			.getLogger(QueryServices.class.getName());
-	
+
 	public static void main(String[] args) {
 		String queryFile = "data/queries/inex_ld/2013-ld-adhoc-topics.xml";
 		String qrelsFile = "data/queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
@@ -96,42 +98,27 @@ public class QueryServices {
 		return query;
 	}
 
-	public static List<ExperimentQuery> loadMsnQueries(String queryFile,
-			String qrelFile) {
-		Map<String, List<String>> qidQrelMap = new HashMap<String, List<String>>();
-		try (BufferedReader br = new BufferedReader(new FileReader(qrelFile))) {
-			String line;
-			while ((line = br.readLine()) != null) {
-				String qid = line.split(" ")[0];
-				String qrel = line.split(" ")[2];
-				if (qidQrelMap.containsKey(qid)) {
-					List<String> rels = qidQrelMap.get(qid);
-					rels.add(qrel);
-				} else {
-					List<String> rels = new ArrayList<String>();
-					rels.add(qrel);
-					qidQrelMap.put(qid, rels);
-				}
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public static List<ExperimentQuery> loadMsnQueries(String queryPath,
+			String qrelPath) {
+		Map<Integer, Set<String>> qidQrelMap = loadQrelFile(qrelPath);
 		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
-		try (BufferedReader br = new BufferedReader(new FileReader(queryFile))) {
+		try (BufferedReader br = new BufferedReader(new FileReader(queryPath))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				int index = line.lastIndexOf(" ");
 				String text = line.substring(0, index).replace(",", "")
 						.replace("\"", "");
-				String qid = line.substring(index + 1);
+				Integer qid = Integer.parseInt(line.substring(index + 1));
 				if (qidQrelMap.containsKey(qid)) {
-					ExperimentQuery query = new ExperimentQuery(
-							Integer.parseInt(qid), text);
-					List<String> qrels = qidQrelMap.get(qid);
-					query.addQrels(qrels);
-					queryList.add(query);
+					Set<String> qrels = qidQrelMap.get(qid);
+					if (qrels == null) {
+						LOGGER.log(Level.SEVERE, "no qrels for query: " + qid
+								+ ":" + text + "in file: " + qrelPath);
+					} else {
+						ExperimentQuery iq = new ExperimentQuery(qid, text,
+								qrels);
+						queryList.add(iq);
+					}
 				}
 			}
 		} catch (FileNotFoundException e) {
@@ -145,33 +132,7 @@ public class QueryServices {
 	public static List<ExperimentQuery> loadInexQueries(String path,
 			String qrelPath) {
 		// building qid -> qrels map
-		HashMap<Integer, List<String>> qidQrels = new HashMap<Integer, List<String>>();
-		try (Scanner sc = new Scanner(new File(qrelPath))) {
-			String line;
-			while (sc.hasNextLine()) {
-				line = sc.nextLine();
-				Pattern ptr = Pattern.compile("(\\d+)	Q0	(\\d+)	(1|0)");
-				Matcher m = ptr.matcher(line);
-				if (m.find()) {
-					if (m.group(3).equals("1")) { 
-						Integer qid = Integer.parseInt(m.group(1));
-						String rel = m.group(2);
-						List<String> qrels;
-						if (qidQrels.containsKey(qid)) {
-							qrels = qidQrels.get(qid);
-						} else {
-							qrels = new ArrayList<String>();
-							qidQrels.put(qid, qrels);
-						}
-						qrels.add(rel);
-					}
-				} else {
-					LOGGER.log(Level.WARNING, "regex failed for line: " + line);
-				}
-			}
-		} catch (FileNotFoundException e) {
-			LOGGER.log(Level.SEVERE, "QREL file not found!");
-		}
+		HashMap<Integer, Set<String>> qidQrels = loadQrelFile(qrelPath);
 
 		// loading queries
 		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
@@ -185,13 +146,15 @@ public class QueryServices {
 				int qid = Integer.parseInt(node.getAttributes()
 						.getNamedItem("id").getNodeValue());
 				String queryText = getText(findSubNode("title", node));
-				List<String> qrels = qidQrels.get(qid);
-				ExperimentQuery iq = new ExperimentQuery(qid, queryText);
-				iq.addQrels(qrels);
-				if (qrels == null){
-					LOGGER.log(Level.SEVERE, "no qrels for query: " + iq.id + " " + iq.text);
+				Set<String> qrels = qidQrels.get(qid);
+				if (qrels == null) {
+					LOGGER.log(Level.SEVERE, "no qrels for query: " + qid + ":"
+							+ queryText + "in file: " + qrelPath);
+				} else {
+					ExperimentQuery iq = new ExperimentQuery(qid, queryText,
+							qrels);
+					queryList.add(iq);
 				}
-				queryList.add(iq);
 			}
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
@@ -202,6 +165,37 @@ public class QueryServices {
 		}
 
 		return queryList;
+	}
+
+	private static HashMap<Integer, Set<String>> loadQrelFile(String path) {
+		HashMap<Integer, Set<String>> qidQrels = new HashMap<Integer, Set<String>>();
+		try (Scanner sc = new Scanner(new File(path))) {
+			String line;
+			while (sc.hasNextLine()) {
+				line = sc.nextLine();
+				Pattern ptr = Pattern.compile("(\\d+)\\sQ0\\s(\\d+)\\s(1|0)");
+				Matcher m = ptr.matcher(line);
+				if (m.find()) {
+					if (m.group(3).equals("1")) {
+						Integer qid = Integer.parseInt(m.group(1));
+						String rel = m.group(2);
+						Set<String> qrels = qidQrels.get(qid);
+						if (qrels == null) {
+							qrels = new HashSet<String>();
+							qrels.add(rel);
+							qidQrels.put(qid, qrels);
+						} else {
+							qrels.add(rel);
+						}
+					}
+				} else {
+					LOGGER.log(Level.WARNING, "regex failed for line: " + line);
+				}
+			}
+		} catch (FileNotFoundException e) {
+			LOGGER.log(Level.SEVERE, "QREL file not found!");
+		}
+		return qidQrels;
 	}
 
 	public static HashMap<Integer, ExperimentQuery> buildQueries(String path,
@@ -278,7 +272,7 @@ public class QueryServices {
 		return null;
 	}
 
-	static String getText(Node node) {
+	private static String getText(Node node) {
 		StringBuffer result = new StringBuffer();
 		if (!node.hasChildNodes())
 			return "";

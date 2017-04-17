@@ -1,40 +1,43 @@
 package query;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ExperimentQuery {
 
-	int id;
+	Integer id;
 	public String text;
-	public List<String> qrels;
+	public Set<String> qrels;
 
 	public ExperimentQuery(int id, String text) {
 		this.id = id;
 		this.text = text;
-		qrels = new ArrayList<String>();
+		qrels = new HashSet<String>();
 	}
 
-	public void addQrels(List<String> qrels) {
-		if (qrels != null)
-			this.qrels.addAll(qrels);
-	}
-
-	public String getFirstRelDoc() {
-		return qrels.get(0);
+	public ExperimentQuery(int id, String text, Set<String> qrels) {
+		this.id = id;
+		this.text = text;
+		this.qrels = qrels;
 	}
 
 	public void addRelevantAnswer(String relDoc) {
 		qrels.add(relDoc);
 	}
 
+	public Set<String> getRelDocs() {
+		return qrels;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		ExperimentQuery query = (ExperimentQuery) obj;
+		return this.id.equals(query.id);
+	};
+
 	@Override
 	public String toString() {
 		return "query: " + this.text;
-	}
-
-	public List<String> getRelDocs() {
-		return qrels;
 	}
 
 }

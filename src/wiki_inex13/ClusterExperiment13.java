@@ -29,15 +29,21 @@ public class ClusterExperiment13 {
 		// float gamma = Float.parseFloat(args[0]);
 		// gridSearchExperiment(gamma);
 
-		int expNo = Integer.parseInt(args[0]);
-		int totalExpNo = Integer.parseInt(args[1]);
-		float gamma = 0.15f; // Float.parseFloat(args[2]);
-		long start_t = System.currentTimeMillis();
-		expTextInex13(expNo, totalExpNo, gamma);
-//		expText(expNo, totalExpNo);
-		long end_t = System.currentTimeMillis();
-		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
-				+ (end_t - start_t) / 60000 + " minutes");
+		// int expNo = Integer.parseInt(args[0]);
+		// int totalExpNo = Integer.parseInt(args[1]);
+		// float gamma = 0.15f; // Float.parseFloat(args[2]);
+		// long start_t = System.currentTimeMillis();
+		// // expTextInex13(expNo, totalExpNo, gamma);
+		// // expText(expNo, totalExpNo);
+		// buildGlobalIndex(expNo, totalExpNo, gamma);
+		// long end_t = System.currentTimeMillis();
+		// LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
+		// + (end_t - start_t) / 60000 + " minutes");
+
+		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
+				"data/queries/inex/all-topics.xml",
+				"data/queries/inex/all-topics.qrels");
+		System.out.println(queries.size());
 	}
 
 	static void gridSearchExperiment(float gamma) {
@@ -198,7 +204,6 @@ public class ClusterExperiment13 {
 					"Smallest score: "
 							+ pathCountList.get(pathCountList.size() - 1).visitCount);
 			LOGGER.log(Level.INFO, "Building index..");
-
 			Wiki13Indexer.buildTextIndex(pathCountList, indexPath, gamma);
 		} catch (Exception e) {
 			e.printStackTrace();
