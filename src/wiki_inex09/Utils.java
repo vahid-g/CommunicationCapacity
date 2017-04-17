@@ -20,8 +20,7 @@ import java.util.logging.Logger;
 
 public class Utils {
 
-	static final Logger LOGGER = Logger.getLogger(Utils.class
-			.getName());
+	static final Logger LOGGER = Logger.getLogger(Utils.class.getName());
 	static {
 		LOGGER.setUseParentHandlers(false);
 		Handler handler = new ConsoleHandler();
@@ -29,7 +28,7 @@ public class Utils {
 		LOGGER.addHandler(handler);
 		LOGGER.setLevel(Level.ALL);
 	}
-	
+
 	public static List<String> addPrefix(List<String> list, String pref) {
 		for (int i = 0; i < list.size(); i++) {
 			String s = list.get(i);
@@ -149,7 +148,7 @@ public class Utils {
 		}
 	}
 
-	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(
+	public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V> sortByValue(
 			Map<K, V> map) {
 		List<Map.Entry<K, V>> list = new LinkedList<Map.Entry<K, V>>(
 				map.entrySet());
@@ -159,13 +158,13 @@ public class Utils {
 			}
 		});
 
-		Map<K, V> result = new LinkedHashMap<K, V>();
+		LinkedHashMap<K, V> result = new LinkedHashMap<K, V>();
 		for (Map.Entry<K, V> entry : list) {
 			result.put(entry.getKey(), entry.getValue());
 		}
 		return result;
 	}
-	
+
 	public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V> sortByValue(
 			Map<K, V> map, int count) {
 		List<Map.Entry<K, V>> list = new LinkedList<Map.Entry<K, V>>(
@@ -176,18 +175,21 @@ public class Utils {
 			}
 		});
 		LOGGER.log(Level.INFO, "Highest weight: " + list.get(0).getValue());
-		LOGGER.log(Level.INFO, "Lowest weight: " + list.get(list.size()-1).getValue());
+		LOGGER.log(Level.INFO, "Lowest weight: "
+				+ list.get(list.size() - 1).getValue());
 		LinkedHashMap<K, V> result = new LinkedHashMap<K, V>();
 		int i = 0;
-		LOGGER.log(Level.INFO, "Largest added weight: " + list.get(0).getValue());
+		LOGGER.log(Level.INFO, "Largest added weight: "
+				+ list.get(0).getValue());
 		for (Map.Entry<K, V> entry : list) {
 			if (i++ > count) {
-				LOGGER.log(Level.INFO, "Least added weight: " + entry.getValue());
+				LOGGER.log(Level.INFO,
+						"Least added weight: " + entry.getValue());
 				break;
 			}
 			result.put(entry.getKey(), entry.getValue());
 		}
 		return result;
 	}
-	
+
 }

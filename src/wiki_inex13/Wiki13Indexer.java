@@ -1,5 +1,7 @@
 package wiki_inex13;
 
+import indexing.InexFileMetadata;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -41,12 +43,12 @@ public class Wiki13Indexer {
 		return config;
 	}
 
-	public static void buildBoostedIndex(List<PathCountTitle> fileCountList,
+	public static void buildBoostedIndex(List<InexFileMetadata> fileCountList,
 			String indexPath, float gamma) {
 		// computing smoothing params
 		int N = 0;
-		for (PathCountTitle entry : fileCountList) {
-			N += entry.visitCount;
+		for (InexFileMetadata entry : fileCountList) {
+			N += entry.weight;
 		}
 		int V = fileCountList.size();
 		float alpha = 1.0f;
@@ -58,8 +60,8 @@ public class Wiki13Indexer {
 			directory = FSDirectory.open(Paths.get(indexPath));
 			IndexWriterConfig config = getIndexWriterConfig();
 			writer = new IndexWriter(directory, config);
-			for (PathCountTitle entry : fileCountList) {
-				float count = (float) entry.visitCount;
+			for (InexFileMetadata entry : fileCountList) {
+				float count = (float) entry.weight;
 				float smoothed = (count + alpha) / (N + V * alpha);
 				Wiki13Indexer.indexXmlFileWithWeight(new File(entry.path),
 						writer, smoothed, gamma);
@@ -119,12 +121,12 @@ public class Wiki13Indexer {
 		}
 	}
 
-	public static void buildBoostedTextIndex(List<PathCountTitle> fileCountList,
+	public static void buildBoostedTextIndex(List<InexFileMetadata> fileCountList,
 			String indexPath, float gamma) {
 		// computing smoothing params
 		int N = 0;
-		for (PathCountTitle entry : fileCountList) {
-			N += entry.visitCount;
+		for (InexFileMetadata entry : fileCountList) {
+			N += entry.weight;
 		}
 		int V = fileCountList.size();
 		float alpha = 1.0f;
@@ -136,8 +138,8 @@ public class Wiki13Indexer {
 			directory = FSDirectory.open(Paths.get(indexPath));
 			IndexWriterConfig config = getIndexWriterConfig();
 			writer = new IndexWriter(directory, config);
-			for (PathCountTitle entry : fileCountList) {
-				float count = (float) entry.visitCount;
+			for (InexFileMetadata entry : fileCountList) {
+				float count = (float) entry.weight;
 				float smoothed = (count + alpha) / (N + V * alpha);
 				indexTxtFileWithWeight(entry, writer, smoothed, gamma);
 			}
@@ -157,7 +159,7 @@ public class Wiki13Indexer {
 	}
 
 	public static void buildTextIndex(
-			List<PathCountTitle> fileCountList, String indexPath, float gamma) {
+			List<InexFileMetadata> fileCountList, String indexPath, float gamma) {
 		// indexing
 		FSDirectory directory = null;
 		IndexWriter writer = null;
@@ -165,7 +167,7 @@ public class Wiki13Indexer {
 			directory = FSDirectory.open(Paths.get(indexPath));
 			IndexWriterConfig config = getIndexWriterConfig();
 			writer = new IndexWriter(directory, config);
-			for (PathCountTitle entry : fileCountList) {
+			for (InexFileMetadata entry : fileCountList) {
 				indexTxtFileWithWeight(entry, writer, 1, gamma);
 			}
 		} catch (IOException e) {
@@ -183,7 +185,7 @@ public class Wiki13Indexer {
 		}
 	}
 
-	static void indexTxtFileWithWeight(PathCountTitle pct, IndexWriter writer,
+	static void indexTxtFileWithWeight(InexFileMetadata pct, IndexWriter writer,
 			float fieldBoost, float gamma) {
 		File file = new File(pct.path);
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
