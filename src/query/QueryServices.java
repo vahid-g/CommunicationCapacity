@@ -163,7 +163,6 @@ public class QueryServices {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 		return queryList;
 	}
 
