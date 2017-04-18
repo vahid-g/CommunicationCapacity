@@ -58,7 +58,6 @@ public class Wiki09Experiments {
 	 * @param gamma
 	 *            : this is the weight of title score vs. body score
 	 * @param totalCount
-	 *            TODO
 	 */
 	public static void expMsn(int expNo, float gamma, int totalCount) {
 		// file should be sorted
@@ -67,11 +66,11 @@ public class Wiki09Experiments {
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + fileList.size());
 		LOGGER.log(Level.INFO, "Sorting files..");
-		double doubleCount = (double) totalCount;
-		int subsetSize = (int) (fileList.size() * (expNo / doubleCount));
+		LOGGER.log(Level.INFO, "Building index..");
 		String indexPath = ClusterDirectoryInfo.LOCAL_INDEX_BASE09 + "index09_"
 				+ expNo;
-		LOGGER.log(Level.INFO, "Building index..");
+		double doubleCount = (double) totalCount;
+		int subsetSize = (int) (fileList.size() * (expNo / doubleCount));
 		new Wiki09Indexer().buildIndex(fileList.subList(0, subsetSize),
 				indexPath, gamma);
 		LOGGER.log(Level.INFO, "Loading and running queries..");

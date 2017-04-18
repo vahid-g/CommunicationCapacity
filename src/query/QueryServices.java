@@ -172,7 +172,7 @@ public class QueryServices {
 			String line;
 			while (sc.hasNextLine()) {
 				line = sc.nextLine();
-				Pattern ptr = Pattern.compile("(\\d+)\\sQ0\\s(\\d+)\\s(1|0)");
+				Pattern ptr = Pattern.compile("(\\d+)\\sQ0\\s(\\w+)\\s(1|0)");
 				Matcher m = ptr.matcher(line);
 				if (m.find()) {
 					if (m.group(3).equals("1")) {

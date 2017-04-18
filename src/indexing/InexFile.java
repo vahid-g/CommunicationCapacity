@@ -47,8 +47,13 @@ public class InexFile implements Comparable<InexFile> {
 					String[] fields = line.split(",");
 					String path = ClusterDirectoryInfo.CLUSTER_BASE + fields[0];
 					Integer count = Integer.parseInt(fields[1].trim());
-					String title = fields[2].trim();
-					pathCountList.add(new InexFile(path, count, title));
+					if (fields.length == 3){
+						String title = fields[2].trim();
+						pathCountList.add(new InexFile(path, count, title));
+					} else {
+						pathCountList.add(new InexFile(path, count));
+					}
+					
 				} catch (Exception e) {
 					Wiki13Experiment.LOGGER.log(Level.WARNING, "Couldn't read PathCountTitle: "
 							+ line + " cause: " + e.toString());
@@ -60,6 +65,6 @@ public class InexFile implements Comparable<InexFile> {
 			e.printStackTrace();
 		}
 		return pathCountList;
-	}
+	}	
 	
 }
