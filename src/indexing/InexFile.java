@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-import wiki_inex09.ClusterDirectoryInfo;
 import wiki_inex13.Wiki13Experiment;
 
 public class InexFile implements Comparable<InexFile> {
@@ -45,8 +44,8 @@ public class InexFile implements Comparable<InexFile> {
 					if (!line.contains(","))
 						continue;
 					String[] fields = line.split(",");
-					String path = ClusterDirectoryInfo.CLUSTER_BASE + fields[0];
-					Integer count = Integer.parseInt(fields[1].trim());
+					String path = fields[0];
+					Double count = Double.parseDouble(fields[1].trim());
 					if (fields.length == 3){
 						String title = fields[2].trim();
 						pathCountList.add(new InexFile(path, count, title));

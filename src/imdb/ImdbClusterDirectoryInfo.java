@@ -12,7 +12,7 @@ public class ImdbClusterDirectoryInfo {
 	static final String LOCAL_INDEX = "/scratch/ghadakcv/index/";
 	static final String QUERY_FILE = HOME + "data/queries/imdb.xml";
 	static final String QREL_FILE = HOME + "data/queries/imdb.qrels";
-	static final String RESULT_DIR = HOME + "data/result/";
+	static final String RESULT_DIR = HOME + "data/result/imdb";
 	
 	static {
 		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE13);
