@@ -95,7 +95,7 @@ public class ImdbExperiment {
 		String indexName = ImdbClusterDirectoryInfo.LOCAL_INDEX + "grid"
 				+ Float.toString(gamma).replace(".", "");
 		LOGGER.log(Level.INFO, "Building index..");
-		Wiki13Indexer.buildTextIndex(fileList, indexName, gamma);
+		new ImdbIndexer().buildIndex(fileList, indexName, gamma);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				ImdbClusterDirectoryInfo.QUERY_FILE,
@@ -109,7 +109,7 @@ public class ImdbExperiment {
 				+ "grid_" + Float.toString(gamma).replace(".", "") + ".csv");
 				FileWriter fw2 = new FileWriter(
 						ImdbClusterDirectoryInfo.RESULT_DIR 
-						+ "grid_" + Float.toString(gamma).replace(".", "") + ".csv")) {
+						+ "grid_" + Float.toString(gamma).replace(".", "") + ".top")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.toString() + "\n");
 				fw2.write(mqr.top10() + "\n");
