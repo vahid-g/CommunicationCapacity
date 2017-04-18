@@ -31,7 +31,7 @@ public class ImdbIndexer extends GeneralIndexer {
 			byte[] data = new byte[(int) file.length()];
 			fis.read(data);
 			String fileContent = new String(data, "UTF-8");
-			Pattern ptr = Pattern.compile("<title>([^>]*)<\title>");
+			Pattern ptr = Pattern.compile("<title>([^<]*)</title>");
 			Matcher mtr = ptr.matcher(fileContent);
 			String title = "";
 			if (mtr.find()){

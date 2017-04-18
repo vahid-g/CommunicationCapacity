@@ -23,7 +23,6 @@ import org.xml.sax.SAXException;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import wiki_inex09.ClusterDirectoryInfo;
 import wiki_inex09.Utils;
 
 public class ImdbExperiment {
@@ -33,12 +32,13 @@ public class ImdbExperiment {
 
 	public static void main(String[] args) {
 		long start_t = System.currentTimeMillis();
-		// float gamma = Float.parseFloat(args[0]);
-		// gridSearchExperiment(gamma);
-		int expNo = Integer.parseInt(args[0]);
-		int totalCount = Integer.parseInt(args[1]);
-		expInex(expNo, totalCount, 0.3f);
-		System.out.println((System.currentTimeMillis() - start_t) / 1000);
+		float gamma = Float.parseFloat(args[0]);
+		gridSearchExperiment(gamma);
+		// int expNo = Integer.parseInt(args[0]);
+		// int totalCount = Integer.parseInt(args[1]);
+		// expInex(expNo, totalCount, 0.3f);
+		
+		 System.out.println((System.currentTimeMillis() - start_t) / 1000);
 		// InexFile.loadFilePathCountTitle("data/path_ratings.csv");
 	}
 
