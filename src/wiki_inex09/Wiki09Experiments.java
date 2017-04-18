@@ -20,13 +20,6 @@ public class Wiki09Experiments {
 	static final Logger LOGGER = Logger.getLogger(Wiki09Experiments.class.getName());
 
 	public static void main(String[] args) {
-		// initializations
-		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE09);
-		if (!indexBaseDir.exists())
-			indexBaseDir.mkdirs();
-		File resultDir = new File(ClusterDirectoryInfo.RESULT_DIR);
-		if (!resultDir.exists())
-			resultDir.mkdirs();
 
 		int expNo = Integer.parseInt(args[0]);
 		int totalCount = Integer.parseInt(args[1]);

@@ -23,6 +23,7 @@ import org.xml.sax.SAXException;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
+import wiki_inex09.ClusterDirectoryInfo;
 import wiki_inex09.Utils;
 
 public class ImdbExperiment {
@@ -32,10 +33,13 @@ public class ImdbExperiment {
 
 	public static void main(String[] args) {
 		long start_t = System.currentTimeMillis();
-		float gamma = Float.parseFloat(args[0]);
-		gridSearchExperiment(gamma);
+		// float gamma = Float.parseFloat(args[0]);
+		// gridSearchExperiment(gamma);
+		int expNo = Integer.parseInt(args[0]);
+		int totalCount = Integer.parseInt(args[1]);
+		expInex(expNo, totalCount, 0.3f);
 		System.out.println((System.currentTimeMillis() - start_t) / 1000);
-//		InexFile.loadFilePathCountTitle("data/path_ratings.csv");
+		// InexFile.loadFilePathCountTitle("data/path_ratings.csv");
 	}
 
 	static List<InexFile> buildSortedPathRating(String datasetPath) {
@@ -82,6 +86,8 @@ public class ImdbExperiment {
 		return (pathCount);
 	}
 
+	// TODO: this code seems redundant. One can use expInex to do the grid
+	// search
 	public static void gridSearchExperiment(float gamma) {
 		// Note that the path count should be sorted!
 		List<InexFile> fileList = InexFile
@@ -107,14 +113,53 @@ public class ImdbExperiment {
 		try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR
 				+ "grid_" + Float.toString(gamma).replace(".", "") + ".csv");
 				FileWriter fw2 = new FileWriter(
-						ImdbClusterDirectoryInfo.RESULT_DIR 
-						+ "grid_" + Float.toString(gamma).replace(".", "") + ".top")) {
+						ImdbClusterDirectoryInfo.RESULT_DIR + "grid_"
+								+ Float.toString(gamma).replace(".", "")
+								+ ".top")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.toString() + "\n");
 				fw2.write(mqr.top10() + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+		try {
+			LOGGER.log(Level.INFO, "cleanup..");
+			FileUtils.deleteDirectory(new File(indexName));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void expInex(int expNo, int total, float gamma) {
+		// list should be sorted
+		List<InexFile> fileList = InexFile
+				.loadFilePathCountTitle(ImdbClusterDirectoryInfo.FILE_LIST);
+		LOGGER.log(Level.INFO, "Building index..");
+		String indexName = ImdbClusterDirectoryInfo.LOCAL_INDEX + "imdb_"
+				+ expNo;
+		new ImdbIndexer().buildIndex(
+				fileList.subList(0, (fileList.size() * expNo) / total),
+				indexName, gamma);
+		LOGGER.log(Level.INFO, "Loading and running queries..");
+		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
+				ImdbClusterDirectoryInfo.QUERY_FILE,
+				ImdbClusterDirectoryInfo.QREL_FILE);
+		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
+		List<QueryResult> results = QueryServices
+				.runQueries(queries, indexName);
+		LOGGER.log(Level.INFO, "Writing results to file..");
+		try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR
+				+ "imdb_" + expNo + ".csv");
+				FileWriter fw2 = new FileWriter(
+						ImdbClusterDirectoryInfo.RESULT_DIR + "imdb_" + expNo
+								+ ".top")) {
+			for (QueryResult mqr : results) {
+				fw.write(mqr.toString() + "\n");
+				fw2.write(mqr.top10() + "\n");
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage());
 		}
 		try {
 			LOGGER.log(Level.INFO, "cleanup..");
