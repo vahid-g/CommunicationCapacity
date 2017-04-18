@@ -35,7 +35,7 @@ public class ImdbExperiment {
 
 	public static void main(String[] args) {
 		long start_t = System.currentTimeMillis();
-		gridSearchExperiment(1.0f);
+		gridSearchExperiment(0.15f);
 		System.out.println((System.currentTimeMillis() - start_t)/1000);
 	}
 	
@@ -110,16 +110,18 @@ public class ImdbExperiment {
 		Wiki13Indexer.buildTextIndex(pathCountList, indexName, gamma);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-				"data/queries/2010-topics.xml",
-				"inex2010-dc-article.qrels");
-		queries = queries.subList(0, queries.size() / 5);
+				"data/queries/imdb/2010-topics.xml",
+				"data/queries/imdb/inex2010-dc-article.qrels");
+		queries = queries.subList(0, queries.size());
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		List<QueryResult> results = QueryServices
 				.runQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter("data/result/imdb" + "result.csv")) {
+		try (FileWriter fw = new FileWriter("data/result/imdb/" + "result.csv");
+				FileWriter fw2 = new FileWriter("data/result/imdb/" + "top.csv")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.toString() + "\n");
+				fw2.write(mqr.top10() + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

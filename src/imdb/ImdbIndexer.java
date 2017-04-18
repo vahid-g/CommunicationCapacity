@@ -15,6 +15,8 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 
+import wiki_inex09.WikiIndexer;
+
 public class ImdbIndexer extends GeneralIndexer {
 
 	@Override
@@ -26,9 +28,9 @@ public class ImdbIndexer extends GeneralIndexer {
 			String fileContent = new String(data, "UTF-8");
 			String textContent = fileContent.replaceAll("<[^>]*>", "").trim();
 			Document doc = new Document();
-			doc.add(new StringField("FILE_NAME", FilenameUtils
+			doc.add(new StringField(WikiIndexer.DOCNAME_ATTRIB, FilenameUtils
 					.removeExtension(file.getName()), Field.Store.YES));
-			TextField contentField = new TextField("TEXT", textContent,
+			TextField contentField = new TextField(WikiIndexer.TITLE_ATTRIB, textContent,
 					Field.Store.YES);
 			doc.add(contentField);
 			writer.addDocument(doc);
