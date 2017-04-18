@@ -1,6 +1,6 @@
 package wiki_inex13;
 
-import indexing.InexFileMetadata;
+import indexing.InexFile;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,11 +43,11 @@ public class Wiki13Indexer {
 		return config;
 	}
 
-	public static void buildBoostedIndex(List<InexFileMetadata> fileCountList,
+	public static void buildBoostedIndex(List<InexFile> fileCountList,
 			String indexPath, float gamma) {
 		// computing smoothing params
 		int N = 0;
-		for (InexFileMetadata entry : fileCountList) {
+		for (InexFile entry : fileCountList) {
 			N += entry.weight;
 		}
 		int V = fileCountList.size();
@@ -60,7 +60,7 @@ public class Wiki13Indexer {
 			directory = FSDirectory.open(Paths.get(indexPath));
 			IndexWriterConfig config = getIndexWriterConfig();
 			writer = new IndexWriter(directory, config);
-			for (InexFileMetadata entry : fileCountList) {
+			for (InexFile entry : fileCountList) {
 				float count = (float) entry.weight;
 				float smoothed = (count + alpha) / (N + V * alpha);
 				Wiki13Indexer.indexXmlFileWithWeight(new File(entry.path),
@@ -101,15 +101,15 @@ public class Wiki13Indexer {
 				LOGGER.log(Level.INFO, "Title not found in " + file.getName());
 			fileContent = fileContent.replaceAll("<[^>]*>", " ").trim();
 			Document doc = new Document();
-			doc.add(new StringField(wiki_inex09.WikiIndexer.DOCNAME_ATTRIB,
+			doc.add(new StringField(wiki_inex09.Wiki09Indexer.DOCNAME_ATTRIB,
 					FilenameUtils.removeExtension(file.getName()),
 					Field.Store.YES));
 			TextField titleField = new TextField(
-					wiki_inex09.WikiIndexer.TITLE_ATTRIB, title, Field.Store.YES);
+					wiki_inex09.Wiki09Indexer.TITLE_ATTRIB, title, Field.Store.YES);
 			titleField.setBoost(gamma * weight);
 			doc.add(titleField);
 			TextField contentField = new TextField(
-					wiki_inex09.WikiIndexer.CONTENT_ATTRIB, fileContent,
+					wiki_inex09.Wiki09Indexer.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES);
 			contentField.setBoost((1 - gamma) * weight);
 			doc.add(contentField);
@@ -121,11 +121,11 @@ public class Wiki13Indexer {
 		}
 	}
 
-	public static void buildBoostedTextIndex(List<InexFileMetadata> fileCountList,
+	public static void buildBoostedTextIndex(List<InexFile> fileCountList,
 			String indexPath, float gamma) {
 		// computing smoothing params
 		int N = 0;
-		for (InexFileMetadata entry : fileCountList) {
+		for (InexFile entry : fileCountList) {
 			N += entry.weight;
 		}
 		int V = fileCountList.size();
@@ -138,7 +138,7 @@ public class Wiki13Indexer {
 			directory = FSDirectory.open(Paths.get(indexPath));
 			IndexWriterConfig config = getIndexWriterConfig();
 			writer = new IndexWriter(directory, config);
-			for (InexFileMetadata entry : fileCountList) {
+			for (InexFile entry : fileCountList) {
 				float count = (float) entry.weight;
 				float smoothed = (count + alpha) / (N + V * alpha);
 				indexTxtFileWithWeight(entry, writer, smoothed, gamma);
@@ -159,7 +159,7 @@ public class Wiki13Indexer {
 	}
 
 	public static void buildTextIndex(
-			List<InexFileMetadata> fileCountList, String indexPath, float gamma) {
+			List<InexFile> fileCountList, String indexPath, float gamma) {
 		// indexing
 		FSDirectory directory = null;
 		IndexWriter writer = null;
@@ -167,7 +167,7 @@ public class Wiki13Indexer {
 			directory = FSDirectory.open(Paths.get(indexPath));
 			IndexWriterConfig config = getIndexWriterConfig();
 			writer = new IndexWriter(directory, config);
-			for (InexFileMetadata entry : fileCountList) {
+			for (InexFile entry : fileCountList) {
 				indexTxtFileWithWeight(entry, writer, 1, gamma);
 			}
 		} catch (IOException e) {
@@ -185,7 +185,7 @@ public class Wiki13Indexer {
 		}
 	}
 
-	static void indexTxtFileWithWeight(InexFileMetadata pct, IndexWriter writer,
+	static void indexTxtFileWithWeight(InexFile pct, IndexWriter writer,
 			float fieldBoost, float gamma) {
 		File file = new File(pct.path);
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
@@ -193,15 +193,15 @@ public class Wiki13Indexer {
 			fis.read(data);
 			String fileContent = new String(data, "UTF-8");
 			Document doc = new Document();
-			doc.add(new StringField(wiki_inex09.WikiIndexer.DOCNAME_ATTRIB,
+			doc.add(new StringField(wiki_inex09.Wiki09Indexer.DOCNAME_ATTRIB,
 					FilenameUtils.removeExtension(file.getName()),
 					Field.Store.YES));
 			TextField titleField = new TextField(
-					wiki_inex09.WikiIndexer.TITLE_ATTRIB, pct.title, Field.Store.YES);
+					wiki_inex09.Wiki09Indexer.TITLE_ATTRIB, pct.title, Field.Store.YES);
 			titleField.setBoost(gamma * fieldBoost);
 			doc.add(titleField);
 			TextField contentField = new TextField(
-					wiki_inex09.WikiIndexer.CONTENT_ATTRIB, fileContent,
+					wiki_inex09.Wiki09Indexer.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES);
 			contentField.setBoost((1 - gamma) * fieldBoost);
 			doc.add(contentField);

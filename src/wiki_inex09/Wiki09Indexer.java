@@ -17,7 +17,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 
-public class WikiIndexer extends GeneralIndexer {
+public class Wiki09Indexer extends GeneralIndexer {
 
 	public static final String CONTENT_ATTRIB = "content";
 	public static final String DOCNAME_ATTRIB = "name";

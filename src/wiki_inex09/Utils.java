@@ -148,7 +148,7 @@ public class Utils {
 		}
 	}
 
-	public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V> sortByValue(
+	public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V> sortMapByValue(
 			Map<K, V> map) {
 		List<Map.Entry<K, V>> list = new LinkedList<Map.Entry<K, V>>(
 				map.entrySet());
@@ -164,32 +164,4 @@ public class Utils {
 		}
 		return result;
 	}
-
-	public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V> sortByValue(
-			Map<K, V> map, int count) {
-		List<Map.Entry<K, V>> list = new LinkedList<Map.Entry<K, V>>(
-				map.entrySet());
-		Collections.sort(list, new Comparator<Map.Entry<K, V>>() {
-			public int compare(Map.Entry<K, V> o1, Map.Entry<K, V> o2) {
-				return -1 * (o1.getValue()).compareTo(o2.getValue());
-			}
-		});
-		LOGGER.log(Level.INFO, "Highest weight: " + list.get(0).getValue());
-		LOGGER.log(Level.INFO, "Lowest weight: "
-				+ list.get(list.size() - 1).getValue());
-		LinkedHashMap<K, V> result = new LinkedHashMap<K, V>();
-		int i = 0;
-		LOGGER.log(Level.INFO, "Largest added weight: "
-				+ list.get(0).getValue());
-		for (Map.Entry<K, V> entry : list) {
-			if (i++ > count) {
-				LOGGER.log(Level.INFO,
-						"Least added weight: " + entry.getValue());
-				break;
-			}
-			result.put(entry.getKey(), entry.getValue());
-		}
-		return result;
-	}
-
 }

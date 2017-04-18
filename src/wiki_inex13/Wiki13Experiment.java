@@ -1,6 +1,6 @@
 package wiki_inex13;
 
-import indexing.InexFileMetadata;
+import indexing.InexFile;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -18,9 +18,9 @@ import query.QueryResult;
 import query.QueryServices;
 import wiki_inex09.ClusterDirectoryInfo;
 
-public class ClusterExperiment13 {
+public class Wiki13Experiment {
 
-	public static final Logger LOGGER = Logger.getLogger(ClusterExperiment13.class
+	public static final Logger LOGGER = Logger.getLogger(Wiki13Experiment.class
 			.getName());
 
 	public static void main(String[] args) {
@@ -47,7 +47,7 @@ public class ClusterExperiment13 {
 
 	static void gridSearchExperiment(float gamma) {
 		// Note that the path count should be sorted!
-		List<InexFileMetadata> pathCountList = InexFileMetadata.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+		List<InexFile> pathCountList = InexFile.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 		pathCountList = pathCountList.subList(0, pathCountList.size() / 10);
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + pathCountList.size());
@@ -88,7 +88,7 @@ public class ClusterExperiment13 {
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13
 				+ "msn_index13_" + expNo;
 		try {
-			List<InexFileMetadata> pathCountList = InexFileMetadata.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+			List<InexFile> pathCountList = InexFile.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 			double total = (double) totalExp;
 			pathCountList = pathCountList.subList(0,
 					(int) (((double) expNo / total) * pathCountList.size()));
@@ -135,7 +135,7 @@ public class ClusterExperiment13 {
 		String indexPath = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "index13_"
 				+ expNo;
 		try {
-			List<InexFileMetadata> pathCountList = InexFileMetadata.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+			List<InexFile> pathCountList = InexFile.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 			double total = (double) totalExp;
 			pathCountList = pathCountList.subList(0,
 					(int) (((double) expNo / total) * pathCountList.size()));
@@ -191,7 +191,7 @@ public class ClusterExperiment13 {
 			String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE13
 					+ totalExp + "_" + expNo + "_"
 					+ Float.toString(gamma).replace(".", "");
-			List<InexFileMetadata> pathCountList = InexFileMetadata.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+			List<InexFile> pathCountList = InexFile.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 			double total = (double) totalExp;
 			pathCountList = pathCountList.subList(0,
 					(int) (((double) expNo / total) * pathCountList.size()));

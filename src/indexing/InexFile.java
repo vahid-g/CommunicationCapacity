@@ -9,34 +9,34 @@ import java.util.List;
 import java.util.logging.Level;
 
 import wiki_inex09.ClusterDirectoryInfo;
-import wiki_inex13.ClusterExperiment13;
+import wiki_inex13.Wiki13Experiment;
 
-public class InexFileMetadata implements Comparable<InexFileMetadata> {
+public class InexFile implements Comparable<InexFile> {
 	
 	public String path;
 	public double weight;
 	public String title;
 	
-	public InexFileMetadata(String path, double visitCount, String title) {
+	public InexFile(String path, double visitCount, String title) {
 		super();
 		this.path = path;
 		this.weight = visitCount;
 		this.title = title;
 	}
 	
-	public InexFileMetadata(String path, double visitCount){
+	public InexFile(String path, double visitCount){
 		this(path, visitCount, "");
 	}
 	
 	@Override
-	public int compareTo(InexFileMetadata o) {
+	public int compareTo(InexFile o) {
 		return Double.compare(o.weight, weight);
 	}
 
-	public static List<InexFileMetadata> loadFilePathCountTitle(
+	public static List<InexFile> loadFilePathCountTitle(
 			String pathCountTitleFile) {
-		ClusterExperiment13.LOGGER.log(Level.INFO, "Loading path-count-titles..");
-		List<InexFileMetadata> pathCountList = new ArrayList<InexFileMetadata>();
+		Wiki13Experiment.LOGGER.log(Level.INFO, "Loading path-count-titles..");
+		List<InexFile> pathCountList = new ArrayList<InexFile>();
 		try (BufferedReader br = new BufferedReader(new FileReader(
 				pathCountTitleFile))) {
 			String line;
@@ -48,9 +48,9 @@ public class InexFileMetadata implements Comparable<InexFileMetadata> {
 					String path = ClusterDirectoryInfo.CLUSTER_BASE + fields[0];
 					Integer count = Integer.parseInt(fields[1].trim());
 					String title = fields[2].trim();
-					pathCountList.add(new InexFileMetadata(path, count, title));
+					pathCountList.add(new InexFile(path, count, title));
 				} catch (Exception e) {
-					ClusterExperiment13.LOGGER.log(Level.WARNING, "Couldn't read PathCountTitle: "
+					Wiki13Experiment.LOGGER.log(Level.WARNING, "Couldn't read PathCountTitle: "
 							+ line + " cause: " + e.toString());
 				}
 			}

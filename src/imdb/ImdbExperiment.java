@@ -1,6 +1,6 @@
 package imdb;
 
-import indexing.InexFileMetadata;
+import indexing.InexFile;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -39,8 +39,8 @@ public class ImdbExperiment {
 		System.out.println((System.currentTimeMillis() - start_t)/1000);
 	}
 	
-	private static List<InexFileMetadata> buildSortedPathRating(String datasetPath){
-		List<InexFileMetadata> pathCount = new ArrayList<InexFileMetadata>();
+	private static List<InexFile> buildSortedPathRating(String datasetPath){
+		List<InexFile> pathCount = new ArrayList<InexFile>();
 		List<String> filePaths = Utils
 				.listFilesForFolder(new File(datasetPath));
 		for (String filepath : filePaths) {
@@ -53,14 +53,14 @@ public class ImdbExperiment {
 					LOGGER.log(Level.SEVERE, filepath
 							+ " has more than one rating entries!");
 				} else if (nodeList.getLength() < 1) {
-					pathCount.add(new InexFileMetadata(filepath, 0.0));
+					pathCount.add(new InexFile(filepath, 0.0));
 				} else {
 					Node node = nodeList.item(0).getFirstChild();
 					if (node.getNodeValue() != null){
 						String rating = node.getNodeValue().split(" ")[0];
-						pathCount.add(new InexFileMetadata(filepath, Double.parseDouble(rating)));
+						pathCount.add(new InexFile(filepath, Double.parseDouble(rating)));
 					} else {
-						pathCount.add(new InexFileMetadata(filepath, 0.0));
+						pathCount.add(new InexFile(filepath, 0.0));
 					}
 				}
 			} catch (ParserConfigurationException e) {
@@ -73,7 +73,7 @@ public class ImdbExperiment {
 		}
 		Collections.sort(pathCount);
 		try (FileWriter fw = new FileWriter("data/path_ratings.csv")){
-			for (InexFileMetadata dfm : pathCount){
+			for (InexFile dfm : pathCount){
 				fw.write(dfm.path + "," + dfm.weight + "\n");
 			}
 		} catch (IOException e) {
@@ -82,14 +82,14 @@ public class ImdbExperiment {
 		return (pathCount);
 	}
 	
-	private List<InexFileMetadata> loadPathRating(String filepath){
-		List<InexFileMetadata> list = new ArrayList<InexFileMetadata>();
+	private List<InexFile> loadPathRating(String filepath){
+		List<InexFile> list = new ArrayList<InexFile>();
 		try (BufferedReader br = new BufferedReader(new FileReader(filepath))){
 			String line = br.readLine();
 			while(line != null){
 				String path = line.split(" ")[0];
 				double rating = Double.parseDouble(line.split(" ")[1]);
-				list.add(new InexFileMetadata(path, rating));
+				list.add(new InexFile(path, rating));
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -101,7 +101,7 @@ public class ImdbExperiment {
 	
 	public static void gridSearchExperiment(float gamma) {
 		// Note that the path count should be sorted!
-		List<InexFileMetadata> pathCountList = buildSortedPathRating("/scratch/data-sets/beautified-imdb-2010-4-10/movies/");
+		List<InexFile> pathCountList = buildSortedPathRating("/scratch/data-sets/beautified-imdb-2010-4-10/movies/");
 		pathCountList = pathCountList.subList(0, pathCountList.size() / 10);
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + pathCountList.size());

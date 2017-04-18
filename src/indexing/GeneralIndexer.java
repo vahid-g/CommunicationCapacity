@@ -3,7 +3,7 @@ package indexing;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Map;
+import java.util.List;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriter;
@@ -14,15 +14,15 @@ import org.apache.lucene.store.FSDirectory;
 
 public abstract class GeneralIndexer {
 
-	public void buildIndex(Map<String, Integer> fileCountMap, String indexPath,
+	public void buildIndex(List<InexFile> list, String indexPath,
 			float fieldBoost) {
 		FSDirectory directory = null;
 		IndexWriter writer = null;
 		try {
 			directory = FSDirectory.open(Paths.get(indexPath));
 			writer = new IndexWriter(directory, getConfig());
-			for (String filePath : fileCountMap.keySet()) {
-				indexXmlFile(new File(filePath), writer, 1, fieldBoost);
+			for (InexFile ifm : list) {
+				indexXmlFile(new File(ifm.path), writer, 1, fieldBoost);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -38,13 +38,13 @@ public abstract class GeneralIndexer {
 		}
 	}
 
-	public void buildIndexBoosted(Map<String, Integer> fileCountMap,
+	public void buildIndexBoosted(List<InexFile> fileList,
 			String indexPath, float fieldBoost) {
 		int N = 0;
-		for (float n_i : fileCountMap.values()) {
-			N += n_i;
+		for (InexFile inexFile : fileList) {
+			N += inexFile.weight;
 		}
-		int V = fileCountMap.size();
+		int V = fileList.size();
 		float alpha = 1.0f;
 
 		FSDirectory directory = null;
@@ -52,10 +52,10 @@ public abstract class GeneralIndexer {
 		try {
 			directory = FSDirectory.open(Paths.get(indexPath));
 			writer = new IndexWriter(directory, getConfig());
-			for (String filePath : fileCountMap.keySet()) {
-				float count = (float) fileCountMap.get(filePath);
+			for (InexFile inexFile : fileList) {
+				float count = (float) inexFile.weight;
 				float smoothed = (count + alpha) / (N + V * alpha);
-				indexXmlFile(new File(filePath), writer, smoothed, fieldBoost);
+				indexXmlFile(new File(inexFile.path), writer, smoothed, fieldBoost);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
