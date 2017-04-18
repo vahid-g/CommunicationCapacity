@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import wiki_inex13.Wiki13Experiment;
 
@@ -15,6 +16,9 @@ public class InexFile implements Comparable<InexFile> {
 	public String path;
 	public double weight;
 	public String title;
+	
+	static final Logger LOGGER = Logger.getLogger(InexFile.class
+			.getName());
 	
 	public InexFile(String path, double visitCount, String title) {
 		super();
@@ -45,6 +49,7 @@ public class InexFile implements Comparable<InexFile> {
 						continue;
 					String[] fields = line.split(",");
 					String path = fields[0];
+					System.out.println(fields[1]);
 					Double count = Double.parseDouble(fields[1].trim());
 					if (fields.length == 3){
 						String title = fields[2].trim();
@@ -52,9 +57,8 @@ public class InexFile implements Comparable<InexFile> {
 					} else {
 						pathCountList.add(new InexFile(path, count));
 					}
-					
 				} catch (Exception e) {
-					Wiki13Experiment.LOGGER.log(Level.WARNING, "Couldn't read PathCountTitle: "
+					LOGGER.log(Level.WARNING, "Couldn't read PathCountTitle: "
 							+ line + " cause: " + e.toString());
 				}
 			}

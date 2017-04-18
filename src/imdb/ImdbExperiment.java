@@ -24,7 +24,6 @@ import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
 import wiki_inex09.Utils;
-import wiki_inex13.Wiki13Indexer;
 
 public class ImdbExperiment {
 

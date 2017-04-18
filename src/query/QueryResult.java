@@ -43,7 +43,7 @@ public class QueryResult {
 		for (int i = 0; i < limit - 1; i++){
 			sb.append(topResultsTitle.get(i) + ",");
 		}
-		sb.append(topResultsTitle.get(limit - 1));
+		if (limit > 0) sb.append(topResultsTitle.get(limit - 1));
 		String resultTuples = sb.toString();
 		return query.text + "," + resultTuples;
 	}
