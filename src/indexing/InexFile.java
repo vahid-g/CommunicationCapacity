@@ -49,7 +49,6 @@ public class InexFile implements Comparable<InexFile> {
 						continue;
 					String[] fields = line.split(",");
 					String path = fields[0];
-					System.out.println(fields[1]);
 					Double count = Double.parseDouble(fields[1].trim());
 					if (fields.length == 3){
 						String title = fields[2].trim();
