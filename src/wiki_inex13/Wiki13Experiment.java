@@ -5,8 +5,6 @@ import indexing.InexFile;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,24 +23,29 @@ public class Wiki13Experiment {
 
 	public static void main(String[] args) {
 
+		long start_t = System.currentTimeMillis();
+
 		// float gamma = Float.parseFloat(args[0]);
 		// gridSearchExperiment(gamma);
 
-		// int expNo = Integer.parseInt(args[0]);
-		// int totalExpNo = Integer.parseInt(args[1]);
-		// float gamma = 0.15f; // Float.parseFloat(args[2]);
-		// long start_t = System.currentTimeMillis();
-		// // expTextInex13(expNo, totalExpNo, gamma);
-		// // expText(expNo, totalExpNo);
-		// buildGlobalIndex(expNo, totalExpNo, gamma);
-		// long end_t = System.currentTimeMillis();
-		// LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
-		// + (end_t - start_t) / 60000 + " minutes");
+		int expNo = Integer.parseInt(args[0]);
+		int totalExp = Integer.parseInt(args[1]);
+		float gamma = 0.15f; // Float.parseFloat(args[2]);
 
-		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-				"data/queries/inex/all-topics.xml",
-				"data/queries/inex/all-topics.qrels");
-		System.out.println(queries.size());
+		// // expTextInex13(expNo, totalExp, gamma);
+		// // expText(expNo, totalExpNo);
+		// buildGlobalIndex(expNo, totalExp, gamma);
+
+		// List<ExperimentQuery> queries = QueryServices.loadInexQueries(
+		// "data/queries/inex/all-topics.xml",
+		// "data/queries/inex/all-topics.qrels");
+		// System.out.println(queries.size());
+
+		runQueriesOnGlobalIndex(expNo, totalExp, gamma);
+		
+		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
+				+ (System.currentTimeMillis() - start_t) / 60000 + " minutes");
+
 	}
 
 	static void gridSearchExperiment(float gamma) {
