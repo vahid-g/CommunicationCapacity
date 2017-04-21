@@ -127,7 +127,7 @@ public class OnlinePopularityMiner {
 	}
 
 	private static String getHTML(String urlToRead){
-		StringBuilder result = new StringBuilder();
+		StringBuilder resultBuilder = new StringBuilder();
 		try {
 			URL url = new URL(urlToRead);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -139,12 +139,18 @@ public class OnlinePopularityMiner {
 					conn.getInputStream()));
 			String line;
 			while ((line = rd.readLine()) != null) {
-				result.append(line);
+				resultBuilder.append(line);
 			}
 			rd.close();
 		} catch (Exception e) {
+			System.out.println(urlToRead);
 			System.err.println(e.toString());
 		}
-		return result.toString();
+		String result = resultBuilder.toString();
+		String newUrl = urlToRead;
+		if (result.length() == 0 && !newUrl.equals(urlToRead)){
+			result = getHTML(newUrl);
+		}
+		return result;
 	}
 }
