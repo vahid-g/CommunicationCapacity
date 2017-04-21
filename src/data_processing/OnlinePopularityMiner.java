@@ -22,8 +22,9 @@ import wiki_inex09.Utils;
 public class OnlinePopularityMiner {
 
 	public static void main(String[] args) {
-		List<String> allFiles = Utils.listFilesForFolder(new File(
-				"/scratch/data-sets/imdb/imdb-inex/movies"));
+		String datasetPath = "/scratch/data-sets/imdb/imdb-inex/movies";
+		// String datasetPath = "/data/imdb-inex/movies";
+		List<String> allFiles = Utils.listFilesForFolder(new File(datasetPath));
 		try (FileWriter fw = new FileWriter("data/file-count.csv")) {
 			for (String filename : allFiles) {
 				File file = new File(filename);
@@ -34,9 +35,9 @@ public class OnlinePopularityMiner {
 					Pattern p = Pattern.compile("<url>([^<]+)</url>");
 					Matcher m = p.matcher(fileContent);
 					if (m.find()) {
-						String url = m.group(1).replace("\n", "")
-								.replace("\r", "").trim()
-								.replaceAll(" ", "%20");
+						String rawUrl = m.group(1);
+						String url = rawUrl.replace("\n", "").replace("\r", "")
+								.trim().replaceAll(" ", "%20");
 						fw.write(file.getPath() + "," + extractImdbRating(url)
 								+ "\n");
 						fw.flush();
@@ -105,12 +106,12 @@ public class OnlinePopularityMiner {
 	public static int extractSinleCount(String name) {
 		String template = "http://stats.grok.se/json/en/200901/";
 		String url = template
-				+ name.replace("\n", "").replace("\r", "")
+				+ name.replace("\n", "").replace("\r", "").trim()
 						.replaceAll(" ", "%20");
 		System.out.println(url);
 		String jsonString = "";
 		try {
-			jsonString = getHTML(url.trim());
+			jsonString = getHTML(url);
 		} catch (Exception e) {
 			System.err.println("Get request failed for url: " + url);
 			return 0;
@@ -126,8 +127,9 @@ public class OnlinePopularityMiner {
 		return sum;
 	}
 
-	private static String getHTML(String urlToRead){
+	private static String getHTML(String urlToRead) {
 		StringBuilder resultBuilder = new StringBuilder();
+		System.out.println("getting: " + urlToRead);
 		try {
 			URL url = new URL(urlToRead);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -143,12 +145,12 @@ public class OnlinePopularityMiner {
 			}
 			rd.close();
 		} catch (Exception e) {
-			System.out.println(urlToRead);
 			System.err.println(e.toString());
 		}
 		String result = resultBuilder.toString();
-		String newUrl = urlToRead;
-		if (result.length() == 0 && !newUrl.equals(urlToRead)){
+		String newUrl = urlToRead.replaceAll("\\{.*\\}", "")
+				.replaceAll("%20", " ").trim().replaceAll(" ", "%20");
+		if (result.length() == 0 && !newUrl.equals(urlToRead)) {
 			result = getHTML(newUrl);
 		}
 		return result;
