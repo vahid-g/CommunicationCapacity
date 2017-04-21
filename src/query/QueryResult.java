@@ -22,6 +22,16 @@ public class QueryResult {
 		}
 		return count / k;
 	}
+	
+	public double recallAtK(int k) {
+		double count = 0;
+		for (int i = 0; i < Math.min(k, topResults.size()); i++) {
+			if (query.qrels.contains(topResults.get(i))) {
+				count++;
+			}
+		}
+		return count / query.qrels.size();
+	}
 
 	double mrr() {
 		for (int i = 0; i < topResults.size(); i++) {
