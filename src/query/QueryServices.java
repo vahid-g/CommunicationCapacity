@@ -197,60 +197,6 @@ public class QueryServices {
 		return qidQrels;
 	}
 
-	public static HashMap<Integer, ExperimentQuery> buildQueries(String path,
-			String qrelPath) {
-		HashMap<Integer, ExperimentQuery> qidQueryMap = new HashMap<Integer, ExperimentQuery>();
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		dbf.setNamespaceAware(true);
-		dbf.setValidating(true);
-		try {
-			DocumentBuilder db = dbf.newDocumentBuilder();
-			org.w3c.dom.Document doc = db.parse(new File(path));
-			NodeList nodeList = doc.getElementsByTagName("topic");
-			for (int i = 0; i < nodeList.getLength(); i++) {
-				Node node = nodeList.item(i);
-				int id = Integer.parseInt(node.getAttributes()
-						.getNamedItem("id").getNodeValue());
-				String queryText = getText(findSubNode("title", node));
-				ExperimentQuery iq = new ExperimentQuery(id, queryText);
-				qidQueryMap.put(id, iq);
-			}
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		// adding relevant answers to the query
-		File qrelFile = new File(qrelPath);
-		Scanner sc = null;
-		try {
-			sc = new Scanner(qrelFile);
-			String line;
-			while (sc.hasNextLine()) {
-				line = sc.nextLine();
-				Pattern ptr = Pattern.compile("(\\d+)	Q0	(\\d+)	(1|0)");
-				Matcher m = ptr.matcher(line);
-				if (m.find()) {
-					if (m.group(3).equals("1")) {
-						int id = Integer.parseInt(m.group(1));
-						String rel = m.group(2);
-						ExperimentQuery query = qidQueryMap.get(id);
-						query.qrels.add(rel);
-					}
-				} else {
-					System.out.println("regex failed!!!");
-				}
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		sc.close();
-		return qidQueryMap;
-	}
-
 	public static Node findSubNode(String name, Node node) {
 		if (node.getNodeType() != Node.ELEMENT_NODE) {
 			System.err.println("Error: Search node not of element type");

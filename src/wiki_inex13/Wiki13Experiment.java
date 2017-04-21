@@ -47,7 +47,8 @@ public class Wiki13Experiment {
 
 	static void gridSearchExperiment(float gamma) {
 		// Note that the path count should be sorted!
-		List<InexFile> pathCountList = InexFile.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+		List<InexFile> pathCountList = InexFile
+				.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 		pathCountList = pathCountList.subList(0, pathCountList.size() / 10);
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + pathCountList.size());
@@ -83,19 +84,19 @@ public class Wiki13Experiment {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static void expText(int expNo, int totalExp) {
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13
 				+ "msn_index13_" + expNo;
 		try {
-			List<InexFile> pathCountList = InexFile.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+			List<InexFile> pathCountList = InexFile
+					.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 			double total = (double) totalExp;
 			pathCountList = pathCountList.subList(0,
 					(int) (((double) expNo / total) * pathCountList.size()));
 			LOGGER.log(Level.INFO, "Number of loaded path_counts: "
 					+ pathCountList.size());
-			LOGGER.log(Level.INFO, "Best score: "
-					+ pathCountList.get(0).weight);
+			LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
 			LOGGER.log(
 					Level.INFO,
 					"Smallest score: "
@@ -135,14 +136,14 @@ public class Wiki13Experiment {
 		String indexPath = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "index13_"
 				+ expNo;
 		try {
-			List<InexFile> pathCountList = InexFile.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+			List<InexFile> pathCountList = InexFile
+					.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 			double total = (double) totalExp;
 			pathCountList = pathCountList.subList(0,
 					(int) (((double) expNo / total) * pathCountList.size()));
 			LOGGER.log(Level.INFO, "Number of loaded path_counts: "
 					+ pathCountList.size());
-			LOGGER.log(Level.INFO, "Best score: "
-					+ pathCountList.get(0).weight);
+			LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
 			LOGGER.log(
 					Level.INFO,
 					"Smallest score: "
@@ -150,11 +151,9 @@ public class Wiki13Experiment {
 			LOGGER.log(Level.INFO, "Building index..");
 			Wiki13Indexer.buildTextIndex(pathCountList, indexPath, gamma);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
-			HashMap<Integer, ExperimentQuery> queriesMap = QueryServices
-					.buildQueries(ClusterDirectoryInfo.INEX13_QUERY_FILE,
-							ClusterDirectoryInfo.INEX13_QREL_FILE);
-			List<ExperimentQuery> queries = new ArrayList<ExperimentQuery>();
-			queries.addAll(queriesMap.values());
+			List<ExperimentQuery> queries = QueryServices.loadInexQueries(
+					ClusterDirectoryInfo.INEX13_QUERY_FILE,
+					ClusterDirectoryInfo.INEX13_QREL_FILE);
 			LOGGER.log(Level.INFO,
 					"Number of loaded queries: " + queries.size());
 			List<QueryResult> results = QueryServices.runQueries(queries,
@@ -188,17 +187,17 @@ public class Wiki13Experiment {
 	// builds the index on cluster-share
 	public static void buildGlobalIndex(int expNo, int totalExp, float gamma) {
 		try {
-			String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "wiki13_50_15" 
-					+ totalExp + "_" + expNo + "_"
+			String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE
+					+ "wiki13_50_15" + totalExp + "_" + expNo + "_"
 					+ Float.toString(gamma).replace(".", "");
-			List<InexFile> pathCountList = InexFile.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+			List<InexFile> pathCountList = InexFile
+					.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 			double total = (double) totalExp;
 			pathCountList = pathCountList.subList(0,
 					(int) (((double) expNo / total) * pathCountList.size()));
 			LOGGER.log(Level.INFO, "Number of loaded path_counts: "
 					+ pathCountList.size());
-			LOGGER.log(Level.INFO, "Best score: "
-					+ pathCountList.get(0).weight);
+			LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
 			LOGGER.log(
 					Level.INFO,
 					"Smallest score: "
@@ -209,18 +208,17 @@ public class Wiki13Experiment {
 			e.printStackTrace();
 		}
 	}
-	
-	public static void runQueriesOnGlobalIndex(int expNo, int totalExp, float gamma){
-		String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "wiki13_50_15"
-				+ totalExp + "_" + expNo + "_"
+
+	public static void runQueriesOnGlobalIndex(int expNo, int totalExp,
+			float gamma) {
+		String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE
+				+ "wiki13_50_15/" + totalExp + "_" + expNo + "_"
 				+ Float.toString(gamma).replace(".", "");
 		try {
 			LOGGER.log(Level.INFO, "Loading and running queries..");
-			HashMap<Integer, ExperimentQuery> queriesMap = QueryServices
-					.buildQueries(ClusterDirectoryInfo.INEX13_QUERY_FILE,
-							ClusterDirectoryInfo.INEX13_QREL_FILE);
-			List<ExperimentQuery> queries = new ArrayList<ExperimentQuery>();
-			queries.addAll(queriesMap.values());
+			List<ExperimentQuery> queries = QueryServices.loadInexQueries(
+					ClusterDirectoryInfo.INEX13_QUERY_FILE,
+					ClusterDirectoryInfo.INEX13_QREL_FILE);
 			LOGGER.log(Level.INFO,
 					"Number of loaded queries: " + queries.size());
 			List<QueryResult> results = QueryServices.runQueries(queries,
@@ -230,8 +228,9 @@ public class Wiki13Experiment {
 					+ ".csv";
 			try (FileWriter fw = new FileWriter(resultFileName)) {
 				for (QueryResult iqr : results) {
-					fw.write(iqr.query.text + ", " + iqr.recallAtK(10) + ", " + iqr.recallAtK(20)
-							+ ", " + iqr.recallAtK(100) + "\n");
+					fw.write(iqr.query.text + ", " + iqr.recallAtK(10) + ", "
+							+ iqr.recallAtK(20) + ", " + iqr.recallAtK(100)
+							+ "\n");
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
