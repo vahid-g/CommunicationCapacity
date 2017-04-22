@@ -32,17 +32,12 @@ public class Wiki13Experiment {
 		int totalExp = Integer.parseInt(args[1]);
 		float gamma = 0.15f; // Float.parseFloat(args[2]);
 
-		// // expTextInex13(expNo, totalExp, gamma);
-		// // expText(expNo, totalExpNo);
-		// buildGlobalIndex(expNo, totalExp, gamma);
+		// expTextInex13(expNo, totalExp, gamma);
+		// expText(expNo, totalExpNo);
 
-		// List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-		// "data/queries/inex/all-topics.xml",
-		// "data/queries/inex/all-topics.qrels");
-		// System.out.println(queries.size());
+		buildGlobalIndex(expNo, totalExp, gamma);
+		// runQueriesOnGlobalIndex(expNo, totalExp, gamma);
 
-		runQueriesOnGlobalIndex(expNo, totalExp, gamma);
-		
 		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
 				+ (System.currentTimeMillis() - start_t) / 60000 + " minutes");
 
