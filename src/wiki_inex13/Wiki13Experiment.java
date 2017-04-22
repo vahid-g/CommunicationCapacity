@@ -186,7 +186,7 @@ public class Wiki13Experiment {
 	public static void buildGlobalIndex(int expNo, int totalExp, float gamma) {
 		try {
 			String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE
-					+ "wiki13_50_15" + totalExp + "_" + expNo + "_"
+					+ "wiki13_50_15/" + totalExp + "_" + expNo + "_"
 					+ Float.toString(gamma).replace(".", "");
 			List<InexFile> pathCountList = InexFile
 					.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
