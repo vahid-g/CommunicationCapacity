@@ -7,7 +7,7 @@ import wiki_inex09.ClusterDirectoryInfo;
 public class ImdbClusterDirectoryInfo {
 	
 	static final String HOME = "/scratch/cluster-share/ghadakcv/";
-	static final String DATA_SET = HOME + "beautified-imdb/movies/";
+	static final String DATA_SET = HOME + "data-sets/imdb-inex/movies/";
 	static final String FILE_LIST = HOME + "data/path_counts/imdb_path_ratings.csv";
 	static final String LOCAL_INDEX = "/scratch/ghadakcv/index/";
 	static final String QUERY_FILE = HOME + "data/queries/imdb.xml";

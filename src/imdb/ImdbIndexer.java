@@ -31,7 +31,7 @@ public class ImdbIndexer extends GeneralIndexer {
 	static final Logger LOGGER = Logger.getLogger(ImdbIndexer.class.getName());
 
 	protected void indexXmlFile(File file, IndexWriter writer, float smoothed, float... gamma) {
-		if (gamma.length < 3){
+		if (gamma.length < 2){
 			LOGGER.log(Level.SEVERE, "Not enough gammas!!!");
 			return;
 		}
