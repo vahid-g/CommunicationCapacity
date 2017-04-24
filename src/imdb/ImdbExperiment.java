@@ -36,13 +36,14 @@ public class ImdbExperiment {
 	public static void main(String[] args) {
 		long start_t = System.currentTimeMillis();
 
-		// float gamma = Float.parseFloat(args[0]);
-		// gridSearchExperiment(gamma);
+		float gamma1 = Float.parseFloat(args[0]);
+		float gamma2 = Float.parseFloat(args[1]);
+		gridSearchExperiment(gamma1, gamma2);
 		// int expNo = Integer.parseInt(args[0]);
 		// int totalCount = Integer.parseInt(args[1]);
 		// expInex(expNo, totalCount, 0.3f);
-		
-		buildJmdbSortedPathRating("/scratch/data-sets/imdb/imdb-inex/movies");
+
+		// buildJmdbSortedPathRating("/scratch/data-sets/imdb/imdb-inex/movies");
 		System.out.println((System.currentTimeMillis() - start_t) / 1000);
 	}
 
@@ -98,10 +99,10 @@ public class ImdbExperiment {
 					String title = fields[0];
 					Integer numberOfVotes = Integer.parseInt(fields[1]);
 					titleRating.put(title, numberOfVotes);
-					if (title.contains("(VG)")){
+					if (title.contains("(VG)")) {
 						title = title.replaceAll("(VG)", "");
 						titleRating.put(title, numberOfVotes);
-					} else if (title.contains("(V)")){
+					} else if (title.contains("(V)")) {
 						title = title.replaceAll("(V)", "");
 						titleRating.put(title, numberOfVotes);
 					} else if (title.contains("(TV)")) {
@@ -165,16 +166,17 @@ public class ImdbExperiment {
 
 	// TODO: this code seems redundant. One can use expInex to do the grid
 	// search
-	public static void gridSearchExperiment(float gamma) {
+	public static void gridSearchExperiment(float gamma1, float gamma2) {
 		// Note that the path count should be sorted!
 		List<InexFile> fileList = InexFile.loadFilePathCountTitle(ImdbClusterDirectoryInfo.FILE_LIST);
 		// List<InexFile> fileList =
 		// buildSortedPathRating(ImdbClusterDirectoryInfo.DATA_SET);
 		fileList = fileList.subList(0, fileList.size() / 10);
 		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + fileList.size());
-		String indexName = ImdbClusterDirectoryInfo.LOCAL_INDEX + "grid" + Float.toString(gamma).replace(".", "");
+		String indexName = ImdbClusterDirectoryInfo.LOCAL_INDEX + "grid" + Float.toString(gamma1).replace(".", "")
+				+ Float.toString(gamma2).replace(".", "");
 		LOGGER.log(Level.INFO, "Building index..");
-		new ImdbIndexer().buildIndex(fileList, indexName, gamma);
+		new ImdbIndexer().buildIndex(fileList, indexName, gamma1, gamma2);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(ImdbClusterDirectoryInfo.QUERY_FILE,
 				ImdbClusterDirectoryInfo.QREL_FILE);
@@ -182,10 +184,10 @@ public class ImdbExperiment {
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		List<QueryResult> results = QueryServices.runQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter(
-				ImdbClusterDirectoryInfo.RESULT_DIR + "grid_" + Float.toString(gamma).replace(".", "") + ".csv");
+		try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR + "grid_"
+				+ Float.toString(gamma1).replace(".", "") + Float.toString(gamma2).replace(".", "") + ".csv");
 				FileWriter fw2 = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR + "grid_"
-						+ Float.toString(gamma).replace(".", "") + ".top")) {
+						+ Float.toString(gamma1).replace(".", "") + Float.toString(gamma2).replace(".", "") + ".top")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.toString() + "\n");
 				fw2.write(mqr.top10() + "\n");
