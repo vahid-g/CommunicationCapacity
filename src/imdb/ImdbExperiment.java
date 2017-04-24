@@ -31,7 +31,8 @@ import wiki_inex09.Utils;
 
 public class ImdbExperiment {
 
-	static final Logger LOGGER = Logger.getLogger(ImdbExperiment.class.getName());
+	static final Logger LOGGER = Logger.getLogger(ImdbExperiment.class
+			.getName());
 
 	public static void main(String[] args) {
 		long start_t = System.currentTimeMillis();
@@ -49,7 +50,8 @@ public class ImdbExperiment {
 
 	static List<InexFile> buildSortedPathRating(String datasetPath) {
 		List<InexFile> pathCount = new ArrayList<InexFile>();
-		List<String> filePaths = Utils.listFilesForFolder(new File(datasetPath));
+		List<String> filePaths = Utils
+				.listFilesForFolder(new File(datasetPath));
 		for (String filepath : filePaths) {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			try {
@@ -57,14 +59,16 @@ public class ImdbExperiment {
 				org.w3c.dom.Document doc = db.parse(new File(filepath));
 				NodeList nodeList = doc.getElementsByTagName("rating");
 				if (nodeList.getLength() > 1) {
-					LOGGER.log(Level.SEVERE, filepath + " has more than one rating entries!");
+					LOGGER.log(Level.SEVERE, filepath
+							+ " has more than one rating entries!");
 				} else if (nodeList.getLength() < 1) {
 					pathCount.add(new InexFile(filepath, 0.0));
 				} else {
 					Node node = nodeList.item(0).getFirstChild();
 					if (node.getNodeValue() != null) {
 						String rating = node.getNodeValue().split(" ")[0];
-						pathCount.add(new InexFile(filepath, Double.parseDouble(rating)));
+						pathCount.add(new InexFile(filepath, Double
+								.parseDouble(rating)));
 					} else {
 						pathCount.add(new InexFile(filepath, 0.0));
 					}
@@ -91,7 +95,8 @@ public class ImdbExperiment {
 	static List<InexFile> buildJmdbSortedPathRating(String datasetPath) {
 		LOGGER.log(Level.INFO, "loading title ~> ratingss");
 		Map<String, Integer> titleRating = new HashMap<String, Integer>();
-		try (BufferedReader br = new BufferedReader(new FileReader("data/movie_rating.csv"))) {
+		try (BufferedReader br = new BufferedReader(new FileReader(
+				"data/movietitle_rating.csv"))) {
 			String line = br.readLine();
 			while (line != null) {
 				String fields[] = line.split(";");
@@ -114,13 +119,15 @@ public class ImdbExperiment {
 			}
 		} catch (FileNotFoundException e) {
 			LOGGER.log(Level.SEVERE, e.getStackTrace().toString());
+			return null;
 		} catch (IOException e1) {
 			LOGGER.log(Level.SEVERE, e1.getStackTrace().toString());
 		}
 
 		LOGGER.log(Level.INFO, "loading path ~> rating");
 		List<InexFile> pathCount = new ArrayList<InexFile>();
-		List<String> filePaths = Utils.listFilesForFolder(new File(datasetPath));
+		List<String> filePaths = Utils
+				.listFilesForFolder(new File(datasetPath));
 		for (String filepath : filePaths) {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			try {
@@ -128,21 +135,25 @@ public class ImdbExperiment {
 				org.w3c.dom.Document doc = db.parse(new File(filepath));
 				NodeList nodeList = doc.getElementsByTagName("title");
 				if (nodeList.getLength() > 1) {
-					LOGGER.log(Level.SEVERE, filepath + " has more than one title!");
+					LOGGER.log(Level.SEVERE, filepath
+							+ " has more than one title!");
 				} else if (nodeList.getLength() < 1) {
-					LOGGER.log(Level.SEVERE, filepath + " title not found!");
+					LOGGER.log(Level.SEVERE, filepath + " has no title!");
 				} else {
 					Node node = nodeList.item(0).getFirstChild();
 					if (node.getNodeValue() != null) {
 						String title = node.getNodeValue().trim();
 						// find rating using title
 						if (titleRating.containsKey(title)) {
-							pathCount.add(new InexFile(filepath, titleRating.get(title)));
+							pathCount.add(new InexFile(filepath, titleRating
+									.get(title)));
 						} else {
-							LOGGER.log(Level.WARNING, "couldn't find ratings for title: " + title);
+							// LOGGER.log(Level.INFO,
+							// "couldn't find ratings for title: " + title);
+							pathCount.add(new InexFile(filepath, 0));
 						}
 					} else {
-						LOGGER.log(Level.SEVERE, filepath + " title not found!");
+						LOGGER.log(Level.SEVERE, filepath + " has no title!");
 					}
 				}
 			} catch (ParserConfigurationException e) {
@@ -154,7 +165,7 @@ public class ImdbExperiment {
 			}
 		}
 		Collections.sort(pathCount);
-		try (FileWriter fw = new FileWriter("data/path_ratings.csv")) {
+		try (FileWriter fw = new FileWriter("data/imdb_path_ratings.csv")) {
 			for (InexFile dfm : pathCount) {
 				fw.write(dfm.path + "," + dfm.weight + "\n");
 			}
@@ -168,26 +179,33 @@ public class ImdbExperiment {
 	// search
 	public static void gridSearchExperiment(float gamma1, float gamma2) {
 		// Note that the path count should be sorted!
-		List<InexFile> fileList = InexFile.loadFilePathCountTitle(ImdbClusterDirectoryInfo.FILE_LIST);
-		// List<InexFile> fileList =
-		// buildSortedPathRating(ImdbClusterDirectoryInfo.DATA_SET);
+		List<InexFile> fileList = InexFile
+				.loadFilePathCountTitle(ImdbClusterDirectoryInfo.FILE_LIST);
 		fileList = fileList.subList(0, fileList.size() / 10);
-		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + fileList.size());
-		String indexName = ImdbClusterDirectoryInfo.LOCAL_INDEX + "grid" + Float.toString(gamma1).replace(".", "")
+		LOGGER.log(Level.INFO,
+				"Number of loaded path_counts: " + fileList.size());
+		String indexName = ImdbClusterDirectoryInfo.LOCAL_INDEX + "grid"
+				+ Float.toString(gamma1).replace(".", "")
 				+ Float.toString(gamma2).replace(".", "");
 		LOGGER.log(Level.INFO, "Building index..");
 		new ImdbIndexer().buildIndex(fileList, indexName, gamma1, gamma2);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<ExperimentQuery> queries = QueryServices.loadInexQueries(ImdbClusterDirectoryInfo.QUERY_FILE,
+		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
+				ImdbClusterDirectoryInfo.QUERY_FILE,
 				ImdbClusterDirectoryInfo.QREL_FILE);
 		queries = queries.subList(0, queries.size());
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<QueryResult> results = QueryServices.runQueries(queries, indexName);
+		List<QueryResult> results = QueryServices
+				.runQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR + "grid_"
-				+ Float.toString(gamma1).replace(".", "") + Float.toString(gamma2).replace(".", "") + ".csv");
-				FileWriter fw2 = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR + "grid_"
-						+ Float.toString(gamma1).replace(".", "") + Float.toString(gamma2).replace(".", "") + ".top")) {
+		try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR
+				+ "grid_" + Float.toString(gamma1).replace(".", "")
+				+ Float.toString(gamma2).replace(".", "") + ".csv");
+				FileWriter fw2 = new FileWriter(
+						ImdbClusterDirectoryInfo.RESULT_DIR + "grid_"
+								+ Float.toString(gamma1).replace(".", "")
+								+ Float.toString(gamma2).replace(".", "")
+								+ ".top")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.toString() + "\n");
 				fw2.write(mqr.top10() + "\n");
@@ -205,18 +223,27 @@ public class ImdbExperiment {
 
 	public static void expInex(int expNo, int total, float gamma) {
 		// list should be sorted
-		List<InexFile> fileList = InexFile.loadFilePathCountTitle(ImdbClusterDirectoryInfo.FILE_LIST);
+		List<InexFile> fileList = InexFile
+				.loadFilePathCountTitle(ImdbClusterDirectoryInfo.FILE_LIST);
 		LOGGER.log(Level.INFO, "Building index..");
-		String indexName = ImdbClusterDirectoryInfo.LOCAL_INDEX + "imdb_" + expNo;
-		new ImdbIndexer().buildIndex(fileList.subList(0, (fileList.size() * expNo) / total), indexName, gamma);
+		String indexName = ImdbClusterDirectoryInfo.LOCAL_INDEX + "imdb_"
+				+ expNo;
+		new ImdbIndexer().buildIndex(
+				fileList.subList(0, (fileList.size() * expNo) / total),
+				indexName, gamma);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<ExperimentQuery> queries = QueryServices.loadInexQueries(ImdbClusterDirectoryInfo.QUERY_FILE,
+		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
+				ImdbClusterDirectoryInfo.QUERY_FILE,
 				ImdbClusterDirectoryInfo.QREL_FILE);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<QueryResult> results = QueryServices.runQueries(queries, indexName);
+		List<QueryResult> results = QueryServices
+				.runQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR + "imdb_" + expNo + ".csv");
-				FileWriter fw2 = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR + "imdb_" + expNo + ".top")) {
+		try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR
+				+ "imdb_" + expNo + ".csv");
+				FileWriter fw2 = new FileWriter(
+						ImdbClusterDirectoryInfo.RESULT_DIR + "imdb_" + expNo
+								+ ".top")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.toString() + "\n");
 				fw2.write(mqr.top10() + "\n");
