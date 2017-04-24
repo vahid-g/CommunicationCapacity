@@ -37,12 +37,12 @@ public class ImdbExperiment {
 	public static void main(String[] args) {
 		long start_t = System.currentTimeMillis();
 
-		float gamma1 = Float.parseFloat(args[0]);
-		float gamma2 = Float.parseFloat(args[1]);
-		gridSearchExperiment(gamma1, gamma2);
-		// int expNo = Integer.parseInt(args[0]);
-		// int totalCount = Integer.parseInt(args[1]);
-		// expInex(expNo, totalCount, 0.3f);
+		// float gamma1 = Float.parseFloat(args[0]);
+		// float gamma2 = Float.parseFloat(args[1]);
+		// gridSearchExperiment(gamma1, gamma2);
+		int expNo = Integer.parseInt(args[0]);
+		int totalCount = Integer.parseInt(args[1]);
+		expInex(expNo, totalCount, 0.1f, 0.1f);
 
 		// buildJmdbSortedPathRating("/scratch/data-sets/imdb/imdb-inex/movies");
 		System.out.println((System.currentTimeMillis() - start_t) / 1000);
@@ -221,7 +221,7 @@ public class ImdbExperiment {
 		}
 	}
 
-	public static void expInex(int expNo, int total, float gamma) {
+	public static void expInex(int expNo, int total, float... gamma) {
 		// list should be sorted
 		List<InexFile> fileList = InexFile
 				.loadFilePathCountTitle(ImdbClusterDirectoryInfo.FILE_LIST);
@@ -230,7 +230,7 @@ public class ImdbExperiment {
 				+ expNo;
 		new ImdbIndexer().buildIndex(
 				fileList.subList(0, (fileList.size() * expNo) / total),
-				indexName, gamma);
+				indexName, gamma[0], gamma[1]);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				ImdbClusterDirectoryInfo.QUERY_FILE,

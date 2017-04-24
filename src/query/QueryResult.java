@@ -22,7 +22,7 @@ public class QueryResult {
 		}
 		return count / k;
 	}
-	
+
 	public double recallAtK(int k) {
 		double count = 0;
 		for (int i = 0; i < Math.min(k, topResults.size()); i++) {
@@ -44,16 +44,18 @@ public class QueryResult {
 	@Override
 	public String toString() {
 		return query.text + ", " + precisionAtK(3) + ", " + precisionAtK(10)
-				+ ", " + precisionAtK(20) + ", " + mrr();
+				+ ", " + precisionAtK(20) + ", " + mrr() + "," + recallAtK(10)
+				+ "," + recallAtK(20) + "," + recallAtK(100);
 	}
 
 	public String top10() {
 		int limit = topResultsTitle.size() > 10 ? 10 : topResultsTitle.size();
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < limit - 1; i++){
+		for (int i = 0; i < limit - 1; i++) {
 			sb.append(topResultsTitle.get(i) + ",");
 		}
-		if (limit > 0) sb.append(topResultsTitle.get(limit - 1));
+		if (limit > 0)
+			sb.append(topResultsTitle.get(limit - 1));
 		String resultTuples = sb.toString();
 		return query.text + "," + resultTuples;
 	}
