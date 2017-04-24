@@ -20,7 +20,7 @@ import org.apache.lucene.index.IndexWriter;
 public class Wiki09Indexer extends GeneralIndexer {
 
 	protected void indexXmlFile(File file, IndexWriter writer, float weight,
-			float gamma) {
+			float... gamma) {
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];
 			fis.read(data);
@@ -44,11 +44,11 @@ public class Wiki09Indexer extends GeneralIndexer {
 					.removeExtension(file.getName()), Field.Store.YES));
 			TextField titleField = new TextField(GeneralIndexer.TITLE_ATTRIB, title,
 					Field.Store.YES);
-			titleField.setBoost(weight * gamma);
+			titleField.setBoost(weight * gamma[0]);
 			doc.add(titleField);
 			TextField contentField = new TextField(GeneralIndexer.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES);
-			contentField.setBoost(weight * (1 - gamma));
+			contentField.setBoost(weight * (1 - gamma[0]));
 			doc.add(contentField);
 			writer.addDocument(doc);
 		} catch (FileNotFoundException e) {

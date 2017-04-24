@@ -21,7 +21,7 @@ public abstract class GeneralIndexer {
 	public static final String ACTORS_ATTRIB = "actors";
 
 	public void buildIndex(List<InexFile> list, String indexPath,
-			float fieldBoost) {
+			float... fieldBoost) {
 		FSDirectory directory = null;
 		IndexWriter writer = null;
 		try {
@@ -43,7 +43,7 @@ public abstract class GeneralIndexer {
 				directory.close();
 		}
 	}
-
+	
 	public void buildIndexBoosted(List<InexFile> fileList,
 			String indexPath, float fieldBoost) {
 		int N = 0;
@@ -85,8 +85,8 @@ public abstract class GeneralIndexer {
 		config.setSimilarity(new BM25Similarity());
 		return config;
 	}
-
+	
 	protected abstract void indexXmlFile(File file, IndexWriter writer,
-			float docBoost, float fieldBoost);
+			float docBoost, float... fieldBoost);
 
 }
