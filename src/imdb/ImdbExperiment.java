@@ -87,6 +87,52 @@ public class ImdbExperiment {
 		}
 		return (pathCount);
 	}
+	
+	static List<InexFile> buildJmdbSortedPathRating(String datasetPath) {
+		List<InexFile> pathCount = new ArrayList<InexFile>();
+		List<String> filePaths = Utils
+				.listFilesForFolder(new File(datasetPath));
+		for (String filepath : filePaths) {
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			try {
+				DocumentBuilder db = dbf.newDocumentBuilder();
+				org.w3c.dom.Document doc = db.parse(new File(filepath));
+				NodeList nodeList = doc.getElementsByTagName("title");
+				if (nodeList.getLength() > 1) {
+					LOGGER.log(Level.SEVERE, filepath
+							+ " has more than one title!");
+				} else if (nodeList.getLength() < 1) {
+					LOGGER.log(Level.SEVERE, filepath
+							+ " title not found!");
+				} else {
+					Node node = nodeList.item(0).getFirstChild();
+					if (node.getNodeValue() != null) {
+						String title = node.getNodeValue();
+						// find rating using title
+						pathCount.add(new InexFile(filepath, 0.0));
+					} else {
+						LOGGER.log(Level.SEVERE, filepath
+								+ " title not found!");
+					}
+				}
+			} catch (ParserConfigurationException e) {
+				e.printStackTrace();
+			} catch (SAXException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		Collections.sort(pathCount);
+		try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.FILE_LIST)) {
+			for (InexFile dfm : pathCount) {
+				fw.write(dfm.path + "," + dfm.weight + "\n");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return (pathCount);
+	}
 
 	// TODO: this code seems redundant. One can use expInex to do the grid
 	// search
