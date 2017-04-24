@@ -14,6 +14,12 @@ import org.apache.lucene.store.FSDirectory;
 
 public abstract class GeneralIndexer {
 
+	public static final String CONTENT_ATTRIB = "content";
+	public static final String DOCNAME_ATTRIB = "name";
+	public static final String TITLE_ATTRIB = "title";
+	
+	public static final String ACTORS_ATTRIB = "actors";
+
 	public void buildIndex(List<InexFile> list, String indexPath,
 			float fieldBoost) {
 		FSDirectory directory = null;

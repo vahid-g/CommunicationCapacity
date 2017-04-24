@@ -101,15 +101,15 @@ public class Wiki13Indexer {
 				LOGGER.log(Level.INFO, "Title not found in " + file.getName());
 			fileContent = fileContent.replaceAll("<[^>]*>", " ").trim();
 			Document doc = new Document();
-			doc.add(new StringField(wiki_inex09.Wiki09Indexer.DOCNAME_ATTRIB,
+			doc.add(new StringField(indexing.GeneralIndexer.DOCNAME_ATTRIB,
 					FilenameUtils.removeExtension(file.getName()),
 					Field.Store.YES));
 			TextField titleField = new TextField(
-					wiki_inex09.Wiki09Indexer.TITLE_ATTRIB, title, Field.Store.YES);
+					indexing.GeneralIndexer.TITLE_ATTRIB, title, Field.Store.YES);
 			titleField.setBoost(gamma * weight);
 			doc.add(titleField);
 			TextField contentField = new TextField(
-					wiki_inex09.Wiki09Indexer.CONTENT_ATTRIB, fileContent,
+					indexing.GeneralIndexer.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES);
 			contentField.setBoost((1 - gamma) * weight);
 			doc.add(contentField);
@@ -193,15 +193,15 @@ public class Wiki13Indexer {
 			fis.read(data);
 			String fileContent = new String(data, "UTF-8");
 			Document doc = new Document();
-			doc.add(new StringField(wiki_inex09.Wiki09Indexer.DOCNAME_ATTRIB,
+			doc.add(new StringField(indexing.GeneralIndexer.DOCNAME_ATTRIB,
 					FilenameUtils.removeExtension(file.getName()),
 					Field.Store.YES));
 			TextField titleField = new TextField(
-					wiki_inex09.Wiki09Indexer.TITLE_ATTRIB, pct.title, Field.Store.YES);
+					indexing.GeneralIndexer.TITLE_ATTRIB, pct.title, Field.Store.YES);
 			titleField.setBoost(gamma * fieldBoost);
 			doc.add(titleField);
 			TextField contentField = new TextField(
-					wiki_inex09.Wiki09Indexer.CONTENT_ATTRIB, fileContent,
+					indexing.GeneralIndexer.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES);
 			contentField.setBoost((1 - gamma) * fieldBoost);
 			doc.add(contentField);

@@ -25,7 +25,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import indexing.GeneralIndexer;
-import wiki_inex09.Wiki09Indexer;
 
 public class ImdbIndexer extends GeneralIndexer {
 	
@@ -48,11 +47,11 @@ public class ImdbIndexer extends GeneralIndexer {
 			}
 			String textContent = fileContent.replaceAll("<[^>]*>", "").trim();
 			Document doc = new Document();
-			doc.add(new StringField(Wiki09Indexer.DOCNAME_ATTRIB, FilenameUtils
+			doc.add(new StringField(GeneralIndexer.DOCNAME_ATTRIB, FilenameUtils
 					.removeExtension(file.getName()), Field.Store.YES));
-			TextField titleField = new TextField(Wiki09Indexer.TITLE_ATTRIB, title, Field.Store.YES);
+			TextField titleField = new TextField(GeneralIndexer.TITLE_ATTRIB, title, Field.Store.YES);
 			titleField.setBoost(gamma * smoothed);
-			TextField contentField = new TextField(Wiki09Indexer.CONTENT_ATTRIB, textContent,
+			TextField contentField = new TextField(GeneralIndexer.CONTENT_ATTRIB, textContent,
 					Field.Store.YES);
 			contentField.setBoost((1 - gamma) * smoothed);
 			doc.add(titleField);
@@ -96,13 +95,13 @@ public class ImdbIndexer extends GeneralIndexer {
 				gamma3 = 0;
 			}
 			Document lDoc = new Document();
-			lDoc.add(new StringField(Wiki09Indexer.DOCNAME_ATTRIB, FilenameUtils.removeExtension(file.getName()),
+			lDoc.add(new StringField(GeneralIndexer.DOCNAME_ATTRIB, FilenameUtils.removeExtension(file.getName()),
 					Field.Store.YES));
-			TextField titleField = new TextField(Wiki09Indexer.TITLE_ATTRIB, title, Field.Store.YES);
+			TextField titleField = new TextField(GeneralIndexer.TITLE_ATTRIB, title, Field.Store.YES);
 			titleField.setBoost(gamma * smoothed);
 			TextField actorsField = new TextField("another_attirb", actorsInfo, Field.Store.YES);
 			actorsField.setBoost(gamma2 * smoothed);
-			TextField contentField = new TextField(Wiki09Indexer.CONTENT_ATTRIB, rest, Field.Store.YES);
+			TextField contentField = new TextField(GeneralIndexer.CONTENT_ATTRIB, rest, Field.Store.YES);
 			contentField.setBoost(gamma3 * smoothed);
 			lDoc.add(titleField);
 			lDoc.add(actorsField);
