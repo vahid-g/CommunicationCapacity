@@ -43,6 +43,10 @@ public class QueryResult {
 
 	@Override
 	public String toString() {
+		return query.text + ", " + precisionAtK(3) + ", " + precisionAtK(10) + ", " + this.mrr();
+	}
+	
+	public String fullString() {
 		return query.text + ", " + precisionAtK(3) + ", " + precisionAtK(10)
 				+ ", " + precisionAtK(20) + ", " + mrr() + "," + recallAtK(10)
 				+ "," + recallAtK(20) + "," + recallAtK(100);
