@@ -49,7 +49,7 @@ public class QueryResult {
 	public String fullString() {
 		return query.text + ", " + precisionAtK(3) + ", " + precisionAtK(10)
 				+ ", " + precisionAtK(20) + ", " + mrr() + "," + recallAtK(10)
-				+ "," + recallAtK(20) + "," + recallAtK(100);
+				+ "," + recallAtK(20) + "," + recallAtK(100) + "," + recallAtK(200);
 	}
 
 	public String top10() {

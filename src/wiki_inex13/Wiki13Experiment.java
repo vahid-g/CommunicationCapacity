@@ -30,13 +30,13 @@ public class Wiki13Experiment {
 
 		int expNo = Integer.parseInt(args[0]);
 		int totalExp = Integer.parseInt(args[1]);
-		// float gamma = 0.15f; // Float.parseFloat(args[2]);
+		float gamma = 0.15f; // Float.parseFloat(args[2]);
 
 		// expTextInex13(expNo, totalExp, gamma);
-		expTextMsn(expNo, totalExp);
+		// expTextMsn(expNo, totalExp);
 
 		// buildGlobalIndex(expNo, totalExp, gamma);
-		// runQueriesOnGlobalIndex(expNo, totalExp, gamma);
+		runQueriesOnGlobalIndex(expNo, totalExp, gamma);
 
 		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
 				+ (System.currentTimeMillis() - start_t) / 60000 + " minutes");
@@ -70,7 +70,7 @@ public class Wiki13Experiment {
 				+ "inex13_grid_" + Float.toString(gamma).replace(".", "")
 				+ ".csv")) {
 			for (QueryResult mqr : results) {
-				fw.write(mqr.toString() + "\n");
+				fw.write(mqr.fullString() + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -224,9 +224,7 @@ public class Wiki13Experiment {
 					+ ".csv";
 			try (FileWriter fw = new FileWriter(resultFileName)) {
 				for (QueryResult iqr : results) {
-					fw.write(iqr.query.text + ", " + iqr.recallAtK(10) + ", "
-							+ iqr.recallAtK(20) + ", " + iqr.recallAtK(100)
-							+ "\n");
+					fw.write(iqr.fullString() + "\n");
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
