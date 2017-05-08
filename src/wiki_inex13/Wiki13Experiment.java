@@ -183,9 +183,6 @@ public class Wiki13Experiment {
 	// builds the index on cluster-share
 	public static void buildGlobalIndex(int expNo, int totalExp, float gamma) {
 		try {
-			String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE
-					+ "wiki13_50_15/" + totalExp + "_" + expNo + "_"
-					+ Float.toString(gamma).replace(".", "");
 			List<InexFile> pathCountList = InexFile
 					.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
 			double total = (double) totalExp;
@@ -198,7 +195,13 @@ public class Wiki13Experiment {
 					Level.INFO,
 					"Smallest score: "
 							+ pathCountList.get(pathCountList.size() - 1).weight);
-			LOGGER.log(Level.INFO, "Building index..");
+			String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE
+					+ "wiki13_" + totalExp + "_" + Float.toString(gamma).replace(".", "") + "/part_" + expNo;
+			File indexPathFile = new File(indexPath);
+			if (!indexPathFile.exists()){
+				indexPathFile.mkdirs();
+			}
+			LOGGER.log(Level.INFO, "Building index at: " + indexPath);
 			Wiki13Indexer.buildTextIndex(pathCountList, indexPath, gamma);
 		} catch (Exception e) {
 			e.printStackTrace();
