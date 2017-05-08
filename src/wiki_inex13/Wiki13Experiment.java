@@ -30,13 +30,13 @@ public class Wiki13Experiment {
 
 		int expNo = Integer.parseInt(args[0]);
 		int totalExp = Integer.parseInt(args[1]);
-		float gamma = 0.15f; // Float.parseFloat(args[2]);
+		float gamma = Float.parseFloat(args[2]);
 
 		// expTextInex13(expNo, totalExp, gamma);
 		// expTextMsn(expNo, totalExp);
 
-		// buildGlobalIndex(expNo, totalExp, gamma);
-		runQueriesOnGlobalIndex(expNo, totalExp, gamma);
+		buildGlobalIndex(expNo, totalExp, gamma);
+		// runQueriesOnGlobalIndex(expNo, totalExp, gamma);
 
 		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
 				+ (System.currentTimeMillis() - start_t) / 60000 + " minutes");
@@ -210,33 +210,24 @@ public class Wiki13Experiment {
 		String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE
 				+ "wiki13_50_15/" + totalExp + "_" + expNo + "_"
 				+ Float.toString(gamma).replace(".", "");
-		try {
-			LOGGER.log(Level.INFO, "Loading and running queries..");
-			List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-					ClusterDirectoryInfo.INEX13_QUERY_FILE,
-					ClusterDirectoryInfo.INEX13_QREL_FILE);
-			LOGGER.log(Level.INFO,
-					"Number of loaded queries: " + queries.size());
-			List<QueryResult> results = QueryServices.runQueries(queries,
-					indexPath);
-			LOGGER.log(Level.INFO, "Writing results..");
-			String resultFileName = ClusterDirectoryInfo.RESULT_DIR + expNo
-					+ ".csv";
-			try (FileWriter fw = new FileWriter(resultFileName)) {
-				for (QueryResult iqr : results) {
-					fw.write(iqr.fullString() + "\n");
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
+		LOGGER.log(Level.INFO, "Loading and running queries..");
+		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
+				ClusterDirectoryInfo.INEX13_QUERY_FILE,
+				ClusterDirectoryInfo.INEX13_QREL_FILE);
+		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
+		List<QueryResult> results = QueryServices
+				.runQueries(queries, indexPath);
+		LOGGER.log(Level.INFO, "Writing results..");
+		String resultFileName = ClusterDirectoryInfo.RESULT_DIR + expNo
+				+ ".csv";
+		try (FileWriter fw = new FileWriter(resultFileName)) {
+			for (QueryResult iqr : results) {
+				fw.write(iqr.fullString() + "\n");
 			}
-		} finally {
-			LOGGER.log(Level.INFO, "cleanup..");
-			try {
-				FileUtils.deleteDirectory(new File(indexPath));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+
 	}
 
 }
