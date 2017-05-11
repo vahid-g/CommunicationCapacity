@@ -16,9 +16,9 @@ public class MergeCountTitle {
 
 	public static void main(String[] args) {
 		Path countFilePath = Paths.get("/scratch/cluster-share/ghadakcv/" + args[0]);
+		//contains title and counts
 		Path pathToTitleFile = Paths.get("/scratch/cluster-share/ghadakcv/" + args[1]);
-		// Path countFilePath = Paths.get("count.txt");
-		// Path pathToTitleFile = Paths.get("grep.txt");
+		//coutains filepath to title in wiki13 inex dataset
 		List<String> pathTitles;
 		try {
 			pathTitles = Files.readAllLines(pathToTitleFile, Charset.forName("UTF-8"));
