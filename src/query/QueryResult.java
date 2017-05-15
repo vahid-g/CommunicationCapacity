@@ -63,4 +63,34 @@ public class QueryResult {
 		String resultTuples = sb.toString();
 		return query.text + "," + resultTuples;
 	}
+	
+	public String listFalseNegatives(int k){
+		StringBuilder sb = new StringBuilder();
+		int counter = 0;
+		for (String rel : this.query.qrels){
+			if (!topResults.contains(rel)){
+				sb.append(query.id + "," + query.text + "," + rel + "\n");
+			}
+			if (++counter > k) break;
+		}
+		return sb.toString();
+	}
+	
+	public String miniLog(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("qid: " + this.query.id + "\t" + query.text + "\n");
+		int counter = 0;
+		for (String rel : this.query.qrels){
+			if (!topResults.contains(rel)){
+				sb.append("missed: " + rel + "\n");
+			}
+			if (++counter > 20) break;
+		}
+		for (int i = 0; i < this.topResults.size(); i++){
+			if (!this.query.qrels.contains(topResults.get(i)))
+				sb.append("fp: " + topResults.get(i) + "\t" + topResultsTitle.get(i) + "\n");
+		}
+		sb.append("-------------------------------------\n");
+		return sb.toString();
+	}
 }

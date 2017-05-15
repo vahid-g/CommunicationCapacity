@@ -30,12 +30,12 @@ public class Wiki13Experiment {
 
 		int expNo = Integer.parseInt(args[0]);
 		int totalExp = Integer.parseInt(args[1]);
-		float gamma = Float.parseFloat(args[2]);
+		// float gamma = Float.parseFloat(args[2]);
 
 		// expTextInex13(expNo, totalExp, gamma);
-		// expTextMsn(expNo, totalExp);
+		expTextMsn(expNo, totalExp);
 
-		buildGlobalIndex(expNo, totalExp, gamma);
+		// buildGlobalIndex(expNo, totalExp, gamma);
 		// runQueriesOnGlobalIndex(expNo, totalExp, gamma);
 
 		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
@@ -88,7 +88,7 @@ public class Wiki13Experiment {
 				+ "msn_index13_" + expNo;
 		try {
 			List<InexFile> pathCountList = InexFile
-					.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE13);
+					.loadFilePathCountTitle(ClusterDirectoryInfo.PATH13_COUNT09);
 			double total = (double) totalExp;
 			pathCountList = pathCountList.subList(0,
 					(int) (((double) expNo / total) * pathCountList.size()));
@@ -103,7 +103,7 @@ public class Wiki13Experiment {
 			Wiki13Indexer.buildTextIndex(pathCountList, indexName, 0.9f);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
 			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
-					ClusterDirectoryInfo.MSN_QUERY_QID_B,
+					ClusterDirectoryInfo.MSN_QUERY_QID,
 					ClusterDirectoryInfo.MSN_QID_QREL);
 			LOGGER.log(Level.INFO,
 					"Number of loaded queries: " + queries.size());

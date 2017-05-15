@@ -35,6 +35,8 @@ public class ClusterDirectoryInfo {
 	public static final String LOCAL_INDEX_BASE13 = "/scratch/ghadakcv/index13/";
 	public static final String PATH_COUNT_FILE13 = CLUSTER_BASE
 			+ "data/path_counts/pathcount_13_0103_text.csv";
+	public static final String PATH13_COUNT09 = CLUSTER_BASE
+			+ "data/path_counts/path13_count09_text.csv";
 
 	// INEX 2013 query files
 	public static final String INEX13_QUERY_FILE = ClusterDirectoryInfo.CLUSTER_BASE

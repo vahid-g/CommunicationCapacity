@@ -39,25 +39,52 @@ public class ImdbIndexer extends GeneralIndexer {
 
 	public static void main(String[] args) {
 		File file = new File(
-				"/scratch/data-sets/imdb/imdb-inex/movies/000/947000.xml");
+				"/scratch/data-sets/imdb/imdb-inex/movies/474/1437474.xml");
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			org.w3c.dom.Document doc = db.parse(file);
-			// removing title and actors info
-			Element element = (Element) doc.getElementsByTagName("actors")
-					.item(0);
-			element.getParentNode().removeChild(element);
-			element = (Element) doc.getElementsByTagName("title").item(0);
-			element.getParentNode().removeChild(element);
-			doc.normalize();
 
-			System.out.println(doc.getElementsByTagName("movie").item(0)
+			NodeList titleNodeList = doc.getElementsByTagName("title");
+			Node titleNode = titleNodeList.item(0).getFirstChild();
+			String title = "";
+			if (titleNode.getNodeValue() != null) {
+				title = titleNode.getNodeValue().trim();
+			} else {
+				LOGGER.log(Level.WARNING,
+						"title not found in: " + file.getName());
+			}
+			System.out.println("title: " + title.trim());
+
+			NodeList genreNodeList = doc.getElementsByTagName("genre");
+			String genre = genreNodeList.item(0).getTextContent().trim();
+			System.out.println("genre: " + genre);
+
+			StringBuilder sb = new StringBuilder();
+			NodeList plotNodeList = doc.getElementsByTagName("plot");
+			String plot = plotNodeList.item(0).getTextContent().trim();
+			sb.append(plot);
+			NodeList tagLineNodeList = doc.getElementsByTagName("tagline");
+			String tagLine = tagLineNodeList.item(0).getTextContent().trim();
+			sb.append(tagLine);
+			// String keywords = doc.getElementsByTagName("keywords").item(0)
+			// .getTextContent().trim();
+			System.out.println("plot: " + sb.toString());
+
+			sb = new StringBuilder();
+			sb.append(doc.getElementsByTagName("actors").item(0)
 					.getTextContent());
-			// prettyPrint(doc);
-			// String rest = fileContent.replaceAll("<[^>]*>",
-			// "").trim().replaceAll(title, "");
+			sb.append(doc.getElementsByTagName("composers").item(0)
+					.getTextContent().trim());
+			sb.append(doc.getElementsByTagName("producers").item(0)
+					.getTextContent().trim());
+			sb.append(doc.getElementsByTagName("writers").item(0)
+					.getTextContent().trim());
+			sb.append(doc.getElementsByTagName("directors").item(0)
+					.getTextContent().trim());
+			String people = sb.toString();
+			System.out.println("people: " + people);
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -82,6 +109,90 @@ public class ImdbIndexer extends GeneralIndexer {
 	}
 
 	protected void indexXmlFile(File file, IndexWriter writer, float smoothed,
+			float... gamma) {
+		if (gamma.length < 2) {
+			LOGGER.log(Level.SEVERE, "Not enough gammas!!!");
+			return;
+		}
+		try {
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			org.w3c.dom.Document xmlDoc = db.parse(file);
+
+			NodeList titleNodeList = xmlDoc.getElementsByTagName("title");
+			Node titleNode = titleNodeList.item(0).getFirstChild();
+			String title = "";
+			if (titleNode.getNodeValue() != null) {
+				title = titleNode.getNodeValue().trim();
+			} else {
+				LOGGER.log(Level.WARNING,
+						"title not found in: " + file.getName());
+			}
+
+			NodeList genreNodeList = xmlDoc.getElementsByTagName("genre");
+			String genre = genreNodeList.item(0).getTextContent().trim();
+
+			StringBuilder sb = new StringBuilder();
+			NodeList plotNodeList = xmlDoc.getElementsByTagName("plot");
+			String plot = plotNodeList.item(0).getTextContent().trim();
+			sb.append(plot);
+			NodeList tagLineNodeList = xmlDoc.getElementsByTagName("tagline");
+			String tagLine = tagLineNodeList.item(0).getTextContent().trim();
+			sb.append(tagLine);
+			// String keywords = doc.getElementsByTagName("keywords").item(0)
+			// .getTextContent().trim();
+			String plotTagLines = sb.toString();
+
+			sb = new StringBuilder();
+			sb.append(xmlDoc.getElementsByTagName("actors").item(0)
+					.getTextContent());
+			sb.append(xmlDoc.getElementsByTagName("composers").item(0)
+					.getTextContent().trim());
+			sb.append(xmlDoc.getElementsByTagName("producers").item(0)
+					.getTextContent().trim());
+			sb.append(xmlDoc.getElementsByTagName("writers").item(0)
+					.getTextContent().trim());
+			sb.append(xmlDoc.getElementsByTagName("directors").item(0)
+					.getTextContent().trim());
+			String people = sb.toString();
+
+			if (gamma.length < 4) {
+				LOGGER.log(Level.SEVERE, "Not enough gammas!");
+				return;
+			}
+			Document luceneDoc = new Document();
+			luceneDoc.add(new StringField(GeneralIndexer.DOCNAME_ATTRIB,
+					FilenameUtils.removeExtension(file.getName()),
+					Field.Store.YES));
+			TextField titleField = new TextField(GeneralIndexer.TITLE_ATTRIB,
+					title, Field.Store.YES);
+			titleField.setBoost(gamma[0] * smoothed);
+			luceneDoc.add(titleField);
+			TextField genreField = new TextField("genre", genre,
+					Field.Store.YES);
+			genreField.setBoost(gamma[1] * smoothed);
+			luceneDoc.add(genreField);
+			TextField plotField = new TextField("plot", plotTagLines,
+					Field.Store.YES);
+			plotField.setBoost(gamma[2] * smoothed);
+			luceneDoc.add(plotField);
+			TextField peopleField = new TextField(GeneralIndexer.ACTORS_ATTRIB,
+					people, Field.Store.YES);
+			peopleField.setBoost(gamma[3] * smoothed);
+			luceneDoc.add(peopleField);
+			writer.addDocument(luceneDoc);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		} catch (SAXException e) {
+			e.printStackTrace();
+		}
+	}
+
+	protected void indexXmlFile3(File file, IndexWriter writer, float smoothed,
 			float... gamma) {
 		if (gamma.length < 2) {
 			LOGGER.log(Level.SEVERE, "Not enough gammas!!!");
@@ -117,7 +228,7 @@ public class ImdbIndexer extends GeneralIndexer {
 			} catch (NullPointerException e) {
 				// file doesn't have actors/title
 			}
-			
+
 			doc.normalize();
 			String rest = doc.getElementsByTagName("movie").item(0)
 					.getTextContent();
@@ -155,8 +266,8 @@ public class ImdbIndexer extends GeneralIndexer {
 		}
 	}
 
-	protected void indexXmlFileOld(File file, IndexWriter writer,
-			float smoothed, float gamma) {
+	protected void indexXmlFile2(File file, IndexWriter writer, float smoothed,
+			float gamma) {
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];
 			fis.read(data);

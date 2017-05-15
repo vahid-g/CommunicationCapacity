@@ -35,16 +35,18 @@ public class ImdbExperiment {
 			.getName());
 
 	public static void main(String[] args) {
+
 		long start_t = System.currentTimeMillis();
+		// buildJmdbSortedPathRating("/scratch/data-sets/imdb/imdb-inex/movies");
 
 		// float gamma1 = Float.parseFloat(args[0]);
 		// float gamma2 = Float.parseFloat(args[1]);
 		// gridSearchExperiment(gamma1, gamma2);
 		int expNo = Integer.parseInt(args[0]);
 		int totalCount = Integer.parseInt(args[1]);
-		expInex(expNo, totalCount, 0.1f, 0.1f);
+		float[] gammas = {0.25f, 0.25f, 0.25f, 0.25f};
+		expInex(expNo, totalCount, gammas);
 
-		// buildJmdbSortedPathRating("/scratch/data-sets/imdb/imdb-inex/movies");
 		System.out.println((System.currentTimeMillis() - start_t) / 1000);
 	}
 
@@ -243,10 +245,10 @@ public class ImdbExperiment {
 				+ "imdb_" + expNo + ".csv");
 				FileWriter fw2 = new FileWriter(
 						ImdbClusterDirectoryInfo.RESULT_DIR + "imdb_" + expNo
-								+ ".top")) {
+								+ ".log")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.toString() + "\n");
-				fw2.write(mqr.top10() + "\n");
+				fw2.write(mqr.miniLog() + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage());
