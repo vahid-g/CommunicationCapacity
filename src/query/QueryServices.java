@@ -56,6 +56,12 @@ public class QueryServices {
 
 	public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
 			String indexPath) {
+		String attribs[] = {GeneralIndexer.TITLE_ATTRIB, GeneralIndexer.CONTENT_ATTRIB};
+		return runQueries(queries, indexPath, attribs);
+	}
+	
+	public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
+			String indexPath, String[] attribs) {
 		List<QueryResult> iqrList = new ArrayList<QueryResult>();
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
 				.get(indexPath)))) {
@@ -65,8 +71,7 @@ public class QueryServices {
 			searcher.setSimilarity(new BM25Similarity());
 			for (ExperimentQuery queryDAO : queries) {
 				// LOGGER.log(Level.INFO,queryCoutner++);
-				Query query = buildLuceneQuery(queryDAO.text,
-						GeneralIndexer.TITLE_ATTRIB, GeneralIndexer.CONTENT_ATTRIB);
+				Query query = buildLuceneQuery(queryDAO.text, attribs);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				QueryResult iqr = new QueryResult(queryDAO);
 				for (int i = 0; i < Math.min(TOP_DOC_COUNT,

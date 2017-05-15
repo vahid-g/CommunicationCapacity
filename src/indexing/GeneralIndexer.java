@@ -18,8 +18,6 @@ public abstract class GeneralIndexer {
 	public static final String DOCNAME_ATTRIB = "name";
 	public static final String TITLE_ATTRIB = "title";
 	
-	public static final String ACTORS_ATTRIB = "actors";
-
 	public void buildIndex(List<InexFile> list, String indexPath,
 			float... fieldBoost) {
 		FSDirectory directory = null;

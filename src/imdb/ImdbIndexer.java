@@ -34,6 +34,10 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class ImdbIndexer extends GeneralIndexer {
+	
+	public static final String GENRE_ATTRIB = "genre";
+	public static final String PLOT_ATTRIB = "plot";
+	public static final String ACTORS_ATTRIB = "actors";
 
 	static final Logger LOGGER = Logger.getLogger(ImdbIndexer.class.getName());
 
@@ -161,22 +165,22 @@ public class ImdbIndexer extends GeneralIndexer {
 				return;
 			}
 			Document luceneDoc = new Document();
-			luceneDoc.add(new StringField(GeneralIndexer.DOCNAME_ATTRIB,
+			luceneDoc.add(new StringField(DOCNAME_ATTRIB,
 					FilenameUtils.removeExtension(file.getName()),
 					Field.Store.YES));
-			TextField titleField = new TextField(GeneralIndexer.TITLE_ATTRIB,
+			TextField titleField = new TextField(TITLE_ATTRIB,
 					title, Field.Store.YES);
 			titleField.setBoost(gamma[0] * smoothed);
 			luceneDoc.add(titleField);
-			TextField genreField = new TextField("genre", genre,
+			TextField genreField = new TextField(GENRE_ATTRIB, genre,
 					Field.Store.YES);
 			genreField.setBoost(gamma[1] * smoothed);
 			luceneDoc.add(genreField);
-			TextField plotField = new TextField("plot", plotTagLines,
+			TextField plotField = new TextField(PLOT_ATTRIB, plotTagLines,
 					Field.Store.YES);
 			plotField.setBoost(gamma[2] * smoothed);
 			luceneDoc.add(plotField);
-			TextField peopleField = new TextField(GeneralIndexer.ACTORS_ATTRIB,
+			TextField peopleField = new TextField(ACTORS_ATTRIB,
 					people, Field.Store.YES);
 			peopleField.setBoost(gamma[3] * smoothed);
 			luceneDoc.add(peopleField);
@@ -245,7 +249,7 @@ public class ImdbIndexer extends GeneralIndexer {
 			TextField titleField = new TextField(GeneralIndexer.TITLE_ATTRIB,
 					title, Field.Store.YES);
 			titleField.setBoost(gamma[0] * smoothed);
-			TextField actorsField = new TextField(GeneralIndexer.ACTORS_ATTRIB,
+			TextField actorsField = new TextField(ACTORS_ATTRIB,
 					actorsInfo, Field.Store.YES);
 			actorsField.setBoost(gamma[1] * smoothed);
 			TextField contentField = new TextField(
