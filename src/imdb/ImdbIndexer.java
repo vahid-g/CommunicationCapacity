@@ -34,7 +34,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class ImdbIndexer extends GeneralIndexer {
-	
+
 	public static final String GENRE_ATTRIB = "genre";
 	public static final String PLOT_ATTRIB = "plot";
 	public static final String ACTORS_ATTRIB = "actors";
@@ -134,30 +134,36 @@ public class ImdbIndexer extends GeneralIndexer {
 			}
 
 			NodeList genreNodeList = xmlDoc.getElementsByTagName("genre");
-			String genre = genreNodeList.item(0).getTextContent().trim();
+			String genre = "";
+			if (genreNodeList.item(0) != null) {
+				genre = genreNodeList.item(0).getTextContent().trim();
+			}
 
 			StringBuilder sb = new StringBuilder();
 			NodeList plotNodeList = xmlDoc.getElementsByTagName("plot");
-			String plot = plotNodeList.item(0).getTextContent().trim();
-			sb.append(plot);
+			if (plotNodeList.item(0) != null)
+				sb.append(plotNodeList.item(0).getTextContent().trim());
 			NodeList tagLineNodeList = xmlDoc.getElementsByTagName("tagline");
-			String tagLine = tagLineNodeList.item(0).getTextContent().trim();
-			sb.append(tagLine);
-			// String keywords = doc.getElementsByTagName("keywords").item(0)
-			// .getTextContent().trim();
+			if (tagLineNodeList.item(0) != null)
+				sb.append(tagLineNodeList.item(0).getTextContent().trim());
 			String plotTagLines = sb.toString();
 
 			sb = new StringBuilder();
-			sb.append(xmlDoc.getElementsByTagName("actors").item(0)
-					.getTextContent());
-			sb.append(xmlDoc.getElementsByTagName("composers").item(0)
-					.getTextContent().trim());
-			sb.append(xmlDoc.getElementsByTagName("producers").item(0)
-					.getTextContent().trim());
-			sb.append(xmlDoc.getElementsByTagName("writers").item(0)
-					.getTextContent().trim());
-			sb.append(xmlDoc.getElementsByTagName("directors").item(0)
-					.getTextContent().trim());
+			Node actors = xmlDoc.getElementsByTagName("actors").item(0);
+			if (actors != null)
+				sb.append(actors.getTextContent().trim());
+			Node composers = xmlDoc.getElementsByTagName("compoer").item(0);
+			if (composers != null)
+				sb.append(composers.getTextContent().trim());
+			Node producers = xmlDoc.getElementsByTagName("producers").item(0);
+			if (producers != null)
+				sb.append(producers.getTextContent().trim());
+			Node writers = xmlDoc.getElementsByTagName("writers").item(0);
+			if (writers != null)
+				sb.append(writers.getTextContent().trim());
+			Node directors = xmlDoc.getElementsByTagName("directors").item(0);
+			if (directors != null)
+				sb.append(directors.getTextContent().trim());
 			String people = sb.toString();
 
 			if (gamma.length < 4) {
@@ -165,11 +171,10 @@ public class ImdbIndexer extends GeneralIndexer {
 				return;
 			}
 			Document luceneDoc = new Document();
-			luceneDoc.add(new StringField(DOCNAME_ATTRIB,
-					FilenameUtils.removeExtension(file.getName()),
-					Field.Store.YES));
-			TextField titleField = new TextField(TITLE_ATTRIB,
-					title, Field.Store.YES);
+			luceneDoc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils
+					.removeExtension(file.getName()), Field.Store.YES));
+			TextField titleField = new TextField(TITLE_ATTRIB, title,
+					Field.Store.YES);
 			titleField.setBoost(gamma[0] * smoothed);
 			luceneDoc.add(titleField);
 			TextField genreField = new TextField(GENRE_ATTRIB, genre,
@@ -180,8 +185,8 @@ public class ImdbIndexer extends GeneralIndexer {
 					Field.Store.YES);
 			plotField.setBoost(gamma[2] * smoothed);
 			luceneDoc.add(plotField);
-			TextField peopleField = new TextField(ACTORS_ATTRIB,
-					people, Field.Store.YES);
+			TextField peopleField = new TextField(ACTORS_ATTRIB, people,
+					Field.Store.YES);
 			peopleField.setBoost(gamma[3] * smoothed);
 			luceneDoc.add(peopleField);
 			writer.addDocument(luceneDoc);
@@ -195,7 +200,6 @@ public class ImdbIndexer extends GeneralIndexer {
 			e.printStackTrace();
 		}
 	}
-
 	protected void indexXmlFile3(File file, IndexWriter writer, float smoothed,
 			float... gamma) {
 		if (gamma.length < 2) {
@@ -249,8 +253,8 @@ public class ImdbIndexer extends GeneralIndexer {
 			TextField titleField = new TextField(GeneralIndexer.TITLE_ATTRIB,
 					title, Field.Store.YES);
 			titleField.setBoost(gamma[0] * smoothed);
-			TextField actorsField = new TextField(ACTORS_ATTRIB,
-					actorsInfo, Field.Store.YES);
+			TextField actorsField = new TextField(ACTORS_ATTRIB, actorsInfo,
+					Field.Store.YES);
 			actorsField.setBoost(gamma[1] * smoothed);
 			TextField contentField = new TextField(
 					GeneralIndexer.CONTENT_ATTRIB, rest, Field.Store.YES);

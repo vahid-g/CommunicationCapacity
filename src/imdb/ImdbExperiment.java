@@ -233,17 +233,17 @@ public class ImdbExperiment {
 				+ expNo;
 		new ImdbIndexer().buildIndex(
 				fileList.subList(0, (fileList.size() * expNo) / total),
-				indexName, gamma[0], gamma[1]);
+				indexName, gamma);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				ImdbClusterDirectoryInfo.QUERY_FILE,
 				ImdbClusterDirectoryInfo.QREL_FILE);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		String attribs[] = {GeneralIndexer.TITLE_ATTRIB,
+		String queryAttribs[] = {GeneralIndexer.TITLE_ATTRIB,
 				ImdbIndexer.GENRE_ATTRIB, ImdbIndexer.PLOT_ATTRIB,
 				ImdbIndexer.ACTORS_ATTRIB};
 		List<QueryResult> results = QueryServices
-				.runQueries(queries, indexName, attribs);
+				.runQueries(queries, indexName, queryAttribs);
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR
 				+ "imdb_" + expNo + ".csv");
