@@ -33,7 +33,8 @@ import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -45,8 +46,7 @@ public class QueryServices {
 
 	final static int TOP_DOC_COUNT = 100;
 
-	static final Logger LOGGER = Logger
-			.getLogger(QueryServices.class.getName());
+	static final Logger LOGGER = Logger.getLogger(QueryServices.class.getName());
 
 	public static void main(String[] args) {
 		String queryFile = "data/queries/inex_ld/2013-ld-adhoc-topics.xml";
@@ -54,28 +54,28 @@ public class QueryServices {
 		loadInexQueries(queryFile, qrelsFile);
 	}
 
-	public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
-			String indexPath) {
-		String attribs[] = {GeneralIndexer.TITLE_ATTRIB, GeneralIndexer.CONTENT_ATTRIB};
+	public static List<QueryResult> runQueries(List<ExperimentQuery> queries, String indexPath) {
+		String[] attribs = { GeneralIndexer.TITLE_ATTRIB, GeneralIndexer.CONTENT_ATTRIB };
 		return runQueries(queries, indexPath, attribs);
 	}
-	
-	public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
-			String indexPath, String[] attribs) {
+
+	public static List<QueryResult> runQueries(List<ExperimentQuery> queries, String indexPath, String[] attribs) {
+		return runQueries(queries, indexPath, new DefaultSimilarity(), attribs);
+	}
+
+	public static List<QueryResult> runQueries(List<ExperimentQuery> queries, String indexPath, Similarity similarity,
+			String[] attribs) {
 		List<QueryResult> iqrList = new ArrayList<QueryResult>();
-		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
-				.get(indexPath)))) {
-			LOGGER.log(Level.INFO,
-					"Number of docs in index: " + reader.numDocs());
+		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
+			LOGGER.log(Level.INFO, "Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
-			searcher.setSimilarity(new BM25Similarity());
+			searcher.setSimilarity(similarity);
 			for (ExperimentQuery queryDAO : queries) {
 				// LOGGER.log(Level.INFO,queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.text, attribs);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				QueryResult iqr = new QueryResult(queryDAO);
-				for (int i = 0; i < Math.min(TOP_DOC_COUNT,
-						topDocs.scoreDocs.length); i++) {
+				for (int i = 0; i < Math.min(TOP_DOC_COUNT, topDocs.scoreDocs.length); i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 					String docID = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
 					String docTitle = doc.get(GeneralIndexer.TITLE_ATTRIB);
@@ -91,37 +91,32 @@ public class QueryServices {
 	}
 
 	public static Query buildLuceneQuery(String queryString, String... fields) {
-		MultiFieldQueryParser parser = new MultiFieldQueryParser(fields,
-				new StandardAnalyzer());
-		parser.setDefaultOperator(Operator.OR);
+		MultiFieldQueryParser multiFieldParser = new MultiFieldQueryParser(fields, new StandardAnalyzer());
+		multiFieldParser.setDefaultOperator(Operator.OR);
 		Query query = null;
 		try {
-			query = parser.parse(QueryParser.escape(queryString));
+			query = multiFieldParser.parse(QueryParser.escape(queryString));
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 		return query;
 	}
 
-	public static List<ExperimentQuery> loadMsnQueries(String queryPath,
-			String qrelPath) {
+	public static List<ExperimentQuery> loadMsnQueries(String queryPath, String qrelPath) {
 		Map<Integer, Set<String>> qidQrelMap = loadQrelFile(qrelPath);
 		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
 		try (BufferedReader br = new BufferedReader(new FileReader(queryPath))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				int index = line.lastIndexOf(" ");
-				String text = line.substring(0, index).replace(",", "")
-						.replace("\"", "");
+				String text = line.substring(0, index).replace(",", "").replace("\"", "");
 				Integer qid = Integer.parseInt(line.substring(index + 1));
 				if (qidQrelMap.containsKey(qid)) {
 					Set<String> qrels = qidQrelMap.get(qid);
 					if (qrels == null) {
-						LOGGER.log(Level.SEVERE, "no qrels for query: " + qid
-								+ ":" + text + "in file: " + qrelPath);
+						LOGGER.log(Level.SEVERE, "no qrels for query: " + qid + ":" + text + "in file: " + qrelPath);
 					} else {
-						ExperimentQuery iq = new ExperimentQuery(qid, text,
-								qrels);
+						ExperimentQuery iq = new ExperimentQuery(qid, text, qrels);
 						queryList.add(iq);
 					}
 				}
@@ -134,8 +129,7 @@ public class QueryServices {
 		return queryList;
 	}
 
-	public static List<ExperimentQuery> loadInexQueries(String path,
-			String qrelPath) {
+	public static List<ExperimentQuery> loadInexQueries(String path, String qrelPath) {
 		// building qid -> qrels map
 		HashMap<Integer, Set<String>> qidQrels = loadQrelFile(qrelPath);
 
@@ -148,16 +142,13 @@ public class QueryServices {
 			NodeList nodeList = doc.getElementsByTagName("topic");
 			for (int i = 0; i < nodeList.getLength(); i++) {
 				Node node = nodeList.item(i);
-				int qid = Integer.parseInt(node.getAttributes()
-						.getNamedItem("id").getNodeValue());
+				int qid = Integer.parseInt(node.getAttributes().getNamedItem("id").getNodeValue());
 				String queryText = getText(findSubNode("title", node));
 				Set<String> qrels = qidQrels.get(qid);
 				if (qrels == null) {
-					LOGGER.log(Level.SEVERE, "no qrels for query: " + qid + ":"
-							+ queryText + "in file: " + qrelPath);
+					LOGGER.log(Level.SEVERE, "no qrels for query: " + qid + ":" + queryText + "in file: " + qrelPath);
 				} else {
-					ExperimentQuery iq = new ExperimentQuery(qid, queryText,
-							qrels);
+					ExperimentQuery iq = new ExperimentQuery(qid, queryText, qrels);
 					queryList.add(iq);
 				}
 			}

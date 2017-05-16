@@ -9,7 +9,8 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 
 public abstract class GeneralIndexer {
@@ -18,13 +19,14 @@ public abstract class GeneralIndexer {
 	public static final String DOCNAME_ATTRIB = "name";
 	public static final String TITLE_ATTRIB = "title";
 	
-	public void buildIndex(List<InexFile> list, String indexPath,
+	public void buildIndex(List<InexFile> list, String indexPath, Similarity similarity,
 			float... fieldBoost) {
 		FSDirectory directory = null;
 		IndexWriter writer = null;
 		try {
 			directory = FSDirectory.open(Paths.get(indexPath));
-			writer = new IndexWriter(directory, getConfig());
+			IndexWriterConfig iwc = getConfig().setSimilarity(similarity);
+			writer = new IndexWriter(directory, iwc);
 			for (InexFile ifm : list) {
 				indexXmlFile(new File(ifm.path), writer, 1, fieldBoost);
 			}
@@ -40,6 +42,11 @@ public abstract class GeneralIndexer {
 			if (directory != null)
 				directory.close();
 		}
+	}
+	
+	public void buildIndex(List<InexFile> list, String indexPath,
+			float... fieldBoost) {
+		buildIndex(list, indexPath, new DefaultSimilarity(), fieldBoost);
 	}
 	
 	public void buildIndexBoosted(List<InexFile> fileList,
@@ -80,7 +87,6 @@ public abstract class GeneralIndexer {
 		config = new IndexWriterConfig(new StandardAnalyzer());
 		config.setOpenMode(OpenMode.CREATE);
 		config.setRAMBufferSizeMB(1024.00);
-		config.setSimilarity(new BM25Similarity());
 		return config;
 	}
 	
