@@ -113,8 +113,8 @@ public class ImdbIndexer extends GeneralIndexer {
 	}
 
 	protected void indexXmlFile(File file, IndexWriter writer, float smoothed,
-			float... gamma) {
-		if (gamma.length < 2) {
+			float[] gamma) {
+		if (gamma.length < 4) {
 			LOGGER.log(Level.SEVERE, "Not enough gammas!!!");
 			return;
 		}
@@ -166,10 +166,6 @@ public class ImdbIndexer extends GeneralIndexer {
 				sb.append(directors.getTextContent().trim());
 			String people = sb.toString();
 
-			if (gamma.length < 4) {
-				LOGGER.log(Level.SEVERE, "Not enough gammas!");
-				return;
-			}
 			Document luceneDoc = new Document();
 			luceneDoc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils
 					.removeExtension(file.getName()), Field.Store.YES));
@@ -189,6 +185,7 @@ public class ImdbIndexer extends GeneralIndexer {
 					Field.Store.YES);
 			peopleField.setBoost(gamma[3] * smoothed);
 			luceneDoc.add(peopleField);
+			
 			writer.addDocument(luceneDoc);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

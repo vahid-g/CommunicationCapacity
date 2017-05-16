@@ -1,7 +1,10 @@
 package query;
 
+import indexing.InexFile;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class QueryResult {
 
@@ -76,19 +79,33 @@ public class QueryResult {
 		return sb.toString();
 	}
 	
-	public String miniLog(){
+	public String miniLog(Map<String, InexFile> idToInexfile){
 		StringBuilder sb = new StringBuilder();
 		sb.append("qid: " + this.query.id + "\t" + query.text + "\n");
+		sb.append("|relevant tuples| = " + this.query.qrels.size() + "\n");
+		sb.append("|returned results| = " + this.topResults.size() + "\n");
 		int counter = 0;
+		sb.append("available missed files: \n");
 		for (String rel : this.query.qrels){
-			if (!topResults.contains(rel)){
-				sb.append("missed: " + rel + "\n");
+			if (!topResults.contains(rel) && idToInexfile.containsKey(rel)){
+				sb.append(rel + "\t" + idToInexfile.get(rel).title + "\n");
 			}
 			if (++counter > 20) break;
 		}
+		sb.append("unavailable missed files: \n");
+		counter = 0;
+		for (String rel : this.query.qrels){
+			if (!topResults.contains(rel) && !idToInexfile.containsKey(rel)){
+				sb.append(rel + "\n");
+			}
+			if (++counter > 20) break;
+		}
+		sb.append("top false positives: ");
+		counter = 0;
 		for (int i = 0; i < this.topResults.size(); i++){
 			if (!this.query.qrels.contains(topResults.get(i)))
-				sb.append("fp: " + topResults.get(i) + "\t" + topResultsTitle.get(i) + "\n");
+				sb.append(topResultsTitle.get(i) + "\n");
+			if (++counter > 20) break;
 		}
 		sb.append("-------------------------------------\n");
 		return sb.toString();

@@ -19,6 +19,11 @@ public abstract class GeneralIndexer {
 	public static final String DOCNAME_ATTRIB = "name";
 	public static final String TITLE_ATTRIB = "title";
 	
+	public void buildIndex(List<InexFile> list, String indexPath,
+			float... fieldBoost) {
+		buildIndex(list, indexPath, new DefaultSimilarity(), fieldBoost);
+	}
+
 	public void buildIndex(List<InexFile> list, String indexPath, Similarity similarity,
 			float... fieldBoost) {
 		FSDirectory directory = null;
@@ -44,13 +49,8 @@ public abstract class GeneralIndexer {
 		}
 	}
 	
-	public void buildIndex(List<InexFile> list, String indexPath,
-			float... fieldBoost) {
-		buildIndex(list, indexPath, new DefaultSimilarity(), fieldBoost);
-	}
-	
 	public void buildIndexBoosted(List<InexFile> fileList,
-			String indexPath, float fieldBoost) {
+			String indexPath, float[] fieldBoosts) {
 		int N = 0;
 		for (InexFile inexFile : fileList) {
 			N += inexFile.weight;
@@ -66,7 +66,7 @@ public abstract class GeneralIndexer {
 			for (InexFile inexFile : fileList) {
 				float count = (float) inexFile.weight;
 				float smoothed = (count + alpha) / (N + V * alpha);
-				indexXmlFile(new File(inexFile.path), writer, smoothed, fieldBoost);
+				indexXmlFile(new File(inexFile.path), writer, smoothed, fieldBoosts);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -91,6 +91,6 @@ public abstract class GeneralIndexer {
 	}
 	
 	protected abstract void indexXmlFile(File file, IndexWriter writer,
-			float docBoost, float... fieldBoost);
+			float docBoost, float[] fieldBoost);
 
 }
