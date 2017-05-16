@@ -33,7 +33,7 @@ public class ClusterDirectoryInfo {
 	public static final String DATASET13_PATH = CLUSTER_BASE
 			+ "data-sets/inex_13";
 	public static final String LOCAL_INDEX_BASE13 = "/scratch/ghadakcv/index13/";
-	public static final String PATH_COUNT_FILE13 = CLUSTER_BASE
+	public static final String PATH13_COUNT13 = CLUSTER_BASE
 			+ "data/path_counts/pathcount_13_0103_text.csv";
 	public static final String PATH13_COUNT09 = CLUSTER_BASE
 			+ "data/path_counts/path13_count09_text.csv";
