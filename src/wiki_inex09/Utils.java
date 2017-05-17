@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,6 +19,14 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
 
 public class Utils {
 
@@ -163,5 +173,15 @@ public class Utils {
 			result.put(entry.getKey(), entry.getValue());
 		}
 		return result;
+	}
+
+	public static final void prettyPrint(org.w3c.dom.Document xml)
+			throws Exception {
+		Transformer tf = TransformerFactory.newInstance().newTransformer();
+		tf.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+		tf.setOutputProperty(OutputKeys.INDENT, "yes");
+		java.io.Writer out = new StringWriter();
+		tf.transform(new DOMSource(xml), new StreamResult(out));
+		System.out.println(out.toString());
 	}
 }

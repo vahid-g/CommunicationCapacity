@@ -97,6 +97,51 @@ public class QueryServices {
 		}
 		return iqrList;
 	}
+	
+	
+	public static List<QueryResult> runQueriesWithBoosting(List<ExperimentQuery> queries,
+			String indexPath, Similarity similarity, Map<String, Float> fieldToBoost) {
+		List<QueryResult> iqrList = new ArrayList<QueryResult>();
+		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
+				.get(indexPath)))) {
+			LOGGER.log(Level.INFO,
+					"Number of docs in index: " + reader.numDocs());
+			IndexSearcher searcher = new IndexSearcher(reader);
+			searcher.setSimilarity(similarity);
+			for (ExperimentQuery queryDAO : queries) {
+				// LOGGER.log(Level.INFO,queryCoutner++);
+				Query query = buildLuceneQuery(queryDAO.text, fieldToBoost);
+				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
+				QueryResult iqr = new QueryResult(queryDAO);
+				for (int i = 0; i < Math.min(TOP_DOC_COUNT,
+						topDocs.scoreDocs.length); i++) {
+					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
+					String docID = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
+					String docTitle = doc.get(GeneralIndexer.TITLE_ATTRIB);
+					iqr.topResults.add(docID);
+					iqr.topResultsTitle.add(docID + ": " + docTitle);
+				}
+				iqrList.add(iqr);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return iqrList;
+	}
+	
+	public static Query buildLuceneQuery(String queryString, Map<String, Float> fieldToBoost) {
+		MultiFieldQueryParser multiFieldParser = new MultiFieldQueryParser(
+				fieldToBoost.keySet().toArray(new String[0]), new StandardAnalyzer(), fieldToBoost);
+		multiFieldParser.setDefaultOperator(Operator.OR);
+		Query query = null;
+		try {
+			query = multiFieldParser.parse(QueryParser.escape(queryString));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		LOGGER.log(Level.INFO, "Lucene query: " + query.toString());
+		return query;
+	}
 
 	public static Query buildLuceneQuery(String queryString, String... fields) {
 		MultiFieldQueryParser multiFieldParser = new MultiFieldQueryParser(
