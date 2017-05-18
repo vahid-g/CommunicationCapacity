@@ -139,7 +139,6 @@ public class QueryServices {
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
-		LOGGER.log(Level.INFO, "Lucene query: " + query.toString());
 		return query;
 	}
 

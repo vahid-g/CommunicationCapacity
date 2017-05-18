@@ -46,11 +46,11 @@ public class ImdbExperiment {
 		// float gamma1 = Float.parseFloat(args[0]);
 		// float gamma2 = Float.parseFloat(args[1]);
 		// gridSearchExperiment(gamma1, gamma2);
-//		int expNo = Integer.parseInt(args[0]);
-//		int totalCount = Integer.parseInt(args[1]);
+		// int expNo = Integer.parseInt(args[0]);
+		// int totalCount = Integer.parseInt(args[1]);
 		// float[] gammas = {0.25f, 0.25f, 0.25f, 0.25f};
 		// expInex(expNo, totalCount, gammas);
-//		buildGlobalIndex(expNo, totalCount);
+		// buildGlobalIndex(expNo, totalCount);
 		gridSearchExperiment();
 
 		System.out.println((System.currentTimeMillis() - start_t) / 1000);
@@ -195,22 +195,21 @@ public class ImdbExperiment {
 		String indexName = "data/index/grid_imdb";
 		LOGGER.log(Level.INFO, "Building index..");
 		float[] fieldBoost = {1f, 1f, 1f, 1f, 1f};
-		new ImdbIndexer().buildIndex(fileList, indexName, fieldBoost);
+		// new ImdbIndexer().buildIndex(fileList, indexName, fieldBoost);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-				"data/queries/imdb/all-topics.csml",
-				"data/queries/imdb/all.qresl");
+				"data/queries/imdb/all-topics.xml",
+				"data/queries/imdb/all.qrels");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
 		List<List<QueryResult>> allResults = new ArrayList<List<QueryResult>>();
 		for (int i = 0; i < 32; i++) {
 			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-			fieldToBoost.put(ImdbIndexer.TITLE_ATTRIB, (float) i % 2 + 1);
-			fieldToBoost.put(ImdbIndexer.KEYWORDS_ATTRIB,
-					((float) i / 2) % 2 + 1);
-			fieldToBoost.put(ImdbIndexer.PLOT_ATTRIB, ((float) i / 4) % 2 + 1);
-			fieldToBoost
-					.put(ImdbIndexer.ACTORS_ATTRIB, ((float) i / 8) % 2 + 1);
-			fieldToBoost.put(ImdbIndexer.REST_ATTRIB, ((float) i / 16) % 2 + 1);
+			fieldToBoost.put(ImdbIndexer.TITLE_ATTRIB, i % 2 + 1.0f);
+			fieldToBoost.put(ImdbIndexer.KEYWORDS_ATTRIB, (i / 2) % 2 + 1.0f);
+			fieldToBoost.put(ImdbIndexer.PLOT_ATTRIB, (i / 4) % 2 + 1.0f);
+			fieldToBoost.put(ImdbIndexer.ACTORS_ATTRIB, (i / 8) % 2 + 1.0f);
+			fieldToBoost.put(ImdbIndexer.REST_ATTRIB, (i / 16) % 2 + 1.0f);
+			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 					queries, indexName, new DefaultSimilarity(), fieldToBoost);
 			allResults.add(results);
