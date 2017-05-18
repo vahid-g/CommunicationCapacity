@@ -49,7 +49,7 @@ public class QueryResult {
 		return query.text + ", " + precisionAtK(3) + ", " + precisionAtK(10) + ", " + this.mrr();
 	}
 	
-	public String fullString() {
+	public String resultString() {
 		return query.text + ", " + precisionAtK(3) + ", " + precisionAtK(10)
 				+ ", " + precisionAtK(20) + ", " + mrr() + "," + recallAtK(10)
 				+ "," + recallAtK(20) + "," + recallAtK(100) + "," + recallAtK(200);
@@ -100,7 +100,13 @@ public class QueryResult {
 			}
 			if (++counter > 20) break;
 		}
-		sb.append("top false positives: ");
+		sb.append("top 20: \n");
+		counter = 0;
+		for (String topResult : topResultsTitle){
+			sb.append(topResult + "\n");
+			if (++counter > 20) break;
+		}
+		sb.append("top false positives: \n");
 		counter = 0;
 		for (int i = 0; i < this.topResults.size(); i++){
 			if (!this.query.qrels.contains(topResults.get(i)))
