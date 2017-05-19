@@ -103,7 +103,7 @@ public class QueryResult {
 		sb.append("top 20: \n");
 		counter = 0;
 		for (String topResult : topResultsTitle){
-			sb.append(topResult + "\n");
+			sb.append(topResult + "\t");
 			if (++counter > 20) break;
 		}
 		sb.append("top false positives: \n");

@@ -23,6 +23,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.DefaultSimilarity;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -46,13 +47,13 @@ public class ImdbExperiment {
 		// float gamma1 = Float.parseFloat(args[0]);
 		// float gamma2 = Float.parseFloat(args[1]);
 		// gridSearchExperiment(gamma1, gamma2);
-		// int expNo = Integer.parseInt(args[0]);
-		// int totalCount = Integer.parseInt(args[1]);
+		int expNo = Integer.parseInt(args[0]);
+		int totalCount = Integer.parseInt(args[1]);
 		// float[] gammas = {0.25f, 0.25f, 0.25f, 0.25f};
 		// expInex(expNo, totalCount, gammas);
 		// buildGlobalIndex(expNo, totalCount);
-		localGridSearchExperiment();
-
+		// localGridSearchExperiment();
+		expGlobal(expNo, totalCount);
 		System.out.println((System.currentTimeMillis() - start_t) / 1000);
 	}
 
@@ -288,15 +289,8 @@ public class ImdbExperiment {
 
 	public static void expGlobal(int expNo, int total) {
 		// list should be sorted
-		List<InexFile> fileList = InexFile
-				.loadFilePathCountTitle(ImdbClusterDirectoryInfo.FILE_LIST);
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "imdb_"
+		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "imdb_50/imdb_"
 				+ total + "_" + expNo;
-		HashMap<String, InexFile> idToInexFile = new HashMap<String, InexFile>();
-		for (InexFile file : fileList) {
-			idToInexFile.put(FilenameUtils.removeExtension(new File(file.path)
-					.getName()), file);
-		}
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				ImdbClusterDirectoryInfo.QUERY_FILE,
@@ -309,13 +303,15 @@ public class ImdbExperiment {
 		fieldToBoost.put(ImdbIndexer.ACTORS_ATTRIB, 2.0f);
 		fieldToBoost.put(ImdbIndexer.REST_ATTRIB, 2.0f);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(
-				queries, indexName, new BM25Similarity(), fieldToBoost);
+				queries, indexName, new DefaultSimilarity(), fieldToBoost);
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR
 				+ "imdb_" + expNo + ".csv");
 				FileWriter fw2 = new FileWriter(
 						ImdbClusterDirectoryInfo.RESULT_DIR + "imdb_" + expNo
 								+ ".log")) {
+			Map<String, InexFile> idToInexFile = InexFile
+					.loadFilePathCountTitleMap(ImdbClusterDirectoryInfo.FILE_LIST);
 			for (QueryResult mqr : results) {
 				fw.write(mqr.resultString() + "\n");
 				fw2.write(mqr.miniLog(idToInexFile) + "\n");
