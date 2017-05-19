@@ -30,7 +30,7 @@ public abstract class GeneralIndexer {
 		IndexWriter writer = null;
 		try {
 			directory = FSDirectory.open(Paths.get(indexPath));
-			IndexWriterConfig iwc = getConfig().setSimilarity(similarity);
+			IndexWriterConfig iwc = getIndexWriterConfig().setSimilarity(similarity);
 			writer = new IndexWriter(directory, iwc);
 			for (InexFile ifm : list) {
 				indexXmlFile(new File(ifm.path), writer, 1, fieldBoost);
@@ -49,7 +49,7 @@ public abstract class GeneralIndexer {
 		}
 	}
 	
-	public void buildIndexBoosted(List<InexFile> fileList,
+	public void buildIndexDocBoosted(List<InexFile> fileList,
 			String indexPath, float[] fieldBoosts) {
 		int N = 0;
 		for (InexFile inexFile : fileList) {
@@ -62,7 +62,7 @@ public abstract class GeneralIndexer {
 		IndexWriter writer = null;
 		try {
 			directory = FSDirectory.open(Paths.get(indexPath));
-			writer = new IndexWriter(directory, getConfig());
+			writer = new IndexWriter(directory, getIndexWriterConfig());
 			for (InexFile inexFile : fileList) {
 				float count = (float) inexFile.weight;
 				float smoothed = (count + alpha) / (N + V * alpha);
@@ -82,7 +82,7 @@ public abstract class GeneralIndexer {
 		}
 	}
 
-	protected IndexWriterConfig getConfig() {
+	protected static IndexWriterConfig getIndexWriterConfig() {
 		IndexWriterConfig config;
 		config = new IndexWriterConfig(new StandardAnalyzer());
 		config.setOpenMode(OpenMode.CREATE);

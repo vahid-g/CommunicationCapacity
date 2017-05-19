@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.lucene.search.similarities.BM25Similarity;
 
 import query.ExperimentQuery;
 import query.QueryResult;
@@ -25,22 +26,18 @@ public class Wiki13Experiment {
 
 		long start_t = System.currentTimeMillis();
 
-		// float gamma = Float.parseFloat(args[0]);
-		// gridSearchExperiment(gamma);
-
 		int expNo = Integer.parseInt(args[0]);
 		int totalExp = Integer.parseInt(args[1]);
 		// float gamma = Float.parseFloat(args[2]);
 
+		buildGlobalIndex(expNo, totalExp);
+		// gridSearchExperiment(gamma);
 		// expTextInex13(expNo, totalExp, gamma);
-		expTextMsn(expNo, totalExp);
-
-		// buildGlobalIndex(expNo, totalExp, gamma);
+		// expTextMsn(expNo, totalExp);
 		// runQueriesOnGlobalIndex(expNo, totalExp, gamma);
 
 		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
 				+ (System.currentTimeMillis() - start_t) / 60000 + " minutes");
-
 	}
 
 	static void gridSearchExperiment(float gamma) {
@@ -53,7 +50,10 @@ public class Wiki13Experiment {
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13
 				+ "inex13_grid_" + Float.toString(gamma).replace(".", "");
 		LOGGER.log(Level.INFO, "Building index..");
-		Wiki13Indexer.buildTextIndex(pathCountList, indexName, gamma);
+		float gammas[] = new float[2];
+		gammas[0] = gamma;
+		gammas[1] = 1 - gamma;
+		Wiki13Indexer.buildIndexOnText(pathCountList, indexName, gammas);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		// List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
 		// ClusterDirectoryInfo.MSN_QUERY_QID_S,
@@ -100,7 +100,8 @@ public class Wiki13Experiment {
 					"Smallest score: "
 							+ pathCountList.get(pathCountList.size() - 1).weight);
 			LOGGER.log(Level.INFO, "Building index..");
-			Wiki13Indexer.buildTextIndex(pathCountList, indexName, 0.9f);
+			float gammas[] = {0.9f, 0.1f};
+			Wiki13Indexer.buildIndexOnText(pathCountList, indexName, gammas);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
 			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
 					ClusterDirectoryInfo.MSN_QUERY_QID,
@@ -127,7 +128,6 @@ public class Wiki13Experiment {
 			}
 		}
 	}
-
 	public static void expTextInex13(int expNo, int totalExp, float gamma) {
 		String indexPath = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "index13_"
 				+ expNo;
@@ -145,7 +145,10 @@ public class Wiki13Experiment {
 					"Smallest score: "
 							+ pathCountList.get(pathCountList.size() - 1).weight);
 			LOGGER.log(Level.INFO, "Building index..");
-			Wiki13Indexer.buildTextIndex(pathCountList, indexPath, gamma);
+			float[] gammas = new float[2];
+			gammas[0] = gamma;
+			gammas[1] = 1 - gamma;
+			Wiki13Indexer.buildIndexOnText(pathCountList, indexPath, gammas);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
 			List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 					ClusterDirectoryInfo.INEX13_QUERY_FILE,
@@ -179,12 +182,11 @@ public class Wiki13Experiment {
 			}
 		}
 	}
-
 	// builds the index on cluster-share
-	public static void buildGlobalIndex(int expNo, int totalExp, float gamma) {
+	public static void buildGlobalIndex(int expNo, int totalExp) {
 		try {
 			List<InexFile> pathCountList = InexFile
-					.loadFilePathCountTitle(ClusterDirectoryInfo.PATH13_COUNT13);
+					.loadFilePathCountTitle(ClusterDirectoryInfo.PATH13_COUNT09);
 			double total = (double) totalExp;
 			pathCountList = pathCountList.subList(0,
 					(int) (((double) expNo / total) * pathCountList.size()));
@@ -196,13 +198,14 @@ public class Wiki13Experiment {
 					"Smallest score: "
 							+ pathCountList.get(pathCountList.size() - 1).weight);
 			String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE
-					+ "wiki13_" + totalExp + "_" + Float.toString(gamma).replace(".", "") + "/part_" + expNo;
+					+ "wiki13_p" + totalExp + "_bm" + "/part_" + expNo;
 			File indexPathFile = new File(indexPath);
-			if (!indexPathFile.exists()){
+			if (!indexPathFile.exists()) {
 				indexPathFile.mkdirs();
 			}
 			LOGGER.log(Level.INFO, "Building index at: " + indexPath);
-			Wiki13Indexer.buildTextIndex(pathCountList, indexPath, gamma);
+			float[] gammas = {1f, 1f};
+			Wiki13Indexer.buildIndexOnText(pathCountList, indexPath, gammas, new BM25Similarity());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
