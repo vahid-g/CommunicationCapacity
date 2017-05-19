@@ -43,7 +43,7 @@ public class Wiki13Experiment {
 	static void gridSearchExperiment(float gamma) {
 		// Note that the path count should be sorted!
 		List<InexFile> pathCountList = InexFile
-				.loadFilePathCountTitle(ClusterDirectoryInfo.PATH13_COUNT13);
+				.loadFilePathCountTitle(ClusterDirectoryInfo.PATH13_COUNT09);
 		pathCountList = pathCountList.subList(0, pathCountList.size() / 10);
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + pathCountList.size());
@@ -182,7 +182,7 @@ public class Wiki13Experiment {
 			}
 		}
 	}
-	// builds the index on cluster-share
+	// builds the index on cluster-share 
 	public static void buildGlobalIndex(int expNo, int totalExp) {
 		try {
 			List<InexFile> pathCountList = InexFile
@@ -198,14 +198,14 @@ public class Wiki13Experiment {
 					"Smallest score: "
 							+ pathCountList.get(pathCountList.size() - 1).weight);
 			String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE
-					+ "wiki13_p" + totalExp + "_bm" + "/part_" + expNo;
+					+ "wiki13_p" + totalExp + "w09_bm" + "/part_" + expNo;
 			File indexPathFile = new File(indexPath);
 			if (!indexPathFile.exists()) {
 				indexPathFile.mkdirs();
 			}
 			LOGGER.log(Level.INFO, "Building index at: " + indexPath);
-			float[] gammas = {1f, 1f};
-			Wiki13Indexer.buildIndexOnText(pathCountList, indexPath, gammas, new BM25Similarity());
+			float[] fieldBoost = {1f, 1f};
+			Wiki13Indexer.buildIndexOnText(pathCountList, indexPath, fieldBoost, new BM25Similarity());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
