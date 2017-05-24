@@ -92,7 +92,7 @@ public class Wiki13Indexer extends GeneralIndexer {
 					similarity);
 			writer = new IndexWriter(directory, config);
 			for (InexFile entry : fileCountList) {
-				indexTxtFileWithWeight(entry, writer, 1, gamma);
+				indexTxtFileWithWeight(entry, writer);
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
@@ -113,8 +113,7 @@ public class Wiki13Indexer extends GeneralIndexer {
 		}
 	}
 
-	static void indexTxtFileWithWeight(InexFile pct, IndexWriter writer,
-			float dcoBoost, float gamma[]) {
+	static void indexTxtFileWithWeight(InexFile pct, IndexWriter writer) {
 		File file = new File(pct.path);
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];
@@ -127,12 +126,10 @@ public class Wiki13Indexer extends GeneralIndexer {
 			TextField titleField = new TextField(
 					indexing.GeneralIndexer.TITLE_ATTRIB, pct.title,
 					Field.Store.YES);
-			titleField.setBoost(gamma[0] * dcoBoost);
 			doc.add(titleField);
 			TextField contentField = new TextField(
 					indexing.GeneralIndexer.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES);
-			contentField.setBoost(gamma[0] * dcoBoost);
 			doc.add(contentField);
 			writer.addDocument(doc);
 		} catch (NoSuchFileException e) {
@@ -144,46 +141,14 @@ public class Wiki13Indexer extends GeneralIndexer {
 			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 		}
 	}
-
-	public static void buildBoostedTextIndex(List<InexFile> fileCountList,
-			String indexPath, float[] gamma) {
-		// computing smoothing params
-		int N = 0;
-		for (InexFile entry : fileCountList) {
-			N += entry.weight;
-		}
-		int V = fileCountList.size();
-		float alpha = 1.0f;
 	
-		// indexing
-		FSDirectory directory = null;
-		IndexWriter writer = null;
-		try {
-			directory = FSDirectory.open(Paths.get(indexPath));
-			IndexWriterConfig config = getIndexWriterConfig();
-			writer = new IndexWriter(directory, config);
-			for (InexFile entry : fileCountList) {
-				float count = (float) entry.weight;
-				float smoothed = (count + alpha) / (N + V * alpha);
-				indexTxtFileWithWeight(entry, writer, smoothed, gamma);
-			}
-		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
-		} finally {
-			if (writer != null)
-				try {
-					writer.close();
-				} catch (IOException e) {
-					LOGGER.log(Level.SEVERE,
-							e.toString() + "\n" + e.fillInStackTrace());
-				}
-			if (directory != null)
-				try {
-					directory.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-		}
-	}
+	// code for smoothed document boosting:
+	// int N = 0;
+	// for (InexFile entry : fileCountList) {
+	// N += entry.weight;
+	// }
+	// int V = fileCountList.size();
+	// float alpha = 1.0f;
+	// float smoothed = (count + alpha) / (N + V * alpha);
 
 }

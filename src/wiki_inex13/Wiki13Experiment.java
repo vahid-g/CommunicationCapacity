@@ -198,7 +198,7 @@ public class Wiki13Experiment {
 					"Smallest score: "
 							+ pathCountList.get(pathCountList.size() - 1).weight);
 			String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE
-					+ "wiki13_p" + totalExp + "w09_bm" + "/part_" + expNo;
+					+ "wiki13_p" + totalExp + "_w09_bm" + "/part_" + expNo;
 			File indexPathFile = new File(indexPath);
 			if (!indexPathFile.exists()) {
 				indexPathFile.mkdirs();
