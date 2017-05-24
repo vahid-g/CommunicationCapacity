@@ -47,13 +47,13 @@ public class ImdbExperiment {
 		// float gamma1 = Float.parseFloat(args[0]);
 		// float gamma2 = Float.parseFloat(args[1]);
 		// gridSearchExperiment(gamma1, gamma2);
-		int expNo = Integer.parseInt(args[0]);
-		int totalCount = Integer.parseInt(args[1]);
+		// int expNo = Integer.parseInt(args[0]);
+		// int totalCount = Integer.parseInt(args[1]);
 		// float[] gammas = {0.25f, 0.25f, 0.25f, 0.25f};
 		// expInex(expNo, totalCount, gammas);
 		// buildGlobalIndex(expNo, totalCount);
-		// localGridSearchExperiment();
-		expGlobal(expNo, totalCount);
+		localGridSearchExperiment();
+		// expGlobal(expNo, totalCount);
 		System.out.println((System.currentTimeMillis() - start_t) / 1000);
 	}
 
@@ -204,20 +204,32 @@ public class ImdbExperiment {
 				"data/queries/imdb/all.qrels");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
 		List<List<QueryResult>> allResults = new ArrayList<List<QueryResult>>();
-		for (int i = 0; i < 32; i++) {
+//		for (int i = 0; i < 32; i++) {
+//			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
+//			fieldToBoost.put(ImdbIndexer.TITLE_ATTRIB, i % 2 + 1.0f);
+//			fieldToBoost.put(ImdbIndexer.KEYWORDS_ATTRIB, (i / 2) % 2 + 1.0f);
+//			fieldToBoost.put(ImdbIndexer.PLOT_ATTRIB, (i / 4) % 2 + 1.0f);
+//			fieldToBoost.put(ImdbIndexer.ACTORS_ATTRIB, (i / 8) % 2 + 1.0f);
+//			fieldToBoost.put(ImdbIndexer.REST_ATTRIB, (i / 16) % 2 + 1.0f);
+//			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
+//			List<QueryResult> results = QueryServices.runQueriesWithBoosting(
+//					queries, indexName, new BM25Similarity(), fieldToBoost);
+//			allResults.add(results);
+//		}
+		for (int i = 0; i < 5; i++) {
 			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-			fieldToBoost.put(ImdbIndexer.TITLE_ATTRIB, i % 2 + 1.0f);
-			fieldToBoost.put(ImdbIndexer.KEYWORDS_ATTRIB, (i / 2) % 2 + 1.0f);
-			fieldToBoost.put(ImdbIndexer.PLOT_ATTRIB, (i / 4) % 2 + 1.0f);
-			fieldToBoost.put(ImdbIndexer.ACTORS_ATTRIB, (i / 8) % 2 + 1.0f);
-			fieldToBoost.put(ImdbIndexer.REST_ATTRIB, (i / 16) % 2 + 1.0f);
+			fieldToBoost.put(ImdbIndexer.TITLE_ATTRIB, i == 0 ? 1f : 0f);
+			fieldToBoost.put(ImdbIndexer.KEYWORDS_ATTRIB, i == 1 ? 1f : 0f);
+			fieldToBoost.put(ImdbIndexer.PLOT_ATTRIB, i == 2 ? 1f : 0f);
+			fieldToBoost.put(ImdbIndexer.ACTORS_ATTRIB, i == 3 ? 1f : 0f);
+			fieldToBoost.put(ImdbIndexer.REST_ATTRIB, i == 4 ? 1f : 0f);
 			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 					queries, indexName, new BM25Similarity(), fieldToBoost);
 			allResults.add(results);
 		}
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter("data/result/grid_bm.csv")) {
+		try (FileWriter fw = new FileWriter("data/result/grid_bm_new.csv")) {
 			for (int i = 0; i < queries.size(); i++) {
 				fw.write(allResults.get(0).get(i).query.text + ",");
 				for (int j = 0; j < allResults.size(); j++) {
