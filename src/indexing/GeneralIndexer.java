@@ -4,12 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 
@@ -19,9 +21,11 @@ public abstract class GeneralIndexer {
 	public static final String DOCNAME_ATTRIB = "name";
 	public static final String TITLE_ATTRIB = "title";
 	
+	static final Logger LOGGER = Logger.getLogger(GeneralIndexer.class.getName());
+	
 	public void buildIndex(List<InexFile> list, String indexPath,
 			float... fieldBoost) {
-		buildIndex(list, indexPath, new DefaultSimilarity(), fieldBoost);
+		buildIndex(list, indexPath, new ClassicSimilarity(), fieldBoost);
 	}
 
 	public void buildIndex(List<InexFile> list, String indexPath, Similarity similarity,
@@ -45,7 +49,11 @@ public abstract class GeneralIndexer {
 					e.printStackTrace();
 				}
 			if (directory != null)
-				directory.close();
+				try {
+					directory.close();
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE, e.getMessage());
+				}
 		}
 	}
 	
@@ -78,7 +86,11 @@ public abstract class GeneralIndexer {
 					e.printStackTrace();
 				}
 			if (directory != null)
-				directory.close();
+				try {
+					directory.close();
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE, e.getMessage());
+				}
 		}
 	}
 

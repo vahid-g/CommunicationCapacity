@@ -23,7 +23,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 
@@ -78,7 +78,7 @@ public class Wiki13Indexer extends GeneralIndexer {
 	public static void buildIndexOnText(List<InexFile> fileCountList,
 			String indexPath, float[] gamma) {
 		buildIndexOnText(fileCountList, indexPath, gamma,
-				new DefaultSimilarity());
+				new ClassicSimilarity());
 	}
 
 	public static void buildIndexOnText(List<InexFile> fileCountList,
@@ -105,7 +105,11 @@ public class Wiki13Indexer extends GeneralIndexer {
 							e.toString() + "\n" + e.fillInStackTrace());
 				}
 			if (directory != null)
-				directory.close();
+				try {
+					directory.close();
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE, e.getMessage());
+				}
 		}
 	}
 
@@ -174,7 +178,11 @@ public class Wiki13Indexer extends GeneralIndexer {
 							e.toString() + "\n" + e.fillInStackTrace());
 				}
 			if (directory != null)
-				directory.close();
+				try {
+					directory.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 		}
 	}
 

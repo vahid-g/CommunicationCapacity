@@ -65,7 +65,7 @@ public class TestBoosting {
 	    // parser = new QueryParser("f2", new StandardAnalyzer());
 	    // builder.add(parser.parse("dardashti"), BooleanClause.Occur.MUST);
 	    Query query = builder.build();
-	    ScoreDoc[] hits = isearcher.search(query, null, 1000).scoreDocs;
+	    ScoreDoc[] hits = isearcher.search(query, 1000).scoreDocs;
 	    // Iterate through the results:
 	    for (int i = 0; i < hits.length; i++) {
 	      Document hitDoc = isearcher.doc(hits[i].doc);

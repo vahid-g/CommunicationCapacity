@@ -23,7 +23,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.search.similarities.BM25Similarity;
-import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -303,7 +303,7 @@ public class ImdbExperiment {
 		fieldToBoost.put(ImdbIndexer.ACTORS_ATTRIB, 2.0f);
 		fieldToBoost.put(ImdbIndexer.REST_ATTRIB, 2.0f);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(
-				queries, indexName, new DefaultSimilarity(), fieldToBoost);
+				queries, indexName, new ClassicSimilarity(), fieldToBoost);
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR
 				+ "imdb_" + expNo + ".csv");

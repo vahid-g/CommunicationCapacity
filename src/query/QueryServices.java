@@ -1,5 +1,7 @@
 package query;
 
+import indexing.GeneralIndexer;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,14 +35,12 @@ import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.similarities.DefaultSimilarity;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import indexing.GeneralIndexer;
 
 public class QueryServices {
 
@@ -65,7 +65,7 @@ public class QueryServices {
 
 	public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
 			String indexPath, String[] attribs) {
-		return runQueries(queries, indexPath, new DefaultSimilarity(), attribs);
+		return runQueries(queries, indexPath, new ClassicSimilarity(), attribs);
 	}
 
 	public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
