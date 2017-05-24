@@ -196,8 +196,7 @@ public class ImdbExperiment {
 		String indexName = "data/index/grid_imdb_bm";
 		LOGGER.log(Level.INFO, "Building index..");
 		// float[] fieldBoost = {1f, 1f, 1f, 1f, 1f};
-		// new ImdbIndexer().buildIndex(fileList, indexName, new
-		// BM25Similarity(), fieldBoost);
+		// new ImdbIndexer().buildIndex(fileList, indexName, new BM25Similarity(), fieldBoost);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				"data/queries/imdb/all-topics.xml",
@@ -216,20 +215,41 @@ public class ImdbExperiment {
 //					queries, indexName, new BM25Similarity(), fieldToBoost);
 //			allResults.add(results);
 //		}
-		for (int i = 0; i < 5; i++) {
-			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-			fieldToBoost.put(ImdbIndexer.TITLE_ATTRIB, i == 0 ? 1f : 0f);
-			fieldToBoost.put(ImdbIndexer.KEYWORDS_ATTRIB, i == 1 ? 1f : 0f);
-			fieldToBoost.put(ImdbIndexer.PLOT_ATTRIB, i == 2 ? 1f : 0f);
-			fieldToBoost.put(ImdbIndexer.ACTORS_ATTRIB, i == 3 ? 1f : 0f);
-			fieldToBoost.put(ImdbIndexer.REST_ATTRIB, i == 4 ? 1f : 0f);
-			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
-			List<QueryResult> results = QueryServices.runQueriesWithBoosting(
-					queries, indexName, new BM25Similarity(), fieldToBoost);
-			allResults.add(results);
-		}
+		
+//		for (int i = 0; i < 5; i++) {
+//			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
+//			fieldToBoost.put(ImdbIndexer.TITLE_ATTRIB, i == 0 ? 1f : 0f);
+//			fieldToBoost.put(ImdbIndexer.KEYWORDS_ATTRIB, i == 1 ? 1f : 0f);
+//			fieldToBoost.put(ImdbIndexer.PLOT_ATTRIB, i == 2 ? 1f : 0f);
+//			fieldToBoost.put(ImdbIndexer.ACTORS_ATTRIB, i == 3 ? 1f : 0f);
+//			fieldToBoost.put(ImdbIndexer.REST_ATTRIB, i == 4 ? 1f : 0f);
+//			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
+//			List<QueryResult> results = QueryServices.runQueriesWithBoosting(
+//					queries, indexName, new BM25Similarity(), fieldToBoost);
+//			allResults.add(results);
+//		}
+		
+		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
+		fieldToBoost.put(ImdbIndexer.TITLE_ATTRIB, 1f);
+		fieldToBoost.put(ImdbIndexer.KEYWORDS_ATTRIB, 2f);
+		fieldToBoost.put(ImdbIndexer.PLOT_ATTRIB, 2f);
+		fieldToBoost.put(ImdbIndexer.ACTORS_ATTRIB, 2f);
+		fieldToBoost.put(ImdbIndexer.REST_ATTRIB, 2f);
+		List<QueryResult> results = QueryServices.runQueriesWithBoosting(
+				queries, indexName, new BM25Similarity(), fieldToBoost);
+		allResults.add(results);
+		fieldToBoost = new HashMap<String, Float>();
+		fieldToBoost.put(ImdbIndexer.TITLE_ATTRIB, 0.20f);
+		fieldToBoost.put(ImdbIndexer.KEYWORDS_ATTRIB, 0.20f);
+		fieldToBoost.put(ImdbIndexer.PLOT_ATTRIB, 0.23f);
+		fieldToBoost.put(ImdbIndexer.ACTORS_ATTRIB, 0.18f);
+		fieldToBoost.put(ImdbIndexer.REST_ATTRIB, 0.19f);
+		results = QueryServices.runQueriesWithBoosting(
+				queries, indexName, new BM25Similarity(), fieldToBoost);
+		allResults.add(results);
+		
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter("data/result/grid_bm_new.csv")) {
+		try (FileWriter fw = new FileWriter("data/result/param_compare.csv")) {
 			for (int i = 0; i < queries.size(); i++) {
 				fw.write(allResults.get(0).get(i).query.text + ",");
 				for (int j = 0; j < allResults.size(); j++) {
@@ -241,6 +261,8 @@ public class ImdbExperiment {
 			e.printStackTrace();
 		}
 		// best params are 1,2,2,2,2
+		// best params2 are 0.20, 0.20, 0.23, 0.18, 0.19
+		// the comparison shows that first param set has slightly better precision (0.29 vs 0.26)
 	}
 
 	public static void expInex(int expNo, int total, float... gamma) {
