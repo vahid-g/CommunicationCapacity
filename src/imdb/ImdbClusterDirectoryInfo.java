@@ -2,8 +2,6 @@ package imdb;
 
 import java.io.File;
 
-import wiki_inex09.ClusterDirectoryInfo;
-
 public class ImdbClusterDirectoryInfo {
 	
 	static final String HOME = "/scratch/cluster-share/ghadakcv/";
@@ -15,10 +13,10 @@ public class ImdbClusterDirectoryInfo {
 	static final String RESULT_DIR = HOME + "data/result/imdb/";
 	
 	static {
-		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE13);
+		File indexBaseDir = new File(LOCAL_INDEX);
 		if (!indexBaseDir.exists())
 			indexBaseDir.mkdirs();
-		File resultDir = new File(ClusterDirectoryInfo.RESULT_DIR);
+		File resultDir = new File(RESULT_DIR);
 		if (!resultDir.exists())
 			resultDir.mkdirs();
 	}
