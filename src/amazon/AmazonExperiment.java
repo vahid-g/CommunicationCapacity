@@ -75,7 +75,7 @@ public class AmazonExperiment {
 		// Note that the path count should be sorted!
 		List<InexFile> fileList = InexFile
 				.loadFilePathCountTitle(AmazonDirectoryInfo.FILE_LIST);
-		fileList = fileList.subList(0, fileList.size() / 100);
+		fileList = fileList.subList(0, fileList.size() / 1000);
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + fileList.size());
 		String indexName = AmazonDirectoryInfo.LOCAL_INDEX + "amazon_p1_bm_sample";
@@ -135,6 +135,7 @@ public class AmazonExperiment {
 			while (line != null) {
 				String[] ids = line.split(",");
 				idToIsbn.put(ids[1], ids[0]);
+				line = br.readLine();
 			}
 			LOGGER.log(Level.INFO, "ISBN dict size: " + idToIsbn.size());
 			

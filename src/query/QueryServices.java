@@ -50,10 +50,7 @@ public class QueryServices {
 			.getLogger(QueryServices.class.getName());
 
 	public static void main(String[] args) {
-		// String queryFile = "data/queries/imdb/all-topics.xml";
-		// String qrelsFile = "data/queries/imdb/all.qrels";
-		// loadInexQueries(queryFile, qrelsFile);
-		buildLuceneQuery("hanhan olde?", "Title", "Content");
+		loadInexQueries("inex14sbs.topics.xml", "inex14sbs.qrels");
 	}
 
 	public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
@@ -230,10 +227,10 @@ public class QueryServices {
 			String line;
 			while (sc.hasNextLine()) {
 				line = sc.nextLine();
-				Pattern ptr = Pattern.compile("(\\d+)\\sQ0\\s(\\w+)\\s(1|0)");
+				Pattern ptr = Pattern.compile("(\\d+)\\sQ?0\\s(\\w+)\\s([0-9])");
 				Matcher m = ptr.matcher(line);
 				if (m.find()) {
-					if (m.group(3).equals("1")) {
+					if (!m.group(3).equals("0")) {
 						Integer qid = Integer.parseInt(m.group(1));
 						String rel = m.group(2);
 						Set<String> qrels = qidQrels.get(qid);

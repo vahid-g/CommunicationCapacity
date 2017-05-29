@@ -16,7 +16,6 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -29,55 +28,6 @@ public class AmazonIndexer extends GeneralIndexer {
 
 	public static final String CREATOR_ATTRIB = "creator";
 
-	public static void main(String[] args) {
-		File file = new File("test.xml");
-		try {
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			DocumentBuilder db = dbf.newDocumentBuilder();
-			org.w3c.dom.Document xmlDoc = db.parse(file);
-
-			NodeList titleNodeList = xmlDoc.getElementsByTagName("title");
-			Node titleNode = titleNodeList.item(0);
-			String title = "";
-			if (titleNode != null) {
-				title = titleNode.getTextContent();
-			} else {
-				LOGGER.log(Level.WARNING, "title not found in: " + file.getName());
-			}
-
-			NodeList creatorNodeList = xmlDoc.getElementsByTagName("creators");
-			Node creatorNode = creatorNodeList.item(0);
-			String creators = "";
-			if (creatorNode != null) {
-				creators = creatorNode.getTextContent();
-			}
-
-//			// removing title and actors info
-//			try {
-//				Element element = (Element) xmlDoc.getElementsByTagName("title").item(0);
-//				element.getParentNode().removeChild(element);
-//				element = (Element) xmlDoc.getElementsByTagName("creators").item(0);
-//				element.getParentNode().removeChild(element);
-//				xmlDoc.normalize();
-//			} catch (NullPointerException e) {
-//				// file doesn't have actors/title
-//			}
-			Node book = xmlDoc.getElementsByTagName("book").item(0);
-			book.removeChild(titleNode);
-			System.out.println(book.getTextContent());
-//			String rest = xmlDoc.getElementsByTagName("book").item(0).getTextContent();
-//			System.out.println(rest);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
-		} catch (SAXException e) {
-			e.printStackTrace();
-		}
-
-	}
 
 	@Override
 	protected void indexXmlFile(File file, IndexWriter writer, float docBoost, float[] fieldBoost) {
