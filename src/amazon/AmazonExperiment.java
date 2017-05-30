@@ -75,7 +75,7 @@ public class AmazonExperiment {
 		// Note that the path count should be sorted!
 		List<InexFile> fileList = InexFile
 				.loadFilePathCountTitle(AmazonDirectoryInfo.FILE_LIST);
-		fileList = fileList.subList(0, fileList.size() / 1000);
+		// fileList = fileList.subList(0, fileList.size() / 100);
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + fileList.size());
 		String indexName = AmazonDirectoryInfo.LOCAL_INDEX + "amazon_p1_bm_sample";
@@ -98,15 +98,19 @@ public class AmazonExperiment {
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 					queries, indexName, new BM25Similarity(), fieldToBoost);
 			allResults.add(results);
+			break;
 		}
 		
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + 
-				"param_compare.csv")) {
+				"param_compare.csv");
+				FileWriter fw2 = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + 
+						"param_compare.log")) {
 			for (int i = 0; i < queries.size(); i++) {
 				fw.write(allResults.get(0).get(i).query.text + ",");
 				for (int j = 0; j < allResults.size(); j++) {
 					fw.write(allResults.get(j).get(i).precisionAtK(20) + ",");
+					fw.write(allResults.get(j).get(i).top10());
 				}
 				fw.write("\n");
 			}
