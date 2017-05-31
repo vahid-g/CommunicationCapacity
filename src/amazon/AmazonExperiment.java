@@ -1,5 +1,7 @@
 package amazon;
 
+import indexing.InexFile;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,12 +22,11 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import imdb.ImdbIndexer;
-import indexing.InexFile;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
@@ -39,6 +40,7 @@ public class AmazonExperiment {
 	public static void main(String[] args) {
 		// buildSortedPathRating(AmazonDirectoryInfo.DATA_SET);
 		gridSearchExperiment();
+		// buildGlobalIndex(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
 	}
 
 	static List<InexFile> buildSortedPathRating(String datasetPath) {
@@ -75,7 +77,7 @@ public class AmazonExperiment {
 		// Note that the path count should be sorted!
 		List<InexFile> fileList = InexFile
 				.loadFilePathCountTitle(AmazonDirectoryInfo.FILE_LIST);
-		// fileList = fileList.subList(0, fileList.size() / 100);
+		fileList = fileList.subList(0, fileList.size() / 10);
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + fileList.size());
 		String indexName = AmazonDirectoryInfo.LOCAL_INDEX + "amazon_p1_bm_sample";
@@ -86,31 +88,26 @@ public class AmazonExperiment {
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				AmazonDirectoryInfo.QUERY_FILE,
 				AmazonDirectoryInfo.QREL_FILE);
-		mapIsbnToLT(queries, AmazonDirectoryInfo.ISBN_DICT);
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
 		List<List<QueryResult>> allResults = new ArrayList<List<QueryResult>>();
 		for (int i = 0; i < 64; i++) {
 			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-			fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, i % 4 + 1.0f);
-			fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, (i / 4) % 4 + 1.0f);
-			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, (i / 16) % 4 + 1.0f);
+			fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, i % 4f);
+			fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, (i / 4) % 4f);
+			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, (i / 16) % 4f);
 			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 					queries, indexName, new BM25Similarity(), fieldToBoost);
 			allResults.add(results);
-			break;
 		}
 		
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + 
-				"param_compare.csv");
-				FileWriter fw2 = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + 
-						"param_compare.log")) {
+				"param_compare.csv")) {
 			for (int i = 0; i < queries.size(); i++) {
-				fw.write(allResults.get(0).get(i).query.text + ",");
+				fw.write(allResults.get(0).get(i).query.text.replace(",", " ") + ",");
 				for (int j = 0; j < allResults.size(); j++) {
 					fw.write(allResults.get(j).get(i).precisionAtK(20) + ",");
-					fw.write(allResults.get(j).get(i).top10());
 				}
 				fw.write("\n");
 			}
@@ -118,19 +115,26 @@ public class AmazonExperiment {
 			e.printStackTrace();
 		}
 		// best params are 
+		try {
+			LOGGER.log(Level.INFO, "cleanup..");
+			FileUtils.deleteDirectory(new File(indexName));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void buildGlobalIndex(int expNo, int total) {
 		List<InexFile> fileList = InexFile
 				.loadFilePathCountTitle(AmazonDirectoryInfo.FILE_LIST);
 		LOGGER.log(Level.INFO, "Building index..");
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_"
-				+ total + "_" + expNo;
+		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p"
+				+ total + "_bm/" + expNo;
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
 		float[] fieldBoost = {1f, 1f, 1f, 1f, 1f};
-		new ImdbIndexer().buildIndex(fileList, indexName, fieldBoost);
+		new AmazonIndexer().buildIndex(fileList, indexName, fieldBoost);
 	}
 	
+	@Deprecated
 	private static void mapIsbnToLT(List<ExperimentQuery> queries, String dictPath){
 		try (BufferedReader br = new BufferedReader(new FileReader(dictPath))) {
 			// loading dictionary from the file

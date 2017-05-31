@@ -166,7 +166,7 @@ public class Wiki13Experiment {
 					FileWriter fw2 = new FileWriter(top10FileName)) {
 				for (QueryResult iqr : results) {
 					fw.write(iqr.toString() + "\n");
-					fw2.write(iqr.top10() + "\n");
+					fw2.write(iqr.logTopResults() + "\n");
 				}
 				LOGGER.log(Level.INFO, "cleanup..");
 

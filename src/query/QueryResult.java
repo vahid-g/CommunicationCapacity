@@ -55,8 +55,9 @@ public class QueryResult {
 				+ "," + recallAtK(20) + "," + recallAtK(100) + "," + recallAtK(200);
 	}
 
-	public String top10() {
-		int limit = topResultsTitle.size() > 10 ? 10 : topResultsTitle.size();
+	public String logTopResults() {
+		int k = 20;
+		int limit = topResultsTitle.size() > k ? k : topResultsTitle.size();
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < limit - 1; i++) {
 			sb.append(topResultsTitle.get(i) + ",");
