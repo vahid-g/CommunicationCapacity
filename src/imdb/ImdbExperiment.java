@@ -200,7 +200,7 @@ public class ImdbExperiment {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				"data/queries/imdb/all-topics.xml",
-				"data/queries/imdb/all.qrels");
+				"data/queries/imdb/all.qrels", "title");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
 		List<List<QueryResult>> allResults = new ArrayList<List<QueryResult>>();
 //		for (int i = 0; i < 32; i++) {
@@ -282,7 +282,7 @@ public class ImdbExperiment {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				ImdbClusterDirectoryInfo.QUERY_FILE,
-				ImdbClusterDirectoryInfo.QREL_FILE);
+				ImdbClusterDirectoryInfo.QREL_FILE, "title");
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		String queryAttribs[] = {ImdbIndexer.TITLE_ATTRIB,
 				ImdbIndexer.KEYWORDS_ATTRIB, ImdbIndexer.PLOT_ATTRIB,
@@ -328,7 +328,7 @@ public class ImdbExperiment {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				ImdbClusterDirectoryInfo.QUERY_FILE,
-				ImdbClusterDirectoryInfo.QREL_FILE);
+				ImdbClusterDirectoryInfo.QREL_FILE, "title");
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 		fieldToBoost.put(ImdbIndexer.TITLE_ATTRIB, 1.0f);

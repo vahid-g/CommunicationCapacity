@@ -105,7 +105,7 @@ public class Wiki09Experiments {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				ClusterDirectoryInfo.INEX9_QUERY_FILE,
-				ClusterDirectoryInfo.INEX9_QUERY_FILE);
+				ClusterDirectoryInfo.INEX9_QUERY_FILE, "title");
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		List<QueryResult> iqrList = QueryServices
 				.runQueries(queries, indexName);

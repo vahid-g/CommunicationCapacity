@@ -60,7 +60,7 @@ public class Wiki13Experiment {
 		// ClusterDirectoryInfo.MSN_QID_QREL);
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				ClusterDirectoryInfo.INEX13_QUERY_FILE,
-				ClusterDirectoryInfo.INEX13_QREL_FILE);
+				ClusterDirectoryInfo.INEX13_QREL_FILE, "title");
 		queries = queries.subList(0, queries.size() / 5);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		List<QueryResult> results = QueryServices
@@ -152,7 +152,7 @@ public class Wiki13Experiment {
 			LOGGER.log(Level.INFO, "Loading and running queries..");
 			List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 					ClusterDirectoryInfo.INEX13_QUERY_FILE,
-					ClusterDirectoryInfo.INEX13_QREL_FILE);
+					ClusterDirectoryInfo.INEX13_QREL_FILE, "title");
 			LOGGER.log(Level.INFO,
 					"Number of loaded queries: " + queries.size());
 			List<QueryResult> results = QueryServices.runQueries(queries,
@@ -219,7 +219,7 @@ public class Wiki13Experiment {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				ClusterDirectoryInfo.INEX13_QUERY_FILE,
-				ClusterDirectoryInfo.INEX13_QREL_FILE);
+				ClusterDirectoryInfo.INEX13_QREL_FILE, "title");
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		List<QueryResult> results = QueryServices
 				.runQueries(queries, indexPath);

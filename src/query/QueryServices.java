@@ -50,7 +50,7 @@ public class QueryServices {
 			.getLogger(QueryServices.class.getName());
 
 	public static void main(String[] args) {
-		loadInexQueries("inex14sbs.topics.xml", "inex14sbs.qrels");
+		loadInexQueries("inex14sbs.topics.xml", "inex14sbs.qrels", "title");
 	}
 
 	public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
@@ -185,7 +185,12 @@ public class QueryServices {
 	}
 
 	public static List<ExperimentQuery> loadInexQueries(String path,
-			String qrelPath) {
+	String qrelPath) {
+		return loadInexQueries(path, qrelPath, "title");
+	}
+
+	public static List<ExperimentQuery> loadInexQueries(String path,
+			String qrelPath, String queryLabel) {
 		// building qid -> qrels map
 		HashMap<Integer, Set<String>> qidQrels = loadQrelFile(qrelPath);
 
@@ -200,7 +205,7 @@ public class QueryServices {
 				Node node = nodeList.item(i);
 				int qid = Integer.parseInt(node.getAttributes()
 						.getNamedItem("id").getNodeValue());
-				String queryText = getText(findSubNode("title", node));
+				String queryText = getText(findSubNode(queryLabel, node));
 				Set<String> qrels = qidQrels.get(qid);
 				if (qrels == null) {
 					LOGGER.log(Level.SEVERE, "no qrels for query: " + qid + ":"
@@ -252,7 +257,7 @@ public class QueryServices {
 		return qidQrels;
 	}
 
-	public static Node findSubNode(String name, Node node) {
+	private static Node findSubNode(String name, Node node) {
 		if (node.getNodeType() != Node.ELEMENT_NODE) {
 			System.err.println("Error: Search node not of element type");
 			System.exit(22);

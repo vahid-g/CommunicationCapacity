@@ -94,7 +94,7 @@ public class AmazonExperiment {
 				new BM25Similarity(), fieldBoost);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-				AmazonDirectoryInfo.QUERY_FILE, AmazonDirectoryInfo.QREL_FILE);
+				AmazonDirectoryInfo.QUERY_FILE, AmazonDirectoryInfo.QREL_FILE, "title");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
 		List<List<QueryResult>> allResults = new ArrayList<List<QueryResult>>();
 		// for (int i = 0; i < 64; i++) {
@@ -148,7 +148,7 @@ public class AmazonExperiment {
 				+ total + "_bm/" + expNo;
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-				AmazonDirectoryInfo.QUERY_FILE, AmazonDirectoryInfo.QREL_FILE);
+				AmazonDirectoryInfo.QUERY_FILE, AmazonDirectoryInfo.QREL_FILE, "title");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
 		List<List<QueryResult>> allResults = new ArrayList<List<QueryResult>>();
 		for (int i = 0; i < 3; i++) {
@@ -230,7 +230,7 @@ public class AmazonExperiment {
 				+ total + "_bm/" + expNo;
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-				AmazonDirectoryInfo.QUERY_FILE, AmazonDirectoryInfo.QREL_FILE);
+				AmazonDirectoryInfo.QUERY_FILE, AmazonDirectoryInfo.QREL_FILE, "title");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 		fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, 0.25f);
