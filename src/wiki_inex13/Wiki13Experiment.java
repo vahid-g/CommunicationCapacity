@@ -43,7 +43,7 @@ public class Wiki13Experiment {
 	static void gridSearchExperiment(float gamma) {
 		// Note that the path count should be sorted!
 		List<InexFile> pathCountList = InexFile
-				.loadFilePathCountTitle(ClusterDirectoryInfo.PATH13_COUNT09);
+				.loadInexFileList(ClusterDirectoryInfo.PATH13_COUNT09);
 		pathCountList = pathCountList.subList(0, pathCountList.size() / 10);
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + pathCountList.size());
@@ -88,7 +88,7 @@ public class Wiki13Experiment {
 				+ "msn_index13_" + expNo;
 		try {
 			List<InexFile> pathCountList = InexFile
-					.loadFilePathCountTitle(ClusterDirectoryInfo.PATH13_COUNT09);
+					.loadInexFileList(ClusterDirectoryInfo.PATH13_COUNT09);
 			double total = (double) totalExp;
 			pathCountList = pathCountList.subList(0,
 					(int) (((double) expNo / total) * pathCountList.size()));
@@ -133,7 +133,7 @@ public class Wiki13Experiment {
 				+ expNo;
 		try {
 			List<InexFile> pathCountList = InexFile
-					.loadFilePathCountTitle(ClusterDirectoryInfo.PATH13_COUNT13);
+					.loadInexFileList(ClusterDirectoryInfo.PATH13_COUNT13);
 			double total = (double) totalExp;
 			pathCountList = pathCountList.subList(0,
 					(int) (((double) expNo / total) * pathCountList.size()));
@@ -186,7 +186,7 @@ public class Wiki13Experiment {
 	public static void buildGlobalIndex(int expNo, int totalExp) {
 		try {
 			List<InexFile> pathCountList = InexFile
-					.loadFilePathCountTitle(ClusterDirectoryInfo.PATH13_COUNT09);
+					.loadInexFileList(ClusterDirectoryInfo.PATH13_COUNT09);
 			double total = (double) totalExp;
 			pathCountList = pathCountList.subList(0,
 					(int) (((double) expNo / total) * pathCountList.size()));

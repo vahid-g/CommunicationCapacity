@@ -19,7 +19,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -37,10 +39,10 @@ public class AmazonExperiment {
 	public static void main(String[] args) {
 		// buildSortedPathRating(AmazonDirectoryInfo.DATA_SET);
 		// gridSearchExperiment();
-		gridSearchOnGlobalIndex();
+		// gridSearchOnGlobalIndex();
 		// buildGlobalIndex(Integer.parseInt(args[0]),
 		// Integer.parseInt(args[1]));
-		// expOnGlobalIndex(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+		expOnGlobalIndex(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
 	}
 
 	static List<InexFile> buildSortedPathRating(String datasetPath) {
@@ -75,17 +77,19 @@ public class AmazonExperiment {
 	}
 
 	public static void gridSearchExperiment() {
+		int total = 50;
+		int expNo = 50;
 		// Note that the path count should be sorted!
-		List<InexFile> fileList = InexFile.loadFilePathCountTitle(AmazonDirectoryInfo.FILE_LIST);
-		fileList = fileList.subList(0, fileList.size() / 10);
+		List<InexFile> fileList = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
+		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
 		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + fileList.size());
-		String indexName = AmazonDirectoryInfo.LOCAL_INDEX + "amazon_p1_bm_sample";
+		String indexName = AmazonDirectoryInfo.LOCAL_INDEX + "amazon_p" + total + "_def/" + expNo;
 		LOGGER.log(Level.INFO, "Building index..");
 		float[] fieldBoost = { 1f, 1f, 1f, 1f, 1f };
-		new AmazonIndexer().buildIndex(fileList, indexName, new BM25Similarity(), fieldBoost);
+		new AmazonIndexer().buildIndex(fileList, indexName, fieldBoost);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
-				AmazonDirectoryInfo.QREL_FILE, "title");
+				AmazonDirectoryInfo.QREL_FILE, "mediated_query");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
 		List<List<QueryResult>> allResults = new ArrayList<List<QueryResult>>();
 		// for (int i = 0; i < 64; i++) {
@@ -104,13 +108,14 @@ public class AmazonExperiment {
 			fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, i == 1 ? 1f : 0f);
 			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, i == 2 ? 1f : 0f);
 			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
-			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
-					fieldToBoost);
+			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName,
+					new ClassicSimilarity(), fieldToBoost);
+			updateIsbnToLtid(results);
 			allResults.add(results);
 		}
 
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "param_compare.csv")) {
+		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "param_compare_def.csv")) {
 			for (int i = 0; i < queries.size(); i++) {
 				fw.write(allResults.get(0).get(i).query.text.replace(",", " ") + ",");
 				for (int j = 0; j < allResults.size(); j++) {
@@ -147,11 +152,12 @@ public class AmazonExperiment {
 			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 					fieldToBoost);
-			updateIsbnToLtid(results, AmazonDirectoryInfo.ISBN_DICT);
+			updateIsbnToLtid(results);
 			allResults.add(results);
 		}
 		// best params are 0.017, 0.008, 0.043
 		// normalized to 0.25, 0.11, 0.63
+		// 0.27, 0.1, 0.63
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "param_compare.csv")) {
 			for (int i = 0; i < queries.size(); i++) {
@@ -166,10 +172,9 @@ public class AmazonExperiment {
 		}
 	}
 
-	private static void updateIsbnToLtid(List<QueryResult> results, String dictPath) {
-		try (BufferedReader br = new BufferedReader(new FileReader(dictPath))) {
-			// loading dictionary from the file
-			Map<String, String> isbnToLtid = new HashMap<String, String>();
+	private static Map<String, String> loadIsbnToLtidMap() {
+		Map<String, String> isbnToLtid = new HashMap<String, String>();
+		try (BufferedReader br = new BufferedReader(new FileReader(AmazonDirectoryInfo.ISBN_DICT))) {
 			String line = br.readLine();
 			while (line != null) {
 				String[] ids = line.split(",");
@@ -177,31 +182,35 @@ public class AmazonExperiment {
 				line = br.readLine();
 			}
 			LOGGER.log(Level.INFO, "ISBN dict size: " + isbnToLtid.size());
-
-			// updateing qrels of queries
-			for (QueryResult res : results) {
-				List<String> oldResults = res.topResults;
-				List<String> newTopResults = new ArrayList<String>();
-				for (String isbn : oldResults) {
-					if (!isbnToLtid.containsKey(isbn)) {
-						LOGGER.log(Level.SEVERE, "Couldn't find ISBN: " + isbn + " in dict");
-						continue;
-					}
-					String ltid = isbnToLtid.get(isbn);
-					if (!newTopResults.contains(ltid))
-						newTopResults.add(ltid);
-				}
-				res.topResults = newTopResults;
-			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return isbnToLtid;
+	}
+
+	private static void updateIsbnToLtid(List<QueryResult> results) {
+		Map<String, String> isbnToLtid = loadIsbnToLtidMap();
+		// updateing qrels of queries
+		for (QueryResult res : results) {
+			List<String> oldResults = res.topResults;
+			List<String> newTopResults = new ArrayList<String>();
+			for (String isbn : oldResults) {
+				if (!isbnToLtid.containsKey(isbn)) {
+					LOGGER.log(Level.SEVERE, "Couldn't find ISBN: " + isbn + " in dict");
+					continue;
+				}
+				String ltid = isbnToLtid.get(isbn);
+				if (!newTopResults.contains(ltid))
+					newTopResults.add(ltid);
+			}
+			res.topResults = newTopResults;
+		}
 	}
 
 	public static void buildGlobalIndex(int expNo, int total) {
-		List<InexFile> fileList = InexFile.loadFilePathCountTitle(AmazonDirectoryInfo.FILE_LIST);
+		List<InexFile> fileList = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
 		LOGGER.log(Level.INFO, "Building index..");
 		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm/" + expNo;
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
@@ -213,22 +222,36 @@ public class AmazonExperiment {
 		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm/" + expNo;
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
-				AmazonDirectoryInfo.QREL_FILE, "title");
+				AmazonDirectoryInfo.QREL_FILE, "mediated_query");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 		fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, 0.25f);
 		fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, 0.11f);
-		fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, 0.63f);
+		fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, 0.64f);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 				fieldToBoost);
+		updateIsbnToLtid(results);
+		List<InexFile> inexFiles = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
+		Map<String, String> isbnToLtid = loadIsbnToLtidMap();
+		Map<String, InexFile> ltidToInexFile = new HashMap<String, InexFile>();
+		for (InexFile inexFile : inexFiles){
+			String isbn = FilenameUtils.removeExtension(new File(inexFile.path)
+					.getName());
+			String ltid = isbnToLtid.get(isbn);
+			if (ltid != null)
+				ltidToInexFile.put(ltid, inexFile);
+			else 
+				LOGGER.log(Level.SEVERE, "isbn: " + isbn + " does not exists in dict");
+		}
+		
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".csv");
 				FileWriter fw2 = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".log")) {
-			Map<String, InexFile> idToInexFile = InexFile.loadFilePathCountTitleMap(AmazonDirectoryInfo.FILE_LIST);
+			
 			for (QueryResult mqr : results) {
 				fw.write(mqr.resultString() + "\n");
 				// fw2.write(mqr.logTopResults() + "\n");
-				fw2.write(mqr.miniLog(idToInexFile) + "\n");
+				fw2.write(mqr.miniLog(ltidToInexFile) + "\n");
 
 			}
 		} catch (IOException e) {

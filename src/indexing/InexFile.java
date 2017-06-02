@@ -40,7 +40,7 @@ public class InexFile implements Comparable<InexFile> {
 		return Double.compare(o.weight, weight);
 	}
 
-	public static List<InexFile> loadFilePathCountTitle(
+	public static List<InexFile> loadInexFileList(
 			String pathCountTitleFile) {
 		Wiki13Experiment.LOGGER.log(Level.INFO, "Loading path-count-titles..");
 		List<InexFile> pathCountList = new ArrayList<InexFile>();
@@ -76,7 +76,7 @@ public class InexFile implements Comparable<InexFile> {
 	public static Map<String, InexFile> loadFilePathCountTitleMap(
 			String pathCountTitleFile) {
 		List<InexFile> fileList = InexFile
-				.loadFilePathCountTitle(pathCountTitleFile);
+				.loadInexFileList(pathCountTitleFile);
 		HashMap<String, InexFile> idToInexFile = new HashMap<String, InexFile>();
 		for (InexFile file : fileList) {
 			idToInexFile.put(FilenameUtils.removeExtension(new File(file.path)

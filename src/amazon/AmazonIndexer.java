@@ -27,6 +27,8 @@ public class AmazonIndexer extends GeneralIndexer {
 	static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class.getName());
 
 	public static final String CREATOR_ATTRIB = "creator";
+	
+	public static final String TAGS_ATTRIB = "tags";
 
 
 	@Override
@@ -51,6 +53,13 @@ public class AmazonIndexer extends GeneralIndexer {
 			if (creatorNode != null) {
 				creators = creatorNode.getTextContent();
 			}
+			
+			NodeList tagsList = xmlDoc.getElementsByTagName("tags");
+			Node tagsNode = tagsList.item(0);
+			String tags = "";
+			if (tagsNode != null) {
+				tags = tagsNode.getTextContent();
+			}
 
 			// removing title and actors info
 			String rest = "";
@@ -58,6 +67,7 @@ public class AmazonIndexer extends GeneralIndexer {
 				Node bookNode = xmlDoc.getElementsByTagName("book").item(0);
 				bookNode.removeChild(titleNode);
 				bookNode.removeChild(creatorNode);
+				bookNode.removeChild(tagsNode);
 				bookNode.normalize();
 				rest = bookNode.getTextContent();
 			} catch (NullPointerException e) {
@@ -72,9 +82,11 @@ public class AmazonIndexer extends GeneralIndexer {
 			luceneDoc.add(titleField);
 			TextField genreField = new TextField(CREATOR_ATTRIB, creators, Field.Store.YES);
 			luceneDoc.add(genreField);
+			TextField tagsField = new TextField(TAGS_ATTRIB, tags, Field.Store.YES);
+			luceneDoc.add(tagsField);
 			TextField restField = new TextField(CONTENT_ATTRIB, rest, Field.Store.YES);
 			luceneDoc.add(restField);
-
+			
 			writer.addDocument(luceneDoc);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

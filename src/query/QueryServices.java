@@ -206,6 +206,10 @@ public class QueryServices {
 				int qid = Integer.parseInt(node.getAttributes()
 						.getNamedItem("id").getNodeValue());
 				String queryText = getText(findSubNode(queryLabel, node));
+				if (queryText.equals("")){
+					LOGGER.log(Level.SEVERE, "query: " + qid + " has not been added to query set.");
+					continue;
+				}
 				Set<String> qrels = qidQrels.get(qid);
 				if (qrels == null) {
 					LOGGER.log(Level.SEVERE, "no qrels for query: " + qid + ":"

@@ -55,7 +55,7 @@ public class Wiki09Experiments {
 	public static void expMsn(int expNo, float gamma, int totalCount) {
 		// file should be sorted
 		List<InexFile> fileList = InexFile
-				.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE09);
+				.loadInexFileList(ClusterDirectoryInfo.PATH_COUNT_FILE09);
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + fileList.size());
 		LOGGER.log(Level.INFO, "Sorting files..");
@@ -94,7 +94,7 @@ public class Wiki09Experiments {
 	public static void expInex(int expNo) {
 		// list should be sorted
 		List<InexFile> fileList = InexFile
-				.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE09);
+				.loadInexFileList(ClusterDirectoryInfo.PATH_COUNT_FILE09);
 		LOGGER.log(Level.INFO, "Sorting files..");
 		int subsetSize = (int) (fileList.size() * (expNo / 10.0));
 		LOGGER.log(Level.INFO, "Building index..");
@@ -142,7 +142,7 @@ public class Wiki09Experiments {
 	 */
 	public static void gridSearchExperiment(float gamma) {
 		List<InexFile> fileList = InexFile
-				.loadFilePathCountTitle(ClusterDirectoryInfo.PATH_COUNT_FILE09);
+				.loadInexFileList(ClusterDirectoryInfo.PATH_COUNT_FILE09);
 		// Note! don't need to sort path_counts based on weight
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13
 				+ "inex09_grid_" + (gamma * 10);

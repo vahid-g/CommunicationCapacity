@@ -190,7 +190,7 @@ public class ImdbExperiment {
 	public static void localGridSearchExperiment() {
 		// Note that the path count should be sorted!
 		List<InexFile> fileList = InexFile
-				.loadFilePathCountTitle("/scratch/data-sets/imdb/mfullpath_votes.csv");
+				.loadInexFileList("/scratch/data-sets/imdb/mfullpath_votes.csv");
 		LOGGER.log(Level.INFO,
 				"Number of loaded path_counts: " + fileList.size());
 		String indexName = "data/index/grid_imdb_bm";
@@ -268,7 +268,7 @@ public class ImdbExperiment {
 	public static void expInex(int expNo, int total, float... gamma) {
 		// list should be sorted
 		List<InexFile> fileList = InexFile
-				.loadFilePathCountTitle(ImdbClusterDirectoryInfo.FILE_LIST);
+				.loadInexFileList(ImdbClusterDirectoryInfo.FILE_LIST);
 		LOGGER.log(Level.INFO, "Building index..");
 		String indexName = ImdbClusterDirectoryInfo.LOCAL_INDEX + "imdb_"
 				+ expNo;
@@ -312,7 +312,7 @@ public class ImdbExperiment {
 
 	public static void buildGlobalIndex(int expNo, int total) {
 		List<InexFile> fileList = InexFile
-				.loadFilePathCountTitle(ImdbClusterDirectoryInfo.FILE_LIST);
+				.loadInexFileList(ImdbClusterDirectoryInfo.FILE_LIST);
 		LOGGER.log(Level.INFO, "Building index..");
 		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "imdb_"
 				+ total + "_" + expNo;
