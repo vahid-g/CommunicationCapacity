@@ -44,7 +44,8 @@ public class AmazonExperiment {
 		// gridSearchExperiment(expNo, total);
 		// gridSearchOnGlobalIndex();
 		buildGlobalIndex(expNo, total);
-		// expOnGlobalIndex(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+		// expOnGlobalIndex(Integer.parseInt(args[0]),
+		// Integer.parseInt(args[1]));
 	}
 
 	static List<InexFile> buildSortedPathRating(String datasetPath) {
@@ -99,14 +100,14 @@ public class AmazonExperiment {
 			fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, i == 2 ? 1f : 0f);
 			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, i == 3 ? 1f : 0f);
 			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
-			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName,
-					new BM25Similarity(), fieldToBoost);
+			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
+					fieldToBoost);
 			allResults.add(updateIsbnToLtid(results));
 		}
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "grid_bm_f4.csv")) {
 			for (int i = 0; i < queries.size(); i++) {
-				fw.write(allResults.get(0).get(i).query.text.replace(",", " ") + ",");
+				fw.write(allResults.get(0).get(i).query.getText() + ",");
 				for (int j = 0; j < allResults.size(); j++) {
 					fw.write(allResults.get(j).get(i).precisionAtK(20) + ",");
 				}
@@ -150,7 +151,7 @@ public class AmazonExperiment {
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "param_compare.csv")) {
 			for (int i = 0; i < queries.size(); i++) {
-				fw.write(allResults.get(0).get(i).query.text.replace(",", " ") + ",");
+				fw.write(allResults.get(0).get(i).query.getText() + ",");
 				for (int j = 0; j < allResults.size(); j++) {
 					fw.write(allResults.get(j).get(i).precisionAtK(20) + ",");
 				}
@@ -223,22 +224,21 @@ public class AmazonExperiment {
 		List<InexFile> inexFiles = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
 		Map<String, String> isbnToLtid = loadIsbnToLtidMap();
 		Map<String, InexFile> ltidToInexFile = new HashMap<String, InexFile>();
-		for (InexFile inexFile : inexFiles){
-			String isbn = FilenameUtils.removeExtension(new File(inexFile.path)
-					.getName());
+		for (InexFile inexFile : inexFiles) {
+			String isbn = FilenameUtils.removeExtension(new File(inexFile.path).getName());
 			String ltid = isbnToLtid.get(isbn);
 			if (ltid != null)
 				ltidToInexFile.put(ltid, inexFile);
-			else 
+			else
 				LOGGER.log(Level.SEVERE, "isbn: " + isbn + " does not exists in dict");
 		}
-		
+
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".csv");
 				FileWriter fw2 = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".log")) {
-			
+
 			for (QueryResult mqr : results) {
-				fw.write(mqr.resultString() + "\n");
+				fw.write(mqr.fullResultString() + "\n");
 				// fw2.write(mqr.logTopResults() + "\n");
 				fw2.write(mqr.miniLog(ltidToInexFile) + "\n");
 

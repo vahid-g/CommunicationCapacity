@@ -70,7 +70,7 @@ public class Wiki13Experiment {
 				+ "inex13_grid_" + Float.toString(gamma).replace(".", "")
 				+ ".csv")) {
 			for (QueryResult mqr : results) {
-				fw.write(mqr.resultString() + "\n");
+				fw.write(mqr.fullResultString() + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -228,7 +228,7 @@ public class Wiki13Experiment {
 				+ ".csv";
 		try (FileWriter fw = new FileWriter(resultFileName)) {
 			for (QueryResult iqr : results) {
-				fw.write(iqr.resultString() + "\n");
+				fw.write(iqr.fullResultString() + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

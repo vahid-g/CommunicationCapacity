@@ -36,23 +36,34 @@ public class QueryResult {
 		return count / query.qrels.size();
 	}
 
-	double mrr() {
+	public double mrr() {
 		for (int i = 0; i < topResults.size(); i++) {
 			if (query.qrels.contains(topResults.get(i)))
 				return (1.0 / (i + 1));
 		}
 		return 0;
 	}
+	
+	public double averagePrecision(){
+		double pk = precisionAtK(1);
+		double ap = pk;
+		for (int k = 1; k < topResults.size(); k++){
+			if (query.qrels.contains(topResults.get(k)))
+				ap += (pk * k + 1) / (k + 1);
+			pk = (pk * k) / (k+1);
+		}
+		return ap / query.qrels.size();
+	}
 
 	@Override
 	public String toString() {
-		return query.text.replace("<","") + ", " + precisionAtK(3) + ", " + precisionAtK(10) + ", " + this.mrr();
+		return query.getText() + ", " + precisionAtK(10) + ", " + mrr() + ", " + averagePrecision();
 	}
 	
-	public String resultString() {
-		return query.text.replace(",", "") + ", " + precisionAtK(3) + ", " + precisionAtK(10)
+	public String fullResultString() {
+		return query.getText() + ", " + precisionAtK(3) + ", " + precisionAtK(10)
 				+ ", " + precisionAtK(20) + ", " + mrr() + "," + recallAtK(10)
-				+ "," + recallAtK(20) + "," + recallAtK(100) + "," + recallAtK(200);
+				+ "," + recallAtK(20) + "," + recallAtK(200) + "," + recallAtK(1000);
 	}
 
 	public String logTopResults() {
@@ -65,7 +76,7 @@ public class QueryResult {
 		if (limit > 0)
 			sb.append(topResultsTitle.get(limit - 1));
 		String resultTuples = sb.toString();
-		return query.text.replace(",", "") + "," + resultTuples;
+		return query.getText() + "," + resultTuples;
 	}
 	
 	public String listFalseNegatives(int k){
@@ -73,7 +84,7 @@ public class QueryResult {
 		int counter = 0;
 		for (String rel : this.query.qrels){
 			if (!topResults.contains(rel)){
-				sb.append(query.id + "," + query.text + "," + rel + "\n");
+				sb.append(query.id + "," + query.getText() + "," + rel + "\n");
 			}
 			if (++counter > k) break;
 		}
@@ -82,7 +93,7 @@ public class QueryResult {
 	
 	public String miniLog(Map<String, InexFile> idToInexfile){
 		StringBuilder sb = new StringBuilder();
-		sb.append("qid: " + this.query.id + "\t" + query.text + "\n");
+		sb.append("qid: " + this.query.id + "\t" + query.getText() + "\n");
 		sb.append("|relevant tuples| = " + this.query.qrels.size() + "\n");
 		sb.append("|returned results| = " + this.topResults.size() + "\n");
 		int counter = 0;

@@ -6,9 +6,8 @@ import java.util.Set;
 public class ExperimentQuery {
 
 	Integer id;
-	public String text;
+	private String text;
 	public Set<String> qrels;
-
 	public ExperimentQuery(int id, String text) {
 		this.id = id;
 		this.text = text;
@@ -19,6 +18,14 @@ public class ExperimentQuery {
 		this.id = id;
 		this.text = text;
 		this.qrels = qrels;
+	}
+
+	public String getText() {
+		return text.replace(",", " ");
+	}
+
+	public void setText(String text) {
+		this.text = text;
 	}
 
 	public void addRelevantAnswer(String relDoc) {
