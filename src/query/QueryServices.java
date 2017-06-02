@@ -190,7 +190,7 @@ public class QueryServices {
 	}
 
 	public static List<ExperimentQuery> loadInexQueries(String path,
-			String qrelPath, String queryLabel) {
+			String qrelPath, String... queryLabels) {
 		// building qid -> qrels map
 		HashMap<Integer, Set<String>> qidQrels = loadQrelFile(qrelPath);
 
@@ -205,9 +205,14 @@ public class QueryServices {
 				Node node = nodeList.item(i);
 				int qid = Integer.parseInt(node.getAttributes()
 						.getNamedItem("id").getNodeValue());
-				String queryText = getText(findSubNode(queryLabel, node));
+				StringBuilder sb = new StringBuilder();
+				for (String queryLabel : queryLabels){
+					String queryText = getText(findSubNode(queryLabel, node));
+					sb.append(queryText);
+				}
+				String queryText = sb.toString();
 				if (queryText.equals("")){
-					LOGGER.log(Level.SEVERE, "query: " + qid + " has not been added to query set.");
+					LOGGER.log(Level.SEVERE, "query: " + qid + " has empty aggregated text");
 					continue;
 				}
 				Set<String> qrels = qidQrels.get(qid);

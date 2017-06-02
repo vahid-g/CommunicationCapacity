@@ -27,10 +27,9 @@ public class AmazonIndexer extends GeneralIndexer {
 	static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class.getName());
 
 	public static final String CREATOR_ATTRIB = "creator";
-	
 	public static final String TAGS_ATTRIB = "tags";
-
-
+	public static final String LTID_ATTRIB = "tags";
+	
 	@Override
 	protected void indexXmlFile(File file, IndexWriter writer, float docBoost, float[] fieldBoost) {
 		try {
@@ -76,8 +75,11 @@ public class AmazonIndexer extends GeneralIndexer {
 			}
 
 			Document luceneDoc = new Document();
+			String docId = FilenameUtils.removeExtension(file.getName());
+			//String ltid = AmazonExperiment.isbnToLtid.get(docId);
 			luceneDoc.add(
-					new StringField(DOCNAME_ATTRIB, FilenameUtils.removeExtension(file.getName()), Field.Store.YES));
+					new StringField(DOCNAME_ATTRIB, docId, Field.Store.YES));
+			//luceneDoc.add(new StringField(LTID_ATTRIB, ltid, Field.Store.YES));
 			TextField titleField = new TextField(TITLE_ATTRIB, title, Field.Store.YES);
 			luceneDoc.add(titleField);
 			TextField genreField = new TextField(CREATOR_ATTRIB, creators, Field.Store.YES);
