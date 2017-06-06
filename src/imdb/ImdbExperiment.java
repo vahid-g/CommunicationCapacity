@@ -251,7 +251,7 @@ public class ImdbExperiment {
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter("data/result/param_compare.csv")) {
 			for (int i = 0; i < queries.size(); i++) {
-				fw.write(allResults.get(0).get(i).query.text + ",");
+				fw.write(allResults.get(0).get(i).query.getText() + ",");
 				for (int j = 0; j < allResults.size(); j++) {
 					fw.write(allResults.get(j).get(i).precisionAtK(20) + ",");
 				}

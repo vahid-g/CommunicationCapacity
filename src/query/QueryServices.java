@@ -44,7 +44,7 @@ import org.xml.sax.SAXException;
 
 public class QueryServices {
 
-	final static int TOP_DOC_COUNT = 100;
+	final static int TOP_DOC_COUNT = 1000;
 
 	static final Logger LOGGER = Logger
 			.getLogger(QueryServices.class.getName());
@@ -76,7 +76,7 @@ public class QueryServices {
 			searcher.setSimilarity(similarity);
 			for (ExperimentQuery queryDAO : queries) {
 				// LOGGER.log(Level.INFO,queryCoutner++);
-				Query query = buildLuceneQuery(queryDAO.text, attribs);
+				Query query = buildLuceneQuery(queryDAO.getText(), attribs);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				QueryResult iqr = new QueryResult(queryDAO);
 				for (int i = 0; i < Math.min(TOP_DOC_COUNT,
@@ -107,7 +107,7 @@ public class QueryServices {
 			searcher.setSimilarity(similarity);
 			for (ExperimentQuery queryDAO : queries) {
 				// LOGGER.log(Level.INFO,queryCoutner++);
-				Query query = buildLuceneQuery(queryDAO.text, fieldToBoost);
+				Query query = buildLuceneQuery(queryDAO.getText(), fieldToBoost);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				QueryResult iqr = new QueryResult(queryDAO);
 				for (int i = 0; i < Math.min(TOP_DOC_COUNT,
@@ -208,7 +208,7 @@ public class QueryServices {
 				StringBuilder sb = new StringBuilder();
 				for (String queryLabel : queryLabels){
 					String queryText = getText(findSubNode(queryLabel, node));
-					sb.append(queryText);
+					sb.append(queryText + " ");
 				}
 				String queryText = sb.toString();
 				if (queryText.equals("")){

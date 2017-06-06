@@ -43,14 +43,14 @@ public class QueryResult {
 		}
 		return 0;
 	}
-	
-	public double averagePrecision(){
+
+	public double averagePrecision() {
 		double pk = precisionAtK(1);
 		double ap = pk;
-		for (int k = 1; k < topResults.size(); k++){
+		for (int k = 1; k < topResults.size(); k++) {
 			if (query.qrels.contains(topResults.get(k)))
 				ap += (pk * k + 1) / (k + 1);
-			pk = (pk * k) / (k+1);
+			pk = (pk * k) / (k + 1);
 		}
 		return ap / query.qrels.size();
 	}
@@ -59,11 +59,10 @@ public class QueryResult {
 	public String toString() {
 		return query.getText() + ", " + precisionAtK(10) + ", " + mrr() + ", " + averagePrecision();
 	}
-	
+
 	public String fullResultString() {
-		return query.getText() + ", " + precisionAtK(3) + ", " + precisionAtK(10)
-				+ ", " + precisionAtK(20) + ", " + mrr() + "," + recallAtK(10)
-				+ "," + recallAtK(20) + "," + recallAtK(200) + "," + recallAtK(1000);
+		return query.getText() + ", " + precisionAtK(10) + ", " + mrr() + "," + averagePrecision() + ", "
+				+ recallAtK(200) + "," + recallAtK(1000);
 	}
 
 	public String logTopResults() {
@@ -78,52 +77,57 @@ public class QueryResult {
 		String resultTuples = sb.toString();
 		return query.getText() + "," + resultTuples;
 	}
-	
-	public String listFalseNegatives(int k){
+
+	public String listFalseNegatives(int k) {
 		StringBuilder sb = new StringBuilder();
 		int counter = 0;
-		for (String rel : this.query.qrels){
-			if (!topResults.contains(rel)){
+		for (String rel : this.query.qrels) {
+			if (!topResults.contains(rel)) {
 				sb.append(query.id + "," + query.getText() + "," + rel + "\n");
 			}
-			if (++counter > k) break;
+			if (++counter > k)
+				break;
 		}
 		return sb.toString();
 	}
-	
-	public String miniLog(Map<String, InexFile> idToInexfile){
+
+	public String miniLog(Map<String, InexFile> idToInexfile) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("qid: " + this.query.id + "\t" + query.getText() + "\n");
 		sb.append("|relevant tuples| = " + this.query.qrels.size() + "\n");
 		sb.append("|returned results| = " + this.topResults.size() + "\n");
 		int counter = 0;
 		sb.append("available missed files: \n");
-		for (String rel : this.query.qrels){
-			if (!topResults.contains(rel) && idToInexfile.containsKey(rel)){
+		for (String rel : this.query.qrels) {
+			if (!topResults.contains(rel) && idToInexfile.containsKey(rel)) {
 				sb.append(rel + "\t" + idToInexfile.get(rel).title + "\n");
 			}
-			if (++counter > 20) break;
+			if (++counter > 20)
+				break;
 		}
 		sb.append("unavailable missed files: \n");
 		counter = 0;
-		for (String rel : this.query.qrels){
-			if (!topResults.contains(rel) && !idToInexfile.containsKey(rel)){
+		for (String rel : this.query.qrels) {
+			if (!topResults.contains(rel) && !idToInexfile.containsKey(rel)) {
 				sb.append(rel + "\n");
 			}
-			if (++counter > 20) break;
+			if (++counter > 20)
+				break;
 		}
 		sb.append("top 20: \n");
 		counter = 0;
-		for (String topResult : topResultsTitle){
+		for (String topResult : topResultsTitle) {
 			sb.append(topResult + "\t");
-			if (++counter > 20) break;
+			if (++counter > 20)
+				break;
 		}
 		sb.append("top false positives: \n");
 		counter = 0;
-		for (int i = 0; i < this.topResults.size(); i++){
+		for (int i = 0; i < this.topResults.size(); i++) {
 			if (!this.query.qrels.contains(topResults.get(i)))
 				sb.append(topResultsTitle.get(i) + "\n");
-			if (++counter > 20) break;
+			if (++counter > 20)
+				break;
 		}
 		sb.append("-------------------------------------\n");
 		return sb.toString();
