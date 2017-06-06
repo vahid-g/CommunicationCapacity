@@ -1,17 +1,18 @@
 package wiki_inex13;
 
-import indexing.InexFile;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.search.similarities.BM25Similarity;
 
+import indexing.InexFile;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
@@ -30,11 +31,11 @@ public class Wiki13Experiment {
 		int totalExp = Integer.parseInt(args[1]);
 		// float gamma = Float.parseFloat(args[2]);
 
-		buildGlobalIndex(expNo, totalExp);
+		// buildGlobalIndex(expNo, totalExp);
 		// gridSearchExperiment(gamma);
 		// expTextInex13(expNo, totalExp, gamma);
 		// expTextMsn(expNo, totalExp);
-		// runQueriesOnGlobalIndex(expNo, totalExp, gamma);
+		runQueriesOnGlobalIndex(expNo, totalExp, 0.1f);
 
 		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
 				+ (System.currentTimeMillis() - start_t) / 60000 + " minutes");
@@ -221,8 +222,11 @@ public class Wiki13Experiment {
 				ClusterDirectoryInfo.INEX13_QUERY_FILE,
 				ClusterDirectoryInfo.INEX13_QREL_FILE, "title");
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
+		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
+		fieldToBoost.put(Wiki13Indexer.TITLE_ATTRIB, 0.1f);
+		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 0.0f);
 		List<QueryResult> results = QueryServices
-				.runQueries(queries, indexPath);
+				.runQueriesWithBoosting(queries, indexPath, new BM25Similarity(), fieldToBoost);
 		LOGGER.log(Level.INFO, "Writing results..");
 		String resultFileName = ClusterDirectoryInfo.RESULT_DIR + expNo
 				+ ".csv";
