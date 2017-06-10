@@ -240,7 +240,7 @@ public class AmazonExperiment {
 		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".csv");
 				FileWriter fw2 = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".log")) {
 			for (QueryResult mqr : results) {
-				fw.write(mqr.fullResultString() + "\n");
+				fw.write(mqr.resultString() + "\n");
 				// fw2.write(mqr.miniLog(ltidToInexFile) + "\n");
 			}
 		} catch (IOException e) {

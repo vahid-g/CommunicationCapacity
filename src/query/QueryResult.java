@@ -57,12 +57,12 @@ public class QueryResult {
 
 	@Override
 	public String toString() {
-		return query.getText() + ", " + precisionAtK(10) + ", " + mrr() + ", " + averagePrecision();
+		return query.getText() + "," + precisionAtK(10) + "," + mrr() + ", " + averagePrecision();
 	}
 
-	public String fullResultString() {
-		return query.getText() + ", " + precisionAtK(10) + ", " + mrr() + "," + averagePrecision() + ", "
-				+ recallAtK(200) + "," + recallAtK(1000);
+	public String resultString() {
+		return query.getText() + "," + precisionAtK(10) + "," + precisionAtK(20) + "," + mrr() + ","
+				+ averagePrecision() + "," + recallAtK(200) + "," + recallAtK(1000);
 	}
 
 	public String logTopResults() {

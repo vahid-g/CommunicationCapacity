@@ -35,7 +35,7 @@ public class Wiki13Experiment {
 		// gridSearchExperiment(gamma);
 		// expTextInex13(expNo, totalExp, gamma);
 		// expTextMsn(expNo, totalExp);
-		runQueriesOnGlobalIndex(expNo, totalExp, 0.1f);
+		runQueriesOnGlobalIndex(expNo, totalExp);
 
 		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
 				+ (System.currentTimeMillis() - start_t) / 60000 + " minutes");
@@ -71,7 +71,7 @@ public class Wiki13Experiment {
 				+ "inex13_grid_" + Float.toString(gamma).replace(".", "")
 				+ ".csv")) {
 			for (QueryResult mqr : results) {
-				fw.write(mqr.fullResultString() + "\n");
+				fw.write(mqr.resultString() + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -212,11 +212,9 @@ public class Wiki13Experiment {
 		}
 	}
 
-	public static void runQueriesOnGlobalIndex(int expNo, int totalExp,
-			float gamma) {
+	public static void runQueriesOnGlobalIndex(int expNo, int totalExp) {
 		String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE
-				+ "wiki13_50_15/" + totalExp + "_" + expNo + "_"
-				+ Float.toString(gamma).replace(".", "");
+				+ "wiki13_p" + totalExp + "_w09_bm" + "/part_" + expNo;
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				ClusterDirectoryInfo.INEX13_QUERY_FILE,
@@ -224,7 +222,7 @@ public class Wiki13Experiment {
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 		fieldToBoost.put(Wiki13Indexer.TITLE_ATTRIB, 0.1f);
-		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 0.0f);
+		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 0.9f);
 		List<QueryResult> results = QueryServices
 				.runQueriesWithBoosting(queries, indexPath, new BM25Similarity(), fieldToBoost);
 		LOGGER.log(Level.INFO, "Writing results..");
@@ -232,12 +230,11 @@ public class Wiki13Experiment {
 				+ ".csv";
 		try (FileWriter fw = new FileWriter(resultFileName)) {
 			for (QueryResult iqr : results) {
-				fw.write(iqr.fullResultString() + "\n");
+				fw.write(iqr.resultString() + "\n");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 }

@@ -347,7 +347,7 @@ public class ImdbExperiment {
 			Map<String, InexFile> idToInexFile = InexFile
 					.loadFilePathCountTitleMap(ImdbClusterDirectoryInfo.FILE_LIST);
 			for (QueryResult mqr : results) {
-				fw.write(mqr.fullResultString() + "\n");
+				fw.write(mqr.resultString() + "\n");
 				fw2.write(mqr.miniLog(idToInexFile) + "\n");
 			}
 		} catch (IOException e) {
