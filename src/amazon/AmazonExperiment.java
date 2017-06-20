@@ -19,6 +19,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -37,13 +38,13 @@ public class AmazonExperiment {
 	static Map<String, String> isbnToLtid = loadIsbnToLtidMap();
 
 	public static void main(String[] args) {
-		int expNo = Integer.parseInt(args[0]);
-		int total = Integer.parseInt(args[1]);
+		int expNo = 50; //Integer.parseInt(args[0]);
+		int total = 50; //Integer.parseInt(args[1]);
 		// buildSortedPathRating(AmazonDirectoryInfo.DATA_SET);
 		// gridSearchExperiment(expNo, total);
 		// gridSearchOnGlobalIndex();
 		// buildGlobalIndex(expNo, total);
-		expOnGlobalIndex(expNo, total);
+		 expOnGlobalIndex(expNo, total);
 	}
 
 	static List<InexFile> buildSortedPathRating(String datasetPath) {
@@ -100,7 +101,7 @@ public class AmazonExperiment {
 			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 					fieldToBoost);
-			allResults.add(updateIsbnToLtid(results));
+			allResults.add(convertIsbnToLtid(results));
 		}
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "grid_bm_f4.csv")) {
@@ -141,7 +142,7 @@ public class AmazonExperiment {
 			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 					fieldToBoost);
-			updateIsbnToLtid(results);
+			convertIsbnToLtid(results);
 			allResults.add(results);
 		}
 		// best params are 0.017, 0.008, 0.043
@@ -179,7 +180,7 @@ public class AmazonExperiment {
 		return isbnToLtid;
 	}
 
-	private static List<QueryResult> updateIsbnToLtid(List<QueryResult> results) {
+	private static List<QueryResult> convertIsbnToLtid(List<QueryResult> results) {
 		// updateing qrels of queries
 		for (QueryResult res : results) {
 			List<String> oldResults = res.topResults;
@@ -220,35 +221,31 @@ public class AmazonExperiment {
 		fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, 0.64f);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 				fieldToBoost);
-		updateIsbnToLtid(results);
-		// List<InexFile> inexFiles =
-		// InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
-		// Map<String, InexFile> ltidToInexFile = new HashMap<String,
-		// InexFile>();
-		// for (InexFile inexFile : inexFiles) {
-		// String isbn = FilenameUtils.removeExtension(new
-		// File(inexFile.path).getName());
-		// String ltid = isbnToLtid.get(isbn);
-		// if (ltid != null)
-		// ltidToInexFile.put(ltid, inexFile);
-		// else
-		// LOGGER.log(Level.SEVERE, "isbn: " + isbn + " does not exists in
-		// dict");
-		// }
-
+		convertIsbnToLtid(results);
+		// preparing ltid -> inex file map
+		List<InexFile> inexFiles = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
+		Map<String, InexFile> ltidToInexFile = new HashMap<String, InexFile>();
+		for (InexFile inexFile : inexFiles) {
+			String isbn = FilenameUtils.removeExtension(new File(inexFile.path).getName());
+			String ltid = isbnToLtid.get(isbn);
+			if (ltid != null)
+				ltidToInexFile.put(ltid, inexFile);
+			else
+				LOGGER.log(Level.SEVERE, "isbn: " + isbn + " does not exists in dict");
+		}
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".csv");
 				FileWriter fw2 = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".log")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.resultString() + "\n");
-				// fw2.write(mqr.miniLog(ltidToInexFile) + "\n");
+				fw2.write(generateLog(mqr, ltidToInexFile) + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage());
 		}
 	}
 
-	public static String generateLog(QueryResult queryResult, Map<String, InexFile> idToInexfile) {
+	public static String generateLog(QueryResult queryResult, Map<String, InexFile> ltidToInexfile) {
 		ExperimentQuery query = queryResult.query;
 		StringBuilder sb = new StringBuilder();
 		sb.append("qid: " + query.getId() + "\t" + query.getText() + "\n");
@@ -257,21 +254,21 @@ public class AmazonExperiment {
 		int counter = 0;
 		sb.append("returned results: \n");
 		for (int i = 0; i < queryResult.topResults.size(); i++) {
-			String ret = queryResult.topResults.get(i);
-			String retTitle = queryResult.topResults.get(i);
-			if (query.qrels.contains(ret)) {
-				sb.append("++ " + retTitle + "\n"); // title of returned doc
+			String returnedLtid = queryResult.topResults.get(i);
+			String returnedTitle = queryResult.topResults.get(i);
+			if (query.qrels.contains(returnedLtid)) {
+				sb.append("++ " + returnedLtid + "\t" + returnedTitle + "\n");
 			} else {
-				sb.append("-- " + retTitle + "\n");
+				sb.append("-- " + returnedLtid + "\t" + returnedTitle + "\n");
 			}
 			if (counter++ > 20)
 				break;
 		}
 		counter = 0;
 		sb.append("missed docs: \n");
-		for (String rel : query.qrels) {
-			if (!queryResult.topResults.contains(rel)) {
-				sb.append("-- " + rel + "\t" + idToInexfile.get(rel).title + "\n");
+		for (String relevantLtid : query.qrels) {
+			if (!queryResult.topResults.contains(relevantLtid)) {
+				sb.append("-- " + relevantLtid + "\t" + ltidToInexfile.get(relevantLtid).title + "\n");
 			}
 			if (counter++ > 0)
 				break;
