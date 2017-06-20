@@ -270,7 +270,12 @@ public class AmazonExperiment {
 		sb.append("missed docs: \n");
 		for (String relevantLtid : query.qrels) {
 			if (!queryResult.topResults.contains(relevantLtid)) {
-				sb.append("-- " + relevantLtid + "\t" + ltidToInexfile.get(relevantLtid).title + "\n");
+				InexFile inFile = ltidToInexfile.get(relevantLtid);
+				if (inFile == null){
+					LOGGER.log(Level.SEVERE, "No Inex File for ltid: " + relevantLtid);
+				} else {
+					sb.append("-- " + relevantLtid + "\t" + ltidToInexfile.get(relevantLtid).title + "\n");
+				}
 			}
 			if (counter++ > 0)
 				break;
