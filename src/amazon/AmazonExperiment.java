@@ -38,8 +38,8 @@ public class AmazonExperiment {
 	static Map<String, String> isbnToLtid = loadIsbnToLtidMap();
 
 	public static void main(String[] args) {
-		int expNo = 50; //Integer.parseInt(args[0]);
-		int total = 50; //Integer.parseInt(args[1]);
+		int expNo = Integer.parseInt(args[0]);
+		int total = Integer.parseInt(args[1]);
 		// buildSortedPathRating(AmazonDirectoryInfo.DATA_SET);
 		// gridSearchExperiment(expNo, total);
 		// gridSearchOnGlobalIndex();
@@ -221,7 +221,9 @@ public class AmazonExperiment {
 		fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, 0.64f);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 				fieldToBoost);
+		LOGGER.log(Level.INFO, "Converting ISBN results to LTID..");
 		convertIsbnToLtid(results);
+		LOGGER.log(Level.INFO, "Preparing ltid -> InexFile map..");
 		// preparing ltid -> inex file map
 		List<InexFile> inexFiles = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
 		Map<String, InexFile> ltidToInexFile = new HashMap<String, InexFile>();
