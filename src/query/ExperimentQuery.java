@@ -8,10 +8,19 @@ public class ExperimentQuery {
 	Integer id;
 	private String text;
 	public Set<String> qrels;
+
 	public ExperimentQuery(int id, String text) {
 		this.id = id;
 		this.text = text;
 		qrels = new HashSet<String>();
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public Set<String> getQrels() {
+		return qrels;
 	}
 
 	public ExperimentQuery(int id, String text, Set<String> qrels) {

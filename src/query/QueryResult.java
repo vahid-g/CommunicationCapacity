@@ -132,4 +132,5 @@ public class QueryResult {
 		sb.append("-------------------------------------\n");
 		return sb.toString();
 	}
+	
 }

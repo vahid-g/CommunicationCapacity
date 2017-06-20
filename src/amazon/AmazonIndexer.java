@@ -75,7 +75,8 @@ public class AmazonIndexer extends GeneralIndexer {
 			}
 
 			Document luceneDoc = new Document();
-			String docId = FilenameUtils.removeExtension(file.getName());
+			// file name is ISBN of the book
+			String docId = FilenameUtils.removeExtension(file.getName()); 
 			//String ltid = AmazonExperiment.isbnToLtid.get(docId);
 			luceneDoc.add(
 					new StringField(DOCNAME_ATTRIB, docId, Field.Store.YES));

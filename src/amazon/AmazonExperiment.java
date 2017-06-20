@@ -248,4 +248,36 @@ public class AmazonExperiment {
 		}
 	}
 
+	public static String generateLog(QueryResult queryResult, Map<String, InexFile> idToInexfile) {
+		ExperimentQuery query = queryResult.query;
+		StringBuilder sb = new StringBuilder();
+		sb.append("qid: " + query.getId() + "\t" + query.getText() + "\n");
+		sb.append("|relevant tuples| = " + query.qrels.size() + "\n");
+		sb.append("|returned results| = " + queryResult.topResults.size() + "\n");
+		int counter = 0;
+		sb.append("returned results: \n");
+		for (int i = 0; i < queryResult.topResults.size(); i++) {
+			String ret = queryResult.topResults.get(i);
+			String retTitle = queryResult.topResults.get(i);
+			if (query.qrels.contains(ret)) {
+				sb.append("++ " + retTitle + "\n"); // title of returned doc
+			} else {
+				sb.append("-- " + retTitle + "\n");
+			}
+			if (counter++ > 20)
+				break;
+		}
+		counter = 0;
+		sb.append("missed docs: \n");
+		for (String rel : query.qrels) {
+			if (!queryResult.topResults.contains(rel)) {
+				sb.append("-- " + rel + "\t" + idToInexfile.get(rel).title + "\n");
+			}
+			if (counter++ > 0)
+				break;
+		}
+		sb.append("-------------------------------------\n");
+		return sb.toString();
+	}
+
 }
