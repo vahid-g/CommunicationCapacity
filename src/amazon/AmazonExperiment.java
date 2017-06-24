@@ -101,7 +101,7 @@ public class AmazonExperiment {
 			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 					fieldToBoost);
-			allResults.add(convertIsbnToLtid(results));
+			allResults.add(convertIsbnToLtidAndFilter(results));
 		}
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "grid_bm_f4.csv")) {
@@ -142,7 +142,7 @@ public class AmazonExperiment {
 			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 					fieldToBoost);
-			convertIsbnToLtid(results);
+			convertIsbnToLtidAndFilter(results);
 			allResults.add(results);
 		}
 		// best params are 0.017, 0.008, 0.043
@@ -180,21 +180,26 @@ public class AmazonExperiment {
 		return isbnToLtid;
 	}
 
-	private static List<QueryResult> convertIsbnToLtid(List<QueryResult> results) {
+	private static List<QueryResult> convertIsbnToLtidAndFilter(List<QueryResult> results) {
 		// updateing qrels of queries
 		for (QueryResult res : results) {
 			List<String> oldResults = res.topResults;
-			List<String> newTopResults = new ArrayList<String>();
-			for (String isbn : oldResults) {
+			List<String> newResults = new ArrayList<String>();
+			List<String> oldResultsTitle = res.topResultsTitle;
+			List<String> newResultsTitle = new ArrayList<String>();
+			for (int i = 0; i < oldResults.size(); i++) {
+				String isbn = oldResults.get(i);
 				if (!isbnToLtid.containsKey(isbn)) {
 					LOGGER.log(Level.SEVERE, "Couldn't find ISBN: " + isbn + " in dict");
 					continue;
 				}
 				String ltid = isbnToLtid.get(isbn);
-				if (!newTopResults.contains(ltid))
-					newTopResults.add(ltid);
+				if (!newResults.contains(ltid))
+					newResults.add(ltid);
+					newResultsTitle.add(oldResultsTitle.get(i));
 			}
-			res.topResults = newTopResults;
+			res.topResults = newResults;
+			res.topResultsTitle = newResultsTitle;
 		}
 		return results;
 	}
@@ -221,8 +226,8 @@ public class AmazonExperiment {
 		fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, 0.64f);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 				fieldToBoost);
-		LOGGER.log(Level.INFO, "Converting ISBN results to LTID..");
-		convertIsbnToLtid(results);
+		LOGGER.log(Level.INFO, "updating ISBN results to LTID..");
+		convertIsbnToLtidAndFilter(results);
 		LOGGER.log(Level.INFO, "Preparing ltid -> InexFile map..");
 		// preparing ltid -> inex file map
 		List<InexFile> inexFiles = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
@@ -257,7 +262,7 @@ public class AmazonExperiment {
 		sb.append("returned results: \n");
 		for (int i = 0; i < queryResult.topResults.size(); i++) {
 			String returnedLtid = queryResult.topResults.get(i);
-			String returnedTitle = queryResult.topResults.get(i);
+			String returnedTitle = queryResult.topResultsTitle.get(i);
 			if (query.qrels.contains(returnedLtid)) {
 				sb.append("++ " + returnedLtid + "\t" + returnedTitle + "\n");
 			} else {
@@ -273,11 +278,12 @@ public class AmazonExperiment {
 				InexFile inFile = ltidToInexfile.get(relevantLtid);
 				if (inFile == null){
 					LOGGER.log(Level.SEVERE, "No Inex File for ltid: " + relevantLtid);
+					sb.append("-- " + relevantLtid + " (no inex file) " + "\n");
 				} else {
-					sb.append("-- " + relevantLtid + "\t" + ltidToInexfile.get(relevantLtid).title + "\n");
+					sb.append("-- " + relevantLtid + "\t" + inFile.title + "\n");
 				}
 			}
-			if (counter++ > 0)
+			if (counter++ > 20)
 				break;
 		}
 		sb.append("-------------------------------------\n");
