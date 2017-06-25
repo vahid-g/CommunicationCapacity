@@ -232,14 +232,18 @@ public class AmazonExperiment {
 		// preparing ltid -> inex file map
 		List<InexFile> inexFiles = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
 		Map<String, InexFile> ltidToInexFile = new HashMap<String, InexFile>();
+		int missedIsbnCount = 0;
 		for (InexFile inexFile : inexFiles) {
 			String isbn = FilenameUtils.removeExtension(new File(inexFile.path).getName());
 			String ltid = isbnToLtid.get(isbn);
-			if (ltid != null)
+			if (ltid != null) {
 				ltidToInexFile.put(ltid, inexFile);
-			else
-				LOGGER.log(Level.SEVERE, "isbn: " + isbn + " does not exists in dict");
+			} else { 
+				LOGGER.log(Level.SEVERE, "isbn: " + isbn + "(extracted from filename) does not exists in dict");
+				missedIsbnCount++;
+			}
 		}
+		LOGGER.log(Level.INFO, "Number of missed ISBNs extracted from filename in dict: " + missedIsbnCount);
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".csv");
 				FileWriter fw2 = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".log")) {

@@ -18,6 +18,7 @@ import wiki_inex13.Wiki13Experiment;
 
 public class InexFile implements Comparable<InexFile> {
 
+	public String id;
 	public String path;
 	public double weight;
 	public String title;
