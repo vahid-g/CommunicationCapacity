@@ -16,6 +16,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -23,7 +24,7 @@ import org.xml.sax.SAXException;
 import indexing.GeneralIndexer;
 
 public class AmazonIndexer extends GeneralIndexer {
-
+	
 	static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class.getName());
 
 	public static final String CREATOR_ATTRIB = "creator";
@@ -56,8 +57,19 @@ public class AmazonIndexer extends GeneralIndexer {
 			NodeList tagsList = xmlDoc.getElementsByTagName("tags");
 			Node tagsNode = tagsList.item(0);
 			String tags = "";
+			StringBuilder sb = new StringBuilder();
 			if (tagsNode != null) {
-				tags = tagsNode.getTextContent();
+				// normalizes the tag texts according to their frequency count 
+				// tags = tagsNode.getTextContent();
+				NodeList tagList = tagsNode.getChildNodes();
+				for (int i = 0; i < tagList.getLength(); i++) {
+					Node tagNode = tagList.item(i);
+					Element tagElement = (Element)tagNode;
+					int freq = Integer.parseInt(tagElement.getAttribute("count"));
+					while (freq-- > 0) {
+						sb.append(tagNode.getTextContent());
+					}
+				}
 			}
 
 			// removing title and actors info
