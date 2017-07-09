@@ -135,34 +135,34 @@ public class AmazonExperiment {
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
 				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
-		float[] p10 = new float[5];
+		float[] p20 = new float[5];
 		for (int i = 0; i < 5; i++) {
 			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 			fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, i == 0 ? 1f : 0f);
 			fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, i == 1 ? 1f : 0f);
 			fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, i == 2 ? 1f : 0f);
 			fieldToBoost.put(AmazonIndexer.DEWEY_ATTRIB, i == 4 ? 1f : 0f);
-			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, i == 3 ? 1f : 0f);
+			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, i == 5 ? 1f : 0f);
 			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 					fieldToBoost);
 			convertIsbnToLtidAndFilter(results);
 			for (QueryResult queryResult : results){
-				p10[i] += queryResult.precisionAtK(10);
+				p20[i] += queryResult.precisionAtK(20);
 			}
-			p10[i] /= results.size();
+			p20[i] /= results.size();
 		}
-		LOGGER.log(Level.INFO, "Results of field as a document retrieval: " + Arrays.toString(p10));
+		LOGGER.log(Level.INFO, "Results of field as a document retrieval: " + Arrays.toString(p20));
 		// best params bm3 are 1, 0, 2
 		// best params bm4 are 0.2 0.1 0.06 0.65
 		// best params bm4, query4 0.18 0.03 0.03 0.76
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 		for (int i = 0; i < 5; i++) {
-			fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, p10[i]);
-			fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, p10[i]);
-			fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, p10[i]);
-			fieldToBoost.put(AmazonIndexer.DEWEY_ATTRIB, p10[i]);
-			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, p10[i]);
+			fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, p20[i]);
+			fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, p20[i]);
+			fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, p20[i]);
+			fieldToBoost.put(AmazonIndexer.DEWEY_ATTRIB, p20[i]);
+			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, p20[i]);
 		}
 		return fieldToBoost;
 	}

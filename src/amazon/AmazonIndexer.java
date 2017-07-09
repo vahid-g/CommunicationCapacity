@@ -100,6 +100,8 @@ public class AmazonIndexer extends GeneralIndexer {
 
 			String category = "";
 			String dewey = extractNodeFromXml(xmlDoc, "dewey", bookNode);
+			if (dewey.contains("."))
+				dewey = dewey.substring(0, dewey.indexOf('.'));
 			if (deweyToCategory.containsKey(dewey.trim())) {
 				category = deweyToCategory.get(dewey.trim());
 			} else {
@@ -143,8 +145,6 @@ public class AmazonIndexer extends GeneralIndexer {
 			while (line != null) {
 				String[] fields = line.split("   ");
 				String deweyId = fields[0].trim();
-				if (deweyId.contains("."))
-					deweyId = deweyId.substring(0, deweyId.indexOf('.'));
 				// adds dewey id --> text category
 				deweyMap.put(fields[0].trim(), fields[1].trim()); 
 				line = br.readLine();
