@@ -30,9 +30,6 @@ public class AmazonIndexer extends GeneralIndexer {
 
 	public static final String TAGS_ATTRIB = "tags";
 	
-	public static void main(String[] args) {
-	}
-	
 	@Override
 	protected void indexXmlFile(File file, IndexWriter writer, float docBoost, float[] fieldBoost) {
 		try {
