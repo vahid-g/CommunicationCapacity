@@ -36,7 +36,7 @@ public class AmazonIndexer extends GeneralIndexer {
 
 	public static final String DEWEY_ATTRIB = "dewey";
 
-	private static Map<String, String> deweyToCategory = loadDeweyMap("data/dewey.csv");
+	private static Map<String, String> deweyToCategory = loadDeweyMap(AmazonDirectoryInfo.DEWEY_DICT);
 
 	@Override
 	protected void indexXmlFile(File file, IndexWriter writer, float docBoost, float[] fieldBoost) {
@@ -142,6 +142,9 @@ public class AmazonIndexer extends GeneralIndexer {
 			String line = br.readLine();
 			while (line != null) {
 				String[] fields = line.split("   ");
+				String deweyId = fields[0].trim();
+				if (deweyId.contains("."))
+					deweyId = deweyId.substring(0, deweyId.indexOf('.'));
 				// adds dewey id --> text category
 				deweyMap.put(fields[0].trim(), fields[1].trim()); 
 				line = br.readLine();

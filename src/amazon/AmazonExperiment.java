@@ -42,10 +42,10 @@ public class AmazonExperiment {
 		int total = Integer.parseInt(args[1]);
 		// buildSortedPathRating(AmazonDirectoryInfo.DATA_SET);
 		// gridSearchExperiment(expNo, total);
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm4/" + expNo + "_new2";
-		buildGlobalIndex(expNo, total);
-		gridSearchOnGlobalIndex(expNo, total, indexName);
-		// expOnGlobalIndex(expNo, total);
+		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm5/" + expNo + "_new";
+		buildGlobalIndex(expNo, total, indexName);
+		Map<String, Float> fieldBoostMap = gridSearchOnGlobalIndex(expNo, total, indexName);
+		expOnGlobalIndex(expNo, total, indexName, fieldBoostMap);
 	}
 
 	public static List<InexFile> buildSortedPathRating(String datasetPath) {
@@ -79,26 +79,24 @@ public class AmazonExperiment {
 		return (pathCount);
 	}
 
-	public static void buildGlobalIndex(int expNo, int total) {
+	public static void buildGlobalIndex(int expNo, int total, String indexName) {
 		List<InexFile> fileList = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
 		LOGGER.log(Level.INFO, "Building index..");
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm4/" + expNo + "_new2";
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
 		float[] fieldBoost = { 1f, 1f, 1f, 1f, 1f };
 		new AmazonIndexer().buildIndex(fileList, indexName, fieldBoost);
 	}
 
-	public static void expOnGlobalIndex(int expNo, int total) {
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm4/" + expNo;
+	public static void expOnGlobalIndex(int expNo, int total, String indexName, Map<String, Float> fieldToBoost) {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
 				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
-		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-		fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, 0.18f);
-		fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, 0.03f);
-		fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, 0.03f);
-		fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, 0.76f);
+//		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
+//		fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, 0.18f);
+//		fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, 0.03f);
+//		fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, 0.03f);
+//		fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, 0.76f);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 				fieldToBoost);
 		LOGGER.log(Level.INFO, "updating ISBN results to LTID..");
@@ -132,12 +130,12 @@ public class AmazonExperiment {
 		}
 	}
 
-	public static void gridSearchOnGlobalIndex(int expNo, int total, String indexName) {
+	public static Map<String, Float> gridSearchOnGlobalIndex(int expNo, int total, String indexName) {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
 				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
-		double[] p10 = new double[5];
+		float[] p10 = new float[5];
 		for (int i = 0; i < 5; i++) {
 			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 			fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, i == 0 ? 1f : 0f);
@@ -158,6 +156,15 @@ public class AmazonExperiment {
 		// best params bm3 are 1, 0, 2
 		// best params bm4 are 0.2 0.1 0.06 0.65
 		// best params bm4, query4 0.18 0.03 0.03 0.76
+		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
+		for (int i = 0; i < 5; i++) {
+			fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, p10[i]);
+			fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, p10[i]);
+			fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, p10[i]);
+			fieldToBoost.put(AmazonIndexer.DEWEY_ATTRIB, p10[i]);
+			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, p10[i]);
+		}
+		return fieldToBoost;
 	}
 
 	public static String generateLog(QueryResult queryResult, Map<String, InexFile> ltidToInexfile) {

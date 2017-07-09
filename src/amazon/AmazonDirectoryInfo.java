@@ -12,9 +12,11 @@ public class AmazonDirectoryInfo {
 	static final String QUERY_FILE = HOME + "data/queries/amazon/inex2014sbs.topics.xml";
 	static final String QREL_FILE = HOME + "data/queries/amazon/inex14sbs.qrels";
 	static final String RESULT_DIR = HOME + "data/result/amazon/";
-
+	
 	static final String ISBN_DICT = HOME + "data/queries/amazon/amazon-lt.isbn.thingID.csv";
-
+	static final String DEWEY_DICT = HOME + "data/dewey.csv";
+	
+	
 	static {
 		File indexBaseDir = new File(LOCAL_INDEX);
 		if (!indexBaseDir.exists())
