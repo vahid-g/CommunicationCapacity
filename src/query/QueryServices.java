@@ -217,8 +217,7 @@ public class QueryServices {
 				}
 				Set<String> qrels = qidQrels.get(qid);
 				if (qrels == null) {
-					LOGGER.log(Level.SEVERE, "no qrels for query: " + qid + ":"
-							+ queryText + "in file: " + qrelPath);
+					LOGGER.log(Level.SEVERE, "no qrels for query: " + qid + " in file: " + qrelPath);
 				} else {
 					ExperimentQuery iq = new ExperimentQuery(qid, queryText,
 							qrels);
