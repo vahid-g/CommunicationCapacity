@@ -1,6 +1,9 @@
 package amazon;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +19,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -29,7 +33,11 @@ public class AmazonIndexer extends GeneralIndexer {
 	public static final String CREATOR_ATTRIB = "creator";
 
 	public static final String TAGS_ATTRIB = "tags";
-	
+
+	public static final String DEWEY_ATTRIB = "dewey";
+
+	private static Map<String, String> deweyToCategory = loadDeweyMap("data/dewey.csv");
+
 	@Override
 	protected void indexXmlFile(File file, IndexWriter writer, float docBoost, float[] fieldBoost) {
 		try {
@@ -62,57 +70,88 @@ public class AmazonIndexer extends GeneralIndexer {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			org.w3c.dom.Document xmlDoc = db.parse(file);
-			
-			NodeList titleNodeList = xmlDoc.getElementsByTagName("title");
-			Node titleNode = titleNodeList.item(0);
-			String title = "";
-			if (titleNode != null) {
-				title = titleNode.getTextContent();
-			} else {
-				LOGGER.log(Level.WARNING, "title not found in: " + file.getName());
-			}
+			Node bookNode = xmlDoc.getElementsByTagName("book").item(0);
+
+			String title = extractNodeFromXml(xmlDoc, "title", bookNode);
 			dataMap.put(TITLE_ATTRIB, title);
 
-			NodeList creatorNodeList = xmlDoc.getElementsByTagName("creators");
-			Node creatorNode = creatorNodeList.item(0);
-			String creators = "";
-			if (creatorNode != null) {
-				creators = creatorNode.getTextContent() + " ";
-			}
+			String creators = extractNodeFromXml(xmlDoc, "creators", bookNode);
 			dataMap.put(CREATOR_ATTRIB, creators);
 
-			NodeList tagList = xmlDoc.getElementsByTagName("tag");
-			StringBuilder sb = new StringBuilder();
-			if (tagList != null) {
+			String tags = "";
+			try {
+				NodeList tagList = xmlDoc.getElementsByTagName("tag");
+				StringBuilder sb = new StringBuilder();
 				for (int i = 0; i < tagList.getLength(); i++) {
 					Node tagNode = tagList.item(i);
 					Element tagElement = (Element) tagNode;
-					// normalizes the tag texts according to their frequency count
+					// normalizes the tag texts according to their frequency
+					// count
 					int freq = Integer.parseInt(tagElement.getAttribute("count"));
 					while (freq-- > 0) {
 						sb.append(tagNode.getTextContent() + " ");
 					}
 				}
+				tags = sb.toString();
+			} catch (NullPointerException npe) {
+				LOGGER.log(Level.WARNING, "Null Pointer: couldn't extract tags");
 			}
-			dataMap.put(TAGS_ATTRIB, sb.toString());
+			dataMap.put(TAGS_ATTRIB, tags);
+
+			String category = "";
+			String dewey = extractNodeFromXml(xmlDoc, "dewey", bookNode);
+			if (deweyToCategory.containsKey(dewey.trim())) {
+				category = deweyToCategory.get(dewey.trim());
+			} else {
+				LOGGER.log(Level.WARNING, "deweyDict doesn't contain " + dewey.trim());
+			}
+			dataMap.put(DEWEY_ATTRIB, category);
 
 			// removing title and actors info
 			String rest = "";
-			try {
-				Node bookNode = xmlDoc.getElementsByTagName("book").item(0);
-				bookNode.removeChild(titleNode);
-				bookNode.removeChild(creatorNode);
-				bookNode.removeChild(xmlDoc.getElementsByTagName("tags").item(0));
-				bookNode.normalize();
-				rest = bookNode.getTextContent();
-			} catch (NullPointerException e) {
-				LOGGER.log(Level.WARNING, "rest (CONTENT_ATTRIB) is null for: " + file.getName());
-				LOGGER.log(Level.WARNING, e.getMessage(), e);
-			}
+			bookNode.normalize();
+			rest = bookNode.getTextContent();
 			dataMap.put(CONTENT_ATTRIB, rest);
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 		return dataMap;
+	}
+
+	private static String extractNodeFromXml(org.w3c.dom.Document xmlDoc, String nodeName, Node bookNode) {
+		String nodeText = "";
+		try {
+			NodeList nodeList = xmlDoc.getElementsByTagName(nodeName);
+			Node node = nodeList.item(0);
+			nodeText = node.getTextContent().trim();
+			try {
+				bookNode.removeChild(node);
+			} catch (DOMException dome) {
+				LOGGER.log(Level.WARNING, "Couldn't remove node " + nodeText);
+			}
+		} catch (NullPointerException npe) {
+			LOGGER.log(Level.WARNING, "Null Pointer: couldn't extract dewey " + nodeName);
+		}
+		return nodeText;
+	}
+
+	private static Map<String, String> loadDeweyMap(String path) {
+		LOGGER.log(Level.INFO, "Loading Dewey dictionary..");
+		Map<String, String> deweyMap = new HashMap<String, String>();
+		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+			String line = br.readLine();
+			while (line != null) {
+				String[] fields = line.split("   ");
+				// adds dewey id --> text category
+				deweyMap.put(fields[0].trim(), fields[1].trim()); 
+				line = br.readLine();
+			}
+		} catch (FileNotFoundException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		LOGGER.log(Level.INFO, "Dewey dictionary load. Size: " + deweyMap.size());
+		return deweyMap;
 	}
 }

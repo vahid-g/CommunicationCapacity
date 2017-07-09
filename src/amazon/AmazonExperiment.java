@@ -42,12 +42,13 @@ public class AmazonExperiment {
 		int total = Integer.parseInt(args[1]);
 		// buildSortedPathRating(AmazonDirectoryInfo.DATA_SET);
 		// gridSearchExperiment(expNo, total);
-		// gridSearchOnGlobalIndex(expNo, total);
+		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm4/" + expNo + "_new2";
 		buildGlobalIndex(expNo, total);
+		gridSearchOnGlobalIndex(expNo, total, indexName);
 		// expOnGlobalIndex(expNo, total);
 	}
 
-	static List<InexFile> buildSortedPathRating(String datasetPath) {
+	public static List<InexFile> buildSortedPathRating(String datasetPath) {
 		List<InexFile> pathCount = new ArrayList<InexFile>();
 		List<String> filePaths = Utils.listFilesForFolder(new File(datasetPath));
 		for (String filepath : filePaths) {
@@ -78,118 +79,10 @@ public class AmazonExperiment {
 		return (pathCount);
 	}
 
-	public static void gridSearchOnGlobalIndexDetailed() {
-		int total = 50;
-		int expNo = 50;
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm/" + expNo;
-		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
-				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
-		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
-		List<List<QueryResult>> allResults = new ArrayList<List<QueryResult>>();
-		for (int i = 0; i < 4; i++) {
-			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-			fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, i == 0 ? 1f : 0f);
-			fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, i == 1 ? 1f : 0f);
-			fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, i == 2 ? 1f : 0f);
-			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, i == 3 ? 1f : 0f);
-			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
-			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
-					fieldToBoost);
-			convertIsbnToLtidAndFilter(results);
-			allResults.add(results);
-		}
-		// best p20 params bm3 are 1, 0, 2
-		// best p20 params bm4 are 0.2 0.1 0.06 0.65
-		// best p10 params bm4 for q4 
-		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "param_compare.csv")) {
-			for (int i = 0; i < queries.size(); i++) {
-				fw.write(allResults.get(0).get(i).query.getText() + ",");
-				for (int j = 0; j < allResults.size(); j++) {
-					fw.write(allResults.get(j).get(i).precisionAtK(10) + ",");
-				}
-				fw.write("\n");
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public static void gridSearchOnGlobalIndex(int expNo, int total) {
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm/" + expNo;
-		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
-				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
-		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
-		double[] p10 = new double[4];
-		for (int i = 0; i < 4; i++) {
-			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-			fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, i == 0 ? 1f : 0f);
-			fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, i == 1 ? 1f : 0f);
-			fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, i == 2 ? 1f : 0f);
-			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, i == 3 ? 1f : 0f);
-			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
-			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
-					fieldToBoost);
-			convertIsbnToLtidAndFilter(results);
-			for (QueryResult queryResult : results){
-				p10[i] += queryResult.precisionAtK(10);
-			}
-			p10[i] /= results.size();
-		}
-		LOGGER.log(Level.INFO, "Results of field as a document retrieval: " + Arrays.toString(p10));
-		// best params bm3 are 1, 0, 2
-		// best params bm4 are 0.2 0.1 0.06 0.65
-		// best params bm4, query4 0.18 0.03 0.03 0.76
-	}
-
-	static Map<String, String> loadIsbnToLtidMap() {
-		Map<String, String> isbnToLtid = new HashMap<String, String>();
-		try (BufferedReader br = new BufferedReader(new FileReader(AmazonDirectoryInfo.ISBN_DICT))) {
-			String line = br.readLine();
-			while (line != null) {
-				String[] ids = line.split(",");
-				isbnToLtid.put(ids[0], ids[1]);
-				line = br.readLine();
-			}
-			LOGGER.log(Level.INFO, "ISBN dict size: " + isbnToLtid.size());
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return isbnToLtid;
-	}
-
-	private static List<QueryResult> convertIsbnToLtidAndFilter(List<QueryResult> results) {
-		// updateing qrels of queries
-		for (QueryResult res : results) {
-			List<String> oldResults = res.topResults;
-			List<String> newResults = new ArrayList<String>();
-			List<String> oldResultsTitle = res.topResultsTitle;
-			List<String> newResultsTitle = new ArrayList<String>();
-			for (int i = 0; i < oldResults.size(); i++) {
-				String isbn = oldResults.get(i);
-				if (!isbnToLtid.containsKey(isbn)) {
-					LOGGER.log(Level.SEVERE, "Couldn't find ISBN: " + isbn + " in dict");
-					continue;
-				}
-				String ltid = isbnToLtid.get(isbn);
-				if (!newResults.contains(ltid))
-					newResults.add(ltid);
-				newResultsTitle.add(oldResultsTitle.get(i));
-			}
-			res.topResults = newResults;
-			res.topResultsTitle = newResultsTitle;
-		}
-		return results;
-	}
-
 	public static void buildGlobalIndex(int expNo, int total) {
 		List<InexFile> fileList = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
 		LOGGER.log(Level.INFO, "Building index..");
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm4/" + expNo + "_new";
+		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm4/" + expNo + "_new2";
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
 		float[] fieldBoost = { 1f, 1f, 1f, 1f, 1f };
 		new AmazonIndexer().buildIndex(fileList, indexName, fieldBoost);
@@ -239,6 +132,34 @@ public class AmazonExperiment {
 		}
 	}
 
+	public static void gridSearchOnGlobalIndex(int expNo, int total, String indexName) {
+		LOGGER.log(Level.INFO, "Loading and running queries..");
+		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
+				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
+		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
+		double[] p10 = new double[5];
+		for (int i = 0; i < 5; i++) {
+			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
+			fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, i == 0 ? 1f : 0f);
+			fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, i == 1 ? 1f : 0f);
+			fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, i == 2 ? 1f : 0f);
+			fieldToBoost.put(AmazonIndexer.DEWEY_ATTRIB, i == 4 ? 1f : 0f);
+			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, i == 3 ? 1f : 0f);
+			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
+			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
+					fieldToBoost);
+			convertIsbnToLtidAndFilter(results);
+			for (QueryResult queryResult : results){
+				p10[i] += queryResult.precisionAtK(10);
+			}
+			p10[i] /= results.size();
+		}
+		LOGGER.log(Level.INFO, "Results of field as a document retrieval: " + Arrays.toString(p10));
+		// best params bm3 are 1, 0, 2
+		// best params bm4 are 0.2 0.1 0.06 0.65
+		// best params bm4, query4 0.18 0.03 0.03 0.76
+	}
+
 	public static String generateLog(QueryResult queryResult, Map<String, InexFile> ltidToInexfile) {
 		ExperimentQuery query = queryResult.query;
 		StringBuilder sb = new StringBuilder();
@@ -275,6 +196,48 @@ public class AmazonExperiment {
 		}
 		sb.append("-------------------------------------\n");
 		return sb.toString();
+	}
+
+	static Map<String, String> loadIsbnToLtidMap() {
+		Map<String, String> isbnToLtid = new HashMap<String, String>();
+		try (BufferedReader br = new BufferedReader(new FileReader(AmazonDirectoryInfo.ISBN_DICT))) {
+			String line = br.readLine();
+			while (line != null) {
+				String[] ids = line.split(",");
+				isbnToLtid.put(ids[0], ids[1]);
+				line = br.readLine();
+			}
+			LOGGER.log(Level.INFO, "ISBN dict size: " + isbnToLtid.size());
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return isbnToLtid;
+	}
+
+	private static List<QueryResult> convertIsbnToLtidAndFilter(List<QueryResult> results) {
+		// updateing qrels of queries
+		for (QueryResult res : results) {
+			List<String> oldResults = res.topResults;
+			List<String> newResults = new ArrayList<String>();
+			List<String> oldResultsTitle = res.topResultsTitle;
+			List<String> newResultsTitle = new ArrayList<String>();
+			for (int i = 0; i < oldResults.size(); i++) {
+				String isbn = oldResults.get(i);
+				if (!isbnToLtid.containsKey(isbn)) {
+					LOGGER.log(Level.SEVERE, "Couldn't find ISBN: " + isbn + " in dict");
+					continue;
+				}
+				String ltid = isbnToLtid.get(isbn);
+				if (!newResults.contains(ltid))
+					newResults.add(ltid);
+				newResultsTitle.add(oldResultsTitle.get(i));
+			}
+			res.topResults = newResults;
+			res.topResultsTitle = newResultsTitle;
+		}
+		return results;
 	}
 
 }
