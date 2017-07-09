@@ -85,6 +85,8 @@ public class AmazonExperiment {
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
 		float[] fieldBoost = { 1f, 1f, 1f, 1f, 1f };
 		new AmazonIndexer().buildIndex(fileList, indexName, fieldBoost);
+		LOGGER.log(Level.INFO,
+				"============\n" + "Number of files missing dewey: " + AmazonIndexer.getMissingDeweyCounter());
 	}
 
 	public static void expOnGlobalIndex(int expNo, int total, String indexName, Map<String, Float> fieldToBoost) {
@@ -92,11 +94,11 @@ public class AmazonExperiment {
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
 				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
-//		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-//		fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, 0.18f);
-//		fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, 0.03f);
-//		fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, 0.03f);
-//		fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, 0.76f);
+		// Map<String, Float> fieldToBoost = new HashMap<String, Float>();
+		// fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, 0.18f);
+		// fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, 0.03f);
+		// fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, 0.03f);
+		// fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, 0.76f);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 				fieldToBoost);
 		LOGGER.log(Level.INFO, "updating ISBN results to LTID..");
@@ -147,7 +149,7 @@ public class AmazonExperiment {
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 					fieldToBoost);
 			convertIsbnToLtidAndFilter(results);
-			for (QueryResult queryResult : results){
+			for (QueryResult queryResult : results) {
 				p20[i] += queryResult.precisionAtK(20);
 			}
 			p20[i] /= results.size();

@@ -37,6 +37,8 @@ public class AmazonIndexer extends GeneralIndexer {
 	public static final String DEWEY_ATTRIB = "dewey";
 
 	private static Map<String, String> deweyToCategory = loadDeweyMap(AmazonDirectoryInfo.DEWEY_DICT);
+	
+	private static int missingDeweyCounter = 0;
 
 	@Override
 	protected void indexXmlFile(File file, IndexWriter writer, float docBoost, float[] fieldBoost) {
@@ -105,7 +107,9 @@ public class AmazonIndexer extends GeneralIndexer {
 			if (deweyToCategory.containsKey(dewey.trim())) {
 				category = deweyToCategory.get(dewey.trim());
 			} else {
-				LOGGER.log(Level.WARNING, "deweyDict doesn't contain " + dewey.trim());
+				//LOGGER.log(Level.WARNING, "deweyDict doesn't contain " + dewey.trim() + 
+					//	" \n\tfile: " + file.getAbsolutePath());
+				missingDeweyCounter++;
 			}
 			dataMap.put(DEWEY_ATTRIB, category);
 
@@ -118,6 +122,10 @@ public class AmazonIndexer extends GeneralIndexer {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 		return dataMap;
+	}
+
+	public static int getMissingDeweyCounter() {
+		return missingDeweyCounter;
 	}
 
 	private static String extractNodeFromXml(org.w3c.dom.Document xmlDoc, String nodeName, Node bookNode) {
@@ -144,7 +152,6 @@ public class AmazonIndexer extends GeneralIndexer {
 			String line = br.readLine();
 			while (line != null) {
 				String[] fields = line.split("   ");
-				String deweyId = fields[0].trim();
 				// adds dewey id --> text category
 				deweyMap.put(fields[0].trim(), fields[1].trim()); 
 				line = br.readLine();
