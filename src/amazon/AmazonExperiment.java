@@ -11,11 +11,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -28,7 +25,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.similarities.BM25Similarity;
@@ -53,11 +49,13 @@ public class AmazonExperiment {
 		int expNo = Integer.parseInt(args[0]);
 		int total = Integer.parseInt(args[1]);
 		// buildSortedPathRating(AmazonDirectoryInfo.DATA_SET);
-		// gridSearchExperiment(expNo, total);
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm5/" + expNo + "_new";
-		// buildGlobalIndex(expNo, total, indexName);
+		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm5_freq/" + expNo;
+		buildGlobalIndex(expNo, total, indexName);
 		Map<String, Float> fieldBoostMap = gridSearchOnGlobalIndex(expNo, total, indexName);
-		expOnGlobalIndex(expNo, total, indexName, fieldBoostMap);
+		expOnGlobalIndex(expNo, total, indexName, fieldBoostMap, "bm5_freq.csv");
+//		indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm4_freq/" + expNo;
+//		fieldBoostMap = gridSearchOnGlobalIndex(expNo, total, indexName);
+//		expOnGlobalIndex(expNo, total, indexName, fieldBoostMap, "new.csv");
 	}
 
 	public static List<InexFile> buildSortedPathRating(String datasetPath) {
@@ -109,11 +107,11 @@ public class AmazonExperiment {
 		float[] p20 = new float[5];
 		for (int i = 0; i < 5; i++) {
 			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-			fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, i == 0 ? 1f : 0f);
-			fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, i == 1 ? 1f : 0f);
-			fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, i == 2 ? 1f : 0f);
-			fieldToBoost.put(AmazonIndexer.DEWEY_ATTRIB, i == 3 ? 1f : 0f);
-			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, i == 4 ? 1f : 0f);
+			fieldToBoost.put(AmazonDocumentField.TITLE.toString(), i == 0 ? 1f : 0f);
+			fieldToBoost.put(AmazonDocumentField.CREATOR.toString(), i == 1 ? 1f : 0f);
+			fieldToBoost.put(AmazonDocumentField.TAGS.toString(), i == 2 ? 1f : 0f);
+			fieldToBoost.put(AmazonDocumentField.DEWEY.toString(), i == 3 ? 1f : 0f);
+			fieldToBoost.put(AmazonDocumentField.CONTENT.toString(), i == 4 ? 1f : 0f);
 			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 					fieldToBoost);
@@ -129,16 +127,17 @@ public class AmazonExperiment {
 		// best params bm4, query4 0.18 0.03 0.03 0.76
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 		for (int i = 0; i < 5; i++) {
-			fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, p20[i]);
-			fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, p20[i]);
-			fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, p20[i]);
-			fieldToBoost.put(AmazonIndexer.DEWEY_ATTRIB, p20[i]);
-			fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, p20[i]);
+			fieldToBoost.put(AmazonDocumentField.TITLE.toString(), p20[i]);
+			fieldToBoost.put(AmazonDocumentField.CREATOR.toString(), p20[i]);
+			fieldToBoost.put(AmazonDocumentField.TAGS.toString(), p20[i]);
+			fieldToBoost.put(AmazonDocumentField.DEWEY.toString(), p20[i]);
+			fieldToBoost.put(AmazonDocumentField.CONTENT.toString(), p20[i]);
 		}
 		return fieldToBoost;
 	}
 
-	public static void expOnGlobalIndex(int expNo, int total, String indexName, Map<String, Float> fieldToBoost) {
+	public static void expOnGlobalIndex(int expNo, int total, String indexName, 
+			Map<String, Float> fieldToBoost, String outputName) {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
 				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
@@ -169,7 +168,7 @@ public class AmazonExperiment {
 		}
 		LOGGER.log(Level.INFO, "Number of missed ISBNs extracted from filename in dict: " + missedIsbnCount);
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".csv")) {
+		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.RESULT_DIR + outputName)) {
 			// FileWriter fw2 = new FileWriter(AmazonDirectoryInfo.RESULT_DIR +
 			// "amazon_" + expNo + ".log")) {
 			for (QueryResult mqr : results) {
@@ -209,13 +208,16 @@ public class AmazonExperiment {
 					sb.append(qid + ", ");
 					for (int i = 0; i < 5; i++) {
 						Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-						fieldToBoost.put(AmazonIndexer.TITLE_ATTRIB, i == 0 ? 1f : 0f);
-						fieldToBoost.put(AmazonIndexer.CREATOR_ATTRIB, i == 1 ? 1f : 0f);
-						fieldToBoost.put(AmazonIndexer.TAGS_ATTRIB, i == 2 ? 1f : 0f);
-						fieldToBoost.put(AmazonIndexer.DEWEY_ATTRIB, i == 3 ? 1f : 0f);
-						fieldToBoost.put(AmazonIndexer.CONTENT_ATTRIB, i == 4 ? 1f : 0f);
+						fieldToBoost.put(AmazonDocumentField.TITLE.toString(), i == 0 ? 1f : 0f);
+						fieldToBoost.put(AmazonDocumentField.CREATOR.toString(), i == 1 ? 1f : 0f);
+						fieldToBoost.put(AmazonDocumentField.TAGS.toString(), i == 2 ? 1f : 0f);
+						fieldToBoost.put(AmazonDocumentField.DEWEY.toString(), i == 3 ? 1f : 0f);
+						fieldToBoost.put(AmazonDocumentField.CONTENT.toString(), i == 4 ? 1f : 0f);
 						Query query = QueryServices.buildLuceneQuery(text, fieldToBoost);
-						sb.append(searcher.explain(query, rel).getValue()); //TODO rel is isbn?
+						sb.append(searcher.explain(query, rel).getValue()); // TODO
+																			// rel
+																			// is
+																			// isbn?
 						sb.append(",");
 					}
 					sb.append(label);

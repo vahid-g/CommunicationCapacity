@@ -30,20 +30,15 @@ public class AmazonIndexer extends GeneralIndexer {
 
 	static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class.getName());
 
-	public static final String CREATOR_ATTRIB = "creator";
-
-	public static final String TAGS_ATTRIB = "tags";
-
-	public static final String DEWEY_ATTRIB = "dewey";
-
-	private static Map<String, String> deweyToCategory = loadDeweyMap(AmazonDirectoryInfo.DEWEY_DICT);
+	// private static Map<String, String> deweyToCategory = loadDeweyMap(AmazonDirectoryInfo.DEWEY_DICT);
+	private static Map<String, String> deweyToCategory = loadDeweyMap("data/dewey.csv");
 	
 	private static int missingDeweyCounter = 0;
-
+	
 	@Override
 	protected void indexXmlFile(File file, IndexWriter writer, float docBoost, float[] fieldBoost) {
 		try {
-			Map<String, String> dataMap = parseAmazonXml(file);
+			Map<AmazonDocumentField, String> dataMap = parseAmazonXml(file);
 			Document luceneDoc = new Document();
 			// file name is ISBN of the book
 			String docId = FilenameUtils.removeExtension(file.getName());
@@ -51,23 +46,18 @@ public class AmazonIndexer extends GeneralIndexer {
 			luceneDoc.add(new StringField(DOCNAME_ATTRIB, docId, Field.Store.YES));
 			// luceneDoc.add(new StringField(LTID_ATTRIB, ltid,
 			// Field.Store.YES));
-			TextField titleField = new TextField(TITLE_ATTRIB, dataMap.get(TITLE_ATTRIB), Field.Store.YES);
-			luceneDoc.add(titleField);
-			TextField genreField = new TextField(CREATOR_ATTRIB, dataMap.get(CREATOR_ATTRIB), Field.Store.YES);
-			luceneDoc.add(genreField);
-			TextField tagsField = new TextField(TAGS_ATTRIB, dataMap.get(TAGS_ATTRIB), Field.Store.YES);
-			luceneDoc.add(tagsField);
-			TextField restField = new TextField(CONTENT_ATTRIB, dataMap.get(CONTENT_ATTRIB), Field.Store.YES);
-			luceneDoc.add(restField);
-
+			for (AmazonDocumentField field : AmazonDocumentField.values()){
+				TextField textField = new TextField(field.toString(), dataMap.get(field), Field.Store.YES);
+				luceneDoc.add(textField);
+			}
 			writer.addDocument(luceneDoc);
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	}
 
-	protected static HashMap<String, String> parseAmazonXml(File file) {
-		HashMap<String, String> dataMap = new HashMap<String, String>();
+	protected static HashMap<AmazonDocumentField, String> parseAmazonXml(File file) {
+		HashMap<AmazonDocumentField, String> dataMap = new HashMap<AmazonDocumentField, String>();
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder db = dbf.newDocumentBuilder();
@@ -75,10 +65,10 @@ public class AmazonIndexer extends GeneralIndexer {
 			Node bookNode = xmlDoc.getElementsByTagName("book").item(0);
 
 			String title = extractNodeFromXml(xmlDoc, "title", bookNode);
-			dataMap.put(TITLE_ATTRIB, title);
+			dataMap.put(AmazonDocumentField.TITLE, title);
 
 			String creators = extractNodeFromXml(xmlDoc, "creators", bookNode);
-			dataMap.put(CREATOR_ATTRIB, creators);
+			dataMap.put(AmazonDocumentField.CREATOR, creators);
 
 			String tags = "";
 			try {
@@ -98,7 +88,7 @@ public class AmazonIndexer extends GeneralIndexer {
 			} catch (NullPointerException npe) {
 				LOGGER.log(Level.WARNING, "Null Pointer: couldn't extract tags");
 			}
-			dataMap.put(TAGS_ATTRIB, tags);
+			dataMap.put(AmazonDocumentField.TAGS, tags);
 
 			String category = "";
 			String dewey = extractNodeFromXml(xmlDoc, "dewey", bookNode);
@@ -111,13 +101,13 @@ public class AmazonIndexer extends GeneralIndexer {
 					//	" \n\tfile: " + file.getAbsolutePath());
 				missingDeweyCounter++;
 			}
-			dataMap.put(DEWEY_ATTRIB, category);
+			dataMap.put(AmazonDocumentField.DEWEY, category);
 
 			// removing title and actors info
 			String rest = "";
 			bookNode.normalize();
 			rest = bookNode.getTextContent();
-			dataMap.put(CONTENT_ATTRIB, rest);
+			dataMap.put(AmazonDocumentField.CONTENT, rest);
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
