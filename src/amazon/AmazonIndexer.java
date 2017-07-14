@@ -84,6 +84,9 @@ public class AmazonIndexer extends GeneralIndexer {
 					}
 				}
 				tags = sb.toString();
+				NodeList tagsList = xmlDoc.getElementsByTagName("tags");
+				Node tagsNode = tagsList.item(0);
+				bookNode.removeChild(tagsNode);
 			} catch (NullPointerException npe) {
 				LOGGER.log(Level.WARNING, "Null Pointer: couldn't extract tags");
 			}
@@ -150,7 +153,7 @@ public class AmazonIndexer extends GeneralIndexer {
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
-		LOGGER.log(Level.INFO, "Dewey dictionary load. Size: " + deweyMap.size());
+		LOGGER.log(Level.INFO, "Dewey dictionary loaded. Size: " + deweyMap.size());
 		return deweyMap;
 	}
 }

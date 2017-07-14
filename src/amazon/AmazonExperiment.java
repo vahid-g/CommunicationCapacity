@@ -49,10 +49,15 @@ public class AmazonExperiment {
 		int expNo = Integer.parseInt(args[0]);
 		int total = Integer.parseInt(args[1]);
 		// buildSortedPathRating(AmazonDirectoryInfo.DATA_SET);
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm4_freq/" + expNo;
+		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" + total + "_bm5_freq/" + expNo;
 		buildGlobalIndex(expNo, total, indexName);
 		Map<String, Float> fieldBoostMap = gridSearchOnGlobalIndex(expNo, total, indexName);
-		expOnGlobalIndex(expNo, total, indexName, fieldBoostMap, "p" + expNo + "_q4_all.csv");
+//		Map<String, Float> fieldBoostMap = new HashMap<String, Float>();
+//		fieldBoostMap.put(AmazonDocumentField.TITLE.toString(), 0.18f);
+//		fieldBoostMap.put(AmazonDocumentField.CREATOR.toString(), 0.03f);
+//		fieldBoostMap.put(AmazonDocumentField.TAGS.toString(), 0.03f);
+//		fieldBoostMap.put(AmazonDocumentField.CONTENT.toString(), 0.76f);
+		expOnGlobalIndex(expNo, total, indexName, fieldBoostMap, "p" + expNo + "_f5.csv");
 		// indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "amazon_p" +
 		// total + "_bm4/" + expNo;
 		// fieldBoostMap = gridSearchOnGlobalIndex(expNo, total, indexName);
@@ -105,7 +110,7 @@ public class AmazonExperiment {
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
 				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
-		int fieldCount = 4;
+		int fieldCount = 5;
 		float[] p10 = new float[fieldCount];
 		float[] mrr = new float[fieldCount];
 		float[] map = new float[fieldCount];
@@ -116,7 +121,7 @@ public class AmazonExperiment {
 			fieldToBoost.put(AmazonDocumentField.CREATOR.toString(), i == 1 ? 1f : 0f);
 			fieldToBoost.put(AmazonDocumentField.TAGS.toString(), i == 2 ? 1f : 0f);
 			fieldToBoost.put(AmazonDocumentField.CONTENT.toString(), i == 3 ? 1f : 0f);
-//			fieldToBoost.put(AmazonDocumentField.DEWEY.toString(), i == 4 ? 1f : 0f);
+			fieldToBoost.put(AmazonDocumentField.DEWEY.toString(), i == 4 ? 1f : 0f);
 			LOGGER.log(Level.INFO, i + ": " + fieldToBoost.toString());
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 					fieldToBoost);
@@ -157,7 +162,7 @@ public class AmazonExperiment {
 			fieldToBoost.put(AmazonDocumentField.CREATOR.toString(), all[i]);
 			fieldToBoost.put(AmazonDocumentField.TAGS.toString(), all[i]);
 			fieldToBoost.put(AmazonDocumentField.CONTENT.toString(), all[i]);
-//			fieldToBoost.put(AmazonDocumentField.DEWEY.toString(), all[i]);
+			fieldToBoost.put(AmazonDocumentField.DEWEY.toString(), all[i]);
 		}
 		return fieldToBoost;
 	}
