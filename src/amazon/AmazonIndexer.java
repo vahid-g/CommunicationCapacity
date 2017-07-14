@@ -30,8 +30,7 @@ public class AmazonIndexer extends GeneralIndexer {
 
 	static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class.getName());
 
-	// private static Map<String, String> deweyToCategory = loadDeweyMap(AmazonDirectoryInfo.DEWEY_DICT);
-	private static Map<String, String> deweyToCategory = loadDeweyMap("data/dewey.csv");
+	private static Map<String, String> deweyToCategory = loadDeweyMap(AmazonDirectoryInfo.DEWEY_DICT);
 	
 	private static int missingDeweyCounter = 0;
 	
