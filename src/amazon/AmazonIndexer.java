@@ -31,9 +31,9 @@ public class AmazonIndexer extends GeneralIndexer {
 	static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class.getName());
 
 	private static Map<String, String> deweyToCategory = loadDeweyMap(AmazonDirectoryInfo.DEWEY_DICT);
-	
+
 	private static int missingDeweyCounter = 0;
-	
+
 	@Override
 	protected void indexXmlFile(File file, IndexWriter writer, float docBoost, float[] fieldBoost) {
 		try {
@@ -45,7 +45,7 @@ public class AmazonIndexer extends GeneralIndexer {
 			luceneDoc.add(new StringField(DOCNAME_ATTRIB, docId, Field.Store.YES));
 			// luceneDoc.add(new StringField(LTID_ATTRIB, ltid,
 			// Field.Store.YES));
-			for (AmazonDocumentField field : AmazonDocumentField.values()){
+			for (AmazonDocumentField field : AmazonExperiment.fields) {
 				TextField textField = new TextField(field.toString(), dataMap.get(field), Field.Store.YES);
 				luceneDoc.add(textField);
 			}
@@ -68,44 +68,22 @@ public class AmazonIndexer extends GeneralIndexer {
 
 			String creators = extractNodeFromXml(xmlDoc, "creators", bookNode);
 			dataMap.put(AmazonDocumentField.CREATOR, creators);
-
-			String tags = "";
-			try {
-				NodeList tagList = xmlDoc.getElementsByTagName("tag");
-				StringBuilder sb = new StringBuilder();
-				for (int i = 0; i < tagList.getLength(); i++) {
-					Node tagNode = tagList.item(i);
-					Element tagElement = (Element) tagNode;
-					// normalizes the tag texts according to their frequency
-					// count
-					int freq = Integer.parseInt(tagElement.getAttribute("count"));
-					while (freq-- > 0) {
-						sb.append(tagNode.getTextContent() + " ");
-					}
-				}
-				tags = sb.toString();
-				NodeList tagsList = xmlDoc.getElementsByTagName("tags");
-				Node tagsNode = tagsList.item(0);
-				bookNode.removeChild(tagsNode);
-			} catch (NullPointerException npe) {
-				LOGGER.log(Level.WARNING, "Null Pointer: couldn't extract tags");
-			}
+			
+			String tags = extractNodeFromXml(xmlDoc, "tags", bookNode);
 			dataMap.put(AmazonDocumentField.TAGS, tags);
 
-			String category = "";
+			/* String category = "";
 			String dewey = extractNodeFromXml(xmlDoc, "dewey", bookNode);
 			if (dewey.contains("."))
 				dewey = dewey.substring(0, dewey.indexOf('.'));
 			if (deweyToCategory.containsKey(dewey.trim())) {
 				category = deweyToCategory.get(dewey.trim());
 			} else {
-				//LOGGER.log(Level.WARNING, "deweyDict doesn't contain " + dewey.trim() + 
-					//	" \n\tfile: " + file.getAbsolutePath());
 				missingDeweyCounter++;
 			}
 			dataMap.put(AmazonDocumentField.DEWEY, category);
+			*/
 
-			// removing title and actors info
 			String rest = "";
 			bookNode.normalize();
 			rest = bookNode.getTextContent();
@@ -137,6 +115,31 @@ public class AmazonIndexer extends GeneralIndexer {
 		return nodeText;
 	}
 
+	private static String extractTagNodeAndNormalize(org.w3c.dom.Document xmlDoc, String nodeName, Node bookNode) {
+		String tags = "";
+		try {
+			NodeList tagList = xmlDoc.getElementsByTagName("tag");
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < tagList.getLength(); i++) {
+				Node tagNode = tagList.item(i);
+				Element tagElement = (Element) tagNode;
+				int freq = Integer.parseInt(tagElement.getAttribute("count"));
+				while (freq-- > 0) {
+					sb.append(tagNode.getTextContent() + " ");
+				}
+			}
+			tags = sb.toString();
+			NodeList tagsList = xmlDoc.getElementsByTagName("tags");
+			Node tagsNode = tagsList.item(0);
+			bookNode.removeChild(tagsNode);
+		} catch (NullPointerException npe) {
+			LOGGER.log(Level.WARNING, "Null Pointer: couldn't extract tags");
+		}
+		return tags;
+	}
+	
+	
+
 	private static Map<String, String> loadDeweyMap(String path) {
 		LOGGER.log(Level.INFO, "Loading Dewey dictionary..");
 		Map<String, String> deweyMap = new HashMap<String, String>();
@@ -145,7 +148,7 @@ public class AmazonIndexer extends GeneralIndexer {
 			while (line != null) {
 				String[] fields = line.split("   ");
 				// adds dewey id --> text category
-				deweyMap.put(fields[0].trim(), fields[1].trim()); 
+				deweyMap.put(fields[0].trim(), fields[1].trim());
 				line = br.readLine();
 			}
 		} catch (FileNotFoundException e) {

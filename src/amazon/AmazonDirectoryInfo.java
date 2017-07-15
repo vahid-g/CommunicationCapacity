@@ -6,7 +6,7 @@ public class AmazonDirectoryInfo {
 
 	static final String HOME = "/scratch/cluster-share/ghadakcv/";
 	static final String DATA_SET = HOME + "data-sets/amazon/amazon-inex/";
-	static final String FILE_LIST = HOME + "data/path_counts/amazon_path_reviews.csv";
+	static final String FILE_LIST = HOME + "data/path_counts/amazon_path_reviews_rels.sor";
 	static final String LOCAL_INDEX = "/scratch/ghadakcv/index/";
 	static final String GLOBAL_INDEX = HOME + "data/index/";
 	static final String QUERY_FILE = HOME + "data/queries/amazon/inex2014sbs.topics.xml";
