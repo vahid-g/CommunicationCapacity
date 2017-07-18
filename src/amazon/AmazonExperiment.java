@@ -31,41 +31,47 @@ import wiki_inex09.ClusterDirectoryInfo;
 
 public class AmazonExperiment {
 
-	static final Logger LOGGER = Logger.getLogger(AmazonExperiment.class.getName());
-
 	static Map<String, String> isbnToLtid = AmazonUtils.loadIsbnLtidMap(AmazonDirectoryInfo.ISBN_DICT);
-
-	static AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
+	
+	private static final Logger LOGGER = Logger.getLogger(AmazonExperiment.class.getName());
+	private AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
 			AmazonDocumentField.CREATOR, AmazonDocumentField.TAGS };
+	private int expNo;
+	private int total;
+	private String expName;
+	private String indexPath;
+
+	public AmazonExperiment(int experimentNumber, int partitionCount) {
+		this.expNo = experimentNumber;
+		this.total = partitionCount;
+		expName = "amazon_p" + partitionCount + "_bm5_f4_wOPT";
+		indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + expName + "/" + expNo;
+	}
 
 	public static void main(String[] args) {
 		int expNo = Integer.parseInt(args[0]);
-		int total = Integer.parseInt(args[1]);
-		String expName = "amazon_p" + total + "_bm5_f4_wOPT";
-		String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + expName + "/" + expNo;
-		// buildGlobalIndex(expNo, total, indexPath,
-		// AmazonDirectoryInfo.FILE_LIST);
-		// Map<String, Float> fieldBoostMap =
-		// gridSearchOnGlobalIndex(expNo, total, indexPath);
+		int totalPartitionNo = Integer.parseInt(args[1]);
+		AmazonExperiment experiment = new AmazonExperiment(expNo, totalPartitionNo);
+		experiment.buildGlobalIndex(AmazonDirectoryInfo.FILE_LIST);
+		// Map<String, Float> fieldBoostMap = experiment.gridSearchOnGlobalIndex();
 		Map<String, Float> fieldBoostMapOld = new HashMap<String, Float>();
 		fieldBoostMapOld.put(AmazonDocumentField.TITLE.toString(), 0.18f);
 		fieldBoostMapOld.put(AmazonDocumentField.CREATOR.toString(), 0.03f);
 		fieldBoostMapOld.put(AmazonDocumentField.TAGS.toString(), 0.03f);
 		fieldBoostMapOld.put(AmazonDocumentField.CONTENT.toString(), 0.76f);
-		expOnGlobalIndex(expNo, total, indexPath, fieldBoostMapOld, expName + "_gOld");
+		experiment.expOnGlobalIndex(fieldBoostMapOld);
 	}
 
-	public static void buildGlobalIndex(int expNo, int total, String indexName, String fileListPath) {
+	private void buildGlobalIndex(String fileListPath) {
 		List<InexFile> fileList = InexFile.loadInexFileList(fileListPath);
 		LOGGER.log(Level.INFO, "Building index..");
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
 		float[] fieldBoost = { 1f, 1f, 1f, 1f, 1f };
-		new AmazonIndexer().buildIndex(fileList, indexName, fieldBoost);
-		LOGGER.log(Level.INFO,
-				"============\n" + "Number of files missing dewey: " + AmazonIndexer.getMissingDeweyCounter());
+		AmazonIndexer indexer = new AmazonIndexer(fields);
+		indexer.buildIndex(fileList, indexPath, fieldBoost);
 	}
 
-	public static Map<String, Float> gridSearchOnGlobalIndex(int expNo, int total, String indexName) {
+	public Map<String, Float> gridSearchOnGlobalIndex() {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
 				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
@@ -81,7 +87,7 @@ public class AmazonExperiment {
 				fieldToBoost.put(field.toString(), 0f);
 			fieldToBoost.put(fields[i].toString(), 1f);
 			LOGGER.log(Level.INFO, "Field as doc result with " + fields[i] + " : " + fieldToBoost.toString());
-			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
+			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexPath, new BM25Similarity(),
 					fieldToBoost);
 			convertIsbnToLtidAndFilter(results);
 			for (QueryResult queryResult : results) {
@@ -121,13 +127,12 @@ public class AmazonExperiment {
 		return fieldToBoost;
 	}
 
-	public static void expOnGlobalIndex(int expNo, int total, String indexName, Map<String, Float> fieldToBoost,
-			String expName) {
+	private void expOnGlobalIndex(Map<String, Float> fieldToBoost) {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
 				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
-		List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
+		List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexPath, new BM25Similarity(),
 				fieldToBoost);
 		LOGGER.log(Level.INFO, "updating ISBN results to LTID..");
 		convertIsbnToLtidAndFilter(results);
@@ -168,58 +173,8 @@ public class AmazonExperiment {
 		}
 	}
 
-	public static void generateTrainingData(int expNo, int total, String indexPath) {
-		LOGGER.log(Level.INFO, "Generating training data..");
-		LOGGER.log(Level.INFO, "Loading queries..");
-		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
-				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
-		Map<String, String> qidToQueryText = new HashMap<String, String>();
-		for (ExperimentQuery query : queries) {
-			qidToQueryText.put(query.getId() + "", query.getText());
-		}
-		try (BufferedReader br = new BufferedReader(new FileReader("???"));
-				IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)));
-				FileWriter fw = new FileWriter("???")) {
-			LOGGER.log(Level.INFO, "Number of docs in index: " + reader.numDocs());
-			IndexSearcher searcher = new IndexSearcher(reader);
-			searcher.setSimilarity(new BM25Similarity());
-			String line = br.readLine();
-			while (line != null) {
-				Pattern ptr = Pattern.compile("(\\d+)\\sQ?0\\s(\\w+)\\s([0-9])");
-				Matcher m = ptr.matcher(line);
-				if (m.find()) {
-					StringBuilder sb = new StringBuilder();
-					String qid = m.group(1);
-					int rel = Integer.parseInt(m.group(2));
-					String label = m.group(3);
-					String text = qidToQueryText.get(qid);
-					sb.append(qid + ", ");
-					for (int i = 0; i < 5; i++) {
-						Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-						fieldToBoost.put(AmazonDocumentField.TITLE.toString(), i == 0 ? 1f : 0f);
-						fieldToBoost.put(AmazonDocumentField.CREATOR.toString(), i == 1 ? 1f : 0f);
-						fieldToBoost.put(AmazonDocumentField.TAGS.toString(), i == 2 ? 1f : 0f);
-						fieldToBoost.put(AmazonDocumentField.DEWEY.toString(), i == 3 ? 1f : 0f);
-						fieldToBoost.put(AmazonDocumentField.CONTENT.toString(), i == 4 ? 1f : 0f);
-						Query query = QueryServices.buildLuceneQuery(text, fieldToBoost);
-						sb.append(searcher.explain(query, rel).getValue());
-						// TODO rel to isbn
-						sb.append(",");
-					}
-					sb.append(label);
-					sb.append("\n");
-					fw.write(sb.toString());
-				} else {
-					LOGGER.log(Level.WARNING, "regex failed for line: " + line);
-				}
-				line = br.readLine();
-			}
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "QREL file not found!");
-		}
-	}
-
-	static String generateLog(QueryResult queryResult, Map<String, InexFile> ltidToInexfile) {
+	@SuppressWarnings("unused") // under construction
+	private String generateLog(QueryResult queryResult, Map<String, InexFile> ltidToInexfile) {
 		ExperimentQuery query = queryResult.query;
 		StringBuilder sb = new StringBuilder();
 		sb.append("qid: " + query.getId() + "\t" + query.getText() + "\n");
@@ -279,6 +234,57 @@ public class AmazonExperiment {
 			res.topResultsTitle = newResultsTitle;
 		}
 		return results;
+	}
+
+	public static void generateTrainingData(int expNo, int total, String indexPath) {
+		LOGGER.log(Level.INFO, "Generating training data..");
+		LOGGER.log(Level.INFO, "Loading queries..");
+		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
+				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
+		Map<String, String> qidToQueryText = new HashMap<String, String>();
+		for (ExperimentQuery query : queries) {
+			qidToQueryText.put(query.getId() + "", query.getText());
+		}
+		try (BufferedReader br = new BufferedReader(new FileReader("???"));
+				IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)));
+				FileWriter fw = new FileWriter("???")) {
+			LOGGER.log(Level.INFO, "Number of docs in index: " + reader.numDocs());
+			IndexSearcher searcher = new IndexSearcher(reader);
+			searcher.setSimilarity(new BM25Similarity());
+			String line = br.readLine();
+			while (line != null) {
+				Pattern ptr = Pattern.compile("(\\d+)\\sQ?0\\s(\\w+)\\s([0-9])");
+				Matcher m = ptr.matcher(line);
+				if (m.find()) {
+					StringBuilder sb = new StringBuilder();
+					String qid = m.group(1);
+					int rel = Integer.parseInt(m.group(2));
+					String label = m.group(3);
+					String text = qidToQueryText.get(qid);
+					sb.append(qid + ", ");
+					for (int i = 0; i < 5; i++) {
+						Map<String, Float> fieldToBoost = new HashMap<String, Float>();
+						fieldToBoost.put(AmazonDocumentField.TITLE.toString(), i == 0 ? 1f : 0f);
+						fieldToBoost.put(AmazonDocumentField.CREATOR.toString(), i == 1 ? 1f : 0f);
+						fieldToBoost.put(AmazonDocumentField.TAGS.toString(), i == 2 ? 1f : 0f);
+						fieldToBoost.put(AmazonDocumentField.DEWEY.toString(), i == 3 ? 1f : 0f);
+						fieldToBoost.put(AmazonDocumentField.CONTENT.toString(), i == 4 ? 1f : 0f);
+						Query query = QueryServices.buildLuceneQuery(text, fieldToBoost);
+						sb.append(searcher.explain(query, rel).getValue());
+						// TODO rel to isbn
+						sb.append(",");
+					}
+					sb.append(label);
+					sb.append("\n");
+					fw.write(sb.toString());
+				} else {
+					LOGGER.log(Level.WARNING, "regex failed for line: " + line);
+				}
+				line = br.readLine();
+			}
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "QREL file not found!");
+		}
 	}
 
 }
