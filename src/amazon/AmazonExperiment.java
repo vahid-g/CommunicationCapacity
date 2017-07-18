@@ -34,28 +34,29 @@ public class AmazonExperiment {
 	static final Logger LOGGER = Logger.getLogger(AmazonExperiment.class.getName());
 
 	static Map<String, String> isbnToLtid = AmazonUtils.loadIsbnLtidMap(AmazonDirectoryInfo.ISBN_DICT);
-	
+
 	static AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
-	AmazonDocumentField.CREATOR, AmazonDocumentField.TAGS };
+			AmazonDocumentField.CREATOR, AmazonDocumentField.TAGS };
 
 	public static void main(String[] args) {
 		int expNo = Integer.parseInt(args[0]);
 		int total = Integer.parseInt(args[1]);
 		String expName = "amazon_p" + total + "_bm5_f4_wOPT";
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + expName + "/" + expNo;
-		buildGlobalIndex(expNo, total, indexName);
-		Map<String, Float> fieldBoostMap = gridSearchOnGlobalIndex(expNo, total, indexName);
-		expOnGlobalIndex(expNo, total, indexName, fieldBoostMap, expName + "_gAll");
+		String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + expName + "/" + expNo;
+		// buildGlobalIndex(expNo, total, indexPath,
+		// AmazonDirectoryInfo.FILE_LIST);
+		// Map<String, Float> fieldBoostMap =
+		// gridSearchOnGlobalIndex(expNo, total, indexPath);
 		Map<String, Float> fieldBoostMapOld = new HashMap<String, Float>();
 		fieldBoostMapOld.put(AmazonDocumentField.TITLE.toString(), 0.18f);
 		fieldBoostMapOld.put(AmazonDocumentField.CREATOR.toString(), 0.03f);
 		fieldBoostMapOld.put(AmazonDocumentField.TAGS.toString(), 0.03f);
 		fieldBoostMapOld.put(AmazonDocumentField.CONTENT.toString(), 0.76f);
-		expOnGlobalIndex(expNo, total, indexName, fieldBoostMapOld, expName + "_gOld");
+		expOnGlobalIndex(expNo, total, indexPath, fieldBoostMapOld, expName + "_gOld");
 	}
 
-	public static void buildGlobalIndex(int expNo, int total, String indexName) {
-		List<InexFile> fileList = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
+	public static void buildGlobalIndex(int expNo, int total, String indexName, String fileListPath) {
+		List<InexFile> fileList = InexFile.loadInexFileList(fileListPath);
 		LOGGER.log(Level.INFO, "Building index..");
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
 		float[] fieldBoost = { 1f, 1f, 1f, 1f, 1f };
@@ -79,7 +80,7 @@ public class AmazonExperiment {
 			for (AmazonDocumentField field : fields)
 				fieldToBoost.put(field.toString(), 0f);
 			fieldToBoost.put(fields[i].toString(), 1f);
-			LOGGER.log(Level.INFO, "Field as doc result with " + fields[i]+ " : " + fieldToBoost.toString());
+			LOGGER.log(Level.INFO, "Field as doc result with " + fields[i] + " : " + fieldToBoost.toString());
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexName, new BM25Similarity(),
 					fieldToBoost);
 			convertIsbnToLtidAndFilter(results);
@@ -95,12 +96,12 @@ public class AmazonExperiment {
 		float p10Sum = 0;
 		float mrrSum = 0;
 		float mapSum = 0;
-		for (int i = 0; i < fieldCount; i++){
+		for (int i = 0; i < fieldCount; i++) {
 			p10Sum += p10[i];
 			mrrSum += mrr[i];
 			mapSum += map[i];
 		}
-		for (int i = 0; i < fieldCount; i++){
+		for (int i = 0; i < fieldCount; i++) {
 			p10[i] /= p10Sum;
 			mrr[i] /= mrrSum;
 			map[i] /= mapSum;
@@ -132,23 +133,28 @@ public class AmazonExperiment {
 		convertIsbnToLtidAndFilter(results);
 		LOGGER.log(Level.INFO, "Preparing ltid -> InexFile map..");
 		// preparing ltid -> inex file map
-//		List<InexFile> inexFiles = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
-//		Map<String, InexFile> ltidToInexFile = new HashMap<String, InexFile>();
-//		int missedIsbnCount = 0;
-//		for (InexFile inexFile : inexFiles) {
-//			String isbn = FilenameUtils.removeExtension(new File(inexFile.path).getName());
-//			String ltid = isbnToLtid.get(isbn);
-//			if (ltid != null) {
-//				ltidToInexFile.put(ltid, inexFile);
-//			} else {
-//				LOGGER.log(Level.SEVERE, "isbn: " + isbn + "(extracted from filename) does not exists in dict");
-//				missedIsbnCount++;
-//			}
-//		}
-//		LOGGER.log(Level.INFO, "Number of missed ISBNs extracted from filename in dict: " + missedIsbnCount);
-		
+		// List<InexFile> inexFiles =
+		// InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
+		// Map<String, InexFile> ltidToInexFile = new HashMap<String,
+		// InexFile>();
+		// int missedIsbnCount = 0;
+		// for (InexFile inexFile : inexFiles) {
+		// String isbn = FilenameUtils.removeExtension(new
+		// File(inexFile.path).getName());
+		// String ltid = isbnToLtid.get(isbn);
+		// if (ltid != null) {
+		// ltidToInexFile.put(ltid, inexFile);
+		// } else {
+		// LOGGER.log(Level.SEVERE, "isbn: " + isbn + "(extracted from filename)
+		// does not exists in dict");
+		// missedIsbnCount++;
+		// }
+		// }
+		// LOGGER.log(Level.INFO, "Number of missed ISBNs extracted from
+		// filename in dict: " + missedIsbnCount);
+
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		File resultDir = new File (AmazonDirectoryInfo.RESULT_DIR + expName);
+		File resultDir = new File(AmazonDirectoryInfo.RESULT_DIR + expName);
 		resultDir.mkdirs();
 		try (FileWriter fw = new FileWriter(resultDir.getAbsolutePath() + "/" + expNo + ".csv")) {
 			// FileWriter fw2 = new FileWriter(AmazonDirectoryInfo.RESULT_DIR +

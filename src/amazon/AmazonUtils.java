@@ -36,9 +36,12 @@ public class AmazonUtils {
 
 	static final Logger LOGGER = Logger.getLogger(AmazonUtils.class.getName());
 
+	static int missingValues = 0;
+
 	public static void main(String[] args) {
-//		buildPathPopularityWithRatings();
-		buildPathRelScoreList();
+		// buildPathPopularityWithRatings();
+		// buildPathRelScoreList();
+		buildPathReviewRateList();
 	}
 
 	public static List<InexFile> buildSortedPathReviewsList(String datasetPath) {
@@ -80,7 +83,7 @@ public class AmazonUtils {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	}
-	
+
 	// Processes the UCSD book rating information and builds a path -> rating
 	// file
 	static void parseRatings(Reader reader, Writer writer) {
@@ -146,12 +149,15 @@ public class AmazonUtils {
 					for (Integer i : ltidScoresMap.get(ltid)) {
 						score += i;
 					}
+				} else {
+					missingValues++;
 				}
 				writer.write(line + "," + score + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
+		LOGGER.log(Level.INFO, "Missed value count: " + missingValues);
 	}
 
 	static Map<String, Set<Integer>> loadLtidRelScoreMap(String qrelPath) {
@@ -235,5 +241,52 @@ public class AmazonUtils {
 			e.printStackTrace();
 		}
 		return isbnToLtid;
+	}
+
+	public static void buildPathReviewRateList() {
+		try (FileWriter fw = new FileWriter("data/amazon_path_reviews_rate.csv")) {
+			Map<String, String> isbnRateMap = loadIsbnRatingsMap("data/amazon_path_rate.csv");
+			LOGGER.log(Level.SEVERE, "Size of IsbnRatings map: " + isbnRateMap.size());
+			parsePathReviewsRates("data/amazon_path_reviews.csv", isbnRateMap, fw);
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+	}
+
+	private static Map<String, String> loadIsbnRatingsMap(String pathRatePath) {
+		Map<String, String> isbnRateMap = new HashMap<String, String>();
+		try {
+			for (String line : Files.readAllLines(Paths.get(pathRatePath))) {
+				String[] fields = line.split(",");
+				String path = fields[0];
+				String isbn = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.'));
+				String score = fields[2];
+				isbnRateMap.put(isbn, score);
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return isbnRateMap;
+	}
+
+	private static void parsePathReviewsRates(String pathRevPath, Map<String, String> isbnRateMap, Writer writer) {
+		LOGGER.log(Level.INFO, "Building <Path, #Reviews, RelScore> file..");
+		int missingValues = 0;
+		try {
+			for (String line : Files.readAllLines(Paths.get(pathRevPath))) {
+				String[] fields = line.split(",");
+				String path = fields[0];
+				String isbn = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.'));
+				String score = isbnRateMap.get(isbn);
+				if (score == null) {
+					score = "0";
+					missingValues++;
+				}
+				writer.write(line + "," + score + "\n");
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		LOGGER.log(Level.INFO, "Missed value count: " + missingValues);
 	}
 }
