@@ -79,7 +79,7 @@ public class AmazonUtils {
 		}
 	}
 
-	private static void parseUcsdIsbnRatingsData(Reader reader, Writer writer) {
+	static void parseUcsdIsbnRatingsData(Reader reader, Writer writer) {
 		try (BufferedReader br = new BufferedReader(reader)) {
 			String line = br.readLine();
 			String lastIsbn = "0000000000";

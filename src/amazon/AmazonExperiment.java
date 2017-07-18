@@ -34,7 +34,7 @@ public class AmazonExperiment {
 	static Map<String, String> isbnToLtid = AmazonUtils.loadIsbnLtidMap(AmazonDirectoryInfo.ISBN_DICT);
 	
 	private static final Logger LOGGER = Logger.getLogger(AmazonExperiment.class.getName());
-	private AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
+	AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
 			AmazonDocumentField.CREATOR, AmazonDocumentField.TAGS };
 	private int expNo;
 	private int total;
