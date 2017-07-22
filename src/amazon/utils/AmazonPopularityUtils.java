@@ -120,7 +120,7 @@ public class AmazonPopularityUtils {
 	public static void buildPathReviewRelScoreList() {
 		try (FileWriter fw = new FileWriter("data/amazon_path_reviews_rels.csv")) {
 			Map<String, Set<Integer>> ltidScoresMap = loadLtidRelScoreMap("data/inex14sbs.qrels");
-			Map<String, String> isbnLtidMap = AmazonIsbnConvertor.loadIsbnLtidMap("data/amazon-lt.isbn.thingID.csv");
+			Map<String, String> isbnLtidMap = AmazonIsbnConverter.loadIsbnLtidMap("data/amazon-lt.isbn.thingID.csv");
 			parsePathReviewsRels("data/amazon_path_reviews.csv", ltidScoresMap, isbnLtidMap, fw);
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);

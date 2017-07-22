@@ -9,20 +9,20 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class AmazonDeweyConvertor {
+public class AmazonDeweyConverter {
 
-	private static final Logger LOGGER = Logger.getLogger(AmazonDeweyConvertor.class.getName());
-	private static AmazonDeweyConvertor singletonInstance;
+	private static final Logger LOGGER = Logger.getLogger(AmazonDeweyConverter.class.getName());
+	private static AmazonDeweyConverter singletonInstance;
 	protected static String deweyCategoryDictPath;
 	
 	private Map<String, String> deweyToCategory;
-	private AmazonDeweyConvertor(String deweyDictPath) {
+	private AmazonDeweyConverter(String deweyDictPath) {
 		deweyToCategory = loadDeweyMap(deweyDictPath);
 	}
 
-	public static AmazonDeweyConvertor getInstance(String deweyDictPath) {
+	public static AmazonDeweyConverter getInstance(String deweyDictPath) {
 		if (singletonInstance == null)
-			singletonInstance = new AmazonDeweyConvertor(deweyDictPath);
+			singletonInstance = new AmazonDeweyConverter(deweyDictPath);
 		return singletonInstance;
 	}
 

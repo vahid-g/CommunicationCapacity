@@ -21,9 +21,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import amazon.AmazonDeweyConvertor;
+import amazon.AmazonDeweyConverter;
 import amazon.AmazonDocumentField;
-import amazon.utils.AmazonIsbnConvertor;
+import amazon.utils.AmazonIsbnConverter;
 
 public class AmazonIndexer implements AmazonFileIndexer {
 
@@ -33,13 +33,13 @@ public class AmazonIndexer implements AmazonFileIndexer {
 	private static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class.getName());
 
 	private AmazonDocumentField[] fields;
-	private AmazonIsbnConvertor isbnToLtid;
-	private AmazonDeweyConvertor deweyConvertor;
+	private AmazonIsbnConverter isbnToLtid;
+	private AmazonDeweyConverter deweyConvertor;
 
 	public AmazonIndexer(AmazonDocumentField[] fields, String isbnToLtid, String deweyIsbnDict) {
 		this.fields = fields;
-		this.isbnToLtid = AmazonIsbnConvertor.getInstance(isbnToLtid);
-		deweyConvertor = AmazonDeweyConvertor.getInstance(deweyIsbnDict);
+		this.isbnToLtid = AmazonIsbnConverter.getInstance(isbnToLtid);
+		deweyConvertor = AmazonDeweyConverter.getInstance(deweyIsbnDict);
 		
 	}
 

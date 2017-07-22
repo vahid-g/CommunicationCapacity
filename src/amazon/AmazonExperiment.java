@@ -25,7 +25,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import amazon.indexing.AmazonDatasetIndexer;
 import amazon.indexing.AmazonIndexer;
-import amazon.utils.AmazonIsbnConvertor;
+import amazon.utils.AmazonIsbnConverter;
 import indexing.InexFile;
 import query.ExperimentQuery;
 import query.QueryResult;
@@ -217,7 +217,7 @@ public class AmazonExperiment {
 
 	private List<QueryResult> convertIsbnToLtidAndFilter(List<QueryResult> results) {
 		// updateing qrels of queries
-		AmazonIsbnConvertor isbnToLtid = AmazonIsbnConvertor.getInstance(AmazonDirectoryInfo.ISBN_DICT);
+		AmazonIsbnConverter isbnToLtid = AmazonIsbnConverter.getInstance(AmazonDirectoryInfo.ISBN_DICT);
 		for (QueryResult res : results) {
 			List<String> oldResults = res.topResults;
 			List<String> newResults = new ArrayList<String>();
