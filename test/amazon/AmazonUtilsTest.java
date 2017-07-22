@@ -7,6 +7,8 @@ import java.io.StringWriter;
 
 import org.junit.Test;
 
+import amazon.utils.AmazonPopularityUtils;
+
 public class AmazonUtilsTest {
 
 	@Test
@@ -14,7 +16,7 @@ public class AmazonUtilsTest {
 		StringReader sr = new StringReader("x,0000055555,2,2\n" + 
 				"y,0000055555,3,2");
 		StringWriter sw = new StringWriter();
-		AmazonUtils.parseUcsdIsbnRatingsData(sr, sw);
+		AmazonPopularityUtils.parseUcsdIsbnRatingsData(sr, sw);
 		assertEquals("555/0000055555.xml,2.5", sw.toString());
 	}
 

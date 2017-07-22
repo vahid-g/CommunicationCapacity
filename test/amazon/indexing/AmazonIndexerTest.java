@@ -27,7 +27,7 @@ public class AmazonIndexerTest extends TestCase {
 	public void setUp() {
 		Map<String, String> isbnToLtid = new HashMap<String, String>();
 		isbnToLtid.put("1931243999", "ltid");
-		indexer = new AmazonIndexer(fields, isbnToLtid, "data/amazon_data/dewey.csv");
+		indexer = new AmazonIndexer(fields, "data/queries/amazon/amazon-lt.isbn.thingID", "data/amazon_data/dewey.csv");
 	}
 
 	@Test

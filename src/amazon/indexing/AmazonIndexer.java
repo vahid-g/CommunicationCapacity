@@ -23,6 +23,7 @@ import org.w3c.dom.NodeList;
 
 import amazon.AmazonDeweyConvertor;
 import amazon.AmazonDocumentField;
+import amazon.utils.AmazonIsbnConvertor;
 
 public class AmazonIndexer implements AmazonFileIndexer {
 
@@ -32,12 +33,12 @@ public class AmazonIndexer implements AmazonFileIndexer {
 	private static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class.getName());
 
 	private AmazonDocumentField[] fields;
-	private Map<String, String> isbnToLtid;
+	private AmazonIsbnConvertor isbnToLtid;
 	private AmazonDeweyConvertor deweyConvertor;
 
-	public AmazonIndexer(AmazonDocumentField[] fields, Map<String, String> isbnToLtid, String deweyIsbnDict) {
+	public AmazonIndexer(AmazonDocumentField[] fields, String isbnToLtid, String deweyIsbnDict) {
 		this.fields = fields;
-		this.isbnToLtid = isbnToLtid;
+		this.isbnToLtid = AmazonIsbnConvertor.getInstance(isbnToLtid);
 		deweyConvertor = AmazonDeweyConvertor.getInstance(deweyIsbnDict);
 		
 	}
@@ -49,7 +50,7 @@ public class AmazonIndexer implements AmazonFileIndexer {
 			Document luceneDoc = new Document();
 			// file name is ISBN of the book
 			String docId = FilenameUtils.removeExtension(file.getName());
-			String ltid = isbnToLtid.get(docId);
+			String ltid = isbnToLtid.convertIsbnToLtid(docId);
 			luceneDoc.add(new StringField(DOCNAME_ATTRIB, docId, Field.Store.YES));
 			luceneDoc.add(new StringField(LTID_ATTRIB, ltid, Field.Store.YES));
 			for (AmazonDocumentField field : fields) {
@@ -73,8 +74,9 @@ public class AmazonIndexer implements AmazonFileIndexer {
 				if (field == AmazonDocumentField.CONTENT)
 					continue;
 				String text = extractNodesTextFromXml(xmlDoc, field, bookNode);
-				if (field == AmazonDocumentField.DEWEY)
+				if (field == AmazonDocumentField.DEWEY) {
 					text = deweyConvertor.convertDeweyToCategory(text);
+				}
 				dataMap.put(field, text);
 			}
 			String rest = extractNodeTextContent(bookNode);

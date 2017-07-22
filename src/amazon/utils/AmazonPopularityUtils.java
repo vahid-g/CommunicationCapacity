@@ -1,8 +1,7 @@
-package amazon;
+package amazon.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -30,9 +29,9 @@ import org.w3c.dom.NodeList;
 import indexing.InexFile;
 import wiki_inex09.Utils;
 
-public class AmazonUtils {
+public class AmazonPopularityUtils {
 
-	static final Logger LOGGER = Logger.getLogger(AmazonUtils.class.getName());
+	static final Logger LOGGER = Logger.getLogger(AmazonPopularityUtils.class.getName());
 
 	static int missingValues = 0;
 
@@ -43,7 +42,7 @@ public class AmazonUtils {
 		// buildPathReviewRateList();
 	}
 
-	public static List<InexFile> buildSortedPathReviewsList(String datasetPath) {
+	public static List<InexFile> buildSortedPathReviewsList(String datasetPath, String filesListPath) {
 		List<InexFile> pathCount = new ArrayList<InexFile>();
 		List<String> filePaths = Utils.listFilesForFolder(new File(datasetPath));
 		for (String filepath : filePaths) {
@@ -60,7 +59,7 @@ public class AmazonUtils {
 			}
 		}
 		Collections.sort(pathCount);
-		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.FILE_LIST)) {
+		try (FileWriter fw = new FileWriter(filesListPath)) {
 			for (InexFile dfm : pathCount) {
 				fw.write(dfm.path + "," + dfm.weight + "\n");
 			}
@@ -121,13 +120,12 @@ public class AmazonUtils {
 	public static void buildPathReviewRelScoreList() {
 		try (FileWriter fw = new FileWriter("data/amazon_path_reviews_rels.csv")) {
 			Map<String, Set<Integer>> ltidScoresMap = loadLtidRelScoreMap("data/inex14sbs.qrels");
-			Map<String, String> isbnLtidMap = loadIsbnLtidMap("data/amazon-lt.isbn.thingID.csv");
+			Map<String, String> isbnLtidMap = AmazonIsbnConvertor.loadIsbnLtidMap("data/amazon-lt.isbn.thingID.csv");
 			parsePathReviewsRels("data/amazon_path_reviews.csv", ltidScoresMap, isbnLtidMap, fw);
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	}
-
 	private static void parsePathReviewsRels(String pathRevPath, Map<String, Set<Integer>> ltidScoresMap,
 			Map<String, String> isbnLtidMap, Writer writer) {
 		LOGGER.log(Level.INFO, "Building <Path, #Reviews, RelScore> file..");
@@ -155,7 +153,7 @@ public class AmazonUtils {
 
 	static void buildPathReviewRateList() {
 		try (FileWriter fw = new FileWriter("data/amazon_path_reviews_rate.csv")) {
-			Map<String, String> isbnRateMap = loadIsbnRatingsMap("data/amazon_path_rate.csv");
+			Map<String, String> isbnRateMap = AmazonPopularityUtils.loadIsbnRatingsMap("data/amazon_path_rate.csv");
 			LOGGER.log(Level.SEVERE, "Size of IsbnRatings map: " + isbnRateMap.size());
 			parsePathReviewsRates("data/amazon_path_reviews.csv", isbnRateMap, fw);
 		} catch (IOException e) {
@@ -182,41 +180,6 @@ public class AmazonUtils {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 		LOGGER.log(Level.INFO, "Missed value count: " + missingValues);
-	}
-
-	static Map<String, String> loadIsbnLtidMap(String path) {
-		LOGGER.log(Level.INFO, "Loading Isbn -> Ltid map..");
-		Map<String, String> isbnToLtid = new HashMap<String, String>();
-		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
-			String line = br.readLine();
-			while (line != null) {
-				String[] ids = line.split(",");
-				isbnToLtid.put(ids[0], ids[1]);
-				line = br.readLine();
-			}
-			LOGGER.log(Level.INFO, "Isbn -> Ltid map size: " + isbnToLtid.size());
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return isbnToLtid;
-	}
-
-	private static Map<String, String> loadIsbnRatingsMap(String pathRatePath) {
-		Map<String, String> isbnRateMap = new HashMap<String, String>();
-		try {
-			for (String line : Files.readAllLines(Paths.get(pathRatePath))) {
-				String[] fields = line.split(",");
-				String path = fields[0];
-				String isbn = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.'));
-				String score = fields[2];
-				isbnRateMap.put(isbn, score);
-			}
-		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, e.getMessage(), e);
-		}
-		return isbnRateMap;
 	}
 
 	static Map<String, Set<Integer>> loadLtidRelScoreMap(String qrelPath) {
@@ -248,5 +211,21 @@ public class AmazonUtils {
 		}
 		LOGGER.log(Level.INFO, "Ltid -> Score map size: " + ltidRelScores.size());
 		return ltidRelScores;
+	}
+
+	static Map<String, String> loadIsbnRatingsMap(String pathRatePath) {
+		Map<String, String> isbnRateMap = new HashMap<String, String>();
+		try {
+			for (String line : Files.readAllLines(Paths.get(pathRatePath))) {
+				String[] fields = line.split(",");
+				String path = fields[0];
+				String isbn = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.'));
+				String score = fields[2];
+				isbnRateMap.put(isbn, score);
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return isbnRateMap;
 	}
 }

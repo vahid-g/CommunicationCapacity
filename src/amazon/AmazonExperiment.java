@@ -25,6 +25,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import amazon.indexing.AmazonDatasetIndexer;
 import amazon.indexing.AmazonIndexer;
+import amazon.utils.AmazonIsbnConvertor;
 import indexing.InexFile;
 import query.ExperimentQuery;
 import query.QueryResult;
@@ -34,7 +35,6 @@ public class AmazonExperiment {
 
 	private static final Logger LOGGER = Logger.getLogger(AmazonExperiment.class.getName());
 
-	private Map<String, String> isbnToLtid = AmazonUtils.loadIsbnLtidMap(AmazonDirectoryInfo.ISBN_DICT);
 	private AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
 			AmazonDocumentField.CREATORS, AmazonDocumentField.TAGS };
 	private int expNo;
@@ -68,7 +68,8 @@ public class AmazonExperiment {
 		List<InexFile> fileList = InexFile.loadInexFileList(fileListPath);
 		LOGGER.log(Level.INFO, "Building index..");
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
-		AmazonIndexer fileIndexer = new AmazonIndexer(fields, isbnToLtid, AmazonDirectoryInfo.DEWEY_DICT);
+		AmazonIndexer fileIndexer = new AmazonIndexer(fields,
+				AmazonDirectoryInfo.ISBN_DICT, AmazonDirectoryInfo.DEWEY_DICT);
 		AmazonDatasetIndexer datasetIndexer = new AmazonDatasetIndexer(fileIndexer);
 		datasetIndexer.buildIndex(fileList, indexPath);
 	}
@@ -216,6 +217,7 @@ public class AmazonExperiment {
 
 	private List<QueryResult> convertIsbnToLtidAndFilter(List<QueryResult> results) {
 		// updateing qrels of queries
+		AmazonIsbnConvertor isbnToLtid = AmazonIsbnConvertor.getInstance(AmazonDirectoryInfo.ISBN_DICT);
 		for (QueryResult res : results) {
 			List<String> oldResults = res.topResults;
 			List<String> newResults = new ArrayList<String>();
@@ -223,11 +225,11 @@ public class AmazonExperiment {
 			List<String> newResultsTitle = new ArrayList<String>();
 			for (int i = 0; i < oldResults.size(); i++) {
 				String isbn = oldResults.get(i);
-				if (!isbnToLtid.containsKey(isbn)) {
+				String ltid = isbnToLtid.convertIsbnToLtid(isbn);
+				if (ltid == null) {
 					LOGGER.log(Level.SEVERE, "Couldn't find ISBN: " + isbn + " in dict");
 					continue;
 				}
-				String ltid = isbnToLtid.get(isbn);
 				if (!newResults.contains(ltid))
 					newResults.add(ltid);
 				newResultsTitle.add(oldResultsTitle.get(i));

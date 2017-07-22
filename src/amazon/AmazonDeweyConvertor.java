@@ -12,13 +12,10 @@ import java.util.logging.Logger;
 public class AmazonDeweyConvertor {
 
 	private static final Logger LOGGER = Logger.getLogger(AmazonDeweyConvertor.class.getName());
-	
 	private static AmazonDeweyConvertor singletonInstance;
-	
 	protected static String deweyCategoryDictPath;
 	
 	private Map<String, String> deweyToCategory;
-	
 	private AmazonDeweyConvertor(String deweyDictPath) {
 		deweyToCategory = loadDeweyMap(deweyDictPath);
 	}
