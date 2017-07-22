@@ -23,17 +23,18 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
+import amazon.indexing.AmazonDatasetIndexer;
+import amazon.indexing.AmazonIndexer;
 import indexing.InexFile;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import wiki_inex09.ClusterDirectoryInfo;
 
 public class AmazonExperiment {
 
-	static Map<String, String> isbnToLtid = AmazonUtils.loadIsbnLtidMap(AmazonDirectoryInfo.ISBN_DICT);
-	
 	private static final Logger LOGGER = Logger.getLogger(AmazonExperiment.class.getName());
+
+	private Map<String, String> isbnToLtid = AmazonUtils.loadIsbnLtidMap(AmazonDirectoryInfo.ISBN_DICT);
 	private AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
 			AmazonDocumentField.CREATORS, AmazonDocumentField.TAGS };
 	private int expNo;
@@ -45,7 +46,7 @@ public class AmazonExperiment {
 		this.expNo = experimentNumber;
 		this.total = partitionCount;
 		expName = "amazon_p" + partitionCount + "_bm5_f4_wOPT";
-		indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + expName + "/" + expNo;
+		indexPath = AmazonDirectoryInfo.GLOBAL_INDEX_DIR + expName + "/" + expNo;
 	}
 
 	public static void main(String[] args) {
@@ -53,7 +54,8 @@ public class AmazonExperiment {
 		int totalPartitionNo = Integer.parseInt(args[1]);
 		AmazonExperiment experiment = new AmazonExperiment(expNo, totalPartitionNo);
 		experiment.buildGlobalIndex(AmazonDirectoryInfo.FILE_LIST);
-		// Map<String, Float> fieldBoostMap = experiment.gridSearchOnGlobalIndex();
+		// Map<String, Float> fieldBoostMap =
+		// experiment.gridSearchOnGlobalIndex();
 		Map<String, Float> fieldBoostMapOld = new HashMap<String, Float>();
 		fieldBoostMapOld.put(AmazonDocumentField.TITLE.toString(), 0.18f);
 		fieldBoostMapOld.put(AmazonDocumentField.CREATORS.toString(), 0.03f);
@@ -66,9 +68,9 @@ public class AmazonExperiment {
 		List<InexFile> fileList = InexFile.loadInexFileList(fileListPath);
 		LOGGER.log(Level.INFO, "Building index..");
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
-		float[] fieldBoost = { 1f, 1f, 1f, 1f, 1f };
-		AmazonIndexer indexer = new AmazonIndexer(fields);
-		indexer.buildIndex(fileList, indexPath, fieldBoost);
+		AmazonIndexer fileIndexer = new AmazonIndexer(fields, isbnToLtid);
+		AmazonDatasetIndexer datasetIndexer = new AmazonDatasetIndexer(fileIndexer);
+		datasetIndexer.buildIndex(fileList, indexPath);
 	}
 
 	public Map<String, Float> gridSearchOnGlobalIndex() {
@@ -212,7 +214,7 @@ public class AmazonExperiment {
 		return sb.toString();
 	}
 
-	private static List<QueryResult> convertIsbnToLtidAndFilter(List<QueryResult> results) {
+	private List<QueryResult> convertIsbnToLtidAndFilter(List<QueryResult> results) {
 		// updateing qrels of queries
 		for (QueryResult res : results) {
 			List<String> oldResults = res.topResults;

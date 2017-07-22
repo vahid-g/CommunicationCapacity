@@ -16,6 +16,7 @@ import org.xml.sax.SAXException;
 
 import com.sun.org.apache.xerces.internal.dom.DocumentImpl;
 
+import amazon.indexing.AmazonIndexer;
 import junit.framework.TestCase;
 
 public class AmazonIndexerTest extends TestCase {

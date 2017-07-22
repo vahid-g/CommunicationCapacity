@@ -1,4 +1,4 @@
-package amazon;
+package amazon.indexing;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,29 +21,32 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import indexing.GeneralIndexer;
+import amazon.AmazonDeweyConvertor;
+import amazon.AmazonDocumentField;
 
-public class AmazonIndexer extends GeneralIndexer {
+public class AmazonIndexer implements AmazonFileIndexer {
 
+	public static final String DOCNAME_ATTRIB = "name";
 	public static final String LTID_ATTRIB = "ltid";
 
 	private static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class.getName());
 
 	private AmazonDocumentField[] fields;
+	private Map<String, String> isbnToLtid;
 
-	public AmazonIndexer(AmazonDocumentField[] fields) {
+	public AmazonIndexer(AmazonDocumentField[] fields, Map<String, String> isbnToLtid) {
 		this.fields = fields;
-
+		this.isbnToLtid = isbnToLtid;
 	}
 
 	@Override
-	protected void indexXmlFile(File file, IndexWriter writer, float docBoost, float[] fieldBoost) {
+	public void index(File file, IndexWriter writer) {
 		try {
 			Map<AmazonDocumentField, String> dataMap = parseAmazonXml(file);
 			Document luceneDoc = new Document();
 			// file name is ISBN of the book
 			String docId = FilenameUtils.removeExtension(file.getName());
-			String ltid = AmazonExperiment.isbnToLtid.get(docId);
+			String ltid = isbnToLtid.get(docId);
 			luceneDoc.add(new StringField(DOCNAME_ATTRIB, docId, Field.Store.YES));
 			luceneDoc.add(new StringField(LTID_ATTRIB, ltid, Field.Store.YES));
 			for (AmazonDocumentField field : fields) {
