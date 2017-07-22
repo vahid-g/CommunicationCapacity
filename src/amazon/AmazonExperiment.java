@@ -34,8 +34,8 @@ public class AmazonExperiment {
 	static Map<String, String> isbnToLtid = AmazonUtils.loadIsbnLtidMap(AmazonDirectoryInfo.ISBN_DICT);
 	
 	private static final Logger LOGGER = Logger.getLogger(AmazonExperiment.class.getName());
-	AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
-			AmazonDocumentField.CREATOR, AmazonDocumentField.TAGS };
+	private AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
+			AmazonDocumentField.CREATORS, AmazonDocumentField.TAGS };
 	private int expNo;
 	private int total;
 	private String expName;
@@ -56,7 +56,7 @@ public class AmazonExperiment {
 		// Map<String, Float> fieldBoostMap = experiment.gridSearchOnGlobalIndex();
 		Map<String, Float> fieldBoostMapOld = new HashMap<String, Float>();
 		fieldBoostMapOld.put(AmazonDocumentField.TITLE.toString(), 0.18f);
-		fieldBoostMapOld.put(AmazonDocumentField.CREATOR.toString(), 0.03f);
+		fieldBoostMapOld.put(AmazonDocumentField.CREATORS.toString(), 0.03f);
 		fieldBoostMapOld.put(AmazonDocumentField.TAGS.toString(), 0.03f);
 		fieldBoostMapOld.put(AmazonDocumentField.CONTENT.toString(), 0.76f);
 		experiment.expOnGlobalIndex(fieldBoostMapOld);
@@ -265,7 +265,7 @@ public class AmazonExperiment {
 					for (int i = 0; i < 5; i++) {
 						Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 						fieldToBoost.put(AmazonDocumentField.TITLE.toString(), i == 0 ? 1f : 0f);
-						fieldToBoost.put(AmazonDocumentField.CREATOR.toString(), i == 1 ? 1f : 0f);
+						fieldToBoost.put(AmazonDocumentField.CREATORS.toString(), i == 1 ? 1f : 0f);
 						fieldToBoost.put(AmazonDocumentField.TAGS.toString(), i == 2 ? 1f : 0f);
 						fieldToBoost.put(AmazonDocumentField.DEWEY.toString(), i == 3 ? 1f : 0f);
 						fieldToBoost.put(AmazonDocumentField.CONTENT.toString(), i == 4 ? 1f : 0f);
