@@ -1,22 +1,20 @@
-package amazon;
+package amazon.indexing;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
 import com.sun.org.apache.xerces.internal.dom.DocumentImpl;
 
-import amazon.indexing.AmazonIndexer;
+import amazon.AmazonDocumentField;
 import junit.framework.TestCase;
 
 public class AmazonIndexerTest extends TestCase {
@@ -27,7 +25,9 @@ public class AmazonIndexerTest extends TestCase {
 	AmazonIndexer indexer;
 
 	public void setUp() {
-		indexer = new AmazonIndexer(fields);
+		Map<String, String> isbnToLtid = new HashMap<String, String>();
+		isbnToLtid.put("1931243999", "ltid");
+		indexer = new AmazonIndexer(fields, isbnToLtid, "data/amazon_data/dewey.csv");
 	}
 
 	@Test
@@ -44,7 +44,7 @@ public class AmazonIndexerTest extends TestCase {
 		assertEquals("innerText outerText", indexer.extractNodeTextContent(root));
 	}
 
-	public void testExtractNodesTextFromXml() throws ParserConfigurationException, SAXException, IOException {
+	public void testExtractNodesTextFromXml() throws Exception {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbf.newDocumentBuilder();
 		File file = new File("data/test_data/1931243999.xml");
@@ -61,10 +61,9 @@ public class AmazonIndexerTest extends TestCase {
 
 	public void testParseAmazonXml() {
 		File file = new File("data/test_data/1931243999.xml");
-		AmazonIndexer indexer = new AmazonIndexer(fields);
-		AmazonDeweyConvertor.mapPath = "data/amazon_data/dewey.csv";
 		Map<AmazonDocumentField, String> dMap = indexer.parseAmazonXml(file);
 		assertEquals("Geography & travel", dMap.get(AmazonDocumentField.DEWEY));
+		assertEquals("unread literature Fiction", dMap.get(AmazonDocumentField.TAGS));
 	}
 
 }

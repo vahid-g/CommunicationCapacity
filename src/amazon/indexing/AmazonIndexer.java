@@ -33,10 +33,13 @@ public class AmazonIndexer implements AmazonFileIndexer {
 
 	private AmazonDocumentField[] fields;
 	private Map<String, String> isbnToLtid;
+	private AmazonDeweyConvertor deweyConvertor;
 
-	public AmazonIndexer(AmazonDocumentField[] fields, Map<String, String> isbnToLtid) {
+	public AmazonIndexer(AmazonDocumentField[] fields, Map<String, String> isbnToLtid, String deweyIsbnDict) {
 		this.fields = fields;
 		this.isbnToLtid = isbnToLtid;
+		deweyConvertor = AmazonDeweyConvertor.getInstance(deweyIsbnDict);
+		
 	}
 
 	@Override
@@ -71,7 +74,7 @@ public class AmazonIndexer implements AmazonFileIndexer {
 					continue;
 				String text = extractNodesTextFromXml(xmlDoc, field, bookNode);
 				if (field == AmazonDocumentField.DEWEY)
-					text = AmazonDeweyConvertor.getInstance().convertDeweyToCategory(text);
+					text = deweyConvertor.convertDeweyToCategory(text);
 				dataMap.put(field, text);
 			}
 			String rest = extractNodeTextContent(bookNode);

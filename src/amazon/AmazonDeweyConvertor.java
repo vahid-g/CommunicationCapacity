@@ -15,17 +15,17 @@ public class AmazonDeweyConvertor {
 	
 	private static AmazonDeweyConvertor singletonInstance;
 	
-	protected static String mapPath = AmazonDirectoryInfo.DEWEY_DICT;
+	protected static String deweyCategoryDictPath;
 	
 	private Map<String, String> deweyToCategory;
 	
-	private AmazonDeweyConvertor() {
-		deweyToCategory = loadDeweyMap(mapPath);
+	private AmazonDeweyConvertor(String deweyDictPath) {
+		deweyToCategory = loadDeweyMap(deweyDictPath);
 	}
 
-	public static AmazonDeweyConvertor getInstance() {
+	public static AmazonDeweyConvertor getInstance(String deweyDictPath) {
 		if (singletonInstance == null)
-			singletonInstance = new AmazonDeweyConvertor();
+			singletonInstance = new AmazonDeweyConvertor(deweyDictPath);
 		return singletonInstance;
 	}
 
