@@ -19,14 +19,13 @@ import junit.framework.TestCase;
 
 public class AmazonIndexerTest extends TestCase {
 
-	AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
-			AmazonDocumentField.CREATORS, AmazonDocumentField.TAGS, AmazonDocumentField.DEWEY };
-
 	AmazonIndexer indexer;
 
 	public void setUp() {
 		Map<String, String> isbnToLtid = new HashMap<String, String>();
 		isbnToLtid.put("1931243999", "ltid");
+		AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
+				AmazonDocumentField.CREATORS, AmazonDocumentField.TAGS, AmazonDocumentField.DEWEY };
 		indexer = new AmazonIndexer(fields, "data/queries/amazon/amazon-lt.isbn.thingID", "data/amazon_data/dewey.csv");
 	}
 

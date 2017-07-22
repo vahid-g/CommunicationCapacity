@@ -1,4 +1,4 @@
-package amazon.utils;
+package amazon;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -26,7 +26,7 @@ public class AmazonIsbnConverter {
 	}
 
 	public static Map<String, String> loadIsbnLtidMap(String path) {
-		AmazonPopularityUtils.LOGGER.log(Level.INFO, "Loading Isbn -> Ltid map..");
+		LOGGER.log(Level.INFO, "Loading Isbn -> Ltid map..");
 		Map<String, String> isbnToLtid = new HashMap<String, String>();
 		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
 			String line = br.readLine();
@@ -35,7 +35,7 @@ public class AmazonIsbnConverter {
 				isbnToLtid.put(ids[0], ids[1]);
 				line = br.readLine();
 			}
-			AmazonPopularityUtils.LOGGER.log(Level.INFO, "Isbn -> Ltid map size: " + isbnToLtid.size());
+			LOGGER.log(Level.INFO, "Isbn -> Ltid map size: " + isbnToLtid.size());
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		} 

@@ -25,7 +25,6 @@ import org.apache.lucene.store.FSDirectory;
 
 import amazon.indexing.AmazonDatasetIndexer;
 import amazon.indexing.AmazonIndexer;
-import amazon.utils.AmazonIsbnConverter;
 import indexing.InexFile;
 import query.ExperimentQuery;
 import query.QueryResult;

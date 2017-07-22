@@ -23,9 +23,9 @@ import org.w3c.dom.NodeList;
 
 import amazon.AmazonDeweyConverter;
 import amazon.AmazonDocumentField;
-import amazon.utils.AmazonIsbnConverter;
+import amazon.AmazonIsbnConverter;
 
-public class AmazonIndexer implements AmazonFileIndexer {
+public class AmazonIndexer implements AmazonFileIndexerInterface {
 
 	public static final String DOCNAME_ATTRIB = "name";
 	public static final String LTID_ATTRIB = "ltid";

@@ -26,6 +26,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.NodeList;
 
+import amazon.AmazonIsbnConverter;
 import indexing.InexFile;
 import wiki_inex09.Utils;
 
