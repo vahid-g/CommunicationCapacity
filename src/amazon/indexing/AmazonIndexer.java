@@ -32,15 +32,15 @@ public class AmazonIndexer implements AmazonFileIndexerInterface {
 
 	private static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class.getName());
 
+	private final AmazonIsbnConverter isbnToLtid;
+	private final AmazonDeweyConverter deweyToCategory;
 	private AmazonDocumentField[] fields;
-	private AmazonIsbnConverter isbnToLtid;
-	private AmazonDeweyConverter deweyConvertor;
 
-	public AmazonIndexer(AmazonDocumentField[] fields, String isbnToLtid, String deweyIsbnDict) {
+	public AmazonIndexer(AmazonDocumentField[] fields, AmazonIsbnConverter isbnLtidDict,
+			AmazonDeweyConverter deweyIsbnDict) {
 		this.fields = fields;
-		this.isbnToLtid = AmazonIsbnConverter.getInstance(isbnToLtid);
-		deweyConvertor = AmazonDeweyConverter.getInstance(deweyIsbnDict);
-		
+		this.isbnToLtid = isbnLtidDict;
+		this.deweyToCategory = deweyIsbnDict;
 	}
 
 	@Override
@@ -75,7 +75,7 @@ public class AmazonIndexer implements AmazonFileIndexerInterface {
 					continue;
 				String text = extractNodesTextFromXml(xmlDoc, field, bookNode);
 				if (field == AmazonDocumentField.DEWEY) {
-					text = deweyConvertor.convertDeweyToCategory(text);
+					text = deweyToCategory.convertDeweyToCategory(text);
 				}
 				dataMap.put(field, text);
 			}

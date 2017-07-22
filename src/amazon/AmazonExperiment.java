@@ -68,7 +68,8 @@ public class AmazonExperiment {
 		LOGGER.log(Level.INFO, "Building index..");
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
 		AmazonIndexer fileIndexer = new AmazonIndexer(fields,
-				AmazonDirectoryInfo.ISBN_DICT, AmazonDirectoryInfo.DEWEY_DICT);
+				AmazonIsbnConverter.getInstance(AmazonDirectoryInfo.ISBN_DICT),
+				AmazonDeweyConverter.getInstance(AmazonDirectoryInfo.DEWEY_DICT));
 		AmazonDatasetIndexer datasetIndexer = new AmazonDatasetIndexer(fileIndexer);
 		datasetIndexer.buildIndex(fileList, indexPath);
 	}
