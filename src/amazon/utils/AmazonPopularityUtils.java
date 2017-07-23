@@ -12,10 +12,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -38,8 +36,8 @@ public class AmazonPopularityUtils {
 
 	public static void main(String[] args) {
 		// buildSortedPathReviewsList(AmazonDirectoryInfo.DATA_SET);
-		// buildPathRatingsList(); 
-		// buildPathRelScoreList();
+		// buildPathRatingsList();
+		buildPathReviewRelScoreList();
 		// buildPathReviewRateList();
 	}
 
@@ -119,15 +117,16 @@ public class AmazonPopularityUtils {
 	}
 
 	public static void buildPathReviewRelScoreList() {
-		try (FileWriter fw = new FileWriter("data/amazon_path_reviews_rels.csv")) {
-			Map<String, Set<Integer>> ltidScoresMap = loadLtidRelScoreMap("data/inex14sbs.qrels");
-			Map<String, String> isbnLtidMap = AmazonIsbnConverter.loadIsbnLtidMap("data/amazon-lt.isbn.thingID.csv");
-			parsePathReviewsRels("data/amazon_path_reviews.csv", ltidScoresMap, isbnLtidMap, fw);
+		try (FileWriter fw = new FileWriter("data/amazon_data/popularity/ap4r.csv")) {
+			Map<String, Integer> ltidScoresMap = loadLtidTotalScoreMap("data/amazon_data/inex14sbs.qrels");
+			Map<String, String> isbnLtidMap = AmazonIsbnConverter.loadIsbnLtidMap("data/amazon_data/amazon-lt.isbn.thingID.csv");
+			parsePathReviewsRels("data/amazon_data/popularity/ap3r.csv", ltidScoresMap, isbnLtidMap, fw);
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	}
-	private static void parsePathReviewsRels(String pathRevPath, Map<String, Set<Integer>> ltidScoresMap,
+
+	private static void parsePathReviewsRels(String pathRevPath, Map<String, Integer> ltidScoresMap,
 			Map<String, String> isbnLtidMap, Writer writer) {
 		LOGGER.log(Level.INFO, "Building <Path, #Reviews, RelScore> file..");
 		try {
@@ -138,9 +137,7 @@ public class AmazonPopularityUtils {
 				String ltid = isbnLtidMap.get(isbn);
 				Integer score = 0;
 				if (ltidScoresMap.containsKey(ltid)) {
-					for (Integer i : ltidScoresMap.get(ltid)) {
-						score += i;
-					}
+					score = ltidScoresMap.get(ltid);
 				} else {
 					missingValues++;
 				}
@@ -183,9 +180,9 @@ public class AmazonPopularityUtils {
 		LOGGER.log(Level.INFO, "Missed value count: " + missingValues);
 	}
 
-	static Map<String, Set<Integer>> loadLtidRelScoreMap(String qrelPath) {
+	static Map<String, Integer> loadLtidTotalScoreMap(String qrelPath) {
 		LOGGER.log(Level.INFO, "Loading Ltid -> Score map..");
-		HashMap<String, Set<Integer>> ltidRelScores = new HashMap<String, Set<Integer>>();
+		Map<String, Integer> ltidTotalScoreMap = new HashMap<String, Integer>();
 		try {
 			for (String line : Files.readAllLines(Paths.get(qrelPath))) {
 				Pattern ptr = Pattern.compile("(\\d+)\\sQ?0\\s(\\w+)\\s([0-9])");
@@ -194,14 +191,10 @@ public class AmazonPopularityUtils {
 					if (!m.group(3).equals("0")) {
 						String ltid = m.group(2);
 						Integer score = Integer.parseInt(m.group(3));
-						Set<Integer> scores = ltidRelScores.get(ltid);
-						if (scores == null) {
-							scores = new HashSet<Integer>();
-							scores.add(score);
-							ltidRelScores.put(ltid, scores);
-						} else {
-							scores.add(score);
-						}
+						Integer sum = ltidTotalScoreMap.get(ltid);
+						if (sum == null)
+							sum = 0;
+						ltidTotalScoreMap.put(ltid, sum + score);
 					}
 				} else {
 					LOGGER.log(Level.WARNING, "regex failed for line: " + line);
@@ -210,8 +203,8 @@ public class AmazonPopularityUtils {
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
-		LOGGER.log(Level.INFO, "Ltid -> Score map size: " + ltidRelScores.size());
-		return ltidRelScores;
+		LOGGER.log(Level.INFO, "Ltid -> Score map size: " + ltidTotalScoreMap.size());
+		return ltidTotalScoreMap;
 	}
 
 	static Map<String, String> loadIsbnRatingsMap(String pathRatePath) {
