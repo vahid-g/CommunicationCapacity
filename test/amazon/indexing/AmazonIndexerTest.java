@@ -21,12 +21,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
-import org.junit.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
-import com.sun.org.apache.xerces.internal.dom.DocumentImpl;
 
 import amazon.AmazonDeweyConverter;
 import amazon.AmazonDocumentField;
@@ -44,35 +39,6 @@ public class AmazonIndexerTest extends TestCase {
 				.getInstance("data/amazon_data/amazon-lt.isbn.thingID.csv");
 		AmazonDeweyConverter deweyConverter = AmazonDeweyConverter.getInstance("data/amazon_data/dewey.csv");
 		indexer = new AmazonIndexer(fields, isbnConverter, deweyConverter);
-	}
-
-	@Test
-	public void testExtractNodeTextContent() {
-		Document xmlDoc = new DocumentImpl();
-		Element root = xmlDoc.createElement("book");
-		Node innerItem = xmlDoc.createElement("innerItem");
-		innerItem.appendChild(xmlDoc.createTextNode("innerText"));
-		Node item = xmlDoc.createElement("outerItem");
-		item.appendChild(innerItem);
-		item.appendChild(xmlDoc.createTextNode("outerText"));
-		root.appendChild(item);
-		xmlDoc.appendChild(root);
-		assertEquals("innerText outerText", indexer.extractNodeTextContent(root));
-	}
-
-	public void testExtractNodesTextFromXml() throws Exception {
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		DocumentBuilder db = dbf.newDocumentBuilder();
-		File file = new File("data/test_data/1931243999.xml");
-		org.w3c.dom.Document xmlDoc = db.parse(file);
-		Node bookNode = xmlDoc.getElementsByTagName("book").item(0);
-		assertEquals("Journey Around My Room (Green Integer)",
-				indexer.extractNodesTextFromXml(xmlDoc, AmazonDocumentField.TITLE, bookNode));
-		assertEquals("Mark Axelrod Translator Xavier de Maistre Author",
-				indexer.extractNodesTextFromXml(xmlDoc, AmazonDocumentField.CREATORS, bookNode));
-		assertEquals("unread literature Fiction",
-				indexer.extractNodesTextFromXml(xmlDoc, AmazonDocumentField.TAGS, bookNode));
-		assertEquals("910", indexer.extractNodesTextFromXml(xmlDoc, AmazonDocumentField.DEWEY, bookNode));
 	}
 
 	public void testParseAmazonXml() {
