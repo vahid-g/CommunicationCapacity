@@ -1,6 +1,8 @@
 package amazon.ml;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -11,12 +13,26 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.NodeList;
 
+import indexing.InexFile;
+
 public class SmartCache {
 
 	private static final Logger LOGGER = Logger.getLogger(SmartCache.class.getName());
-	
-	//TODO: given a list of paths with rates and labels, build the complete feature vector.
-	// All the vectors will have a label.
+
+	public static void main(String[] args) {
+		List<InexFile> fileList = InexFile.loadInexFileList("data/path_counts/???.csv");
+		List<String> features = new ArrayList<String>();
+		SmartCache sc = new SmartCache();
+		try (FileWriter fw = new FileWriter("train.csv")) {
+			for (InexFile inexFile : fileList) {
+				File file = new File(inexFile.path);
+				features = sc.extractFeatureVector(file);
+				fw.write(String.join(",", features) + "\n");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public List<String> extractFeatureVector(File amazonXmlFile) {
 		List<String> features = new ArrayList<String>();

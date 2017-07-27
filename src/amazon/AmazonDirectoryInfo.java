@@ -4,9 +4,10 @@ import java.io.File;
 
 public class AmazonDirectoryInfo {
 
-	private static final String HOME = "/scratch/cluster-share/ghadakcv/";
+	// private static final String HOME = "/scratch/cluster-share/ghadakcv/";
+	private static final String HOME = "/scratch/";
 	static final String DATA_SET_DIR = HOME + "data-sets/amazon/amazon-inex/";
-	static final String FILE_LIST = HOME + "data/path_counts/amazon_path_reviews_rels.sor";
+	static final String FILE_LIST = HOME + "data/path_counts/amazon_path_reviews.csv";
 	static final String GLOBAL_INDEX_DIR = HOME + "data/index/amazon/";
 	static final String QUERY_FILE = HOME + "data/queries/amazon/inex2014sbs.topics.xml";
 	static final String QREL_FILE = HOME + "data/queries/amazon/inex14sbs.qrels";
