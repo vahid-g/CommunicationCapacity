@@ -50,7 +50,11 @@ public class AmazonIndexer implements AmazonFileIndexerInterface {
 			String docId = FilenameUtils.removeExtension(file.getName());
 			String ltid = isbnToLtid.convertIsbnToLtid(docId);
 			luceneDoc.add(new StringField(DOCNAME_ATTRIB, docId, Field.Store.YES));
+			try {
 			luceneDoc.add(new StringField(LTID_ATTRIB, ltid, Field.Store.YES));
+			} catch (IllegalArgumentException e) {
+				LOGGER.log(Level.WARNING, "ltid not found for isbn: " + docId);
+			}
 			for (AmazonDocumentField field : fields) {
 				TextField textField = new TextField(field.toString(), dataMap.get(field), Field.Store.YES);
 				luceneDoc.add(textField);
