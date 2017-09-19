@@ -13,6 +13,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.NodeList;
 
+import amazon.AmazonDirectoryInfo;
 import indexing.InexFile;
 
 public class SmartCache {
@@ -20,10 +21,10 @@ public class SmartCache {
 	private static final Logger LOGGER = Logger.getLogger(SmartCache.class.getName());
 
 	public static void main(String[] args) {
-		List<InexFile> fileList = InexFile.loadInexFileList("data/path_counts/???.csv");
+		List<InexFile> fileList = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
 		List<String> features = new ArrayList<String>();
 		SmartCache sc = new SmartCache();
-		try (FileWriter fw = new FileWriter("train.csv")) {
+		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.HOME + "data/train.csv")) {
 			for (InexFile inexFile : fileList) {
 				File file = new File(inexFile.path);
 				features = sc.extractFeatureVector(file);

@@ -52,7 +52,7 @@ public class AmazonExperiment {
 		int expNo = Integer.parseInt(args[0]);
 		int totalPartitionNo = Integer.parseInt(args[1]);
 		AmazonExperiment experiment = new AmazonExperiment(expNo, totalPartitionNo);
-		experiment.buildGlobalIndex(AmazonDirectoryInfo.FILE_LIST);
+		//experiment.buildGlobalIndex(AmazonDirectoryInfo.FILE_LIST);
 		Map<String, Float> fieldBoostMap = experiment.gridSearchOnGlobalIndex();
 		// Map<String, Float> fieldBoostMapOld = new HashMap<String, Float>();
 		// fieldBoostMap.put(AmazonDocumentField.TITLE.toString(), 0.18f);

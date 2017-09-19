@@ -51,7 +51,7 @@ public class AmazonIndexer implements AmazonFileIndexerInterface {
 			String ltid = isbnToLtid.convertIsbnToLtid(docId);
 			luceneDoc.add(new StringField(DOCNAME_ATTRIB, docId, Field.Store.YES));
 			try {
-			luceneDoc.add(new StringField(LTID_ATTRIB, ltid, Field.Store.YES));
+				luceneDoc.add(new StringField(LTID_ATTRIB, ltid, Field.Store.YES));
 			} catch (IllegalArgumentException e) {
 				LOGGER.log(Level.WARNING, "ltid not found for isbn: " + docId);
 			}
