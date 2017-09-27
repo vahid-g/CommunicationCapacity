@@ -44,7 +44,7 @@ public class AmazonExperiment {
 	public AmazonExperiment(int experimentNumber, int partitionCount) {
 		this.expNo = experimentNumber;
 		this.total = partitionCount;
-		expName = "amazon_p" + partitionCount + "_bm_f" + fields.length;
+		expName = "amazon_p" + partitionCount + "_bm_f" + fields.length + "_" + "reltrain";
 		indexPath = AmazonDirectoryInfo.GLOBAL_INDEX_DIR + expName + "/" + expNo;
 	}
 
@@ -52,14 +52,14 @@ public class AmazonExperiment {
 		int expNo = Integer.parseInt(args[0]);
 		int totalPartitionNo = Integer.parseInt(args[1]);
 		AmazonExperiment experiment = new AmazonExperiment(expNo, totalPartitionNo);
-		//experiment.buildGlobalIndex(AmazonDirectoryInfo.FILE_LIST);
-		Map<String, Float> fieldBoostMap = experiment.gridSearchOnGlobalIndex();
+		experiment.buildGlobalIndex(AmazonDirectoryInfo.HOME + "data/path_counts/amazon_path_rels_train.csv");
+		// Map<String, Float> fieldBoostMap = experiment.gridSearchOnGlobalIndex();
 		// Map<String, Float> fieldBoostMapOld = new HashMap<String, Float>();
 		// fieldBoostMap.put(AmazonDocumentField.TITLE.toString(), 0.18f);
 		// fieldBoostMap.put(AmazonDocumentField.CREATORS.toString(), 0.03f);
 		// fieldBoostMap.put(AmazonDocumentField.TAGS.toString(), 0.03f);
 		// fieldBoostMap.put(AmazonDocumentField.CONTENT.toString(), 0.76f);
-		experiment.expOnGlobalIndex(fieldBoostMap);
+		// experiment.expOnGlobalIndex(fieldBoostMap);
 	}
 
 	private void buildGlobalIndex(String fileListPath) {
