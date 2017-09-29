@@ -41,6 +41,7 @@ public class InexFile implements Comparable<InexFile> {
 		return Double.compare(o.weight, weight);
 	}
 
+	// can parse inex file path csv file with 2 or 3 fields
 	public static List<InexFile> loadInexFileList(
 			String pathCountTitleFile) {
 		Wiki13Experiment.LOGGER.log(Level.INFO, "Loading path-count-titles..");
