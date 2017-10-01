@@ -36,6 +36,7 @@ public class AmazonExperiment {
 
 	private AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
 			AmazonDocumentField.CREATORS, AmazonDocumentField.TAGS, AmazonDocumentField.DEWEY };
+	private String[] queryFields = { "mediated_query", "title", "group", "narrative" };
 	private int expNo;
 	private int total;
 	private String expName;
@@ -52,14 +53,18 @@ public class AmazonExperiment {
 		int expNo = Integer.parseInt(args[0]);
 		int totalPartitionNo = Integer.parseInt(args[1]);
 		AmazonExperiment experiment = new AmazonExperiment(expNo, totalPartitionNo);
-		// experiment.buildGlobalIndex(AmazonDirectoryInfo.HOME + "data/path_counts/amazon_path_rels_train.csv");
-		
-		Map<String, Float> fieldBoostMap = experiment.gridSearchOnGlobalIndex();
-		// fieldBoostMap.put(AmazonDocumentField.TITLE.toString(), 0.18f);
-		// fieldBoostMap.put(AmazonDocumentField.CREATORS.toString(), 0.03f);
-		// fieldBoostMap.put(AmazonDocumentField.TAGS.toString(), 0.03f);
-		// fieldBoostMap.put(AmazonDocumentField.CONTENT.toString(), 0.76f);
-		experiment.expOnGlobalIndex(fieldBoostMap);
+		// experiment.buildGlobalIndex(AmazonDirectoryInfo.HOME +
+		// "data/path_counts/amazon_path_rels_train.csv");
+		// Map<String, Float> fieldBoostMap = experiment.gridSearchOnGlobalIndex(AmazonDirectoryInfo.TEST_QUERY_FILE,
+				// AmazonDirectoryInfo.QREL_FILE, experiment.queryFields);
+		Map<String, Float> fieldBoostMap = new HashMap<String, Float>();
+		fieldBoostMap.put(AmazonDocumentField.TITLE.toString(), 0.22f);
+		fieldBoostMap.put(AmazonDocumentField.CONTENT.toString(), 0.62f);
+		fieldBoostMap.put(AmazonDocumentField.CREATORS.toString(), 0.04f);
+		fieldBoostMap.put(AmazonDocumentField.TAGS.toString(), 0.1f);
+		fieldBoostMap.put(AmazonDocumentField.DEWEY.toString(), 0.02f);
+		experiment.expOnGlobalIndex(fieldBoostMap, AmazonDirectoryInfo.TEST_QUERY_FILE, AmazonDirectoryInfo.QREL_FILE,
+				experiment.queryFields);
 	}
 
 	void buildGlobalIndex(String fileListPath) {
@@ -73,10 +78,9 @@ public class AmazonExperiment {
 		datasetIndexer.buildIndex(fileList, indexPath);
 	}
 
-	public Map<String, Float> gridSearchOnGlobalIndex() {
+	public Map<String, Float> gridSearchOnGlobalIndex(String queryFile, String qrelFile, String[] queryFields) {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
-				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
+		List<ExperimentQuery> queries = QueryServices.loadInexQueries(queryFile, qrelFile, queryFields);
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
 		int fieldCount = fields.length;
 		float[] p10 = new float[fieldCount];
@@ -119,9 +123,6 @@ public class AmazonExperiment {
 		LOGGER.log(Level.INFO, "Results of field as a document retrieval (best mrr): " + Arrays.toString(mrr));
 		LOGGER.log(Level.INFO, "Results of field as a document retrieval (best map): " + Arrays.toString(map));
 		LOGGER.log(Level.INFO, "Results of field as a document retrieval (best all): " + Arrays.toString(all));
-		// best params bm3 are 1, 0, 2
-		// best params bm4 are 0.2 0.1 0.06 0.65
-		// best params bm4, query4 0.18 0.03 0.03 0.76
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 		for (int i = 0; i < fieldCount; i++) {
 			fieldToBoost.put(fields[i].toString(), all[i]);
@@ -129,10 +130,10 @@ public class AmazonExperiment {
 		return fieldToBoost;
 	}
 
-	private void expOnGlobalIndex(Map<String, Float> fieldToBoost) {
+	private void expOnGlobalIndex(Map<String, Float> fieldToBoost, String queryFile, String qrelFile,
+			String[] queryFields) {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<ExperimentQuery> queries = QueryServices.loadInexQueries(AmazonDirectoryInfo.QUERY_FILE,
-				AmazonDirectoryInfo.QREL_FILE, "mediated_query", "title", "group", "narrative");
+		List<ExperimentQuery> queries = QueryServices.loadInexQueries(queryFile, qrelFile, queryFields);
 		LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexPath, new BM25Similarity(),
 				fieldToBoost);
