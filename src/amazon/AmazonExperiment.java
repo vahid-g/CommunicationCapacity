@@ -42,19 +42,23 @@ public class AmazonExperiment {
 	private String expName;
 	private String indexPath;
 
-	public AmazonExperiment(int experimentNumber, int partitionCount) {
+	public AmazonExperiment(int experimentNumber, int partitionCount, String experimentSuffix) {
 		this.expNo = experimentNumber;
 		this.total = partitionCount;
-		expName = "amazon_p" + partitionCount + "_bm_f" + fields.length + "_" + "reltrain";
+		expName = "amazon_p" + partitionCount + "_bm_f" + fields.length + "_" + experimentSuffix;
 		indexPath = AmazonDirectoryInfo.GLOBAL_INDEX_DIR + expName + "/" + expNo;
 	}
 
 	public static void main(String[] args) {
+		if (args.length < 2) {
+			LOGGER.log(Level.SEVERE, "Input argument is missing. Terminating the program..");
+			return;
+		}
 		int expNo = Integer.parseInt(args[0]);
 		int totalPartitionNo = Integer.parseInt(args[1]);
-		AmazonExperiment experiment = new AmazonExperiment(expNo, totalPartitionNo);
-		// experiment.buildGlobalIndex(AmazonDirectoryInfo.HOME +
-		// "data/path_counts/amazon_path_rels_train.csv");
+		AmazonExperiment experiment = new AmazonExperiment(expNo, totalPartitionNo, "opt");
+		experiment.buildGlobalIndex(AmazonDirectoryInfo.HOME +
+		"data/path_counts/amazon_path_rels.csv");
 		// Map<String, Float> fieldBoostMap = experiment.gridSearchOnGlobalIndex(AmazonDirectoryInfo.TEST_QUERY_FILE,
 				// AmazonDirectoryInfo.QREL_FILE, experiment.queryFields);
 		Map<String, Float> fieldBoostMap = new HashMap<String, Float>();
@@ -63,7 +67,7 @@ public class AmazonExperiment {
 		fieldBoostMap.put(AmazonDocumentField.CREATORS.toString(), 0.04f);
 		fieldBoostMap.put(AmazonDocumentField.TAGS.toString(), 0.1f);
 		fieldBoostMap.put(AmazonDocumentField.DEWEY.toString(), 0.02f);
-		experiment.expOnGlobalIndex(fieldBoostMap, AmazonDirectoryInfo.TEST_QUERY_FILE, AmazonDirectoryInfo.QREL_FILE,
+		experiment.expOnGlobalIndex(fieldBoostMap, AmazonDirectoryInfo.QUERY_FILE, AmazonDirectoryInfo.QREL_FILE,
 				experiment.queryFields);
 	}
 
