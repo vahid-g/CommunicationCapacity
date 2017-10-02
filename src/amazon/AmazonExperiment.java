@@ -139,8 +139,7 @@ public class AmazonExperiment {
 				fieldToBoost);
 		LOGGER.log(Level.INFO, "updating ISBN results to LTID..");
 		convertIsbnToLtidAndFilter(results);
-		LOGGER.log(Level.INFO, "Preparing ltid -> InexFile map..");
-		// preparing ltid -> inex file map
+		// LOGGER.log(Level.INFO, "Preparing ltid -> InexFile map..");
 		// List<InexFile> inexFiles =
 		// InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
 		// Map<String, InexFile> ltidToInexFile = new HashMap<String,
