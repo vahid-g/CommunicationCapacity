@@ -56,9 +56,9 @@ public class AmazonExperiment {
 		}
 		int expNo = Integer.parseInt(args[0]);
 		int totalPartitionNo = Integer.parseInt(args[1]);
-		AmazonExperiment experiment = new AmazonExperiment(expNo, totalPartitionNo, "opt");
+		AmazonExperiment experiment = new AmazonExperiment(expNo, totalPartitionNo, "ml");
 		experiment.buildGlobalIndex(AmazonDirectoryInfo.HOME +
-		"data/path_counts/amazon_path_rels.csv");
+		"data/path_counts/amazon_path_pred.csv");
 		// Map<String, Float> fieldBoostMap = experiment.gridSearchOnGlobalIndex(AmazonDirectoryInfo.TEST_QUERY_FILE,
 				// AmazonDirectoryInfo.QREL_FILE, experiment.queryFields);
 		Map<String, Float> fieldBoostMap = new HashMap<String, Float>();
@@ -67,7 +67,7 @@ public class AmazonExperiment {
 		fieldBoostMap.put(AmazonDocumentField.CREATORS.toString(), 0.04f);
 		fieldBoostMap.put(AmazonDocumentField.TAGS.toString(), 0.1f);
 		fieldBoostMap.put(AmazonDocumentField.DEWEY.toString(), 0.02f);
-		experiment.expOnGlobalIndex(fieldBoostMap, AmazonDirectoryInfo.QUERY_FILE, AmazonDirectoryInfo.QREL_FILE,
+		experiment.expOnGlobalIndex(fieldBoostMap, AmazonDirectoryInfo.HOME + "data/queries/amazon/ml_test_topics.xml", AmazonDirectoryInfo.QREL_FILE,
 				experiment.queryFields);
 	}
 
