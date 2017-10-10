@@ -42,7 +42,7 @@ public class SmartCache {
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			org.w3c.dom.Document xmlDoc = db.parse(amazonXmlFile);
 			features.add(getItemOrZero(xmlDoc.getElementsByTagName("binding")));
-			features.add(getItemOrZero(xmlDoc.getElementsByTagName("listprice")).replace("$", ""));
+			features.add(getItemOrZero(xmlDoc.getElementsByTagName("listprice")).replace("$", "").replace(",", ""));
 			String date = getItemOrZero(xmlDoc.getElementsByTagName("publicationdate"));
 			if (date.contains("-"))
 				date = date.substring(0, date.indexOf('-'));
