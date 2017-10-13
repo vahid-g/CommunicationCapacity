@@ -80,7 +80,7 @@ def main():
     final = np.concatenate((isbns, pred), 1)
     print(final.shape)
     print(final[0])
-    np.savetxt('output2.csv', final, fmt='%s,%s', delimiter=',')
+    np.savetxt('../data/python_data/output2.csv', final, fmt='%s,%s', delimiter=',')
 
 if __name__ == '__main__':
     main()
