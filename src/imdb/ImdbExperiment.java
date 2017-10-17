@@ -90,7 +90,7 @@ public class ImdbExperiment {
 				e.printStackTrace();
 			}
 		}
-		Collections.sort(pathCount);
+		Collections.sort(pathCount, new InexFile.ReverseWeightComparator());
 		try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.FILE_LIST)) {
 			for (InexFile dfm : pathCount) {
 				fw.write(dfm.path + "," + dfm.weight + "\n");
@@ -173,7 +173,7 @@ public class ImdbExperiment {
 				e.printStackTrace();
 			}
 		}
-		Collections.sort(pathCount);
+		Collections.sort(pathCount, new InexFile.ReverseWeightComparator());
 		try (FileWriter fw = new FileWriter("data/imdb_path_ratings.csv")) {
 			for (InexFile dfm : pathCount) {
 				fw.write(dfm.path + "," + dfm.weight + "\n");

@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,7 @@ import org.apache.commons.io.FilenameUtils;
 
 import wiki_inex13.Wiki13Experiment;
 
-public class InexFile implements Comparable<InexFile> {
+public class InexFile{
 
 	public String id;
 	public String path;
@@ -24,6 +25,13 @@ public class InexFile implements Comparable<InexFile> {
 	public String title;
 
 	static final Logger LOGGER = Logger.getLogger(InexFile.class.getName());
+	
+	public static class ReverseWeightComparator implements Comparator<InexFile> {
+		@Override
+		public int compare(InexFile o1, InexFile o2) {
+			return Double.compare(o2.weight, o1.weight);
+		}
+	}
 
 	public InexFile(String path, double visitCount, String title) {
 		super();
@@ -34,11 +42,6 @@ public class InexFile implements Comparable<InexFile> {
 
 	public InexFile(String path, double visitCount) {
 		this(path, visitCount, "");
-	}
-
-	@Override
-	public int compareTo(InexFile o) {
-		return Double.compare(o.weight, weight);
 	}
 
 	// can parse inex file path csv file with 2 or 3 fields
