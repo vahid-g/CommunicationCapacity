@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import amazon.AmazonDirectoryInfo;
@@ -24,7 +25,7 @@ public class SmartCache {
 		List<InexFile> fileList = InexFile.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
 		List<String> features = new ArrayList<String>();
 		SmartCache sc = new SmartCache();
-		try (FileWriter fw = new FileWriter(AmazonDirectoryInfo.HOME + "data/train.csv")) {
+		try (FileWriter fw = new FileWriter("data/features.csv")) {
 			for (InexFile inexFile : fileList) {
 				File file = new File(inexFile.path);
 				features = sc.extractFeatureVector(file);
@@ -52,19 +53,30 @@ public class SmartCache {
 				dewey.substring(0, dewey.indexOf('.'));
 			features.add(dewey);
 			features.add(getItemOrZero(xmlDoc.getElementsByTagName("numberofpages")));
-
 			features.add(Integer.toString(xmlDoc.getElementsByTagName("image").getLength()));
 			features.add(Integer.toString(xmlDoc.getElementsByTagName("review").getLength()));
 			features.add(Integer.toString(xmlDoc.getElementsByTagName("editorialreview").getLength()));
 			features.add(Integer.toString(xmlDoc.getElementsByTagName("creator").getLength()));
 			features.add(Integer.toString(xmlDoc.getElementsByTagName("similarproduct").getLength()));
 			features.add(Integer.toString(xmlDoc.getElementsByTagName("browseNode").getLength()));
-
-			// last review data
+			NodeList ratingNodeList = xmlDoc.getElementsByTagName("rating");
+			features.add(Integer.toString(ratingNodeList.getLength()));
+			features.add(Double.toString(extractAverageRating(ratingNodeList)));
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 		return features;
+	}
+
+	private double extractAverageRating(NodeList ratingNodeList) {
+		double ratingAvg = 0;
+		int ratingCount = ratingNodeList.getLength();
+		for (int i = 0; i < ratingNodeList.getLength(); i++) {
+			Node node = ratingNodeList.item(i);
+			ratingAvg += Double.parseDouble(node.getTextContent());
+		}
+		if (ratingCount > 0) ratingAvg = Math.floor((ratingAvg / ratingCount) * 100.0) / 100.0;
+		return ratingAvg;
 	}
 
 	private String getItemOrZero(NodeList nodelist) {

@@ -56,9 +56,9 @@ public class AmazonExperiment {
 		}
 		int expNo = Integer.parseInt(args[0]);
 		int totalPartitionNo = Integer.parseInt(args[1]);
-		AmazonExperiment experiment = new AmazonExperiment(expNo, totalPartitionNo, "ml");
+		AmazonExperiment experiment = new AmazonExperiment(expNo, totalPartitionNo, "ratecomb");
 		experiment.buildGlobalIndex(AmazonDirectoryInfo.HOME +
-		"data/path_counts/amazon_path_pred.csv");
+		"data/path_counts/amazon_path_ratecomb.csv");
 		// Map<String, Float> fieldBoostMap = experiment.gridSearchOnGlobalIndex(AmazonDirectoryInfo.TEST_QUERY_FILE,
 				// AmazonDirectoryInfo.QREL_FILE, experiment.queryFields);
 		Map<String, Float> fieldBoostMap = new HashMap<String, Float>();
