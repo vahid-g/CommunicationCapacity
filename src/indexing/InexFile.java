@@ -75,6 +75,7 @@ public class InexFile{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		LOGGER.log(Level.INFO, "Size of List<InexFile>: " + pathCountList.size());
 		return pathCountList;
 	}
 

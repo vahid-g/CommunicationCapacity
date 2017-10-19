@@ -13,12 +13,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.IndexSearcher;
@@ -174,48 +174,25 @@ public class AmazonExperiment {
 				queries, indexPath, new BM25Similarity(), fieldToBoost);
 		LOGGER.log(Level.INFO, "updating ISBN results to LTID..");
 		convertIsbnToLtidAndFilter(results);
-
-		LOGGER.log(Level.INFO, "Preparing ltid -> InexFile map..");
-		List<InexFile> inexFiles = InexFile
-				.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
-		Map<String, InexFile> ltidToInexFile = new HashMap<String, InexFile>();
-		int missedIsbnCount = 0;
-		Map<String, String> isbnToLtid = AmazonIsbnConverter
-				.loadIsbnToLtidMap(AmazonDirectoryInfo.ISBN_DICT);
-		for (InexFile inexFile : inexFiles) {
-			String isbn = FilenameUtils.removeExtension(new File(inexFile.path)
-					.getName());
-			String ltid = isbnToLtid.get(isbn);
-			if (ltid != null) {
-				ltidToInexFile.put(ltid, inexFile);
-			} else {
-				LOGGER.log(Level.SEVERE, "isbn: " + isbn
-						+ "(extracted from filename) does not exists in dict");
-				missedIsbnCount++;
-			}
-		}
-		LOGGER.log(Level.INFO,
-				"Number of missed ISBNs extracted from filename in dict: "
-						+ missedIsbnCount);
-
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		File resultDir = new File(AmazonDirectoryInfo.RESULT_DIR + expName);
 		resultDir.mkdirs();
+		Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
+				.loadLtidToIsbnMap(AmazonDirectoryInfo.ISBN_DICT);
 		try (FileWriter fw = new FileWriter(resultDir.getAbsolutePath() + "/"
 				+ expNo + ".csv");
 				FileWriter fw2 = new FileWriter(AmazonDirectoryInfo.RESULT_DIR
 						+ "amazon_" + expNo + ".log")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.resultString() + "\n");
-				fw2.write(generateLog(mqr, ltidToInexFile) + "\n");
+				fw2.write(generateLog(mqr, ltidToIsbns) + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage());
 		}
 	}
-
 	private String generateLog(QueryResult queryResult,
-			Map<String, InexFile> ltidToInexFile) {
+			Map<String, Set<String>> ltidToIsbn) {
 		ExperimentQuery query = queryResult.query;
 		StringBuilder sb = new StringBuilder();
 		sb.append("qid: " + query.getId() + "\t" + queryResult.mrr() + "\n");
@@ -243,18 +220,21 @@ public class AmazonExperiment {
 				break;
 		}
 		counter = 0;
-		sb.append("missed docs: \n");
+		sb.append("missed docs: ");
 		for (String relevantLtid : query.qrels) {
 			if (!queryResult.topResults.contains(relevantLtid)) {
-				InexFile inFile = ltidToInexFile.get(relevantLtid);
-				if (inFile == null) {
-					LOGGER.log(Level.SEVERE, "No Inex File for ltid: "
-							+ relevantLtid);
-					sb.append("-- " + relevantLtid + " (no inex file) " + "\n");
-				} else {
-					sb.append("-- " + relevantLtid + "\t" + inFile.path
-							+ "\t\t" + inFile.weight + "\n");
+				Set<String> isbns = ltidToIsbn.get(relevantLtid);
+				if (isbns == null) {
+					LOGGER.log(Level.SEVERE,
+							"puuu, couldn't find isbns for ltid: "
+									+ relevantLtid);
+					continue;
 				}
+				for (String isbn : isbns) {
+					sb.append(relevantLtid + ": (" + isbn + ", "
+							+ aiwm.getWeight(isbn) + ") ");
+				}
+				sb.append("\n");
 			}
 			if (counter++ > 10)
 				break;
