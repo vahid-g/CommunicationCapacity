@@ -32,8 +32,9 @@ public class AmazonIsbnConverter {
 	}
 	
 	private static void buildMaps(String path) {
-		LOGGER.log(Level.INFO, "Loading ISBNs -> Ltid map..");
+		LOGGER.log(Level.INFO, "Loading ISBNs and Ltid conversion maps..");
 		isbnToLtidMap = new HashMap<String, String>();
+		ltidToIsbnMap = new HashMap<String, Set<String>>();
 		try {
 			for (String line : Files.readAllLines(Paths.get(path))) {
 				String[] ids = line.split(",");

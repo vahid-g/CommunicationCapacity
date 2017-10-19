@@ -31,8 +31,8 @@ public class AmazonIndexerTest extends TestCase {
 	public void setUp() {
 		AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
 				AmazonDocumentField.CREATORS, AmazonDocumentField.TAGS, AmazonDocumentField.DEWEY };
-		AmazonIsbnConverter isbnConverter = AmazonIsbnConverter
-				.getInstance("data/amazon_data/amazon-lt.isbn.thingID.csv");
+		Map<String, String> isbnConverter = AmazonIsbnConverter
+				.loadIsbnToLtidMap("data/amazon_data/amazon-lt.isbn.thingID.csv");
 		AmazonDeweyConverter deweyConverter = AmazonDeweyConverter.getInstance("data/amazon_data/dewey.csv");
 		indexer = new AmazonIndexer(fields, isbnConverter, deweyConverter);
 	}

@@ -1,18 +1,28 @@
 package amazon;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Test;
 
-public class AmazonIsbnConverterTest{
+public class AmazonIsbnConverterTest {
 
-	AmazonIsbnConverter converter = AmazonIsbnConverter.getInstance("data/amazon_data/amazon-lt.isbn.thingID.csv");
-	
 	@Test
-	public void testConvertIsbnToLtid() {
+	public void testIsbnToLtid() {
+		Map<String, String> converter = AmazonIsbnConverter
+				.loadIsbnToLtidMap("data/amazon/queries/amazon-lt.isbn.thingID.csv");
 		String isbn = "1577551672";
 		String ltid = "7729670";
-		assertEquals(ltid, converter.convertIsbnToLtid(isbn));
+		assertEquals(ltid, converter.get(isbn));
+	}
+
+	public void testLtidToIsbn() {
+		Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
+				.loadLtidToIsbnMap("data/amazon/queries/amazon-lt.isbn.thingID.csv");
+		String ltid = "195721";
+		assertEquals(1, ltidToIsbns.get(ltid).size());
 	}
 
 }
