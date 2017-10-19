@@ -4,40 +4,54 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class AmazonIsbnConverter {
 
-	private static final Logger LOGGER = Logger.getLogger(AmazonIsbnConverter.class.getName());
-	private static AmazonIsbnConverter singletonInstance;
+	private static final Logger LOGGER = Logger
+			.getLogger(AmazonIsbnConverter.class.getName());
+	private static Map<String, String> isbnToLtidMap = null;
+	private static Map<String, Set<String>> ltidToIsbnMap = null;
 
-	private Map<String, String> isbnToLtidMap = null;
-
-	public static AmazonIsbnConverter getInstance(String isbnDictPath) {
-		if (singletonInstance == null)
-			singletonInstance = new AmazonIsbnConverter(isbnDictPath);
-		return singletonInstance;
+	public static Map<String, String> loadIsbnToLtidMap(String path) {
+		if (isbnToLtidMap == null){
+			buildMaps(path);
+		}
+		return isbnToLtidMap;
 	}
 	
-	private AmazonIsbnConverter(String isbnDictPath) {
-		isbnToLtidMap = loadIsbnLtidMap(isbnDictPath);
+	public static Map<String, Set<String>> loadLtidToIsbnMap (String path) {
+		if (ltidToIsbnMap == null) {
+			buildMaps(path);
+		}
+		return ltidToIsbnMap;
 	}
-
-	public static Map<String, String> loadIsbnLtidMap(String path) {
-		LOGGER.log(Level.INFO, "Loading Isbn -> Ltid map..");
-		Map<String, String> isbnToLtid = new HashMap<String, String>();
+	
+	private static void buildMaps(String path) {
+		LOGGER.log(Level.INFO, "Loading ISBNs -> Ltid map..");
+		isbnToLtidMap = new HashMap<String, String>();
 		try {
 			for (String line : Files.readAllLines(Paths.get(path))) {
 				String[] ids = line.split(",");
-				isbnToLtid.put(ids[0], ids[1]);
+				isbnToLtidMap.put(ids[0], ids[1]);
+				Set<String> isbns = ltidToIsbnMap.get(ids[1]);
+				if (isbns == null) {
+					isbns = new HashSet<String>();
+				}
+				isbns.add(ids[0]);
+				ltidToIsbnMap.put(ids[1], isbns);
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
-		LOGGER.log(Level.INFO, "Isbn -> Ltid map size: " + isbnToLtid.size());
-		return isbnToLtid;
+		LOGGER.log(Level.INFO,
+				"ISBNs -> Ltid map size: " + isbnToLtidMap.size());
+		LOGGER.log(Level.INFO,
+				"Ltid -> ISBNs map size: " + ltidToIsbnMap.size());
 
 	}
 

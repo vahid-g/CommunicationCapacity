@@ -46,15 +46,17 @@ public class AmazonExperiment {
 	private int total;
 	private String expName;
 	private String indexPath;
+	private String isbnsFilePath;
 
 	public AmazonExperiment(int experimentNumber, int partitionCount,
-			String experimentSuffix) {
+			String experimentSuffix, String isbnsFilePath) {
 		this.expNo = experimentNumber;
 		this.total = partitionCount;
 		expName = "amazon_p" + partitionCount + "_bm_f" + fields.length + "_"
 				+ experimentSuffix;
 		indexPath = AmazonDirectoryInfo.GLOBAL_INDEX_DIR + expName + "/"
 				+ expNo;
+		this.isbnsFilePath = isbnsFilePath;
 	}
 
 	public static void main(String[] args) {
@@ -66,9 +68,10 @@ public class AmazonExperiment {
 		int expNo = Integer.parseInt(args[0]);
 		int totalPartitionNo = Integer.parseInt(args[1]);
 		AmazonExperiment experiment = new AmazonExperiment(expNo,
-				totalPartitionNo, "rank");
-		//experiment.buildGlobalIndex(AmazonDirectoryInfo.HOME
-		//		+ "data/path_counts/amazon_path_ratecomb.csv");
+				totalPartitionNo, "rank", AmazonDirectoryInfo.HOME
+						+ "data/path_counts/amazon_path_reviews.csv");
+		// experiment.buildGlobalIndex(AmazonDirectoryInfo.HOME
+		// + "data/path_counts/amazon_path_ratecomb.csv");
 		// Map<String, Float> fieldBoostMap =
 		// experiment.gridSearchOnGlobalIndex(AmazonDirectoryInfo.TEST_QUERY_FILE,
 		// AmazonDirectoryInfo.QREL_FILE, experiment.queryFields);
@@ -78,8 +81,9 @@ public class AmazonExperiment {
 		fieldBoostMap.put(AmazonDocumentField.CREATORS.toString(), 0.04f);
 		fieldBoostMap.put(AmazonDocumentField.TAGS.toString(), 0.1f);
 		fieldBoostMap.put(AmazonDocumentField.DEWEY.toString(), 0.02f);
-		experiment.expOnGlobalIndex(fieldBoostMap, AmazonDirectoryInfo.QUERY_FILE,
-				//+ "data/queries/amazon/ml_test_topics.xml",
+		experiment.expOnGlobalIndex(fieldBoostMap,
+				AmazonDirectoryInfo.QUERY_FILE,
+				// + "data/queries/amazon/ml_test_topics.xml",
 				AmazonDirectoryInfo.QREL_FILE, experiment.queryFields);
 	}
 
@@ -88,7 +92,8 @@ public class AmazonExperiment {
 		LOGGER.log(Level.INFO, "Building index..");
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
 		AmazonIndexer fileIndexer = new AmazonIndexer(fields,
-				AmazonIsbnConverter.getInstance(AmazonDirectoryInfo.ISBN_DICT),
+				AmazonIsbnConverter
+						.loadIsbnToLtidMap(AmazonDirectoryInfo.ISBN_DICT),
 				AmazonDeweyConverter
 						.getInstance(AmazonDirectoryInfo.DEWEY_DICT));
 		AmazonDatasetIndexer datasetIndexer = new AmazonDatasetIndexer(
@@ -175,12 +180,12 @@ public class AmazonExperiment {
 				.loadInexFileList(AmazonDirectoryInfo.FILE_LIST);
 		Map<String, InexFile> ltidToInexFile = new HashMap<String, InexFile>();
 		int missedIsbnCount = 0;
-		AmazonIsbnConverter isbnToLtid = AmazonIsbnConverter
-				.getInstance(AmazonDirectoryInfo.ISBN_DICT);
+		Map<String, String> isbnToLtid = AmazonIsbnConverter
+				.loadIsbnToLtidMap(AmazonDirectoryInfo.ISBN_DICT);
 		for (InexFile inexFile : inexFiles) {
 			String isbn = FilenameUtils.removeExtension(new File(inexFile.path)
 					.getName());
-			String ltid = isbnToLtid.convertIsbnToLtid(isbn);
+			String ltid = isbnToLtid.get(isbn);
 			if (ltid != null) {
 				ltidToInexFile.put(ltid, inexFile);
 			} else {
@@ -220,13 +225,19 @@ public class AmazonExperiment {
 				+ "\n");
 		int counter = 0;
 		sb.append("returned results: \n");
+		AmazonIsbnWeightMap aiwm = AmazonIsbnWeightMap
+				.getInstance(isbnsFilePath);
 		for (int i = 0; i < queryResult.topResults.size(); i++) {
 			String returnedLtid = queryResult.topResults.get(i);
 			String returnedTitle = queryResult.topResultsTitle.get(i);
+			String isbn = returnedTitle
+					.substring(0, returnedTitle.indexOf(':'));
 			if (query.qrels.contains(returnedLtid)) {
-				sb.append("++ " + returnedLtid + "\t" + returnedTitle + "\n");
+				sb.append("++ " + returnedLtid + "\t" + returnedTitle + "\t"
+						+ aiwm.getWeight(isbn) + "\n");
 			} else {
-				sb.append("-- " + returnedLtid + "\t" + returnedTitle + "\n");
+				sb.append("-- " + returnedLtid + "\t" + returnedTitle + "\t"
+						+ aiwm.getWeight(isbn) + "\n");
 			}
 			if (counter++ > 10)
 				break;
@@ -255,8 +266,8 @@ public class AmazonExperiment {
 	private List<QueryResult> convertIsbnToLtidAndFilter(
 			List<QueryResult> results) {
 		// updateing qrels of queries
-		AmazonIsbnConverter isbnToLtid = AmazonIsbnConverter
-				.getInstance(AmazonDirectoryInfo.ISBN_DICT);
+		Map<String, String> isbnToLtid = AmazonIsbnConverter
+				.loadIsbnToLtidMap(AmazonDirectoryInfo.ISBN_DICT);
 		for (QueryResult res : results) {
 			List<String> oldResults = res.topResults;
 			List<String> newResults = new ArrayList<String>();
@@ -264,7 +275,7 @@ public class AmazonExperiment {
 			List<String> newResultsTitle = new ArrayList<String>();
 			for (int i = 0; i < oldResults.size(); i++) {
 				String isbn = oldResults.get(i);
-				String ltid = isbnToLtid.convertIsbnToLtid(isbn);
+				String ltid = isbnToLtid.get(isbn);
 				if (ltid == null) {
 					LOGGER.log(Level.SEVERE, "Couldn't find ISBN: " + isbn
 							+ " in dict");

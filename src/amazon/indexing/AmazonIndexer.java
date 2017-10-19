@@ -20,7 +20,6 @@ import org.w3c.dom.Node;
 
 import amazon.AmazonDeweyConverter;
 import amazon.AmazonDocumentField;
-import amazon.AmazonIsbnConverter;
 import amazon.utils.AmazonXmlUtils;
 
 public class AmazonIndexer implements AmazonFileIndexerInterface {
@@ -30,11 +29,11 @@ public class AmazonIndexer implements AmazonFileIndexerInterface {
 
 	private static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class.getName());
 
-	private final AmazonIsbnConverter isbnToLtid;
+	private final Map<String, String> isbnToLtid;
 	private final AmazonDeweyConverter deweyToCategory;
 	private AmazonDocumentField[] fields;
 
-	public AmazonIndexer(AmazonDocumentField[] fields, AmazonIsbnConverter isbnLtidDict,
+	public AmazonIndexer(AmazonDocumentField[] fields, Map<String, String> isbnLtidDict,
 			AmazonDeweyConverter deweyIsbnDict) {
 		this.fields = fields;
 		this.isbnToLtid = isbnLtidDict;
@@ -48,7 +47,7 @@ public class AmazonIndexer implements AmazonFileIndexerInterface {
 			Document luceneDoc = new Document();
 			// file name is ISBN of the book
 			String docId = FilenameUtils.removeExtension(file.getName());
-			String ltid = isbnToLtid.convertIsbnToLtid(docId);
+			String ltid = isbnToLtid.get(docId);
 			luceneDoc.add(new StringField(DOCNAME_ATTRIB, docId, Field.Store.YES));
 			try {
 				luceneDoc.add(new StringField(LTID_ATTRIB, ltid, Field.Store.YES));

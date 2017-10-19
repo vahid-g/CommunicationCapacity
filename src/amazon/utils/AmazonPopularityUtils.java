@@ -167,7 +167,7 @@ public class AmazonPopularityUtils {
 				"data/amazon_data/popularity/ap4r.csv")) {
 			Map<String, Integer> ltidScoresMap = loadLtidTotalScoreMap("data/amazon_data/inex14sbs.qrels");
 			Map<String, String> isbnLtidMap = AmazonIsbnConverter
-					.loadIsbnLtidMap("data/amazon_data/amazon-lt.isbn.thingID.csv");
+					.loadIsbnToLtidMap("data/amazon_data/amazon-lt.isbn.thingID.csv");
 			parsePathReviewsRels("data/amazon_data/popularity/ap3r.csv",
 					ltidScoresMap, isbnLtidMap, fw);
 		} catch (IOException e) {
