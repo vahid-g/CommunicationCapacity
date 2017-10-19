@@ -68,10 +68,9 @@ public class AmazonExperiment {
 		int expNo = Integer.parseInt(args[0]);
 		int totalPartitionNo = Integer.parseInt(args[1]);
 		AmazonExperiment experiment = new AmazonExperiment(expNo,
-				totalPartitionNo, "rank", AmazonDirectoryInfo.HOME
+				totalPartitionNo, "reviews", AmazonDirectoryInfo.HOME
 						+ "data/path_counts/amazon_path_reviews.csv");
-		// experiment.buildGlobalIndex(AmazonDirectoryInfo.HOME
-		// + "data/path_counts/amazon_path_ratecomb.csv");
+		experiment.buildGlobalIndex();
 		// Map<String, Float> fieldBoostMap =
 		// experiment.gridSearchOnGlobalIndex(AmazonDirectoryInfo.TEST_QUERY_FILE,
 		// AmazonDirectoryInfo.QREL_FILE, experiment.queryFields);
@@ -87,8 +86,8 @@ public class AmazonExperiment {
 				AmazonDirectoryInfo.QREL_FILE, experiment.queryFields);
 	}
 
-	void buildGlobalIndex(String fileListPath) {
-		List<InexFile> fileList = InexFile.loadInexFileList(fileListPath);
+	void buildGlobalIndex() {
+		List<InexFile> fileList = InexFile.loadInexFileList(this.isbnsFilePath);
 		LOGGER.log(Level.INFO, "Building index..");
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
 		AmazonIndexer fileIndexer = new AmazonIndexer(fields,
