@@ -68,8 +68,8 @@ public class AmazonExperiment {
 		int expNo = Integer.parseInt(args[0]);
 		int totalPartitionNo = Integer.parseInt(args[1]);
 		AmazonExperiment experiment = new AmazonExperiment(expNo,
-				totalPartitionNo, "reviews", AmazonDirectoryInfo.HOME
-						+ "data/path_counts/amazon_path_reviews.csv");
+				totalPartitionNo, "ratecount", AmazonDirectoryInfo.HOME
+						+ "data/path_counts/amazon_path_ratecount.csv");
 		experiment.buildGlobalIndex();
 		// Map<String, Float> fieldBoostMap =
 		// experiment.gridSearchOnGlobalIndex(AmazonDirectoryInfo.TEST_QUERY_FILE,
@@ -176,15 +176,16 @@ public class AmazonExperiment {
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		File resultDir = new File(AmazonDirectoryInfo.RESULT_DIR + expName);
 		resultDir.mkdirs();
-		Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
-				.loadLtidToIsbnMap(AmazonDirectoryInfo.ISBN_DICT);
+		//Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
+		//		.loadLtidToIsbnMap(AmazonDirectoryInfo.ISBN_DICT);
 		try (FileWriter fw = new FileWriter(resultDir.getAbsolutePath() + "/"
-				+ expNo + ".csv");
-				FileWriter fw2 = new FileWriter(AmazonDirectoryInfo.RESULT_DIR
-						+ "amazon_" + expNo + ".log")) {
+				+ expNo + ".csv")
+				// ;FileWriter fw2 = new FileWriter(
+				// AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".log")
+				) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.resultString() + "\n");
-				fw2.write(generateLog(mqr, ltidToIsbns) + "\n");
+				// fw2.write(generateLog(mqr, ltidToIsbns) + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage());
