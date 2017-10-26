@@ -5,14 +5,20 @@ import java.util.Set;
 
 public class ExperimentQuery {
 
-	Integer id;
+	private Integer id;
 	private String text;
-	public Set<Qrel> qrels;
+	private Set<Qrel> qrels;
 
 	public ExperimentQuery(int id, String text) {
 		this.id = id;
 		this.text = text;
 		qrels = new HashSet<Qrel>();
+	}
+	
+	public ExperimentQuery(int id, String text, Set<Qrel> qrels) {
+		this.id = id;
+		this.text = text;
+		this.qrels = qrels;
 	}
 
 	public Integer getId() {
@@ -21,12 +27,6 @@ public class ExperimentQuery {
 
 	public Set<Qrel> getQrels() {
 		return qrels;
-	}
-
-	public ExperimentQuery(int id, String text, Set<Qrel> qrels) {
-		this.id = id;
-		this.text = text;
-		this.qrels = qrels;
 	}
 
 	public String getText() {
@@ -40,9 +40,13 @@ public class ExperimentQuery {
 	public void addRelevantAnswer(Qrel qrel) {
 		qrels.add(qrel);
 	}
-
-	public Set<Qrel> getRelDocs() {
-		return qrels;
+	
+	public boolean hasReturnedQrelid(String qrelId){
+		for (Qrel qrel : this.qrels) {
+			if (qrel.getQrelId().equals(qrelId))
+				return true;
+		}
+		return false;
 	}
 
 	@Override

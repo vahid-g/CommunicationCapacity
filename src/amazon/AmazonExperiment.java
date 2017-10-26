@@ -27,6 +27,7 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
 import query.ExperimentQuery;
+import query.Qrel;
 import query.QueryResult;
 import query.QueryServices;
 import amazon.indexing.AmazonDatasetIndexer;
@@ -197,7 +198,7 @@ public class AmazonExperiment {
 		StringBuilder sb = new StringBuilder();
 		sb.append("qid: " + query.getId() + "\t" + queryResult.mrr() + "\n");
 		sb.append("query: " + query.getText() + "\n\n");
-		sb.append("|relevant tuples| = " + query.qrels.size() + "\n");
+		sb.append("|relevant tuples| = " + query.getQrels().size() + "\n");
 		sb.append("|returned results| = " + queryResult.topResults.size()
 				+ "\n");
 		int counter = 0;
@@ -209,7 +210,7 @@ public class AmazonExperiment {
 			String returnedTitle = queryResult.topResultsTitle.get(i);
 			String isbn = returnedTitle
 					.substring(0, returnedTitle.indexOf(':'));
-			if (query.qrels.contains(returnedLtid)) {
+			if (query.hasReturnedQrelid(returnedLtid)) {
 				sb.append("++ " + returnedLtid + "\t" + returnedTitle + "\t"
 						+ aiwm.getWeight(isbn) + "\n");
 			} else {
@@ -221,7 +222,8 @@ public class AmazonExperiment {
 		}
 		counter = 0;
 		sb.append("missed docs: ");
-		for (String relevantLtid : query.qrels) {
+		for (Qrel qrel : query.getQrels()) {
+			String relevantLtid = qrel.getQrelId();
 			if (!queryResult.topResults.contains(relevantLtid)) {
 				Set<String> isbns = ltidToIsbn.get(relevantLtid);
 				if (isbns == null) {
