@@ -70,7 +70,7 @@ public class AmazonExperiment {
 		AmazonExperiment experiment = new AmazonExperiment(expNo,
 				totalPartitionNo, "ratecount", AmazonDirectoryInfo.HOME
 						+ "data/path_counts/amazon_path_ratecount.csv");
-		experiment.buildGlobalIndex();
+		// experiment.buildGlobalIndex();
 		// Map<String, Float> fieldBoostMap =
 		// experiment.gridSearchOnGlobalIndex(AmazonDirectoryInfo.TEST_QUERY_FILE,
 		// AmazonDirectoryInfo.QREL_FILE, experiment.queryFields);

@@ -29,11 +29,11 @@ public class AmazonMapleExperiment {
 	private static final String DATA_FOLDER = "/data/ghadakcv/data/";
 	private static final String FILE_LIST = DATA_FOLDER
 			+ "amazon_path_ratecount.csv";
-	private static final String ISBN_DICT = DATA_FOLDER
+	private static final String ISBN_DICT_PATH = DATA_FOLDER
 			+ "amazon-lt.isbn.thingID";
 	private static final String DEWEY_DICT = DATA_FOLDER + "dewey.csv";
 	private static final String INDEX_PATH = DATA_FOLDER + "index";
-	private static final String RESULT_DIR = DATA_FOLDER + "result";
+	private static final String RESULT_DIR = DATA_FOLDER + "result/";
 	private static final String QUERY_FILE = DATA_FOLDER + "inex14sbs.topics.xml";
 	private static final String QREL_FILE = DATA_FOLDER + "inex14sbs.qrels";
 	private static final String LTID_LIST = DATA_FOLDER + "ltid_ratecountsum.sor";
@@ -46,14 +46,14 @@ public class AmazonMapleExperiment {
 			"group", "narrative"};
 
 	public static void main(String[] args) throws IOException {
-		List<InexFile> fileList = InexFile.loadInexFileList(FILE_LIST);
-		LOGGER.log(Level.INFO, "Building index..");
-		AmazonIndexer fileIndexer = new AmazonIndexer(fields,
-				AmazonIsbnConverter.loadIsbnToLtidMap(ISBN_DICT),
-				AmazonDeweyConverter.getInstance(DEWEY_DICT));
-		AmazonDatasetIndexer datasetIndexer = new AmazonDatasetIndexer(
-				fileIndexer);
-		datasetIndexer.buildIndex(fileList, INDEX_PATH);
+//		List<InexFile> fileList = InexFile.loadInexFileList(FILE_LIST);
+//		LOGGER.log(Level.INFO, "Building index..");
+//		AmazonIndexer fileIndexer = new AmazonIndexer(fields,
+//				AmazonIsbnConverter.loadIsbnToLtidMap(ISBN_DICT),
+//				AmazonDeweyConverter.getInstance(DEWEY_DICT));
+//		AmazonDatasetIndexer datasetIndexer = new AmazonDatasetIndexer(
+//				fileIndexer);
+//		datasetIndexer.buildIndex(fileList, INDEX_PATH);
 
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
@@ -65,7 +65,15 @@ public class AmazonMapleExperiment {
 		fieldBoostMap.put(AmazonDocumentField.CREATORS.toString(), 0.04f);
 		fieldBoostMap.put(AmazonDocumentField.TAGS.toString(), 0.1f);
 		fieldBoostMap.put(AmazonDocumentField.DEWEY.toString(), 0.02f);
-		List<String> sortedLtidList = Files.readAllLines(Paths.get(LTID_LIST));
+		List<String> sortedLtidList = new ArrayList<String>();
+		for (String line : Files.readAllLines(Paths.get(LTID_LIST))){
+			String[] fields = line.split(" ");
+			if (fields.length > 1){
+				sortedLtidList.add(fields[0]);
+			} else {
+				LOGGER.log(Level.SEVERE, "ltid -> weight line doens't have enough fields");
+			}
+		}
 		for (int i = 0; i < 50; i++) {
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 					queries, INDEX_PATH, new BM25Similarity(), fieldBoostMap);
@@ -88,7 +96,7 @@ public class AmazonMapleExperiment {
 			List<QueryResult> results, TreeSet<String> cache) {
 		// updateing qrels of queries
 		Map<String, String> isbnToLtid = AmazonIsbnConverter
-				.loadIsbnToLtidMap(AmazonDirectoryInfo.ISBN_DICT);
+				.loadIsbnToLtidMap(ISBN_DICT_PATH);
 		for (QueryResult res : results) {
 			List<String> oldResults = res.topResults;
 			List<String> newResults = new ArrayList<String>();
