@@ -7,23 +7,23 @@ public class ExperimentQuery {
 
 	Integer id;
 	private String text;
-	public Set<String> qrels;
+	public Set<Qrel> qrels;
 
 	public ExperimentQuery(int id, String text) {
 		this.id = id;
 		this.text = text;
-		qrels = new HashSet<String>();
+		qrels = new HashSet<Qrel>();
 	}
 
 	public Integer getId() {
 		return id;
 	}
 
-	public Set<String> getQrels() {
+	public Set<Qrel> getQrels() {
 		return qrels;
 	}
 
-	public ExperimentQuery(int id, String text, Set<String> qrels) {
+	public ExperimentQuery(int id, String text, Set<Qrel> qrels) {
 		this.id = id;
 		this.text = text;
 		this.qrels = qrels;
@@ -37,11 +37,11 @@ public class ExperimentQuery {
 		this.text = text;
 	}
 
-	public void addRelevantAnswer(String relDoc) {
-		qrels.add(relDoc);
+	public void addRelevantAnswer(Qrel qrel) {
+		qrels.add(qrel);
 	}
 
-	public Set<String> getRelDocs() {
+	public Set<Qrel> getRelDocs() {
 		return qrels;
 	}
 

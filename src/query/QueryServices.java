@@ -1,7 +1,5 @@
 package query;
 
-import indexing.GeneralIndexer;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,15 +8,11 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -41,6 +35,8 @@ import org.apache.lucene.store.FSDirectory;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import indexing.GeneralIndexer;
 
 public class QueryServices {
 
@@ -155,7 +151,7 @@ public class QueryServices {
 
 	public static List<ExperimentQuery> loadMsnQueries(String queryPath,
 			String qrelPath) {
-		Map<Integer, Set<String>> qidQrelMap = loadQrelFile(qrelPath);
+		Map<Integer, Set<Qrel>> qidQrelMap = Qrel.loadQrelFile(qrelPath);
 		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
 		try (BufferedReader br = new BufferedReader(new FileReader(queryPath))) {
 			String line;
@@ -165,7 +161,7 @@ public class QueryServices {
 						.replace("\"", "");
 				Integer qid = Integer.parseInt(line.substring(index + 1));
 				if (qidQrelMap.containsKey(qid)) {
-					Set<String> qrels = qidQrelMap.get(qid);
+					Set<Qrel> qrels = qidQrelMap.get(qid);
 					if (qrels == null) {
 						LOGGER.log(Level.SEVERE, "no qrels for query: " + qid
 								+ ":" + text + "in file: " + qrelPath);
@@ -192,7 +188,7 @@ public class QueryServices {
 	public static List<ExperimentQuery> loadInexQueries(String path,
 			String qrelPath, String... queryLabels) {
 		// building qid -> qrels map
-		HashMap<Integer, Set<String>> qidQrels = loadQrelFile(qrelPath);
+		HashMap<Integer, Set<Qrel>> qidQrels = Qrel.loadQrelFile(qrelPath);
 
 		// loading queries
 		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
@@ -215,7 +211,7 @@ public class QueryServices {
 					LOGGER.log(Level.SEVERE, "query: " + qid + " has empty aggregated text");
 					continue;
 				}
-				Set<String> qrels = qidQrels.get(qid);
+				Set<Qrel> qrels = qidQrels.get(qid);
 				if (qrels == null) {
 					LOGGER.log(Level.SEVERE, "no qrels for query: " + qid + " in file: " + qrelPath);
 				} else {
@@ -233,38 +229,7 @@ public class QueryServices {
 		}
 		return queryList;
 	}
-
-	private static HashMap<Integer, Set<String>> loadQrelFile(String path) {
-		HashMap<Integer, Set<String>> qidQrels = new HashMap<Integer, Set<String>>();
-		try (Scanner sc = new Scanner(new File(path))) {
-			String line;
-			while (sc.hasNextLine()) {
-				line = sc.nextLine();
-				Pattern ptr = Pattern.compile("(\\d+)\\sQ?0\\s(\\w+)\\s([0-9])");
-				Matcher m = ptr.matcher(line);
-				if (m.find()) {
-					if (!m.group(3).equals("0")) {
-						Integer qid = Integer.parseInt(m.group(1));
-						String rel = m.group(2);
-						Set<String> qrels = qidQrels.get(qid);
-						if (qrels == null) {
-							qrels = new HashSet<String>();
-							qrels.add(rel);
-							qidQrels.put(qid, qrels);
-						} else {
-							qrels.add(rel);
-						}
-					}
-				} else {
-					LOGGER.log(Level.WARNING, "regex failed for line: " + line);
-				}
-			}
-		} catch (FileNotFoundException e) {
-			LOGGER.log(Level.SEVERE, "QREL file not found!");
-		}
-		return qidQrels;
-	}
-
+	
 	private static Node findSubNode(String name, Node node) {
 		if (node.getNodeType() != Node.ELEMENT_NODE) {
 			System.err.println("Error: Search node not of element type");

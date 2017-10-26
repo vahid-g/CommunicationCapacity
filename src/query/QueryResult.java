@@ -54,6 +54,17 @@ public class QueryResult {
 		}
 		return ap / query.qrels.size();
 	}
+	
+	public double ndcg(){
+		double ndcg = 0;
+		for (int k = 1; k < topResults.size(); k++) {
+			if (query.qrels.contains(topResults.get(k))) {
+//				ndcg +=  
+			}
+				
+		}
+		return 0;
+	}
 
 	@Override
 	public String toString() {
@@ -81,7 +92,8 @@ public class QueryResult {
 	public String listFalseNegatives(int k) {
 		StringBuilder sb = new StringBuilder();
 		int counter = 0;
-		for (String rel : this.query.qrels) {
+		for (Qrel qrel : this.query.qrels) {
+			String rel = qrel.getQrelId();
 			if (!topResults.contains(rel)) {
 				sb.append(query.id + "," + query.getText() + "," + rel + "\n");
 			}
@@ -98,7 +110,8 @@ public class QueryResult {
 		sb.append("|returned results| = " + this.topResults.size() + "\n");
 		int counter = 0;
 		sb.append("available missed files: \n");
-		for (String rel : this.query.qrels) {
+		for (Qrel qrel : this.query.qrels) {
+			String rel = qrel.getQrelId();
 			if (!topResults.contains(rel) && idToInexfile.containsKey(rel)) {
 				sb.append(rel + "\t" + idToInexfile.get(rel).title + "\n");
 			}
@@ -107,7 +120,8 @@ public class QueryResult {
 		}
 		sb.append("unavailable missed files: \n");
 		counter = 0;
-		for (String rel : this.query.qrels) {
+		for (Qrel qrel : this.query.qrels) {
+			String rel = qrel.getQrelId();
 			if (!topResults.contains(rel) && !idToInexfile.containsKey(rel)) {
 				sb.append(rel + "\n");
 			}
