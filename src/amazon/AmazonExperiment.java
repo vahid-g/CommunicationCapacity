@@ -2,12 +2,9 @@ package amazon;
 
 import indexing.InexFile;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,15 +13,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.similarities.BM25Similarity;
-import org.apache.lucene.store.FSDirectory;
 
 import query.ExperimentQuery;
 import query.Qrel;
@@ -177,13 +167,13 @@ public class AmazonExperiment {
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		File resultDir = new File(AmazonDirectoryInfo.RESULT_DIR + expName);
 		resultDir.mkdirs();
-		//Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
-		//		.loadLtidToIsbnMap(AmazonDirectoryInfo.ISBN_DICT);
+		// Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
+		// .loadLtidToIsbnMap(AmazonDirectoryInfo.ISBN_DICT);
 		try (FileWriter fw = new FileWriter(resultDir.getAbsolutePath() + "/"
 				+ expNo + ".csv")
-				// ;FileWriter fw2 = new FileWriter(
-				// AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".log")
-				) {
+		// ;FileWriter fw2 = new FileWriter(
+		// AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".log")
+		) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.resultString() + "\n");
 				// fw2.write(generateLog(mqr, ltidToIsbns) + "\n");
@@ -192,7 +182,8 @@ public class AmazonExperiment {
 			LOGGER.log(Level.SEVERE, e.getMessage());
 		}
 	}
-	private String generateLog(QueryResult queryResult,
+
+	String generateLog(QueryResult queryResult,
 			Map<String, Set<String>> ltidToIsbn) {
 		ExperimentQuery query = queryResult.query;
 		StringBuilder sb = new StringBuilder();
@@ -272,70 +263,6 @@ public class AmazonExperiment {
 			res.topResultsTitle = newResultsTitle;
 		}
 		return results;
-	}
-
-	public static void generateTrainingData(int expNo, int total,
-			String indexPath) {
-		LOGGER.log(Level.INFO, "Generating training data..");
-		LOGGER.log(Level.INFO, "Loading queries..");
-		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-				AmazonDirectoryInfo.QUERY_FILE, AmazonDirectoryInfo.QREL_FILE,
-				"mediated_query", "title", "group", "narrative");
-		Map<String, String> qidToQueryText = new HashMap<String, String>();
-		for (ExperimentQuery query : queries) {
-			qidToQueryText.put(query.getId() + "", query.getText());
-		}
-		try (BufferedReader br = new BufferedReader(new FileReader("???"));
-				IndexReader reader = DirectoryReader.open(FSDirectory
-						.open(Paths.get(indexPath)));
-				FileWriter fw = new FileWriter("???")) {
-			LOGGER.log(Level.INFO,
-					"Number of docs in index: " + reader.numDocs());
-			IndexSearcher searcher = new IndexSearcher(reader);
-			searcher.setSimilarity(new BM25Similarity());
-			String line = br.readLine();
-			while (line != null) {
-				Pattern ptr = Pattern
-						.compile("(\\d+)\\sQ?0\\s(\\w+)\\s([0-9])");
-				Matcher m = ptr.matcher(line);
-				if (m.find()) {
-					StringBuilder sb = new StringBuilder();
-					String qid = m.group(1);
-					int rel = Integer.parseInt(m.group(2));
-					String label = m.group(3);
-					String text = qidToQueryText.get(qid);
-					sb.append(qid + ", ");
-					for (int i = 0; i < 5; i++) {
-						Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-						fieldToBoost.put(AmazonDocumentField.TITLE.toString(),
-								i == 0 ? 1f : 0f);
-						fieldToBoost.put(AmazonDocumentField.CREATORS
-								.toString(), i == 1 ? 1f : 0f);
-						fieldToBoost.put(AmazonDocumentField.TAGS.toString(),
-								i == 2 ? 1f : 0f);
-						fieldToBoost.put(AmazonDocumentField.DEWEY.toString(),
-								i == 3 ? 1f : 0f);
-						fieldToBoost.put(
-								AmazonDocumentField.CONTENT.toString(), i == 4
-										? 1f
-										: 0f);
-						Query query = QueryServices.buildLuceneQuery(text,
-								fieldToBoost);
-						sb.append(searcher.explain(query, rel).getValue());
-						// TODO rel to isbn
-						sb.append(",");
-					}
-					sb.append(label);
-					sb.append("\n");
-					fw.write(sb.toString());
-				} else {
-					LOGGER.log(Level.WARNING, "regex failed for line: " + line);
-				}
-				line = br.readLine();
-			}
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "QREL file not found!");
-		}
 	}
 
 }
