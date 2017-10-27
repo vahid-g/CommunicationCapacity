@@ -2,12 +2,11 @@ package query;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,7 +15,6 @@ import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -34,7 +32,6 @@ import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import indexing.GeneralIndexer;
 
@@ -42,32 +39,26 @@ public class QueryServices {
 
 	final static int TOP_DOC_COUNT = 1000;
 
-	static final Logger LOGGER = Logger
-			.getLogger(QueryServices.class.getName());
+	static final Logger LOGGER = Logger.getLogger(QueryServices.class.getName());
 
 	public static void main(String[] args) {
 		loadInexQueries("inex14sbs.topics.xml", "inex14sbs.qrels", "title");
 	}
 
-	public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
-			String indexPath) {
-		String[] attribs = {GeneralIndexer.TITLE_ATTRIB,
-				GeneralIndexer.CONTENT_ATTRIB};
+	public static List<QueryResult> runQueries(List<ExperimentQuery> queries, String indexPath) {
+		String[] attribs = { GeneralIndexer.TITLE_ATTRIB, GeneralIndexer.CONTENT_ATTRIB };
 		return runQueries(queries, indexPath, attribs);
 	}
 
-	public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
-			String indexPath, String[] attribs) {
+	public static List<QueryResult> runQueries(List<ExperimentQuery> queries, String indexPath, String[] attribs) {
 		return runQueries(queries, indexPath, new ClassicSimilarity(), attribs);
 	}
 
-	public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
-			String indexPath, Similarity similarity, String[] attribs) {
+	public static List<QueryResult> runQueries(List<ExperimentQuery> queries, String indexPath, Similarity similarity,
+			String[] attribs) {
 		List<QueryResult> iqrList = new ArrayList<QueryResult>();
-		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
-				.get(indexPath)))) {
-			LOGGER.log(Level.INFO,
-					"Number of docs in index: " + reader.numDocs());
+		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
+			LOGGER.log(Level.INFO, "Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
 			searcher.setSimilarity(similarity);
 			for (ExperimentQuery queryDAO : queries) {
@@ -75,8 +66,7 @@ public class QueryServices {
 				Query query = buildLuceneQuery(queryDAO.getText(), attribs);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				QueryResult iqr = new QueryResult(queryDAO);
-				for (int i = 0; i < Math.min(TOP_DOC_COUNT,
-						topDocs.scoreDocs.length); i++) {
+				for (int i = 0; i < Math.min(TOP_DOC_COUNT, topDocs.scoreDocs.length); i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 					String docID = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
 					String docTitle = doc.get(GeneralIndexer.TITLE_ATTRIB);
@@ -90,15 +80,12 @@ public class QueryServices {
 		}
 		return iqrList;
 	}
-	
-	
-	public static List<QueryResult> runQueriesWithBoosting(List<ExperimentQuery> queries,
-			String indexPath, Similarity similarity, Map<String, Float> fieldToBoost) {
+
+	public static List<QueryResult> runQueriesWithBoosting(List<ExperimentQuery> queries, String indexPath,
+			Similarity similarity, Map<String, Float> fieldToBoost) {
 		List<QueryResult> iqrList = new ArrayList<QueryResult>();
-		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
-				.get(indexPath)))) {
-			LOGGER.log(Level.INFO,
-					"Number of docs in index: " + reader.numDocs());
+		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
+			LOGGER.log(Level.INFO, "Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
 			searcher.setSimilarity(similarity);
 			for (ExperimentQuery queryDAO : queries) {
@@ -106,8 +93,7 @@ public class QueryServices {
 				Query query = buildLuceneQuery(queryDAO.getText(), fieldToBoost);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				QueryResult iqr = new QueryResult(queryDAO);
-				for (int i = 0; i < Math.min(TOP_DOC_COUNT,
-						topDocs.scoreDocs.length); i++) {
+				for (int i = 0; i < Math.min(TOP_DOC_COUNT, topDocs.scoreDocs.length); i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 					String docID = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
 					String docTitle = doc.get(GeneralIndexer.TITLE_ATTRIB);
@@ -121,10 +107,10 @@ public class QueryServices {
 		}
 		return iqrList;
 	}
-	
+
 	public static Query buildLuceneQuery(String queryString, Map<String, Float> fieldToBoost) {
-		MultiFieldQueryParser multiFieldParser = new MultiFieldQueryParser(
-				fieldToBoost.keySet().toArray(new String[0]), new StandardAnalyzer(), fieldToBoost);
+		MultiFieldQueryParser multiFieldParser = new MultiFieldQueryParser(fieldToBoost.keySet().toArray(new String[0]),
+				new StandardAnalyzer(), fieldToBoost);
 		multiFieldParser.setDefaultOperator(Operator.OR);
 		Query query = null;
 		try {
@@ -136,8 +122,7 @@ public class QueryServices {
 	}
 
 	public static Query buildLuceneQuery(String queryString, String... fields) {
-		MultiFieldQueryParser multiFieldParser = new MultiFieldQueryParser(
-				fields, new StandardAnalyzer());
+		MultiFieldQueryParser multiFieldParser = new MultiFieldQueryParser(fields, new StandardAnalyzer());
 		multiFieldParser.setDefaultOperator(Operator.OR);
 		Query query = null;
 		try {
@@ -149,65 +134,54 @@ public class QueryServices {
 		return query;
 	}
 
-	public static List<ExperimentQuery> loadMsnQueries(String queryPath,
-			String qrelPath) {
-		Map<Integer, Set<Qrel>> qidQrelMap = Qrel.loadQrelFile(qrelPath);
+	public static List<ExperimentQuery> loadMsnQueries(String queryPath, String qrelPath) {
 		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
-		try (BufferedReader br = new BufferedReader(new FileReader(queryPath))) {
+		try (FileInputStream fis = new FileInputStream(qrelPath);
+				BufferedReader br = new BufferedReader(new FileReader(queryPath))) {
+			Map<Integer, Set<Qrel>> qidQrelMap = Qrel.loadQrelFile(fis);
 			String line;
 			while ((line = br.readLine()) != null) {
 				int index = line.lastIndexOf(" ");
-				String text = line.substring(0, index).replace(",", "")
-						.replace("\"", "");
+				String text = line.substring(0, index).replace(",", "").replace("\"", "");
 				Integer qid = Integer.parseInt(line.substring(index + 1));
 				if (qidQrelMap.containsKey(qid)) {
 					Set<Qrel> qrels = qidQrelMap.get(qid);
 					if (qrels == null) {
-						LOGGER.log(Level.SEVERE, "no qrels for query: " + qid
-								+ ":" + text + "in file: " + qrelPath);
+						LOGGER.log(Level.SEVERE, "no qrels for query: " + qid + ":" + text + "in file: " + qrelPath);
 					} else {
-						ExperimentQuery iq = new ExperimentQuery(qid, text,
-								qrels);
+						ExperimentQuery iq = new ExperimentQuery(qid, text, qrels);
 						queryList.add(iq);
 					}
 				}
 			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 		return queryList;
 	}
 
-	public static List<ExperimentQuery> loadInexQueries(String path,
-	String qrelPath) {
+	public static List<ExperimentQuery> loadInexQueries(String path, String qrelPath) {
 		return loadInexQueries(path, qrelPath, "title");
 	}
 
-	public static List<ExperimentQuery> loadInexQueries(String path,
-			String qrelPath, String... queryLabels) {
-		// building qid -> qrels map
-		HashMap<Integer, Set<Qrel>> qidQrels = Qrel.loadQrelFile(qrelPath);
-
-		// loading queries
+	public static List<ExperimentQuery> loadInexQueries(String path, String qrelPath, String... queryLabels) {
 		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		try {
+		try (FileInputStream fis = new FileInputStream(qrelPath)) {
+			Map<Integer, Set<Qrel>> qidQrels = Qrel.loadQrelFile(fis);
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			org.w3c.dom.Document doc = db.parse(new File(path));
 			NodeList nodeList = doc.getElementsByTagName("topic");
 			for (int i = 0; i < nodeList.getLength(); i++) {
 				Node node = nodeList.item(i);
-				int qid = Integer.parseInt(node.getAttributes()
-						.getNamedItem("id").getNodeValue());
+				int qid = Integer.parseInt(node.getAttributes().getNamedItem("id").getNodeValue());
 				StringBuilder sb = new StringBuilder();
-				for (String queryLabel : queryLabels){
+				for (String queryLabel : queryLabels) {
 					String queryText = getText(findSubNode(queryLabel, node));
 					sb.append(queryText + " ");
 				}
 				String queryText = sb.toString();
-				if (queryText.equals("")){
+				if (queryText.equals("")) {
 					LOGGER.log(Level.SEVERE, "query: " + qid + " has empty aggregated text");
 					continue;
 				}
@@ -215,21 +189,16 @@ public class QueryServices {
 				if (qrels == null) {
 					LOGGER.log(Level.SEVERE, "no qrels for query: " + qid + " in file: " + qrelPath);
 				} else {
-					ExperimentQuery iq = new ExperimentQuery(qid, queryText,
-							qrels);
+					ExperimentQuery iq = new ExperimentQuery(qid, queryText, qrels);
 					queryList.add(iq);
 				}
 			}
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 		return queryList;
 	}
-	
+
 	private static Node findSubNode(String name, Node node) {
 		if (node.getNodeType() != Node.ELEMENT_NODE) {
 			System.err.println("Error: Search node not of element type");

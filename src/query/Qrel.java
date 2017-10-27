@@ -1,7 +1,6 @@
 package query;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -24,6 +23,11 @@ public class Qrel {
 		this.qrelId = qrelId;
 		this.rel = rel;
 	}
+	
+	@Override
+	public String toString(){
+		return qid + " " + qrelId + " " + rel;
+	}
 
 	public int getQid() {
 		return qid;
@@ -37,12 +41,9 @@ public class Qrel {
 		return rel;
 	}
 
-	// This method is similar to QueryServices.loadQrels except that it build
-	// Qrel objects from the input file and includes the relevancy score of
-	// the qrels as well
-	public static HashMap<Integer, Set<Qrel>> loadQrelFile(String path) {
+	public static HashMap<Integer, Set<Qrel>> loadQrelFile(InputStream qrelInputStream) {
 		HashMap<Integer, Set<Qrel>> qidQrels = new HashMap<Integer, Set<Qrel>>();
-		try (Scanner sc = new Scanner(new File(path))) {
+		try (Scanner sc = new Scanner(qrelInputStream)) {
 			String line;
 			while (sc.hasNextLine()) {
 				line = sc.nextLine();
@@ -66,8 +67,6 @@ public class Qrel {
 					LOGGER.log(Level.WARNING, "regex failed for line: " + line);
 				}
 			}
-		} catch (FileNotFoundException e) {
-			LOGGER.log(Level.SEVERE, "QREL file not found!");
 		}
 		return qidQrels;
 	}
