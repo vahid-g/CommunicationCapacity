@@ -170,7 +170,7 @@ public class AmazonExperiment {
 		// Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
 		// .loadLtidToIsbnMap(AmazonDirectoryInfo.ISBN_DICT);
 		try (FileWriter fw = new FileWriter(resultDir.getAbsolutePath() + "/"
-				+ expNo + "2.csv")
+				+ expNo + ".csv")
 		// ;FileWriter fw2 = new FileWriter(
 		// AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".log")
 		) {
