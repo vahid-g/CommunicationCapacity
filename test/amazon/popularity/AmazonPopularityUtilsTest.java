@@ -23,7 +23,7 @@ public class AmazonPopularityUtilsTest {
 	@Test
 	public void testloadLtidTotalScoreMap() {
 		Map<String, Integer> ltidScoresMap = AmazonPopularityUtils
-				.loadLtidTotalScoreMap("data/amazon_data/inex14sbs.qrels");
+				.loadLtidTotalScoreMap("data/amazon/queries/inex14sbs.qrels");
 		assertEquals(new Integer(31), ltidScoresMap.get("2773690"));
 	}
 

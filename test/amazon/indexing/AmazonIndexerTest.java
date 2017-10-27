@@ -18,6 +18,8 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
+import org.junit.Before;
+import org.junit.Test;
 
 import amazon.AmazonDocumentField;
 import amazon.datatools.AmazonDeweyConverter;
@@ -28,24 +30,27 @@ public class AmazonIndexerTest extends TestCase {
 
 	AmazonIndexer indexer;
 
+	@Before
 	public void setUp() {
 		AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
 				AmazonDocumentField.CREATORS, AmazonDocumentField.TAGS, AmazonDocumentField.DEWEY };
 		Map<String, String> isbnConverter = AmazonIsbnConverter
-				.loadIsbnToLtidMap("data/amazon_data/amazon-lt.isbn.thingID.csv");
-		AmazonDeweyConverter deweyConverter = AmazonDeweyConverter.getInstance("data/amazon_data/dewey.csv");
+				.loadIsbnToLtidMap("data/amazon/queries/amazon-lt.isbn.thingID.csv");
+		AmazonDeweyConverter deweyConverter = AmazonDeweyConverter.getInstance("data/amazon/dewey.csv");
 		indexer = new AmazonIndexer(fields, isbnConverter, deweyConverter);
 	}
 
+	@Test
 	public void testParseAmazonXml() {
-		File file = new File("data/test_data/1931243999.xml");
+		File file = new File("data/amazon/test_data/1931243999.xml");
 		Map<AmazonDocumentField, String> dMap = indexer.parseAmazonXml(file);
 		assertEquals("Geography & travel", dMap.get(AmazonDocumentField.DEWEY));
 		assertEquals("unread literature Fiction", dMap.get(AmazonDocumentField.TAGS));
 	}
 
+	@Test
 	public void testIndex() throws IOException, ParseException {
-		File file = new File("data/test_data/1931243999.xml");
+		File file = new File("data/amazon/test_data/1931243999.xml");
 		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(new StandardAnalyzer());
 		indexWriterConfig.setOpenMode(OpenMode.CREATE);
 		indexWriterConfig.setRAMBufferSizeMB(1024.00);

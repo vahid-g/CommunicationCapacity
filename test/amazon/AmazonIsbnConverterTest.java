@@ -14,17 +14,17 @@ public class AmazonIsbnConverterTest {
 	@Test
 	public void testIsbnToLtid() {
 		Map<String, String> converter = AmazonIsbnConverter
-				.loadIsbnToLtidMap("data/amazon/queries/amazon-lt.isbn.thingID.csv");
-		String isbn = "1577551672";
-		String ltid = "7729670";
+				.loadIsbnToLtidMap("data/amazon/test_data/isbn_ltid.csv");
+		String isbn = "0330308297";
+		String ltid = "17";
 		assertEquals(ltid, converter.get(isbn));
 	}
 
 	public void testLtidToIsbn() {
 		Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
 				.loadLtidToIsbnMap("data/amazon/queries/amazon-lt.isbn.thingID.csv");
-		String ltid = "195721";
-		assertEquals(1, ltidToIsbns.get(ltid).size());
+		String ltid = "17";
+		assertEquals(5, ltidToIsbns.get(ltid).size());
 	}
 
 }

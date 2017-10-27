@@ -21,16 +21,20 @@ public class AmazonXmlUtilsTest extends TestCase {
 	public void testExtractNodesTextFromXml() throws Exception {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbf.newDocumentBuilder();
-		File file = new File("data/test_data/1931243999.xml");
+		File file = new File("data/amazon/test_data/1931243999.xml");
 		org.w3c.dom.Document xmlDoc = db.parse(file);
 		Node bookNode = xmlDoc.getElementsByTagName("book").item(0);
 		assertEquals("Journey Around My Room (Green Integer)",
-				AmazonXmlUtils.extractNodesTextFromXml(xmlDoc, AmazonDocumentField.TITLE, bookNode));
+				AmazonXmlUtils.extractNodesTextFromXml(xmlDoc,
+						AmazonDocumentField.TITLE, bookNode));
 		assertEquals("Mark Axelrod Translator Xavier de Maistre Author",
-				AmazonXmlUtils.extractNodesTextFromXml(xmlDoc, AmazonDocumentField.CREATORS, bookNode));
+				AmazonXmlUtils.extractNodesTextFromXml(xmlDoc,
+						AmazonDocumentField.CREATORS, bookNode));
 		assertEquals("unread literature Fiction",
-				AmazonXmlUtils.extractNodesTextFromXml(xmlDoc, AmazonDocumentField.TAGS, bookNode));
-		assertEquals("910", AmazonXmlUtils.extractNodesTextFromXml(xmlDoc, AmazonDocumentField.DEWEY, bookNode));
+				AmazonXmlUtils.extractNodesTextFromXml(xmlDoc,
+						AmazonDocumentField.TAGS, bookNode));
+		assertEquals("910", AmazonXmlUtils.extractNodesTextFromXml(xmlDoc,
+				AmazonDocumentField.DEWEY, bookNode));
 	}
 
 	@Test
@@ -44,7 +48,8 @@ public class AmazonXmlUtilsTest extends TestCase {
 		item.appendChild(xmlDoc.createTextNode("outerText"));
 		root.appendChild(item);
 		xmlDoc.appendChild(root);
-		assertEquals("innerText outerText", AmazonXmlUtils.extractNodeTextContent(root));
+		assertEquals("innerText outerText",
+				AmazonXmlUtils.extractNodeTextContent(root));
 	}
 
 }
