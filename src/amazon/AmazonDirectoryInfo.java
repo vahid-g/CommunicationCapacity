@@ -14,7 +14,7 @@ public class AmazonDirectoryInfo {
 	public static final String QREL_FILE = HOME + "data/queries/amazon/inex14sbs.qrels";
 	public static final String RESULT_DIR = HOME + "data/result/amazon/";
 	public static final String ISBN_DICT = HOME + "data/queries/amazon/amazon-lt.isbn.thingID.csv";
-	public static final String DEWEY_DICT = HOME + "data/dewey.csv";
+	public static final String DEWEY_DICT = HOME + "data/dewey.tsv";
 	
 	static {
 		File resultDir = new File(RESULT_DIR);

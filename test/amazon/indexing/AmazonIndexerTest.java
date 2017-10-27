@@ -2,8 +2,9 @@ package amazon.indexing;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Map;
+
+import junit.framework.TestCase;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
@@ -17,14 +18,13 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.similarities.BM25Similarity;
-import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.RAMDirectory;
 import org.junit.Before;
 import org.junit.Test;
 
 import amazon.AmazonDocumentField;
 import amazon.datatools.AmazonDeweyConverter;
 import amazon.datatools.AmazonIsbnConverter;
-import junit.framework.TestCase;
 
 public class AmazonIndexerTest extends TestCase {
 
@@ -35,8 +35,8 @@ public class AmazonIndexerTest extends TestCase {
 		AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
 				AmazonDocumentField.CREATORS, AmazonDocumentField.TAGS, AmazonDocumentField.DEWEY };
 		Map<String, String> isbnConverter = AmazonIsbnConverter
-				.loadIsbnToLtidMap("data/amazon/queries/amazon-lt.isbn.thingID.csv");
-		AmazonDeweyConverter deweyConverter = AmazonDeweyConverter.getInstance("data/amazon/dewey.csv");
+				.loadIsbnToLtidMap("data/amazon/test_data/isbn_ltid.csv");
+		AmazonDeweyConverter deweyConverter = AmazonDeweyConverter.getInstance("data/amazon/test_data/dewey.tsv");
 		indexer = new AmazonIndexer(fields, isbnConverter, deweyConverter);
 	}
 
@@ -55,11 +55,11 @@ public class AmazonIndexerTest extends TestCase {
 		indexWriterConfig.setOpenMode(OpenMode.CREATE);
 		indexWriterConfig.setRAMBufferSizeMB(1024.00);
 		indexWriterConfig.setSimilarity(new BM25Similarity());
-		FSDirectory directory = FSDirectory.open(Paths.get("data/index"));
-		IndexWriter writer = new IndexWriter(directory, indexWriterConfig);
+		RAMDirectory rd = new RAMDirectory();
+		IndexWriter writer = new IndexWriter(rd, indexWriterConfig);
 		indexer.index(file, writer);
 		writer.close();
-		IndexReader reader = DirectoryReader.open(directory);
+		IndexReader reader = DirectoryReader.open(rd);
 		IndexSearcher searcher = new IndexSearcher(reader);
 		searcher.setSimilarity(new BM25Similarity());
 		StandardAnalyzer analyzer = new StandardAnalyzer();
@@ -67,7 +67,7 @@ public class AmazonIndexerTest extends TestCase {
 		Query query = parser.parse("Journey Around My Room");
 		TopDocs topDocs = searcher.search(query, 10);
 		org.apache.lucene.document.Document doc = searcher.doc(topDocs.scoreDocs[0].doc);
-		directory.close();
+		rd.close();
 		assertEquals("Journey Around My Room (Green Integer)", doc.get("title"));
 		assertEquals("27570", doc.get("ltid"));
 	}
