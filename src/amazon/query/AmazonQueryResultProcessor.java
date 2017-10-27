@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import query.ExperimentQuery;
 import query.Qrel;
 import query.QueryResult;
-import amazon.AmazonIsbnPopularityMap;
+import amazon.popularity.AmazonIsbnPopularityMap;
 
 public class AmazonQueryResultProcessor {
 

@@ -1,4 +1,4 @@
-package amazon;
+package amazon.popularity;
 
 import java.io.IOException;
 import java.nio.file.Files;
