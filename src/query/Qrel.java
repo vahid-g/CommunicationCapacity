@@ -3,6 +3,7 @@ package query;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Level;
@@ -14,40 +15,13 @@ public class Qrel {
 
 	static final Logger LOGGER = Logger.getLogger(Qrel.class.getName());
 
-	private int qid;
-	private String qrelId;
-	private int rel;
-
-	public Qrel(int qid, String qrelId, int rel) {
-		this.qid = qid;
-		this.qrelId = qrelId;
-		this.rel = rel;
-	}
-	
-	@Override
-	public String toString(){
-		return qid + " " + qrelId + " " + rel;
-	}
-
-	public int getQid() {
-		return qid;
-	}
-	
-	public String getQrelId() {
-		return qrelId;
-	}
-
-	public int getRel() {
-		return rel;
-	}
-
-	public static HashMap<Integer, Set<Qrel>> loadQrelFile(InputStream qrelInputStream) {
-		HashMap<Integer, Set<Qrel>> qidQrels = new HashMap<Integer, Set<Qrel>>();
+	public static Map<Integer, Set<Qrel>> loadQrelFile(InputStream qrelInputStream) {
+		Map<Integer, Set<Qrel>> qidQrels = new HashMap<Integer, Set<Qrel>>();
 		try (Scanner sc = new Scanner(qrelInputStream)) {
 			String line;
 			while (sc.hasNextLine()) {
 				line = sc.nextLine();
-				Pattern ptr = Pattern.compile("(\\d+)\\sQ?0\\s(\\w+)\\s([0-9])");
+				Pattern ptr = Pattern.compile("(\\d+)\\sQ?0\\s(\\w+)\\s([0-9]+)");
 				Matcher m = ptr.matcher(line);
 				if (m.find()) {
 					if (!m.group(3).equals("0")) {
@@ -69,6 +43,49 @@ public class Qrel {
 			}
 		}
 		return qidQrels;
+	}
+
+	private int qid;
+	private String qrelId;
+
+	private int rel;
+
+	public Qrel(int qid, String qrelId, int rel) {
+		this.qid = qid;
+		this.qrelId = qrelId;
+		this.rel = rel;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof Qrel) {
+			Qrel toCompare = (Qrel) obj;
+			return ((toCompare.qid == this.qid) && toCompare.qrelId.equals(this.getQrelId()) 
+					&& toCompare.rel == this.rel);
+		}
+		return false;
+	}
+	
+	public int getQid() {
+		return qid;
+	}
+
+	public String getQrelId() {
+		return qrelId;
+	}
+
+	public int getRel() {
+		return rel;
+	}
+	
+	@Override
+	public int hashCode() {
+	    return this.toString().hashCode();
+	}
+	
+	@Override
+	public String toString() {
+		return qid + " Q0 " + qrelId + " " + rel;
 	}
 
 }
