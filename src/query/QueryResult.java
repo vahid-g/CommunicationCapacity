@@ -44,7 +44,7 @@ public class QueryResult {
 
 	public double mrr() {
 		for (int i = 0; i < topResults.size(); i++) {
-			if (query.hasReturnedQrelid(topResults.get(i))) {
+			if (query.hasQrelId(topResults.get(i))) {
 				return (1.0 / (i + 1));
 			}
 		}
@@ -55,7 +55,7 @@ public class QueryResult {
 		double pk = precisionAtK(1);
 		double ap = pk;
 		for (int k = 1; k < topResults.size(); k++) {
-			if (query.hasReturnedQrelid(topResults.get(k)))
+			if (query.hasQrelId(topResults.get(k)))
 				ap += (pk * k + 1) / (k + 1);
 			pk = (pk * k) / (k + 1);
 		}
@@ -181,7 +181,7 @@ public class QueryResult {
 		sb.append("top false positives: \n");
 		counter = 0;
 		for (int i = 0; i < this.topResults.size(); i++) {
-			if (!query.hasReturnedQrelid(topResults.get(i)))
+			if (!query.hasQrelId(topResults.get(i)))
 				sb.append(topResultsTitle.get(i) + "\n");
 			if (++counter > 20)
 				break;
