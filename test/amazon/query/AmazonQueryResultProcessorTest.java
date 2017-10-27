@@ -47,7 +47,5 @@ public class AmazonQueryResultProcessorTest {
 		assertEquals("l1", queryResult.getTopResults().get(0));
 		assertEquals("l2", queryResult.getTopResults().get(1));
 	}
-	
-	
 
 }
