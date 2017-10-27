@@ -5,25 +5,23 @@ import indexing.InexFile;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.lucene.search.similarities.BM25Similarity;
 
 import query.ExperimentQuery;
-import query.Qrel;
 import query.QueryResult;
 import query.QueryServices;
 import amazon.datatools.AmazonDeweyConverter;
 import amazon.datatools.AmazonIsbnConverter;
 import amazon.indexing.AmazonDatasetIndexer;
 import amazon.indexing.AmazonIndexer;
+import amazon.query.AmazonQueryResultProcessor;
 
 public class AmazonExperiment {
 
@@ -93,7 +91,7 @@ public class AmazonExperiment {
 		datasetIndexer.buildIndex(fileList, indexPath);
 	}
 
-	public Map<String, Float> gridSearchOnGlobalIndex(String queryFile,
+	Map<String, Float> gridSearchOnGlobalIndex(String queryFile,
 			String qrelFile, String[] queryFields) {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
@@ -113,7 +111,6 @@ public class AmazonExperiment {
 					+ " : " + fieldToBoost.toString());
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 					queries, indexPath, new BM25Similarity(), fieldToBoost);
-			convertIsbnToLtidAndFilter(results);
 			for (QueryResult queryResult : results) {
 				p10[i] += queryResult.precisionAtK(10);
 				mrr[i] += queryResult.mrr();
@@ -156,8 +153,8 @@ public class AmazonExperiment {
 		return fieldToBoost;
 	}
 
-	private void expOnGlobalIndex(Map<String, Float> fieldToBoost,
-			String queryFile, String qrelFile, String[] queryFields) {
+	void expOnGlobalIndex(Map<String, Float> fieldToBoost, String queryFile,
+			String qrelFile, String[] queryFields) {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				queryFile, qrelFile, queryFields);
@@ -165,12 +162,19 @@ public class AmazonExperiment {
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 				queries, indexPath, new BM25Similarity(), fieldToBoost);
 		LOGGER.log(Level.INFO, "updating ISBN results to LTID..");
-		convertIsbnToLtidAndFilter(results);
+		Map<String, String> isbnToLtid = AmazonIsbnConverter
+				.loadIsbnToLtidMap(AmazonDirectoryInfo.ISBN_DICT);
+		for (QueryResult qr : results) {
+			AmazonQueryResultProcessor.convertIsbnAnswersToLtidAndFilter(qr,
+					isbnToLtid);
+		}
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		File resultDir = new File(AmazonDirectoryInfo.RESULT_DIR + expName);
 		resultDir.mkdirs();
 		// Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
 		// .loadLtidToIsbnMap(AmazonDirectoryInfo.ISBN_DICT);
+		// AmazonIsbnPopularityMap aipm = AmazonIsbnPopularityMap
+		// .getInstance(isbnsFilePath);
 		try (FileWriter fw = new FileWriter(resultDir.getAbsolutePath() + "/"
 				+ expNo + ".csv")
 		// ;FileWriter fw2 = new FileWriter(
@@ -178,93 +182,11 @@ public class AmazonExperiment {
 		) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.resultString() + "\n");
-				// fw2.write(generateLog(mqr, ltidToIsbns) + "\n");
+				// fw2.write(generateLog(mqr, ltidToIsbns, aipm) + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage());
 		}
-	}
-
-	String generateLog(QueryResult queryResult,
-			Map<String, Set<String>> ltidToIsbn) {
-		ExperimentQuery query = queryResult.query;
-		StringBuilder sb = new StringBuilder();
-		sb.append("qid: " + query.getId() + "\t" + queryResult.mrr() + "\n");
-		sb.append("query: " + query.getText() + "\n\n");
-		sb.append("|relevant tuples| = " + query.getQrels().size() + "\n");
-		sb.append("|returned results| = " + queryResult.getTopResults().size()
-				+ "\n");
-		int counter = 0;
-		sb.append("returned results: \n");
-		AmazonIsbnWeightMap aiwm = AmazonIsbnWeightMap
-				.getInstance(isbnsFilePath);
-		for (int i = 0; i < queryResult.getTopResults().size(); i++) {
-			String returnedLtid = queryResult.getTopResults().get(i);
-			String returnedTitle = queryResult.getTopResultsTitle().get(i);
-			String isbn = returnedTitle
-					.substring(0, returnedTitle.indexOf(':'));
-			if (query.hasQrelId(returnedLtid)) {
-				sb.append("++ " + returnedLtid + "\t" + returnedTitle + "\t"
-						+ aiwm.getWeight(isbn) + "\n");
-			} else {
-				sb.append("-- " + returnedLtid + "\t" + returnedTitle + "\t"
-						+ aiwm.getWeight(isbn) + "\n");
-			}
-			if (counter++ > 10)
-				break;
-		}
-		counter = 0;
-		sb.append("missed docs: ");
-		for (Qrel qrel : query.getQrels()) {
-			String relevantLtid = qrel.getQrelId();
-			if (!queryResult.getTopResults().contains(relevantLtid)) {
-				Set<String> isbns = ltidToIsbn.get(relevantLtid);
-				if (isbns == null) {
-					LOGGER.log(Level.SEVERE,
-							"puuu, couldn't find isbns for ltid: "
-									+ relevantLtid);
-					continue;
-				}
-				for (String isbn : isbns) {
-					sb.append(relevantLtid + ": (" + isbn + ", "
-							+ aiwm.getWeight(isbn) + ") ");
-				}
-				sb.append("\n");
-			}
-			if (counter++ > 10)
-				break;
-		}
-		sb.append("-------------------------------------\n");
-		return sb.toString();
-	}
-
-	private List<QueryResult> convertIsbnToLtidAndFilter(
-			List<QueryResult> results) {
-		// updateing qrels of queries
-		Map<String, String> isbnToLtid = AmazonIsbnConverter
-				.loadIsbnToLtidMap(AmazonDirectoryInfo.ISBN_DICT);
-		for (QueryResult res : results) {
-			List<String> oldResults = res.getTopResults();
-			List<String> newResults = new ArrayList<String>();
-			List<String> oldResultsTitle = res.getTopResultsTitle();
-			List<String> newResultsTitle = new ArrayList<String>();
-			for (int i = 0; i < oldResults.size(); i++) {
-				String isbn = oldResults.get(i);
-				String ltid = isbnToLtid.get(isbn);
-				if (ltid == null) {
-					LOGGER.log(Level.SEVERE, "Couldn't find ISBN: " + isbn
-							+ " in dict");
-					continue;
-				}
-				if (!newResults.contains(ltid)) {
-					newResults.add(ltid);
-					newResultsTitle.add(oldResultsTitle.get(i));
-				}
-			}
-			res.setTopResults(newResults);
-			res.setTopResultsTitle(newResultsTitle);
-		}
-		return results;
 	}
 
 }
