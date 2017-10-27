@@ -170,7 +170,7 @@ public class AmazonExperiment {
 		// Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
 		// .loadLtidToIsbnMap(AmazonDirectoryInfo.ISBN_DICT);
 		try (FileWriter fw = new FileWriter(resultDir.getAbsolutePath() + "/"
-				+ expNo + ".csv")
+				+ expNo + "2.csv")
 		// ;FileWriter fw2 = new FileWriter(
 		// AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".log")
 		) {
@@ -190,15 +190,15 @@ public class AmazonExperiment {
 		sb.append("qid: " + query.getId() + "\t" + queryResult.mrr() + "\n");
 		sb.append("query: " + query.getText() + "\n\n");
 		sb.append("|relevant tuples| = " + query.getQrels().size() + "\n");
-		sb.append("|returned results| = " + queryResult.topResults.size()
+		sb.append("|returned results| = " + queryResult.getTopResults().size()
 				+ "\n");
 		int counter = 0;
 		sb.append("returned results: \n");
 		AmazonIsbnWeightMap aiwm = AmazonIsbnWeightMap
 				.getInstance(isbnsFilePath);
-		for (int i = 0; i < queryResult.topResults.size(); i++) {
-			String returnedLtid = queryResult.topResults.get(i);
-			String returnedTitle = queryResult.topResultsTitle.get(i);
+		for (int i = 0; i < queryResult.getTopResults().size(); i++) {
+			String returnedLtid = queryResult.getTopResults().get(i);
+			String returnedTitle = queryResult.getTopResultsTitle().get(i);
 			String isbn = returnedTitle
 					.substring(0, returnedTitle.indexOf(':'));
 			if (query.hasQrelId(returnedLtid)) {
@@ -215,7 +215,7 @@ public class AmazonExperiment {
 		sb.append("missed docs: ");
 		for (Qrel qrel : query.getQrels()) {
 			String relevantLtid = qrel.getQrelId();
-			if (!queryResult.topResults.contains(relevantLtid)) {
+			if (!queryResult.getTopResults().contains(relevantLtid)) {
 				Set<String> isbns = ltidToIsbn.get(relevantLtid);
 				if (isbns == null) {
 					LOGGER.log(Level.SEVERE,
@@ -242,9 +242,9 @@ public class AmazonExperiment {
 		Map<String, String> isbnToLtid = AmazonIsbnConverter
 				.loadIsbnToLtidMap(AmazonDirectoryInfo.ISBN_DICT);
 		for (QueryResult res : results) {
-			List<String> oldResults = res.topResults;
+			List<String> oldResults = res.getTopResults();
 			List<String> newResults = new ArrayList<String>();
-			List<String> oldResultsTitle = res.topResultsTitle;
+			List<String> oldResultsTitle = res.getTopResultsTitle();
 			List<String> newResultsTitle = new ArrayList<String>();
 			for (int i = 0; i < oldResults.size(); i++) {
 				String isbn = oldResults.get(i);
@@ -259,8 +259,8 @@ public class AmazonExperiment {
 					newResultsTitle.add(oldResultsTitle.get(i));
 				}
 			}
-			res.topResults = newResults;
-			res.topResultsTitle = newResultsTitle;
+			res.setTopResults(newResults);
+			res.setTopResultsTitle(newResultsTitle);
 		}
 		return results;
 	}

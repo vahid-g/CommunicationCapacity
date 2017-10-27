@@ -68,10 +68,9 @@ public class QueryServices {
 				QueryResult iqr = new QueryResult(queryDAO);
 				for (int i = 0; i < Math.min(TOP_DOC_COUNT, topDocs.scoreDocs.length); i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					String docID = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
+					String docId = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
 					String docTitle = doc.get(GeneralIndexer.TITLE_ATTRIB);
-					iqr.topResults.add(docID);
-					iqr.topResultsTitle.add(docID + ": " + docTitle);
+					iqr.addResult(docId, docTitle);
 				}
 				iqrList.add(iqr);
 			}
@@ -95,10 +94,9 @@ public class QueryServices {
 				QueryResult iqr = new QueryResult(queryDAO);
 				for (int i = 0; i < Math.min(TOP_DOC_COUNT, topDocs.scoreDocs.length); i++) {
 					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
-					String docID = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
+					String docId = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
 					String docTitle = doc.get(GeneralIndexer.TITLE_ATTRIB);
-					iqr.topResults.add(docID);
-					iqr.topResultsTitle.add(docID + ": " + docTitle);
+					iqr.addResult(docId, docTitle);
 				}
 				iqrList.add(iqr);
 			}

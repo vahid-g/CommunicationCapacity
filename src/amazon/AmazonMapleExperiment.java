@@ -101,9 +101,9 @@ public class AmazonMapleExperiment {
 		Map<String, String> isbnToLtid = AmazonIsbnConverter
 				.loadIsbnToLtidMap(ISBN_DICT_PATH);
 		for (QueryResult res : results) {
-			List<String> oldResults = res.topResults;
+			List<String> oldResults = res.getTopResults();
 			List<String> newResults = new ArrayList<String>();
-			List<String> oldResultsTitle = res.topResultsTitle;
+			List<String> oldResultsTitle = res.getTopResultsTitle();
 			List<String> newResultsTitle = new ArrayList<String>();
 			for (int i = 0; i < oldResults.size(); i++) {
 				String isbn = oldResults.get(i);
@@ -118,8 +118,8 @@ public class AmazonMapleExperiment {
 					newResultsTitle.add(oldResultsTitle.get(i));
 				}
 			}
-			res.topResults = newResults;
-			res.topResultsTitle = newResultsTitle;
+			res.setTopResults(newResults);
+			res.setTopResultsTitle(newResultsTitle);
 		}
 		return results;
 	}
