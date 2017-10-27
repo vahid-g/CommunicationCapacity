@@ -1,4 +1,4 @@
-package amazon.utils;
+package amazon.popularity;
 
 import java.io.BufferedReader;
 import java.io.FileWriter;

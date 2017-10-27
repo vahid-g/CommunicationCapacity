@@ -18,8 +18,8 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.w3c.dom.Node;
 
-import amazon.AmazonDeweyConverter;
 import amazon.AmazonDocumentField;
+import amazon.datatools.AmazonDeweyConverter;
 import amazon.utils.AmazonXmlUtils;
 
 public class AmazonIndexer implements AmazonFileIndexerInterface {

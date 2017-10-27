@@ -7,6 +7,8 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import amazon.datatools.AmazonIsbnConverter;
+
 public class AmazonIsbnConverterTest {
 
 	@Test

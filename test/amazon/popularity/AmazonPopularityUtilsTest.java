@@ -1,6 +1,6 @@
-package amazon.utils;
+package amazon.popularity;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -8,7 +8,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import amazon.utils.AmazonPopularityUtils;
+import amazon.popularity.AmazonPopularityUtils;
 
 public class AmazonPopularityUtilsTest {
 

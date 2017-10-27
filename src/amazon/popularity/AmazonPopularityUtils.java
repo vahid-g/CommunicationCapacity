@@ -1,4 +1,4 @@
-package amazon.utils;
+package amazon.popularity;
 
 import indexing.InexFile;
 
@@ -28,7 +28,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import wiki_inex09.Utils;
-import amazon.AmazonIsbnConverter;
+import amazon.datatools.AmazonIsbnConverter;
 
 public class AmazonPopularityUtils {
 

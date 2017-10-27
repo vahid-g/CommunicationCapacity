@@ -1,4 +1,4 @@
-package amazon;
+package amazon.datatools;
 
 import java.io.IOException;
 import java.nio.file.Files;

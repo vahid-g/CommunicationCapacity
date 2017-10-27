@@ -1,4 +1,4 @@
-package amazon;
+package amazon.datatools;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

@@ -19,6 +19,8 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
+import amazon.datatools.AmazonDeweyConverter;
+import amazon.datatools.AmazonIsbnConverter;
 import amazon.indexing.AmazonDatasetIndexer;
 import amazon.indexing.AmazonIndexer;
 

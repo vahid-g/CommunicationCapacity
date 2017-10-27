@@ -19,9 +19,9 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
-import amazon.AmazonDeweyConverter;
 import amazon.AmazonDocumentField;
-import amazon.AmazonIsbnConverter;
+import amazon.datatools.AmazonDeweyConverter;
+import amazon.datatools.AmazonIsbnConverter;
 import junit.framework.TestCase;
 
 public class AmazonIndexerTest extends TestCase {
