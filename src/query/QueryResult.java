@@ -11,8 +11,8 @@ import java.util.Map;
 public class QueryResult {
 
 	public ExperimentQuery query;
-	private List<String> topResults = new ArrayList<String>();
-	private List<String> topResultsTitle = new ArrayList<String>();
+	protected List<String> topResults = new ArrayList<String>();
+	protected List<String> topResultsTitle = new ArrayList<String>();
 
 	public QueryResult(ExperimentQuery query) {
 		this.query = query;
