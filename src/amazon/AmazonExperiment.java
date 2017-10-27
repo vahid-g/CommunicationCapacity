@@ -201,7 +201,7 @@ public class AmazonExperiment {
 			String returnedTitle = queryResult.topResultsTitle.get(i);
 			String isbn = returnedTitle
 					.substring(0, returnedTitle.indexOf(':'));
-			if (query.hasReturnedQrelid(returnedLtid)) {
+			if (query.hasQrelId(returnedLtid)) {
 				sb.append("++ " + returnedLtid + "\t" + returnedTitle + "\t"
 						+ aiwm.getWeight(isbn) + "\n");
 			} else {
