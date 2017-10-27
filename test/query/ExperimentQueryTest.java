@@ -23,7 +23,6 @@ public class ExperimentQueryTest {
 		qrels.add(new Qrel(1, "qrel1", 8));
 		qrels.add(new Qrel(2, "qrel2", 1));
 		ExperimentQuery eq = new ExperimentQuery(1, "text", qrels);
-		System.out.println(eq.getQrels());
 		assertTrue(eq.hasQrelId("qrel1"));
 		assertTrue(eq.hasQrelId("qrel2"));
 		assertTrue(!eq.hasQrelId(""));
