@@ -45,16 +45,19 @@ public class AmazonMapleExperiment {
 	private static final String[] queryFields = {"mediated_query", "title",
 			"group", "narrative"};
 
+	
+	static void buildIndex(){
+		List<InexFile> fileList = InexFile.loadInexFileList(FILE_LIST);
+		LOGGER.log(Level.INFO, "Building index..");
+		AmazonIndexer fileIndexer = new AmazonIndexer(fields,
+				AmazonIsbnConverter.loadIsbnToLtidMap(ISBN_DICT_PATH),
+				AmazonDeweyConverter.getInstance(DEWEY_DICT));
+		AmazonDatasetIndexer datasetIndexer = new AmazonDatasetIndexer(
+				fileIndexer);
+		datasetIndexer.buildIndex(fileList, INDEX_PATH);
+	}
+	
 	public static void main(String[] args) throws IOException {
-//		List<InexFile> fileList = InexFile.loadInexFileList(FILE_LIST);
-//		LOGGER.log(Level.INFO, "Building index..");
-//		AmazonIndexer fileIndexer = new AmazonIndexer(fields,
-//				AmazonIsbnConverter.loadIsbnToLtidMap(ISBN_DICT),
-//				AmazonDeweyConverter.getInstance(DEWEY_DICT));
-//		AmazonDatasetIndexer datasetIndexer = new AmazonDatasetIndexer(
-//				fileIndexer);
-//		datasetIndexer.buildIndex(fileList, INDEX_PATH);
-
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				QUERY_FILE, QREL_FILE, queryFields);
