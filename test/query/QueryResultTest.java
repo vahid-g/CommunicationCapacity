@@ -10,9 +10,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class QueryResultTest {
-	
+
 	private static final double epsilon = 0.001;
-	
+
 	QueryResult queryResult;
 
 	@Before
@@ -35,24 +35,25 @@ public class QueryResultTest {
 		assertEquals(queryResult.ndcg(10), 0, epsilon);
 		queryResult.addResult("qrel1", "title1");
 		assertEquals(queryResult.idcg(10), 10, epsilon);
-		assertEquals(queryResult.ndcg(10), 1/(Math.log(3)/Math.log(2)), epsilon);
+		assertEquals(queryResult.ndcg(10), 1 / (Math.log(3) / Math.log(2)), epsilon);
 	}
-	
+
 	@Test
-	public void testPrecisionAtK(){
+	public void testPrecisionAtK() {
 		Map<String, Integer> qrelScoreMap = queryResult.query.getQrelScoreMap();
+		queryResult.addResult("q2", "t1");
+		assertEquals(queryResult.precisionAtK(10), 0, epsilon);
 		qrelScoreMap.put("q1", 10);
 		qrelScoreMap.put("q2", 1);
 		qrelScoreMap.put("q3", 2);
-		queryResult.addResult("q2", "t1");
 		assertEquals(queryResult.precisionAtK(10), 0.1, epsilon);
 		queryResult.addResult("q3", "t1");
 		assertEquals(queryResult.precisionAtK(10), 0.2, epsilon);
 		queryResult.addResult("q4", "t1");
-		for (int i = 0; i < 7; i++){
+		for (int i = 0; i < 7; i++) {
 			qrelScoreMap.put(i + "", i + 1);
 			queryResult.addResult(i + "", "title");
 		}
-		assertEquals(queryResult.precisionAtK(10), 0.9, epsilon);		
+		assertEquals(queryResult.precisionAtK(10), 0.9, epsilon);
 	}
 }
