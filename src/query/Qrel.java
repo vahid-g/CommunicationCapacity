@@ -47,7 +47,6 @@ public class Qrel {
 
 	private int qid;
 	private String qrelId;
-
 	private int rel;
 
 	public Qrel(int qid, String qrelId, int rel) {

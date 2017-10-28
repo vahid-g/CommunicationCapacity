@@ -4,7 +4,6 @@ import indexing.InexFile;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -31,46 +30,70 @@ public class QueryResult {
 				ap += (pk * k + 1) / (k + 1);
 			pk = (pk * k) / (k + 1);
 		}
-		return ap / query.getQrels().size();
+		return ap / query.getQrelScoreMap().size();
 	}
 
-	public List<String> getTopResults() {
-		return topResults;
-	}
-
-	public List<String> getTopResultsTitle() {
-		return topResultsTitle;
-	}
-	
 	double idcg(int p) {
-		List<Qrel> qrelList = new ArrayList<Qrel>();
-		qrelList.addAll(query.getQrels());
-		Collections.sort(qrelList, new Comparator<Qrel>() {
-			@Override
-			public int compare(Qrel o1, Qrel o2) {
-				if (o1.getRel() > o2.getRel()) {
-					return -1;
-				} else if (o1.getRel() == o2.getRel()) {
-					return 0;
-				} else {
-					return 1;
-				}
-			}
-		});
+		List<Integer> qrelScoreList = new ArrayList<Integer>();
+		if (query.getQrelScoreMap().size() > 0)
+			qrelScoreList.addAll(query.getQrelScoreMap().values());
+		Collections.sort(qrelScoreList, Collections.reverseOrder());
 		double dcg = 0;
-		for (int i = 0; i < Math.min(qrelList.size(), p); i++) {
-			dcg += qrelList.get(i).getRel()/(Math.log(i + 2) / Math.log(2));
+		for (int i = 0; i < Math.min(qrelScoreList.size(), p); i++) {
+			dcg += qrelScoreList.get(i) / (Math.log(i + 2) / Math.log(2));
 		}
 		return dcg;
 	}
-	
+
+	public double mrr() {
+		for (int i = 0; i < topResults.size(); i++) {
+			if (query.hasQrelId(topResults.get(i))) {
+				return (1.0 / (i + 1));
+			}
+		}
+		return 0;
+	}
+
+	public double ndcg(int p) {
+		double dcg = 0;
+		for (int i = 0; i < Math.min(p, topResults.size()); i++) {
+			String currentResult = topResults.get(i);
+			if (query.getQrelScoreMap().containsKey(currentResult)) {
+				dcg += query.getQrelScoreMap().get(currentResult)
+						/ (Math.log(i + 2) / Math.log(2));
+			}
+		}
+		double idcg = idcg(p);
+		if (idcg == 0)
+			return 0;
+		return dcg / idcg;
+	}
+
+	public double precisionAtK(int k) {
+		double truePositives = 0;
+		for (int i = 0; i < Math.min(k, topResults.size()); i++) {
+			if (query.getQrelScoreMap().containsKey(topResults.get(i)))
+				truePositives++;
+		}
+		return truePositives / k;
+	}
+
+	public double recallAtK(int k) {
+		double truePositives = 0;
+		for (int i = 0; i < Math.min(k, topResults.size()); i++) {
+			if (query.getQrelScoreMap().containsKey(topResults.get(i)))
+				truePositives++;
+		}
+		return truePositives / query.getQrelScoreMap().size();
+	}
+
 	public String listFalseNegatives(int k) {
 		StringBuilder sb = new StringBuilder();
 		int counter = 0;
-		for (Qrel qrel : query.getQrels()) {
-			String rel = qrel.getQrelId();
-			if (!topResults.contains(rel)) {
-				sb.append(query.getId() + "," + query.getText() + "," + rel + "\n");
+		for (String qrel : query.getQrelScoreMap().keySet()) {
+			if (!topResults.contains(qrel)) {
+				sb.append(query.getId() + "," + query.getText() + "," + qrel
+						+ "\n");
 			}
 			if (++counter > k)
 				break;
@@ -94,12 +117,11 @@ public class QueryResult {
 	public String miniLog(Map<String, InexFile> idToInexfile) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("qid: " + query.getId() + "\t" + query.getText() + "\n");
-		sb.append("|relevant tuples| = " + query.getQrels().size() + "\n");
+		sb.append("|relevant tuples| = " + query.getQrelScoreMap().size() + "\n");
 		sb.append("|returned results| = " + this.topResults.size() + "\n");
 		int counter = 0;
 		sb.append("available missed files: \n");
-		for (Qrel qrel : query.getQrels()) {
-			String rel = qrel.getQrelId();
+		for (String rel : query.getQrelScoreMap().keySet()) {
 			if (!topResults.contains(rel) && idToInexfile.containsKey(rel)) {
 				sb.append(rel + "\t" + idToInexfile.get(rel).title + "\n");
 			}
@@ -108,8 +130,7 @@ public class QueryResult {
 		}
 		sb.append("unavailable missed files: \n");
 		counter = 0;
-		for (Qrel qrel : query.getQrels()) {
-			String rel = qrel.getQrelId();
+		for (String rel : query.getQrelScoreMap().keySet()) {
 			if (!topResults.contains(rel) && !idToInexfile.containsKey(rel)) {
 				sb.append(rel + "\n");
 			}
@@ -135,57 +156,18 @@ public class QueryResult {
 		return sb.toString();
 	}
 
-	public double mrr() {
-		for (int i = 0; i < topResults.size(); i++) {
-			if (query.hasQrelId(topResults.get(i))) {
-				return (1.0 / (i + 1));
-			}
-		}
-		return 0;
-	}
-
-	public double ndcg(int p) {
-		double dcg = 0;
-		for (int i = 0; i < Math.min(p, topResults.size()); i++) {
-			for (Qrel qrel : query.getQrels()) {
-				if (qrel.getQrelId().equals(topResults.get(i))) {
-					dcg += qrel.getRel() / (Math.log(i + 2) / Math.log(2));
-					break;
-				}
-			}
-		}
-		double idcg = idcg(p);
-		if (idcg == 0) return 0;
-		return dcg / idcg;
-	}
-
-	public double precisionAtK(int k) {
-		double truePositives = 0;
-		double countK = 0;
-		for (Qrel qrel : query.getQrels()) {
-			if (countK >= k++)
-				break;
-			if (topResults.contains(qrel.getQrelId()))
-				truePositives++;
-		}
-		return truePositives / k;
-	}
-
-	public double recallAtK(int k) {
-		double truePositives = 0;
-		double countK = 0;
-		for (Qrel qrel : query.getQrels()) {
-			if (countK >= k++)
-				break;
-			if (topResults.contains(qrel.getQrelId()))
-				truePositives++;
-		}
-		return truePositives / query.getQrels().size();
-	}
-
 	public String resultString() {
-		return query.getText() + "," + precisionAtK(10) + "," + precisionAtK(20) + "," + mrr() + ","
-				+ averagePrecision() + "," + recallAtK(200) + "," + recallAtK(1000) + "," + ndcg(10);
+		return query.getText() + "," + precisionAtK(10) + ","
+				+ precisionAtK(20) + "," + mrr() + "," + averagePrecision()
+				+ "," + recallAtK(200) + "," + recallAtK(1000) + "," + ndcg(10);
+	}
+
+	public List<String> getTopResults() {
+		return topResults;
+	}
+
+	public List<String> getTopResultsTitle() {
+		return topResultsTitle;
 	}
 
 	public void setTopResults(List<String> topResults) {
@@ -198,7 +180,7 @@ public class QueryResult {
 
 	@Override
 	public String toString() {
-		return query.getText() + "," + precisionAtK(10) + "," + mrr() + ", " + averagePrecision();
+		return query.getId() + "," + query.getText();
 	}
 
 }

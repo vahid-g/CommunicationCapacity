@@ -8,7 +8,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import query.ExperimentQuery;
-import query.Qrel;
 import query.QueryResult;
 import amazon.popularity.AmazonIsbnPopularityMap;
 
@@ -43,7 +42,7 @@ public class AmazonQueryResultProcessor {
 		StringBuilder sb = new StringBuilder();
 		sb.append("qid: " + query.getId() + "\t" + queryResult.mrr() + "\n");
 		sb.append("query: " + query.getText() + "\n\n");
-		sb.append("|relevant tuples| = " + query.getQrels().size() + "\n");
+		sb.append("|relevant tuples| = " + query.getQrelScoreMap().size() + "\n");
 		sb.append("|returned results| = " + queryResult.getTopResults().size()
 				+ "\n");
 		int counter = 0;
@@ -65,8 +64,7 @@ public class AmazonQueryResultProcessor {
 		}
 		counter = 0;
 		sb.append("missed docs: ");
-		for (Qrel qrel : query.getQrels()) {
-			String relevantLtid = qrel.getQrelId();
+		for (String relevantLtid : query.getQrelScoreMap().keySet()) {
 			if (!queryResult.getTopResults().contains(relevantLtid)) {
 				Set<String> isbns = ltidToIsbn.get(relevantLtid);
 				if (isbns == null) {
