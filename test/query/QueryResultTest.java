@@ -55,5 +55,4 @@ public class QueryResultTest {
 		}
 		assertEquals(queryResult.precisionAtK(10), 0.9, epsilon);		
 	}
-
 }
