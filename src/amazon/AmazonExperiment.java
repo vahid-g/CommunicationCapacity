@@ -181,7 +181,8 @@ public class AmazonExperiment {
 			try (FileWriter fw = new FileWriter(resultDir.getAbsolutePath()
 					+ "/" + expNo + ".csv");
 					FileWriter fw2 = new FileWriter(
-							AmazonDirectoryInfo.RESULT_DIR + this.experimentName + "_" + expNo
+							AmazonDirectoryInfo.RESULT_DIR
+									+ this.experimentName + "_" + expNo
 									+ ".log")) {
 				for (QueryResult mqr : results) {
 					fw.write(mqr.resultString() + "\n");
@@ -202,5 +203,4 @@ public class AmazonExperiment {
 			}
 		}
 	}
-
 }
