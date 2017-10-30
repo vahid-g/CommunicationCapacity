@@ -33,7 +33,7 @@ public class AmazonMapleExperiment {
 			+ "amazon_path_ratecount.csv";
 	private static final String ISBN_DICT_PATH = DATA_FOLDER
 			+ "amazon-lt.isbn.thingID";
-	private static final String DEWEY_DICT = DATA_FOLDER + "dewey.csv";
+	private static final String DEWEY_DICT = DATA_FOLDER + "dewey_dict";
 	private static final String INDEX_PATH = DATA_FOLDER + "index";
 	private static final String RESULT_DIR = DATA_FOLDER + "result/";
 	private static final String QUERY_FILE = DATA_FOLDER + "inex14sbs.topics.xml";
