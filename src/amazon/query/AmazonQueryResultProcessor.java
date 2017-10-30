@@ -40,13 +40,13 @@ public class AmazonQueryResultProcessor {
 			Map<String, Set<String>> ltidToIsbn, AmazonIsbnPopularityMap aipm) {
 		ExperimentQuery query = queryResult.query;
 		StringBuilder sb = new StringBuilder();
-		sb.append("qid: " + query.getId() + "\t" + queryResult.mrr() + "\n");
+		sb.append("qid: " + query.getId() + "\t" + queryResult.precisionAtK(10) + "\n");
 		sb.append("query: " + query.getText() + "\n\n");
 		sb.append("|relevant tuples| = " + query.getQrelScoreMap().size() + "\n");
 		sb.append("|returned results| = " + queryResult.getTopResults().size()
 				+ "\n");
 		int counter = 0;
-		sb.append("returned results: \n");
+		sb.append("top returned results: \n");
 		for (int i = 0; i < queryResult.getTopResults().size(); i++) {
 			String returnedLtid = queryResult.getTopResults().get(i);
 			String returnedTitle = queryResult.getTopResultsTitle().get(i);
