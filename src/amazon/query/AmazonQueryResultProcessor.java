@@ -29,7 +29,7 @@ public class AmazonQueryResultProcessor {
 				}
 				if (!newResults.contains(ltid)) {
 					newResults.add(ltid);
-					newResultsTitle.add(queryResult.getTopResults().get(i));
+					newResultsTitle.add(queryResult.getTopResultsTitle().get(i));
 				}
 			}
 			queryResult.setTopResults(newResults);
