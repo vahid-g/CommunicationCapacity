@@ -177,7 +177,7 @@ public class AmazonExperiment {
 		File resultDir = new File(AmazonDirectoryInfo.RESULT_DIR + "amazon_f"
 				+ fields.length + "_" + this.experimentName);
 		resultDir.mkdirs();
-		String resultPath = resultDir.getAbsolutePath();
+		String resultPath = resultDir.getAbsolutePath() + "/" + expNo + ".csv";
 		if (extraLogging) {
 			Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
 					.loadLtidToIsbnMap(AmazonDirectoryInfo.ISBN_DICT);
