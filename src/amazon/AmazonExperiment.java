@@ -184,8 +184,7 @@ public class AmazonExperiment {
 			AmazonIsbnPopularityMap aipm = AmazonIsbnPopularityMap
 					.getInstance(isbnsFilePath);
 			String logPath = AmazonDirectoryInfo.RESULT_DIR
-					+ this.experimentName + "_" + expNo + ".log" + "/" + expNo
-					+ ".csv";
+					+ this.experimentName + "_" + expNo + ".log";
 			try (FileWriter fw = new FileWriter(resultPath);
 					FileWriter fw2 = new FileWriter(logPath);
 					IndexReader reader = DirectoryReader.open(FSDirectory
