@@ -40,8 +40,8 @@ public class AmazonQueryResultProcessor {
 			Map<String, Set<String>> ltidToIsbn, AmazonIsbnPopularityMap aipm) {
 		ExperimentQuery query = queryResult.query;
 		StringBuilder sb = new StringBuilder();
-		sb.append("qid: " + query.getId() + "\t" + queryResult.precisionAtK(10) + "\n");
-		sb.append("query: " + query.getText() + "\n\n");
+		sb.append("qid: " + query.getId() + "\t p@10: " + queryResult.precisionAtK(10) + "\n");
+		sb.append("query: " + query.getText() + "\n");
 		sb.append("|relevant tuples| = " + query.getQrelScoreMap().size() + "\n");
 		sb.append("|returned results| = " + queryResult.getTopResults().size()
 				+ "\n");
@@ -62,7 +62,6 @@ public class AmazonQueryResultProcessor {
 			if (counter++ > 10)
 				break;
 		}
-		counter = 0;
 		sb.append("missed docs: ");
 		for (String relevantLtid : query.getQrelScoreMap().keySet()) {
 			if (!queryResult.getTopResults().contains(relevantLtid)) {
@@ -79,8 +78,6 @@ public class AmazonQueryResultProcessor {
 				}
 				sb.append("\n");
 			}
-			if (counter++ > 10)
-				break;
 		}
 		sb.append("-------------------------------------\n");
 		return sb.toString();
