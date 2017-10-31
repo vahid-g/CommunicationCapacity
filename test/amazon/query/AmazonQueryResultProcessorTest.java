@@ -3,11 +3,16 @@ package amazon.query;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.store.FSDirectory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,47 +30,53 @@ public class AmazonQueryResultProcessorTest {
 	@Before
 	public void init() {
 		Set<Qrel> qrelSet = new HashSet<Qrel>();
-		qrelSet.add(new Qrel(1, "l1", 1));
-		qrelSet.add(new Qrel(1, "l2", 1));
-		qrelSet.add(new Qrel(2, "l2", 1));
-		qrelSet.add(new Qrel(2, "l3", 1));
-		ExperimentQuery eq = new ExperimentQuery(1, "q1", qrelSet);
+		qrelSet.add(new Qrel(1, "lt1", 1));
+		qrelSet.add(new Qrel(1, "lt2", 1));
+		qrelSet.add(new Qrel(2, "lt2", 1));
+		qrelSet.add(new Qrel(2, "lt3", 1));
+		ExperimentQuery eq = new ExperimentQuery(1, "q1 text", qrelSet);
 		queryResult = new QueryResult(eq);
-		queryResult.addResult("i1", "t1");
-		queryResult.addResult("i2", "t1");
-		queryResult.addResult("i3", "t1");
-		queryResult.addResult("i4", "t2");
-		isbnToLtid.put("i1", "l1");
-		isbnToLtid.put("i2", "l1");
-		isbnToLtid.put("i3", "l1");
-		isbnToLtid.put("i4", "l2");
+		queryResult.addResult("is1", "title1");
+		queryResult.addResult("is2", "title2");
+		queryResult.addResult("is3", "title3");
+		queryResult.addResult("is4", "title4");
+		isbnToLtid.put("is1", "lt1");
+		isbnToLtid.put("is2", "lt1");
+		isbnToLtid.put("is3", "lt1");
+		isbnToLtid.put("is4", "lt2");
+		isbnToLtid.put("is5", "lt3");
 		Set<String> set1 = new HashSet<String>();
-		set1.add("i1");
-		set1.add("i2");
-		set1.add("i3");
+		set1.add("is1");
+		set1.add("is2");
+		set1.add("is3");
 		Set<String> set2 = new HashSet<String>();
-		set2.add("i4");
-		ltidToIsbn.put("l1", set1);
-		ltidToIsbn.put("l3", new HashSet<String>());
-		ltidToIsbn.put("l4", set2);
+		set2.add("is4");
+		Set<String> set3 = new HashSet<String>();
+		set3.add("is5");
+		ltidToIsbn.put("lt1", set1);
+		ltidToIsbn.put("lt4", set2);
+		ltidToIsbn.put("lt3", set3);
 	}
 
 	@Test
 	public void testConvertIsbnAnswersToSetAndFilter() {
 		AmazonQueryResultProcessor.convertIsbnAnswersToLtidAndFilter(
 				queryResult, isbnToLtid);
-		assertEquals(2, queryResult.getTopResults().size());
-		assertEquals("l1", queryResult.getTopResults().get(0));
-		assertEquals("l2", queryResult.getTopResults().get(1));
+		assertEquals(3, queryResult.getTopResults().size());
+		assertEquals("lt1", queryResult.getTopResults().get(0));
+		assertEquals("lt2", queryResult.getTopResults().get(1));
 	}
-	
+
 	@Test
-	public void testGenerateLog() {
+	public void testGenerateLog() throws IOException {
 		AmazonQueryResultProcessor.convertIsbnAnswersToLtidAndFilter(
 				queryResult, isbnToLtid);
 		AmazonIsbnPopularityMap aipm = AmazonIsbnPopularityMap
 				.getInstance("data/amazon/test_data/path.csv");
-		String log = AmazonQueryResultProcessor.generateLog(queryResult, ltidToIsbn, aipm);
+		IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
+				.get("data/index")));
+		String log = AmazonQueryResultProcessor.generateLog(queryResult,
+				ltidToIsbn, aipm, reader);
 		System.out.println(log);
 		assertTrue(log.length() > 0);
 	}

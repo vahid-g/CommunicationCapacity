@@ -7,8 +7,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.lucene.index.IndexReader;
+
 import query.ExperimentQuery;
 import query.QueryResult;
+import query.QueryServices;
 import amazon.popularity.AmazonIsbnPopularityMap;
 
 public class AmazonQueryResultProcessor {
@@ -37,7 +40,7 @@ public class AmazonQueryResultProcessor {
 	}
 
 	public static String generateLog(QueryResult queryResult,
-			Map<String, Set<String>> ltidToIsbn, AmazonIsbnPopularityMap aipm) {
+			Map<String, Set<String>> ltidToIsbn, AmazonIsbnPopularityMap aipm, IndexReader reader) {
 		ExperimentQuery query = queryResult.query;
 		StringBuilder sb = new StringBuilder();
 		sb.append("qid: " + query.getId() + "\t p@10: " + queryResult.precisionAtK(10) + "\n");
@@ -62,7 +65,7 @@ public class AmazonQueryResultProcessor {
 			if (counter++ > 10)
 				break;
 		}
-		sb.append("missed docs: ");
+		sb.append("=== missed docs === \n");
 		for (String relevantLtid : query.getQrelScoreMap().keySet()) {
 			if (!queryResult.getTopResults().contains(relevantLtid)) {
 				Set<String> isbns = ltidToIsbn.get(relevantLtid);
@@ -72,11 +75,14 @@ public class AmazonQueryResultProcessor {
 									+ relevantLtid);
 					continue;
 				}
+				sb.append("ltid: " + relevantLtid + "\n");
 				for (String isbn : isbns) {
-					sb.append(relevantLtid + ": (" + isbn + ", "
-							+ aipm.getWeight(isbn) + ") ");
+					int inIndex = QueryServices.lookupDocumentId(isbn, reader);
+					if (inIndex > 0)
+						sb.append("\t ++(" + isbn + ", " + aipm.getWeight(isbn) + ") \n");
+					else
+						sb.append("\t --(" + isbn + ", " + aipm.getWeight(isbn) + ") \n");
 				}
-				sb.append("\n");
 			}
 		}
 		sb.append("-------------------------------------\n");

@@ -5,6 +5,7 @@ import indexing.InexFile;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +14,10 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.store.FSDirectory;
 
 import query.ExperimentQuery;
 import query.QueryResult;
@@ -173,28 +177,29 @@ public class AmazonExperiment {
 		File resultDir = new File(AmazonDirectoryInfo.RESULT_DIR + "amazon_f"
 				+ fields.length + "_" + this.experimentName);
 		resultDir.mkdirs();
+		String resultPath = resultDir.getAbsolutePath();
 		if (extraLogging) {
 			Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
 					.loadLtidToIsbnMap(AmazonDirectoryInfo.ISBN_DICT);
 			AmazonIsbnPopularityMap aipm = AmazonIsbnPopularityMap
 					.getInstance(isbnsFilePath);
-			try (FileWriter fw = new FileWriter(resultDir.getAbsolutePath()
-					+ "/" + expNo + ".csv");
-					FileWriter fw2 = new FileWriter(
-							AmazonDirectoryInfo.RESULT_DIR
-									+ this.experimentName + "_" + expNo
-									+ ".log")) {
+			String logPath = AmazonDirectoryInfo.RESULT_DIR
+					+ this.experimentName + "_" + expNo + ".log" + "/" + expNo
+					+ ".csv";
+			try (FileWriter fw = new FileWriter(resultPath);
+					FileWriter fw2 = new FileWriter(logPath);
+					IndexReader reader = DirectoryReader.open(FSDirectory
+							.open(Paths.get(indexPath)))) {
 				for (QueryResult mqr : results) {
 					fw.write(mqr.resultString() + "\n");
 					fw2.write(AmazonQueryResultProcessor.generateLog(mqr,
-							ltidToIsbns, aipm) + "\n");
+							ltidToIsbns, aipm, reader) + "\n");
 				}
 			} catch (IOException e) {
 				LOGGER.log(Level.SEVERE, e.getMessage());
 			}
 		} else {
-			try (FileWriter fw = new FileWriter(resultDir.getAbsolutePath()
-					+ "/" + expNo + ".csv")) {
+			try (FileWriter fw = new FileWriter(resultPath)) {
 				for (QueryResult mqr : results) {
 					fw.write(mqr.resultString() + "\n");
 				}
