@@ -36,9 +36,11 @@ public class AmazonMapleExperiment {
 	private static final String DEWEY_DICT = DATA_FOLDER + "dewey.tsv";
 	private static final String INDEX_PATH = DATA_FOLDER + "index";
 	private static final String RESULT_DIR = DATA_FOLDER + "result/";
-	private static final String QUERY_FILE = DATA_FOLDER + "inex14sbs.topics.xml";
+	private static final String QUERY_FILE = DATA_FOLDER
+			+ "inex14sbs.topics.xml";
 	private static final String QREL_FILE = DATA_FOLDER + "inex14sbs.qrels";
-	private static final String LTID_LIST = DATA_FOLDER + "ltid_ratecountsum.sor";
+	private static final String LTID_LIST = DATA_FOLDER
+			+ "ltid_ratecountsum.sor";
 
 	private static final AmazonDocumentField[] fields = {
 			AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
@@ -47,8 +49,7 @@ public class AmazonMapleExperiment {
 	private static final String[] queryFields = {"mediated_query", "title",
 			"group", "narrative"};
 
-	
-	static void buildIndex(){
+	static void buildIndex() {
 		List<InexFile> fileList = InexFile.loadInexFileList(FILE_LIST);
 		LOGGER.log(Level.INFO, "Building index..");
 		AmazonIndexer fileIndexer = new AmazonIndexer(fields,
@@ -58,7 +59,7 @@ public class AmazonMapleExperiment {
 				fileIndexer);
 		datasetIndexer.buildIndex(fileList, INDEX_PATH);
 	}
-	
+
 	public static void main(String[] args) throws IOException {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
@@ -71,18 +72,18 @@ public class AmazonMapleExperiment {
 		fieldBoostMap.put(AmazonDocumentField.TAGS.toString(), 0.1f);
 		fieldBoostMap.put(AmazonDocumentField.DEWEY.toString(), 0.02f);
 		List<String> sortedLtidList = new ArrayList<String>();
-		for (String line : Files.readAllLines(Paths.get(LTID_LIST))){
+		for (String line : Files.readAllLines(Paths.get(LTID_LIST))) {
 			String[] fields = line.split(" ");
-			if (fields.length > 1){
+			if (fields.length > 1) {
 				sortedLtidList.add(fields[0]);
 			} else {
-				LOGGER.log(Level.SEVERE, "ltid -> weight line doens't have enough fields");
+				LOGGER.log(Level.SEVERE,
+						"ltid -> weight line doens't have enough fields");
 			}
 		}
 		for (int i = 0; i < 50; i++) {
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 					queries, INDEX_PATH, new BM25Similarity(), fieldBoostMap);
-
 			LOGGER.log(Level.INFO, "updating ISBN results to LTID..");
 			int subsetSize = (int) (i * sortedLtidList.size() / 50.0);
 			convertIsbnToLtidAndFilter(results, new TreeSet<String>(
@@ -99,7 +100,8 @@ public class AmazonMapleExperiment {
 	}
 	private static List<QueryResult> convertIsbnToLtidAndFilter(
 			List<QueryResult> results, TreeSet<String> cache) {
-		// updateing qrels of queries
+		LOGGER.log(Level.INFO, "Converting isbn results to ltid with cache");
+		LOGGER.log(Level.INFO, "Cache size:" + cache.size());
 		Map<String, String> isbnToLtid = AmazonIsbnConverter
 				.loadIsbnToLtidMap(ISBN_DICT_PATH);
 		for (QueryResult res : results) {
