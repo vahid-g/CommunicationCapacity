@@ -26,8 +26,7 @@ public class Wiki09Experiments {
 		long start_t = System.currentTimeMillis();
 		expMsn(expNo, 0.9f, totalCount);
 		long end_t = System.currentTimeMillis();
-		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
-				+ (end_t - start_t) / 60000 + " minutes");
+		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is " + (end_t - start_t) / 60000 + " minutes");
 
 		// float gamma = Float.parseFloat(args[0]);
 		// gridSearchExperiment(gamma);
@@ -54,28 +53,22 @@ public class Wiki09Experiments {
 	 */
 	public static void expMsn(int expNo, float gamma, int totalCount) {
 		// file should be sorted
-		List<InexFile> fileList = InexFile
-				.loadInexFileList(ClusterDirectoryInfo.PATH_COUNT_FILE09);
-		LOGGER.log(Level.INFO,
-				"Number of loaded path_counts: " + fileList.size());
+		List<InexFile> fileList = InexFile.loadInexFileList(ClusterDirectoryInfo.PATH_COUNT_FILE09);
+		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + fileList.size());
 		LOGGER.log(Level.INFO, "Sorting files..");
 		LOGGER.log(Level.INFO, "Building index..");
-		String indexPath = ClusterDirectoryInfo.LOCAL_INDEX_BASE09 + "index09_"
-				+ expNo;
+		String indexPath = ClusterDirectoryInfo.LOCAL_INDEX_BASE09 + "index09_" + expNo;
 		double doubleCount = (double) totalCount;
 		int subsetSize = (int) (fileList.size() * (expNo / doubleCount));
-		new Wiki09Indexer().buildIndex(fileList.subList(0, subsetSize),
-				indexPath, gamma);
+		new Wiki09Indexer().buildIndex(fileList.subList(0, subsetSize), indexPath);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
-				ClusterDirectoryInfo.MSN_QUERY_QID_B,
+		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_B,
 				ClusterDirectoryInfo.MSN_QID_QREL);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<QueryResult> results = QueryServices
-				.runQueries(queries, indexPath);
+		List<QueryResult> results = QueryServices.runQueries(queries, indexPath);
 		LOGGER.log(Level.INFO, "Writing results..");
-		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
-				+ "msn09_" + totalCount + "_" + expNo + ".csv")) {
+		try (FileWriter fw = new FileWriter(
+				ClusterDirectoryInfo.RESULT_DIR + "msn09_" + totalCount + "_" + expNo + ".csv")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.toString() + "\n");
 			}
@@ -93,25 +86,19 @@ public class Wiki09Experiments {
 	 */
 	public static void expInex(int expNo) {
 		// list should be sorted
-		List<InexFile> fileList = InexFile
-				.loadInexFileList(ClusterDirectoryInfo.PATH_COUNT_FILE09);
+		List<InexFile> fileList = InexFile.loadInexFileList(ClusterDirectoryInfo.PATH_COUNT_FILE09);
 		LOGGER.log(Level.INFO, "Sorting files..");
 		int subsetSize = (int) (fileList.size() * (expNo / 10.0));
 		LOGGER.log(Level.INFO, "Building index..");
-		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE09
-				+ "index_inex_" + expNo;
-		new Wiki09Indexer().buildIndex(fileList.subList(0, subsetSize),
-				indexName, 0.5f);
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE09 + "index_inex_" + expNo;
+		new Wiki09Indexer().buildIndex(fileList.subList(0, subsetSize), indexName);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-				ClusterDirectoryInfo.INEX9_QUERY_FILE,
+		List<ExperimentQuery> queries = QueryServices.loadInexQueries(ClusterDirectoryInfo.INEX9_QUERY_FILE,
 				ClusterDirectoryInfo.INEX9_QUERY_FILE, "title");
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<QueryResult> iqrList = QueryServices
-				.runQueries(queries, indexName);
+		List<QueryResult> iqrList = QueryServices.runQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results..");
-		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
-				+ "inex_" + expNo + ".csv")) {
+		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR + "inex_" + expNo + ".csv")) {
 			for (QueryResult iqr : iqrList) {
 				fw.write(iqr.toString());
 			}
@@ -141,24 +128,19 @@ public class Wiki09Experiments {
 	 *            : weight of title
 	 */
 	public static void gridSearchExperiment(float gamma) {
-		List<InexFile> fileList = InexFile
-				.loadInexFileList(ClusterDirectoryInfo.PATH_COUNT_FILE09);
+		List<InexFile> fileList = InexFile.loadInexFileList(ClusterDirectoryInfo.PATH_COUNT_FILE09);
 		// Note! don't need to sort path_counts based on weight
-		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13
-				+ "inex09_grid_" + (gamma * 10);
+		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "inex09_grid_" + (gamma * 10);
 		LOGGER.log(Level.INFO, "Building index..");
-		new Wiki09Indexer().buildIndex(fileList, indexName, gamma);
+		new Wiki09Indexer().buildIndex(fileList, indexName);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
-				ClusterDirectoryInfo.MSN_QUERY_QID_S,
+		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID_S,
 				ClusterDirectoryInfo.MSN_QID_QREL);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<QueryResult> results = QueryServices
-				.runQueries(queries, indexName);
+		List<QueryResult> results = QueryServices.runQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
-				+ "inex09_grid_" + Float.toString(gamma).replace(",", "")
-				+ ".csv")) {
+		try (FileWriter fw = new FileWriter(
+				ClusterDirectoryInfo.RESULT_DIR + "inex09_grid_" + Float.toString(gamma).replace(",", "") + ".csv")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.toString() + "\n");
 			}

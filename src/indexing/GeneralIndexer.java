@@ -20,16 +20,14 @@ public abstract class GeneralIndexer {
 	public static final String CONTENT_ATTRIB = "content";
 	public static final String DOCNAME_ATTRIB = "name";
 	public static final String TITLE_ATTRIB = "title";
-	
+
 	static final Logger LOGGER = Logger.getLogger(GeneralIndexer.class.getName());
 	
-	public void buildIndex(List<InexFile> list, String indexPath,
-			float... fieldBoost) {
-		buildIndex(list, indexPath, new ClassicSimilarity(), fieldBoost);
+	public void buildIndex(List<InexFile> list, String indexPath) {
+		buildIndex(list, indexPath, new ClassicSimilarity());
 	}
 
-	public void buildIndex(List<InexFile> list, String indexPath, Similarity similarity,
-			float... fieldBoost) {
+	public void buildIndex(List<InexFile> list, String indexPath, Similarity similarity) {
 		FSDirectory directory = null;
 		IndexWriter writer = null;
 		try {
@@ -37,7 +35,7 @@ public abstract class GeneralIndexer {
 			IndexWriterConfig iwc = getIndexWriterConfig().setSimilarity(similarity);
 			writer = new IndexWriter(directory, iwc);
 			for (InexFile ifm : list) {
-				indexXmlFile(new File(ifm.path), writer, 1, fieldBoost);
+				indexXmlFile(new File(ifm.path), writer, 1);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -56,9 +54,8 @@ public abstract class GeneralIndexer {
 				}
 		}
 	}
-	
-	public void buildIndexDocBoosted(List<InexFile> fileList,
-			String indexPath, float[] fieldBoosts) {
+
+	public void buildIndexDocBoosted(List<InexFile> fileList, String indexPath) {
 		int N = 0;
 		for (InexFile inexFile : fileList) {
 			N += inexFile.weight;
@@ -74,7 +71,7 @@ public abstract class GeneralIndexer {
 			for (InexFile inexFile : fileList) {
 				float count = (float) inexFile.weight;
 				float smoothed = (count + alpha) / (N + V * alpha);
-				indexXmlFile(new File(inexFile.path), writer, smoothed, fieldBoosts);
+				indexXmlFile(new File(inexFile.path), writer, smoothed);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -101,8 +98,7 @@ public abstract class GeneralIndexer {
 		config.setRAMBufferSizeMB(1024.00);
 		return config;
 	}
-	
-	protected abstract void indexXmlFile(File file, IndexWriter writer,
-			float docBoost, float[] fieldBoost);
+
+	protected abstract void indexXmlFile(File file, IndexWriter writer, float docBoost);
 
 }

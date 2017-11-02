@@ -37,8 +37,7 @@ public class ImdbIndexer extends GeneralIndexer {
 	static final Logger LOGGER = Logger.getLogger(ImdbIndexer.class.getName());
 
 	public static void main(String[] args) {
-		File file = new File(
-				"/scratch/data-sets/imdb/imdb-inex/movies/474/1437474.xml");
+		File file = new File("/scratch/data-sets/imdb/imdb-inex/movies/474/1437474.xml");
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -51,8 +50,7 @@ public class ImdbIndexer extends GeneralIndexer {
 			if (titleNode.getNodeValue() != null) {
 				title = titleNode.getNodeValue().trim();
 			} else {
-				LOGGER.log(Level.WARNING,
-						"title not found in: " + file.getName());
+				LOGGER.log(Level.WARNING, "title not found in: " + file.getName());
 			}
 			System.out.println("title: " + title.trim());
 
@@ -67,18 +65,13 @@ public class ImdbIndexer extends GeneralIndexer {
 		}
 
 	}
-	
-	public static String[] getAttribList(){
-		String[] attribs = {TITLE_ATTRIB, KEYWORDS_ATTRIB, PLOT_ATTRIB, ACTORS_ATTRIB, REST_ATTRIB};
+
+	public static String[] getAttribList() {
+		String[] attribs = { TITLE_ATTRIB, KEYWORDS_ATTRIB, PLOT_ATTRIB, ACTORS_ATTRIB, REST_ATTRIB };
 		return attribs;
 	}
 
-	protected void indexXmlFile(File file, IndexWriter writer, float docBoost,
-			float[] gamma) {
-		if (gamma.length < 5) {
-			LOGGER.log(Level.SEVERE, "Not enough gammas!!!");
-			return;
-		}
+	protected void indexXmlFile(File file, IndexWriter writer, float docBoost) {
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder db = dbf.newDocumentBuilder();
@@ -90,8 +83,7 @@ public class ImdbIndexer extends GeneralIndexer {
 			if (titleNode.getNodeValue() != null) {
 				title = titleNode.getNodeValue();
 			} else {
-				LOGGER.log(Level.WARNING,
-						"title not found in: " + file.getName());
+				LOGGER.log(Level.WARNING, "title not found in: " + file.getName());
 			}
 
 			StringBuilder sb = new StringBuilder();
@@ -132,12 +124,10 @@ public class ImdbIndexer extends GeneralIndexer {
 			String people = sb.toString();
 
 			sb = new StringBuilder();
-			NodeList miscNodeList = xmlDoc
-					.getElementsByTagName("miscellaneous");
+			NodeList miscNodeList = xmlDoc.getElementsByTagName("miscellaneous");
 			if (miscNodeList.item(0) != null)
 				sb.append(miscNodeList.item(0).getTextContent());
-			NodeList additionalNodeList = xmlDoc
-					.getElementsByTagName("additional_details");
+			NodeList additionalNodeList = xmlDoc.getElementsByTagName("additional_details");
 			if (additionalNodeList.item(0) != null)
 				sb.append(additionalNodeList.item(0).getTextContent());
 			NodeList funNodeList = xmlDoc.getElementsByTagName("fun_stuff");
@@ -146,29 +136,19 @@ public class ImdbIndexer extends GeneralIndexer {
 			String rest = sb.toString();
 
 			Document luceneDoc = new Document();
-			luceneDoc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils
-					.removeExtension(file.getName()), Field.Store.YES));
-			TextField titleField = new TextField(TITLE_ATTRIB, title,
-					Field.Store.YES);
-			titleField.setBoost(gamma[0] * docBoost);
+			luceneDoc.add(
+					new StringField(DOCNAME_ATTRIB, FilenameUtils.removeExtension(file.getName()), Field.Store.YES));
+			TextField titleField = new TextField(TITLE_ATTRIB, title, Field.Store.YES);
 			luceneDoc.add(titleField);
-			TextField genreField = new TextField(KEYWORDS_ATTRIB, keywords,
-					Field.Store.YES);
-			genreField.setBoost(gamma[1] * docBoost);
+			TextField genreField = new TextField(KEYWORDS_ATTRIB, keywords, Field.Store.YES);
 			luceneDoc.add(genreField);
-			TextField plotField = new TextField(PLOT_ATTRIB, plotTagLines,
-					Field.Store.YES);
-			plotField.setBoost(gamma[2] * docBoost);
+			TextField plotField = new TextField(PLOT_ATTRIB, plotTagLines, Field.Store.YES);
 			luceneDoc.add(plotField);
-			TextField peopleField = new TextField(ACTORS_ATTRIB, people,
-					Field.Store.YES);
-			peopleField.setBoost(gamma[3] * docBoost);
+			TextField peopleField = new TextField(ACTORS_ATTRIB, people, Field.Store.YES);
 			luceneDoc.add(peopleField);
-			TextField restField = new TextField(REST_ATTRIB, rest,
-					Field.Store.YES);
-			restField.setBoost(gamma[4] * docBoost);
+			TextField restField = new TextField(REST_ATTRIB, rest, Field.Store.YES);
 			luceneDoc.add(restField);
-			
+
 			writer.addDocument(luceneDoc);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -180,8 +160,8 @@ public class ImdbIndexer extends GeneralIndexer {
 			e.printStackTrace();
 		}
 	}
-	protected void indexXmlFile3(File file, IndexWriter writer, float smoothed,
-			float... gamma) {
+
+	protected void indexXmlFile3(File file, IndexWriter writer, float smoothed, float... gamma) {
 		if (gamma.length < 2) {
 			LOGGER.log(Level.SEVERE, "Not enough gammas!!!");
 			return;
@@ -196,8 +176,7 @@ public class ImdbIndexer extends GeneralIndexer {
 			if (node.getNodeValue() != null) {
 				title = node.getNodeValue().trim();
 			} else {
-				LOGGER.log(Level.WARNING,
-						"title not found in: " + file.getName());
+				LOGGER.log(Level.WARNING, "title not found in: " + file.getName());
 			}
 			nodeList = doc.getElementsByTagName("actor");
 			StringBuilder sb = new StringBuilder();
@@ -208,8 +187,7 @@ public class ImdbIndexer extends GeneralIndexer {
 
 			try {
 				// removing title and actors info
-				Element element = (Element) doc.getElementsByTagName("actors")
-						.item(0);
+				Element element = (Element) doc.getElementsByTagName("actors").item(0);
 				element.getParentNode().removeChild(element);
 				element = (Element) doc.getElementsByTagName("title").item(0);
 				element.getParentNode().removeChild(element);
@@ -218,8 +196,7 @@ public class ImdbIndexer extends GeneralIndexer {
 			}
 
 			doc.normalize();
-			String rest = doc.getElementsByTagName("movie").item(0)
-					.getTextContent();
+			String rest = doc.getElementsByTagName("movie").item(0).getTextContent();
 
 			float gamma3 = 1 - gamma[0] - gamma[1];
 			if (gamma3 < 0) {
@@ -227,18 +204,11 @@ public class ImdbIndexer extends GeneralIndexer {
 				gamma3 = 0;
 			}
 			Document lDoc = new Document();
-			lDoc.add(new StringField(GeneralIndexer.DOCNAME_ATTRIB,
-					FilenameUtils.removeExtension(file.getName()),
+			lDoc.add(new StringField(GeneralIndexer.DOCNAME_ATTRIB, FilenameUtils.removeExtension(file.getName()),
 					Field.Store.YES));
-			TextField titleField = new TextField(GeneralIndexer.TITLE_ATTRIB,
-					title, Field.Store.YES);
-			titleField.setBoost(gamma[0] * smoothed);
-			TextField actorsField = new TextField(ACTORS_ATTRIB, actorsInfo,
-					Field.Store.YES);
-			actorsField.setBoost(gamma[1] * smoothed);
-			TextField contentField = new TextField(
-					GeneralIndexer.CONTENT_ATTRIB, rest, Field.Store.YES);
-			contentField.setBoost(gamma3 * smoothed);
+			TextField titleField = new TextField(GeneralIndexer.TITLE_ATTRIB, title, Field.Store.YES);
+			TextField actorsField = new TextField(ACTORS_ATTRIB, actorsInfo, Field.Store.YES);
+			TextField contentField = new TextField(GeneralIndexer.CONTENT_ATTRIB, rest, Field.Store.YES);
 			lDoc.add(titleField);
 			lDoc.add(actorsField);
 			lDoc.add(contentField);
@@ -254,8 +224,7 @@ public class ImdbIndexer extends GeneralIndexer {
 		}
 	}
 
-	protected void indexXmlFile2(File file, IndexWriter writer, float smoothed,
-			float gamma) {
+	protected void indexXmlFile2(File file, IndexWriter writer, float smoothed, float gamma) {
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];
 			fis.read(data);
@@ -266,20 +235,14 @@ public class ImdbIndexer extends GeneralIndexer {
 			if (mtr.find()) {
 				title = mtr.group(1).trim();
 			} else {
-				LOGGER.log(Level.WARNING,
-						"title not found in: " + file.getName());
+				LOGGER.log(Level.WARNING, "title not found in: " + file.getName());
 			}
 			String textContent = fileContent.replaceAll("<[^>]*>", "").trim();
 			Document doc = new Document();
-			doc.add(new StringField(GeneralIndexer.DOCNAME_ATTRIB,
-					FilenameUtils.removeExtension(file.getName()),
+			doc.add(new StringField(GeneralIndexer.DOCNAME_ATTRIB, FilenameUtils.removeExtension(file.getName()),
 					Field.Store.YES));
-			TextField titleField = new TextField(GeneralIndexer.TITLE_ATTRIB,
-					title, Field.Store.YES);
-			titleField.setBoost(gamma * smoothed);
-			TextField contentField = new TextField(
-					GeneralIndexer.CONTENT_ATTRIB, textContent, Field.Store.YES);
-			contentField.setBoost((1 - gamma) * smoothed);
+			TextField titleField = new TextField(GeneralIndexer.TITLE_ATTRIB, title, Field.Store.YES);
+			TextField contentField = new TextField(GeneralIndexer.CONTENT_ATTRIB, textContent, Field.Store.YES);
 			doc.add(titleField);
 			doc.add(contentField);
 			writer.addDocument(doc);

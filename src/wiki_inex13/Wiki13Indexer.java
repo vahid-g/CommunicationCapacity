@@ -35,8 +35,7 @@ public class Wiki13Indexer extends GeneralIndexer {
 	public static final Logger LOGGER = Logger.getLogger(Wiki13Indexer.class
 			.getName());
 
-	protected void indexXmlFile(File file, IndexWriter writer, float docBoost,
-			float gamma[]) {
+	protected void indexXmlFile(File file, IndexWriter writer, float docBoost) {
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];
 			fis.read(data);
@@ -60,12 +59,10 @@ public class Wiki13Indexer extends GeneralIndexer {
 			TextField titleField = new TextField(
 					indexing.GeneralIndexer.TITLE_ATTRIB, title,
 					Field.Store.YES);
-			titleField.setBoost(gamma[0] * docBoost);
 			doc.add(titleField);
 			TextField contentField = new TextField(
 					indexing.GeneralIndexer.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES);
-			contentField.setBoost(gamma[1] * docBoost);
 			doc.add(contentField);
 			writer.addDocument(doc);
 		} catch (FileNotFoundException e) {
