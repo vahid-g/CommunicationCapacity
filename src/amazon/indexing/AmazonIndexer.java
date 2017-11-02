@@ -27,14 +27,15 @@ public class AmazonIndexer implements AmazonFileIndexerInterface {
 	public static final String DOCNAME_ATTRIB = "name";
 	public static final String LTID_ATTRIB = "ltid";
 
-	private static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class
+			.getName());
 
 	private final Map<String, String> isbnToLtid;
 	private final AmazonDeweyConverter deweyToCategory;
 	private AmazonDocumentField[] fields;
 
-	public AmazonIndexer(AmazonDocumentField[] fields, Map<String, String> isbnLtidDict,
-			AmazonDeweyConverter deweyIsbnDict) {
+	public AmazonIndexer(AmazonDocumentField[] fields,
+			Map<String, String> isbnLtidDict, AmazonDeweyConverter deweyIsbnDict) {
 		this.fields = fields;
 		this.isbnToLtid = isbnLtidDict;
 		this.deweyToCategory = deweyIsbnDict;
@@ -48,14 +49,17 @@ public class AmazonIndexer implements AmazonFileIndexerInterface {
 			// file name is ISBN of the book
 			String docId = FilenameUtils.removeExtension(file.getName());
 			String ltid = isbnToLtid.get(docId);
-			luceneDoc.add(new StringField(DOCNAME_ATTRIB, docId, Field.Store.YES));
+			luceneDoc.add(new StringField(DOCNAME_ATTRIB, docId,
+					Field.Store.YES));
 			try {
-				luceneDoc.add(new StringField(LTID_ATTRIB, ltid, Field.Store.YES));
+				luceneDoc.add(new StringField(LTID_ATTRIB, ltid,
+						Field.Store.YES));
 			} catch (IllegalArgumentException e) {
 				LOGGER.log(Level.WARNING, "ltid not found for isbn: " + docId);
 			}
 			for (AmazonDocumentField field : fields) {
-				TextField textField = new TextField(field.toString(), dataMap.get(field), Field.Store.YES);
+				TextField textField = new TextField(field.toString(),
+						dataMap.get(field), Field.Store.YES);
 				luceneDoc.add(textField);
 			}
 			writer.addDocument(luceneDoc);
@@ -64,7 +68,7 @@ public class AmazonIndexer implements AmazonFileIndexerInterface {
 		}
 	}
 
-	protected HashMap<AmazonDocumentField, String> parseAmazonXml(File file) {
+	public HashMap<AmazonDocumentField, String> parseAmazonXml(File file) {
 		HashMap<AmazonDocumentField, String> dataMap = new HashMap<AmazonDocumentField, String>();
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -74,7 +78,8 @@ public class AmazonIndexer implements AmazonFileIndexerInterface {
 			for (AmazonDocumentField field : fields) {
 				if (field == AmazonDocumentField.CONTENT)
 					continue;
-				String text = AmazonXmlUtils.extractNodesTextFromXml(xmlDoc, field, bookNode);
+				String text = AmazonXmlUtils.extractNodesTextFromXml(xmlDoc,
+						field, bookNode);
 				if (field == AmazonDocumentField.DEWEY) {
 					text = deweyToCategory.convertDeweyToCategory(text);
 				}
