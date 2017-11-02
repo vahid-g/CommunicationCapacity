@@ -172,8 +172,7 @@ public class Wiki13Experiment {
 				indexPathFile.mkdirs();
 			}
 			LOGGER.log(Level.INFO, "Building index at: " + indexPath);
-			float[] fieldBoost = { 1f, 1f };
-			Wiki13Indexer.buildIndexOnText(pathCountList, indexPath, fieldBoost, new BM25Similarity());
+			Wiki13Indexer.buildIndexOnText(pathCountList, indexPath, new BM25Similarity());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

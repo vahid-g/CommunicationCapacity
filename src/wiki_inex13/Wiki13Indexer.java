@@ -32,8 +32,7 @@ import org.apache.lucene.store.FSDirectory;
  */
 public class Wiki13Indexer extends GeneralIndexer {
 
-	public static final Logger LOGGER = Logger.getLogger(Wiki13Indexer.class
-			.getName());
+	public static final Logger LOGGER = Logger.getLogger(Wiki13Indexer.class.getName());
 
 	protected void indexXmlFile(File file, IndexWriter writer, float docBoost) {
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
@@ -43,8 +42,7 @@ public class Wiki13Indexer extends GeneralIndexer {
 			if (fileContent.contains("<listitem>REDIRECT")) {
 				return;
 			}
-			Pattern p = Pattern.compile(
-					"<article id=\"\\d*\" title=\"(.*?)\">", Pattern.DOTALL);
+			Pattern p = Pattern.compile("<article id=\"\\d*\" title=\"(.*?)\">", Pattern.DOTALL);
 			Matcher m = p.matcher(fileContent);
 			String title = "";
 			if (m.find())
@@ -54,14 +52,10 @@ public class Wiki13Indexer extends GeneralIndexer {
 			fileContent = fileContent.replaceAll("<[^>]*>", " ").trim();
 			Document doc = new Document();
 			doc.add(new StringField(indexing.GeneralIndexer.DOCNAME_ATTRIB,
-					FilenameUtils.removeExtension(file.getName()),
-					Field.Store.YES));
-			TextField titleField = new TextField(
-					indexing.GeneralIndexer.TITLE_ATTRIB, title,
-					Field.Store.YES);
+					FilenameUtils.removeExtension(file.getName()), Field.Store.YES));
+			TextField titleField = new TextField(indexing.GeneralIndexer.TITLE_ATTRIB, title, Field.Store.YES);
 			doc.add(titleField);
-			TextField contentField = new TextField(
-					indexing.GeneralIndexer.CONTENT_ATTRIB, fileContent,
+			TextField contentField = new TextField(indexing.GeneralIndexer.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES);
 			doc.add(contentField);
 			writer.addDocument(doc);
@@ -72,21 +66,17 @@ public class Wiki13Indexer extends GeneralIndexer {
 		}
 	}
 
-	public static void buildIndexOnText(List<InexFile> fileCountList,
-			String indexPath, float[] gamma) {
-		buildIndexOnText(fileCountList, indexPath, gamma,
-				new ClassicSimilarity());
+	public static void buildIndexOnText(List<InexFile> fileCountList, String indexPath, float[] gamma) {
+		buildIndexOnText(fileCountList, indexPath, new ClassicSimilarity());
 	}
 
-	public static void buildIndexOnText(List<InexFile> fileCountList,
-			String indexPath, float[] gamma, Similarity similarity) {
+	public static void buildIndexOnText(List<InexFile> fileCountList, String indexPath, Similarity similarity) {
 		// indexing
 		FSDirectory directory = null;
 		IndexWriter writer = null;
 		try {
 			directory = FSDirectory.open(Paths.get(indexPath));
-			IndexWriterConfig config = getIndexWriterConfig().setSimilarity(
-					similarity);
+			IndexWriterConfig config = getIndexWriterConfig().setSimilarity(similarity);
 			writer = new IndexWriter(directory, config);
 			for (InexFile entry : fileCountList) {
 				indexTxtFileWithWeight(entry, writer);
@@ -98,8 +88,7 @@ public class Wiki13Indexer extends GeneralIndexer {
 				try {
 					writer.close();
 				} catch (IOException e) {
-					LOGGER.log(Level.SEVERE,
-							e.toString() + "\n" + e.fillInStackTrace());
+					LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 				}
 			if (directory != null)
 				try {
@@ -118,27 +107,22 @@ public class Wiki13Indexer extends GeneralIndexer {
 			String fileContent = new String(data, "UTF-8");
 			Document doc = new Document();
 			doc.add(new StringField(indexing.GeneralIndexer.DOCNAME_ATTRIB,
-					FilenameUtils.removeExtension(file.getName()),
-					Field.Store.YES));
-			TextField titleField = new TextField(
-					indexing.GeneralIndexer.TITLE_ATTRIB, pct.title,
-					Field.Store.YES);
+					FilenameUtils.removeExtension(file.getName()), Field.Store.YES));
+			TextField titleField = new TextField(indexing.GeneralIndexer.TITLE_ATTRIB, pct.title, Field.Store.YES);
 			doc.add(titleField);
-			TextField contentField = new TextField(
-					indexing.GeneralIndexer.CONTENT_ATTRIB, fileContent,
+			TextField contentField = new TextField(indexing.GeneralIndexer.CONTENT_ATTRIB, fileContent,
 					Field.Store.YES);
 			doc.add(contentField);
 			writer.addDocument(doc);
 		} catch (NoSuchFileException e) {
-			LOGGER.log(Level.WARNING, "File not found: " + pct.title + " "
-					+ pct.path);
+			LOGGER.log(Level.WARNING, "File not found: " + pct.title + " " + pct.path);
 		} catch (FileNotFoundException e) {
 			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 		}
 	}
-	
+
 	// code for smoothed document boosting:
 	// int N = 0;
 	// for (InexFile entry : fileCountList) {
