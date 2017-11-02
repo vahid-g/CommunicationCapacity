@@ -2,19 +2,27 @@ from __future__ import division
 import pandas as pd
 from sklearn import preprocessing
 
-df = pd.read_csv('../data/amazon/ltid_project/isbn_all', header = None,
-        delimiter = ' ')
-df = df.sort_values(1, ascending = False)
-subset = 250000
-rels = df[2][df[2] > 0.01].size
-dfs = df[:subset]
-tp = dfs[dfs[2] > 0][0].count()
-print('pre: %.2f' % (tp / subset))
-print('rec: %.2f' % (tp / rels))
-print('===')
+def orderAccuracy(filename, subsets, main_col, rel_col):
+    df = pd.read_csv(filename, header = None,
+            delimiter = ' ')
+    df = df.sort_values(main_col, ascending = False)
+    for subset in subsets:
+        size = int(round(subset * df[0].count()))
+        rels = df[rel_col][df[rel_col] > 0.01].size
+        print('subset size: %.2f, #tuples %d, #rels: %d' % (subset, size, rels))
+        dfs = df[:size]
+        tp = dfs[dfs[rel_col] > 0][0].count()
+        print('prefect pre: %.2f, pre: %.2f, rec: %.2f' % ((rels / size), (tp / size), (tp / rels)))
+    print('===')
 
+subsets = [0.02, 0.04, 0.06, 0.32]
+orderAccuracy('../data/amazon/ltid_project/isbn_all', subsets, 1, 2)
+orderAccuracy('../data/amazon/julian_anal/isbn_ratecountz_ratecountzavg',
+        subsets, 3, 4)
+orderAccuracy('../data/amazon/julian_anal/isbn_integ_relsum', subsets, 1, 2)
+orderAccuracy('../data/amazon/julian_anal/isbn_ratecomb_relsum', subsets, 1, 2)
 '''
-df = pd.read_csv('../data/amazon/julian_anal/isbn_major', header = None,
+df = pd.read_csv(, header = None,
         delimiter = ' ')
 print(df.columns)
 rel = 6

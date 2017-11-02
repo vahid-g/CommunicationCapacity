@@ -5,14 +5,19 @@ import indexing.InexFile;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.store.FSDirectory;
 
 import query.ExperimentQuery;
 import query.QueryResult;
@@ -21,6 +26,7 @@ import amazon.datatools.AmazonDeweyConverter;
 import amazon.datatools.AmazonIsbnConverter;
 import amazon.indexing.AmazonDatasetIndexer;
 import amazon.indexing.AmazonIndexer;
+import amazon.popularity.AmazonIsbnPopularityMap;
 import amazon.query.AmazonQueryResultProcessor;
 
 public class AmazonExperiment {
@@ -35,32 +41,32 @@ public class AmazonExperiment {
 			"narrative"};
 	private int expNo;
 	private int total;
-	private String expName;
+	private String experimentName;
 	private String indexPath;
 	private String isbnsFilePath;
 
 	public AmazonExperiment(int experimentNumber, int partitionCount,
-			String experimentSuffix, String isbnsFilePath) {
+			String experimentName, String isbnsFilePath) {
 		this.expNo = experimentNumber;
 		this.total = partitionCount;
-		expName = "amazon_p" + partitionCount + "_bm_f" + fields.length + "_"
-				+ experimentSuffix;
-		indexPath = AmazonDirectoryInfo.GLOBAL_INDEX_DIR + expName + "/"
+		this.experimentName = experimentName;
+		indexPath = AmazonDirectoryInfo.GLOBAL_INDEX_DIR + experimentName + "/"
 				+ expNo;
 		this.isbnsFilePath = isbnsFilePath;
 	}
 
 	public static void main(String[] args) {
-		if (args.length < 2) {
+		if (args.length < 3) {
 			LOGGER.log(Level.SEVERE,
 					"Input argument is missing. Terminating the program..");
 			return;
 		}
 		int expNo = Integer.parseInt(args[0]);
 		int totalPartitionNo = Integer.parseInt(args[1]);
+		String experimentName = args[2];
+		String amazonPathFile = args[3];
 		AmazonExperiment experiment = new AmazonExperiment(expNo,
-				totalPartitionNo, "ratecount", AmazonDirectoryInfo.HOME
-						+ "data/path_counts/amazon_path_ratecount.csv");
+				totalPartitionNo, experimentName, amazonPathFile);
 		// experiment.buildGlobalIndex();
 		// Map<String, Float> fieldBoostMap =
 		// experiment.gridSearchOnGlobalIndex(AmazonDirectoryInfo.TEST_QUERY_FILE,
@@ -72,9 +78,8 @@ public class AmazonExperiment {
 		fieldBoostMap.put(AmazonDocumentField.TAGS.toString(), 0.1f);
 		fieldBoostMap.put(AmazonDocumentField.DEWEY.toString(), 0.02f);
 		experiment.expOnGlobalIndex(fieldBoostMap,
-				AmazonDirectoryInfo.QUERY_FILE,
-				// + "data/queries/amazon/ml_test_topics.xml",
-				AmazonDirectoryInfo.QREL_FILE, experiment.queryFields);
+				AmazonDirectoryInfo.QUERY_FILE, AmazonDirectoryInfo.QREL_FILE,
+				experiment.queryFields, true);
 	}
 
 	void buildGlobalIndex() {
@@ -154,7 +159,7 @@ public class AmazonExperiment {
 	}
 
 	void expOnGlobalIndex(Map<String, Float> fieldToBoost, String queryFile,
-			String qrelFile, String[] queryFields) {
+			String qrelFile, String[] queryFields, boolean extraLogging) {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				queryFile, qrelFile, queryFields);
@@ -169,24 +174,37 @@ public class AmazonExperiment {
 					isbnToLtid);
 		}
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		File resultDir = new File(AmazonDirectoryInfo.RESULT_DIR + expName);
+		File resultDir = new File(AmazonDirectoryInfo.RESULT_DIR + "amazon_f"
+				+ fields.length + "_" + this.experimentName);
 		resultDir.mkdirs();
-		// Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
-		// .loadLtidToIsbnMap(AmazonDirectoryInfo.ISBN_DICT);
-		// AmazonIsbnPopularityMap aipm = AmazonIsbnPopularityMap
-		// .getInstance(isbnsFilePath);
-		try (FileWriter fw = new FileWriter(resultDir.getAbsolutePath() + "/"
-				+ expNo + ".csv")
-		// ;FileWriter fw2 = new FileWriter(
-		// AmazonDirectoryInfo.RESULT_DIR + "amazon_" + expNo + ".log")
-		) {
-			for (QueryResult mqr : results) {
-				fw.write(mqr.resultString() + "\n");
-				// fw2.write(generateLog(mqr, ltidToIsbns, aipm) + "\n");
+		String resultPath = resultDir.getAbsolutePath() + "/" + expNo + ".csv";
+		if (extraLogging) {
+			Map<String, Set<String>> ltidToIsbns = AmazonIsbnConverter
+					.loadLtidToIsbnMap(AmazonDirectoryInfo.ISBN_DICT);
+			AmazonIsbnPopularityMap aipm = AmazonIsbnPopularityMap
+					.getInstance(isbnsFilePath);
+			String logPath = AmazonDirectoryInfo.RESULT_DIR
+					+ this.experimentName + "_" + expNo + ".log";
+			try (FileWriter fw = new FileWriter(resultPath);
+					FileWriter fw2 = new FileWriter(logPath);
+					IndexReader reader = DirectoryReader.open(FSDirectory
+							.open(Paths.get(indexPath)))) {
+				for (QueryResult mqr : results) {
+					fw.write(mqr.resultString() + "\n");
+					fw2.write(AmazonQueryResultProcessor.generateLog(mqr,
+							ltidToIsbns, aipm, reader) + "\n");
+				}
+			} catch (IOException e) {
+				LOGGER.log(Level.SEVERE, e.getMessage());
 			}
-		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, e.getMessage());
+		} else {
+			try (FileWriter fw = new FileWriter(resultPath)) {
+				for (QueryResult mqr : results) {
+					fw.write(mqr.resultString() + "\n");
+				}
+			} catch (IOException e) {
+				LOGGER.log(Level.SEVERE, e.getMessage());
+			}
 		}
 	}
-
 }

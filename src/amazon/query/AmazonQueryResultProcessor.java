@@ -7,8 +7,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.lucene.index.IndexReader;
+
 import query.ExperimentQuery;
 import query.QueryResult;
+import query.QueryServices;
 import amazon.popularity.AmazonIsbnPopularityMap;
 
 public class AmazonQueryResultProcessor {
@@ -29,7 +32,7 @@ public class AmazonQueryResultProcessor {
 				}
 				if (!newResults.contains(ltid)) {
 					newResults.add(ltid);
-					newResultsTitle.add(queryResult.getTopResults().get(i));
+					newResultsTitle.add(queryResult.getTopResultsTitle().get(i));
 				}
 			}
 			queryResult.setTopResults(newResults);
@@ -37,16 +40,16 @@ public class AmazonQueryResultProcessor {
 	}
 
 	public static String generateLog(QueryResult queryResult,
-			Map<String, Set<String>> ltidToIsbn, AmazonIsbnPopularityMap aipm) {
+			Map<String, Set<String>> ltidToIsbn, AmazonIsbnPopularityMap aipm, IndexReader reader) {
 		ExperimentQuery query = queryResult.query;
 		StringBuilder sb = new StringBuilder();
-		sb.append("qid: " + query.getId() + "\t" + queryResult.mrr() + "\n");
-		sb.append("query: " + query.getText() + "\n\n");
+		sb.append("qid: " + query.getId() + "\t p@10: " + queryResult.precisionAtK(10) + "\n");
+		sb.append("query: " + query.getText() + "\n");
 		sb.append("|relevant tuples| = " + query.getQrelScoreMap().size() + "\n");
 		sb.append("|returned results| = " + queryResult.getTopResults().size()
 				+ "\n");
 		int counter = 0;
-		sb.append("returned results: \n");
+		sb.append("top returned results: \n");
 		for (int i = 0; i < queryResult.getTopResults().size(); i++) {
 			String returnedLtid = queryResult.getTopResults().get(i);
 			String returnedTitle = queryResult.getTopResultsTitle().get(i);
@@ -62,8 +65,7 @@ public class AmazonQueryResultProcessor {
 			if (counter++ > 10)
 				break;
 		}
-		counter = 0;
-		sb.append("missed docs: ");
+		sb.append("=== missed docs === \n");
 		for (String relevantLtid : query.getQrelScoreMap().keySet()) {
 			if (!queryResult.getTopResults().contains(relevantLtid)) {
 				Set<String> isbns = ltidToIsbn.get(relevantLtid);
@@ -73,14 +75,15 @@ public class AmazonQueryResultProcessor {
 									+ relevantLtid);
 					continue;
 				}
+				sb.append("ltid: " + relevantLtid + "\n");
 				for (String isbn : isbns) {
-					sb.append(relevantLtid + ": (" + isbn + ", "
-							+ aipm.getWeight(isbn) + ") ");
+					int inIndex = QueryServices.lookupDocumentId(isbn, reader);
+					if (inIndex > 0)
+						sb.append("\t ++(" + isbn + ", " + aipm.getWeight(isbn) + ") \n");
+					else
+						sb.append("\t --(" + isbn + ", " + aipm.getWeight(isbn) + ") \n");
 				}
-				sb.append("\n");
 			}
-			if (counter++ > 10)
-				break;
 		}
 		sb.append("-------------------------------------\n");
 		return sb.toString();
