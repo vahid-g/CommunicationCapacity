@@ -9,25 +9,25 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
 
 import wiki_inex09.ClusterDirectoryInfo;
-import wiki_inex09.Utils;
 
 public class OnlinePopularityMiner {
 
 	public static void main(String[] args) {
 		String datasetPath = "/scratch/data-sets/imdb/imdb-inex/movies";
 		// String datasetPath = "/data/imdb-inex/movies";
-		List<String> allFiles = Utils.listFilesForFolder(new File(datasetPath));
+		Collection<File> allFiles = FileUtils.listFiles(new File(datasetPath),
+				null, true);
 		try (FileWriter fw = new FileWriter("data/file-count.csv")) {
-			for (String filename : allFiles) {
-				File file = new File(filename);
+			for (File file : allFiles) {
 				try (InputStream fis = Files.newInputStream(file.toPath())) {
 					byte[] data = new byte[(int) file.length()];
 					fis.read(data);
@@ -67,12 +67,11 @@ public class OnlinePopularityMiner {
 		}
 	}
 	public static void extractWikiCounts() {
-		List<String> allFiles = Utils.listFilesForFolder(new File(
-				ClusterDirectoryInfo.DATASET09_PATH));
+		Collection<File> allFiles = FileUtils.listFiles(new File(
+				ClusterDirectoryInfo.DATASET09_PATH), null, true);
 		try (FileWriter fw = new FileWriter(
 				ClusterDirectoryInfo.PATH_COUNT_FILE09)) {
-			for (String filename : allFiles) {
-				File file = new File(filename);
+			for (File file : allFiles) {
 				try (InputStream fis = Files.newInputStream(file.toPath())) {
 					byte[] data = new byte[(int) file.length()];
 					fis.read(data);
@@ -93,7 +92,7 @@ public class OnlinePopularityMiner {
 						System.out.println("!!! title not found in "
 								+ file.getName());
 					int pageCount = extractSinleCount(title);
-					fw.write(filename + ", " + pageCount);
+					fw.write(file.getName() + ", " + pageCount);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

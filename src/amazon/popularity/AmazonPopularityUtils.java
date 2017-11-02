@@ -12,6 +12,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -24,10 +25,10 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import wiki_inex09.Utils;
 import amazon.datatools.AmazonIsbnConverter;
 
 public class AmazonPopularityUtils {
@@ -42,16 +43,17 @@ public class AmazonPopularityUtils {
 		// buildPathRatingsList();
 		// buildPathReviewRelScoreList();
 		// buildPathReviewRateList();
-		buildPathReviewsRatesList("/data/amazon/amazon-inex/", "/data/ghadakcv/amazon_path_reviews_ratings.csv");
+		buildPathReviewsRatesList("/data/amazon/amazon-inex/",
+				"/data/ghadakcv/amazon_path_reviews_ratings.csv");
 	}
 
-	public static List<InexFile> buildPathReviewsRatesList(String datasetPath,
+	public static void buildPathReviewsRatesList(String datasetPath,
 			String filesListPath) {
-		List<InexFile> pathCount = new ArrayList<InexFile>();
-		List<String> filePaths = Utils
-				.listFilesForFolder(new File(datasetPath));
+		Collection<File> filePaths = FileUtils.listFiles(new File(datasetPath),
+				null, true);
 		try (FileWriter fw = new FileWriter(filesListPath)) {
-			for (String filepath : filePaths) {
+			for (File file : filePaths) {
+				String filepath = file.getAbsolutePath();
 				if (filepath.contains(".dtd"))
 					continue;
 				DocumentBuilderFactory dbf = DocumentBuilderFactory
@@ -69,7 +71,9 @@ public class AmazonPopularityUtils {
 						Node node = ratingNodeList.item(i);
 						ratingAvg += Double.parseDouble(node.getTextContent());
 					}
-					if (ratingCount > 0) ratingAvg = Math.floor((ratingAvg / ratingCount) * 100.0) / 100.0;
+					if (ratingCount > 0)
+						ratingAvg = Math
+								.floor((ratingAvg / ratingCount) * 100.0) / 100.0;
 					fw.write(filepath + "," + reviewNodeList.getLength() + ","
 							+ ratingAvg + "," + ratingCount + "\n");
 				} catch (Exception e) {
@@ -79,15 +83,15 @@ public class AmazonPopularityUtils {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return (pathCount);
 	}
-	
+
 	public static List<InexFile> buildSortedPathReviewsList(String datasetPath,
 			String filesListPath) {
 		List<InexFile> pathCount = new ArrayList<InexFile>();
-		List<String> filePaths = Utils
-				.listFilesForFolder(new File(datasetPath));
-		for (String filepath : filePaths) {
+		Collection<File> filePaths = FileUtils.listFiles(new File(datasetPath),
+				null, true);
+		for (File file : filePaths) {
+			String filepath = file.getAbsolutePath();
 			if (filepath.contains(".dtd"))
 				continue;
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
