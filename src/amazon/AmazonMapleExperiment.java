@@ -28,7 +28,7 @@ import amazon.query.AmazonQueryResultProcessor;
 public class AmazonMapleExperiment {
 
 	private static final Logger LOGGER = Logger
-			.getLogger(AmazonMapleExperimentTest.class.getName());
+			.getLogger(AmazonMapleExperiment.class.getName());
 	private static final String DATA_FOLDER = "/data/ghadakcv/data/";
 	private static final String FILE_LIST = DATA_FOLDER
 			+ "amazon_path_ratecount.csv";
