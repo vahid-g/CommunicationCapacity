@@ -1,3 +1,0 @@
-convert isbn->p to path->p
-	cat output2.csv | sed -r 's:([0-9X]{7}([0-9X]{3})),([0-9.]+)$:\2/\1.xml,\3:g' > ! amazon_path_pred.csv
-

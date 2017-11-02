@@ -1,5 +1,5 @@
+# converts the isbn->weight file to path->weight
 import csv
-
 with open('../data/amazon/isbn_all', 'r') as csvfile, \
     open('../data/amazon/amazon_path_ratecount.csv', 'w') as output:
     reader = csv.reader(csvfile, delimiter=' ')

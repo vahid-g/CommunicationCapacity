@@ -1,3 +1,6 @@
+# generates jsbn_title and jsbn_srank files based on julian's meta_Books json
+# file.
+
 with open('../data/amazon/julian_raw/meta_Books.json', 'r') as json, \
     open('../data/amazon/julian_anal/jsbn_title', 'w') as out1, \
         open('../data/amazon/julian_anal/jsbn_srankrev', 'w') as out2:
