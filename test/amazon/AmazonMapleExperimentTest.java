@@ -1,9 +1,11 @@
 package amazon;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -58,6 +60,14 @@ public class AmazonMapleExperimentTest {
 		cache.add("lt3");
 		AmazonMapleExperiment.filterCacheResults(queryResult, cache);
 		assertEquals(1, queryResult.getTopResults().size());
+	}
+	
+	@Test
+	public void testLoadIsbnList() throws IOException{
+		List<String> isbns = AmazonMapleExperiment.loadIsbnList("data/amazon/test_data/path.csv");
+		assertEquals(5, isbns.size());
+		assertEquals("i1", isbns.get(0));
+		
 	}
 
 }

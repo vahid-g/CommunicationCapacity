@@ -31,7 +31,7 @@ public class AmazonMapleExperiment {
 			.getLogger(AmazonMapleExperiment.class.getName());
 	private static final String DATA_FOLDER = "/data/ghadakcv/data/";
 	private static final String FILE_LIST = DATA_FOLDER
-			+ "amazon_path_ratecount.csv";
+			+ "amazon_path_integ.csv";
 	private static final String ISBN_DICT_PATH = DATA_FOLDER
 			+ "amazon-lt.isbn.thingID";
 	private static final String DEWEY_DICT = DATA_FOLDER + "dewey.tsv";
@@ -72,19 +72,11 @@ public class AmazonMapleExperiment {
 		fieldBoostMap.put(AmazonDocumentField.CREATORS.toString(), 0.04f);
 		fieldBoostMap.put(AmazonDocumentField.TAGS.toString(), 0.1f);
 		fieldBoostMap.put(AmazonDocumentField.DEWEY.toString(), 0.02f);
-		List<String> sortedLtidList = new ArrayList<String>();
-		for (String line : Files.readAllLines(Paths.get(LTID_LIST))) {
-			String[] fields = line.split(" ");
-			if (fields.length > 1) {
-				sortedLtidList.add(fields[0]);
-			} else {
-				LOGGER.log(Level.SEVERE,
-						"ltid -> weight line doens't have enough fields");
-			}
-		}
+		// List<String> sortedLtidList = loadLtidList(LTID_LIST);
+		List<String> sortedLtidList = loadIsbnList(FILE_LIST);
 		Map<String, String> isbnToLtid = AmazonIsbnConverter
 				.loadIsbnToLtidMap(ISBN_DICT_PATH);
-		for (int i = 0; i < 50; i++) {
+		for (int i = 1; i <= 50; i++) {
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 					queries, INDEX_PATH, new BM25Similarity(), fieldBoostMap);
 			LOGGER.log(Level.INFO, "updating ISBN results to LTID..");
@@ -92,9 +84,10 @@ public class AmazonMapleExperiment {
 			TreeSet<String> cache = new TreeSet<String>(sortedLtidList.subList(
 					0, subsetSize));
 			for (QueryResult result : results) {
+				filterCacheResults(result, cache);
 				AmazonQueryResultProcessor.convertIsbnAnswersToLtidAndFilter(
 						result, isbnToLtid);
-				filterCacheResults(result, cache);
+				// filterLtidCacheResults(result, cache);
 			}
 
 			LOGGER.log(Level.INFO, "Writing results to file..");
@@ -108,7 +101,38 @@ public class AmazonMapleExperiment {
 		}
 	}
 
-	static void filterCacheResults(QueryResult queryResult, TreeSet<String> cache) {
+	// format of the input file is <ltid w>
+	static List<String> loadLtidList(String ltidListPath) throws IOException {
+		List<String> sortedLtidList = new ArrayList<String>();
+		for (String line : Files.readAllLines(Paths.get(ltidListPath))) {
+			String[] fields = line.split(" ");
+			if (fields.length > 1) {
+				sortedLtidList.add(fields[0]);
+			} else {
+				LOGGER.log(Level.SEVERE,
+						"ltid -> weight line doens't have enough fields");
+			}
+		}
+		return sortedLtidList;
+	}
+
+	// format of the input file is <path/isbn.xml,w>
+	static List<String> loadIsbnList(String isbnListPath) throws IOException {
+		List<String> sortedIsbnList = new ArrayList<String>();
+		for (String line : Files.readAllLines(Paths.get(isbnListPath))) {
+			if (line.contains("/") && line.contains(".")) {
+				String isbn = line.substring(line.lastIndexOf('/') + 1,
+						line.indexOf('.'));
+				sortedIsbnList.add(isbn);
+			} else {
+				LOGGER.log(Level.SEVERE,
+						"couldn't parse: " + line);
+			}
+		}
+		return sortedIsbnList;
+	}
+	static void filterCacheResults(QueryResult queryResult,
+			TreeSet<String> cache) {
 		List<String> topResults = queryResult.getTopResults();
 		List<String> topResultTitle = queryResult.getTopResultsTitle();
 		for (int i = 0; i < topResults.size(); i++) {
