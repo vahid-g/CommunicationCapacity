@@ -33,6 +33,7 @@ public class AmazonQueryGenerator {
 		String[] extensions = {".xml"};
 		Collection<File> dataset = FileUtils.listFiles(datasetDirectory,
 				extensions, true);
+		System.out.println(dataset.size());
 	}
 
 	protected Document buildXmlDocument() {
