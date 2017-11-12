@@ -64,7 +64,7 @@ public class AmazonMapleExperimentTest {
 	
 	@Test
 	public void testLoadIsbnList() throws IOException{
-		List<String> isbns = AmazonMapleExperiment.loadIsbnList("data/amazon/test_data/path.csv");
+		List<String> isbns = AmazonMapleExperiment.loadIsbnList("test_data/path.csv");
 		assertEquals(5, isbns.size());
 		assertEquals("i1", isbns.get(0));
 		

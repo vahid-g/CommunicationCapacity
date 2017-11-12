@@ -35,14 +35,14 @@ public class AmazonIndexerTest extends TestCase {
 		AmazonDocumentField[] fields = { AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
 				AmazonDocumentField.CREATORS, AmazonDocumentField.TAGS, AmazonDocumentField.DEWEY };
 		Map<String, String> isbnConverter = AmazonIsbnConverter
-				.loadIsbnToLtidMap("data/amazon/test_data/isbn_ltid.csv");
-		AmazonDeweyConverter deweyConverter = AmazonDeweyConverter.getInstance("data/amazon/test_data/dewey.tsv");
+				.loadIsbnToLtidMap("test_data/isbn_ltid.csv");
+		AmazonDeweyConverter deweyConverter = AmazonDeweyConverter.getInstance("test_data/dewey.tsv");
 		indexer = new AmazonIndexer(fields, isbnConverter, deweyConverter);
 	}
 
 	@Test
 	public void testParseAmazonXml() {
-		File file = new File("data/amazon/test_data/1931243999.xml");
+		File file = new File("test_data/1931243999.xml");
 		Map<AmazonDocumentField, String> dMap = indexer.parseAmazonXml(file);
 		assertEquals("Geography & travel", dMap.get(AmazonDocumentField.DEWEY));
 		assertEquals("unread literature Fiction", dMap.get(AmazonDocumentField.TAGS));
@@ -50,7 +50,7 @@ public class AmazonIndexerTest extends TestCase {
 
 	@Test
 	public void testIndex() throws IOException, ParseException {
-		File file = new File("data/amazon/test_data/1931243999.xml");
+		File file = new File("test_data/1931243999.xml");
 		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(new StandardAnalyzer());
 		indexWriterConfig.setOpenMode(OpenMode.CREATE);
 		indexWriterConfig.setRAMBufferSizeMB(1024.00);

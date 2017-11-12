@@ -14,7 +14,7 @@ public class AmazonIsbnConverterTest {
 	@Test
 	public void testIsbnToLtid() {
 		Map<String, String> converter = AmazonIsbnConverter
-				.loadIsbnToLtidMap("data/amazon/test_data/isbn_ltid.csv");
+				.loadIsbnToLtidMap("test_data/isbn_ltid.csv");
 		String isbn = "0330308297";
 		String ltid = "17";
 		assertEquals(ltid, converter.get(isbn));

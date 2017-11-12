@@ -21,7 +21,7 @@ public class AmazonXmlUtilsTest extends TestCase {
 	public void testExtractNodesTextFromXml() throws Exception {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbf.newDocumentBuilder();
-		File file = new File("data/amazon/test_data/1931243999.xml");
+		File file = new File("test_data/1931243999.xml");
 		org.w3c.dom.Document xmlDoc = db.parse(file);
 		Node bookNode = xmlDoc.getElementsByTagName("book").item(0);
 		assertEquals("Journey Around My Room (Green Integer)",

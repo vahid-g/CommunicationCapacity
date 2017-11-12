@@ -11,7 +11,7 @@ public class SmartCacheTest extends TestCase{
 
 	@Test
 	public void testExtractFeatureVector() {
-		File file = new File("data/amazon/test_data/1931243999.xml");
+		File file = new File("test_data/1931243999.xml");
 		List<String> result = new SmartCache().extractFeatureVector(file);
 		assertEquals("Paperback", result.get(0)); // binding
 		assertEquals("10.95", result.get(1)); // price

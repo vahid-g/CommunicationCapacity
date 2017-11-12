@@ -72,7 +72,7 @@ public class AmazonQueryResultProcessorTest {
 		AmazonQueryResultProcessor.convertIsbnAnswersToLtidAndFilter(
 				queryResult, isbnToLtid);
 		AmazonIsbnPopularityMap aipm = AmazonIsbnPopularityMap
-				.getInstance("data/amazon/test_data/path.csv");
+				.getInstance("test_data/path.csv");
 		IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
 				.get("data/index")));
 		String log = AmazonQueryResultProcessor.generateLog(queryResult,
