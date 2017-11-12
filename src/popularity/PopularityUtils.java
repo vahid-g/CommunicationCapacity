@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PopularityUtils {
 
@@ -16,11 +18,15 @@ public class PopularityUtils {
 		Map<String, Double> idPopMap = new HashMap<String, Double>();
 		try {
 			for (String line : Files.readAllLines(Paths.get(pathRatePath))) {
-				String[] fields = line.split(",");
-				String path = fields[0];
-				String id = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.'));
-				Double pop = Double.parseDouble(fields[2]);
-				idPopMap.put(id, pop);
+					Pattern ptr = Pattern.compile(".+/([^.]+).(xml|txt), ?([^,]+)(,.+)?");
+					Matcher matcher = ptr.matcher(line);
+					if (matcher.find()) {
+						String id = matcher.group(1);
+						Double pop = Double.parseDouble(matcher.group(3));
+						idPopMap.put(id,  pop);
+					} else {
+						LOGGER.log(Level.WARNING, "Couldn't parse line: " + line);
+					}
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
