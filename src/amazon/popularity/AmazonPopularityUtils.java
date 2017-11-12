@@ -207,8 +207,8 @@ public class AmazonPopularityUtils {
 
 	static void buildPathReviewRateList() {
 		try (FileWriter fw = new FileWriter("data/amazon_path_reviews_rate.csv")) {
-			Map<String, String> isbnRateMap = PopularityUtils
-					.loadIsbnRatingsMap("data/amazon_path_rate.csv");
+			Map<String, Double> isbnRateMap = PopularityUtils
+					.loadIdPopularityMap("data/amazon_path_rate.csv");
 			LOGGER.log(Level.SEVERE,
 					"Size of IsbnRatings map: " + isbnRateMap.size());
 			parsePathReviewsRates("data/amazon_path_reviews.csv", isbnRateMap,
@@ -219,7 +219,7 @@ public class AmazonPopularityUtils {
 	}
 
 	private static void parsePathReviewsRates(String pathRevPath,
-			Map<String, String> isbnRateMap, Writer writer) {
+			Map<String, Double> isbnRateMap, Writer writer) {
 		LOGGER.log(Level.INFO, "Building <Path, #Reviews, RelScore> file..");
 		int missingValues = 0;
 		try {
@@ -228,9 +228,9 @@ public class AmazonPopularityUtils {
 				String path = fields[0];
 				String isbn = path.substring(path.lastIndexOf('/') + 1,
 						path.lastIndexOf('.'));
-				String score = isbnRateMap.get(isbn);
+				Double score = isbnRateMap.get(isbn);
 				if (score == null) {
-					score = "0";
+					score = 0.0;
 					missingValues++;
 				}
 				writer.write(line + "," + score + "\n");
