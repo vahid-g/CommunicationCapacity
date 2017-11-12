@@ -17,5 +17,4 @@ public class PopularityUtilsTest {
 		pop = idPopMap.get("0812532538");
 		assertEquals(3655.0, pop, 0.001);
 	}
-
 }
