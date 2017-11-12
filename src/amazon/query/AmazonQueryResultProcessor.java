@@ -88,5 +88,5 @@ public class AmazonQueryResultProcessor {
 		sb.append("-------------------------------------\n");
 		return sb.toString();
 	}
-
+	
 }
