@@ -1,4 +1,4 @@
-package wiki_inex13;
+package wiki13;
 
 import indexing.GeneralIndexer;
 import indexing.InexFile;

@@ -1,4 +1,4 @@
-package wiki_inex13;
+package wiki13;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -16,7 +16,7 @@ import indexing.InexFile;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import wiki_inex09.ClusterDirectoryInfo;
+import wiki09.ClusterDirectoryInfo;
 
 public class Wiki13Experiment {
 

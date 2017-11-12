@@ -32,7 +32,7 @@ import org.xml.sax.SAXException;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import wiki_inex09.ClusterDirectoryInfo;
+import wiki09.ClusterDirectoryInfo;
 
 public class ImdbExperiment {
 

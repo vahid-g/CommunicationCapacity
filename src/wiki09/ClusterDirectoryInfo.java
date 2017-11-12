@@ -1,4 +1,4 @@
-package wiki_inex09;
+package wiki09;
 
 import java.io.File;
 

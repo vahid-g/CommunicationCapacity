@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
 
-import wiki_inex09.ClusterDirectoryInfo;
+import wiki09.ClusterDirectoryInfo;
 
 public class OnlinePopularityMiner {
 

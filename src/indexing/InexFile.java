@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FilenameUtils;
 
-import wiki_inex13.Wiki13Experiment;
+import wiki13.Wiki13Experiment;
 
 public class InexFile{
 
