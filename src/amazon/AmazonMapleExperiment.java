@@ -79,7 +79,6 @@ public class AmazonMapleExperiment {
 		for (int i = 1; i <= 50; i++) {
 			List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 					queries, INDEX_PATH, new BM25Similarity(), fieldBoostMap);
-			LOGGER.log(Level.INFO, "updating ISBN results to LTID..");
 			int subsetSize = (int) (i * sortedLtidList.size() / 50.0);
 			TreeSet<String> cache = new TreeSet<String>(sortedLtidList.subList(
 					0, subsetSize));

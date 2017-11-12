@@ -1,6 +1,7 @@
 package amazon.popularity;
 
 import indexing.InexFile;
+import popularity.PopularityUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,7 +34,7 @@ import amazon.datatools.AmazonIsbnConverter;
 
 public class AmazonPopularityUtils {
 
-	static final Logger LOGGER = Logger.getLogger(AmazonPopularityUtils.class
+	private static final Logger LOGGER = Logger.getLogger(AmazonPopularityUtils.class
 			.getName());
 
 	static int missingValues = 0;
@@ -206,7 +207,7 @@ public class AmazonPopularityUtils {
 
 	static void buildPathReviewRateList() {
 		try (FileWriter fw = new FileWriter("data/amazon_path_reviews_rate.csv")) {
-			Map<String, String> isbnRateMap = AmazonPopularityUtils
+			Map<String, String> isbnRateMap = PopularityUtils
 					.loadIsbnRatingsMap("data/amazon_path_rate.csv");
 			LOGGER.log(Level.SEVERE,
 					"Size of IsbnRatings map: " + isbnRateMap.size());
@@ -267,22 +268,5 @@ public class AmazonPopularityUtils {
 		LOGGER.log(Level.INFO,
 				"Ltid -> Score map size: " + ltidTotalScoreMap.size());
 		return ltidTotalScoreMap;
-	}
-
-	static Map<String, String> loadIsbnRatingsMap(String pathRatePath) {
-		Map<String, String> isbnRateMap = new HashMap<String, String>();
-		try {
-			for (String line : Files.readAllLines(Paths.get(pathRatePath))) {
-				String[] fields = line.split(",");
-				String path = fields[0];
-				String isbn = path.substring(path.lastIndexOf('/') + 1,
-						path.lastIndexOf('.'));
-				String score = fields[2];
-				isbnRateMap.put(isbn, score);
-			}
-		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, e.getMessage(), e);
-		}
-		return isbnRateMap;
 	}
 }
