@@ -1,0 +1,79 @@
+<!-- version 1.0 -->
+
+<!ELEMENT book (isbn, title, ean, binding, label, listprice, manufacturer, publisher, readinglevel, releasedate, publicationdate, studio, edition, dewey, numberofpages, dimensions, reviews, editorialreviews, images, creators, blurbers, dedications, epigraphs, firstwords, lastwords, quotations, series, awards, characters, places, subjects, tags, similarproducts, browseNodes)>
+<!ELEMENT dimensions (height?, width?, length?, weight?)>
+<!ELEMENT reviews (review*)>
+<!ELEMENT review (authorid?, date, summary?, content?, rating, totalvotes, helpfulvotes)>
+<!ELEMENT editorialreviews (editorialreview*)>
+<!ELEMENT editorialreview (source, content?)>
+<!ELEMENT images (image*)>
+<!ELEMENT image (url, height?, width?, imageCategories)>
+<!ELEMENT imageCategories (imagecategory*)>
+<!ELEMENT creators (creator*)>
+<!ELEMENT blurbers (blurber*)>
+<!ELEMENT dedications (dedication*)>
+<!ELEMENT epigraphs (epigraph*)>
+<!ELEMENT firstwords (firstwordsitem*)>
+<!ELEMENT lastwords (lastwordsitem*)>
+<!ELEMENT quotations (quotation*)>
+<!ELEMENT series (seriesitem*)>
+<!ELEMENT awards (award*)>
+<!ELEMENT browseNodes (browseNode*)>
+<!ELEMENT characters (character*)>
+<!ELEMENT places (place*)>
+<!ELEMENT subjects (subject*)>
+<!ELEMENT similarproducts (similarproduct*)>
+<!ELEMENT tags (tag*)>
+
+<!ELEMENT isbn (#PCDATA)>
+<!ELEMENT ean (#PCDATA)>
+<!ELEMENT binding (#PCDATA)>
+<!ELEMENT label (#PCDATA)>
+<!ELEMENT listprice (#PCDATA)>
+<!ELEMENT manufacturer (#PCDATA)>
+<!ELEMENT numberofpages (#PCDATA)>
+<!ELEMENT publisher (#PCDATA)>
+<!ELEMENT height (#PCDATA)>
+<!ELEMENT width (#PCDATA)>
+<!ELEMENT length (#PCDATA)>
+<!ELEMENT weight (#PCDATA)>
+<!ELEMENT readinglevel (#PCDATA)>
+<!ELEMENT releasedate (#PCDATA)>
+<!ELEMENT publicationdate (#PCDATA)>
+<!ELEMENT studio (#PCDATA)>
+<!ELEMENT title (#PCDATA)>
+<!ELEMENT edition (#PCDATA)>
+<!ELEMENT dewey (#PCDATA)>
+<!ELEMENT creator (name, role)>
+<!ELEMENT rating (#PCDATA)>
+<!ELEMENT authorid (#PCDATA)>
+<!ELEMENT totalvotes (#PCDATA)>
+<!ELEMENT helpfulvotes (#PCDATA)>
+<!ELEMENT date (#PCDATA)>
+<!ELEMENT summary (#PCDATA)>
+<!ELEMENT content (#PCDATA)>
+<!ELEMENT source (#PCDATA)>
+<!ELEMENT url (#PCDATA)>
+<!ELEMENT data (#PCDATA)>
+<!ELEMENT imagecategory (#PCDATA)>
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT role (#PCDATA)>
+<!ELEMENT blurber (#PCDATA)>
+<!ELEMENT dedication (#PCDATA)>
+<!ELEMENT epigraph (#PCDATA)>
+<!ELEMENT firstwordsitem (#PCDATA)>
+<!ELEMENT lastwordsitem (#PCDATA)>
+<!ELEMENT quotation (#PCDATA)>
+<!ELEMENT seriesitem (#PCDATA)>
+<!ELEMENT award (#PCDATA)>
+<!ELEMENT browseNode (#PCDATA)>
+<!ATTLIST browseNode id CDATA #REQUIRED>   
+<!ELEMENT character (#PCDATA)>
+<!ELEMENT place (#PCDATA)>
+<!ELEMENT subject (#PCDATA)>
+<!ELEMENT similarproduct (#PCDATA)>
+<!ELEMENT tag (#PCDATA)>
+<!ATTLIST tag count CDATA #REQUIRED>   
+
+
+
