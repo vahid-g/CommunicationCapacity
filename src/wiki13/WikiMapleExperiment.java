@@ -24,7 +24,9 @@ public class WikiMapleExperiment {
 	private static final Logger LOGGER = Logger.getLogger(WikiMapleExperiment.class.getName());
 	private static final String DATA_PATH = "/data/ghadakcv/data/";
 	private static final String INDEX_PATH = DATA_PATH + "wiki_index";
-	private static final String FILELIST_PATH = DATA_PATH + "/wiki13_count09_text.csv";
+	private static final String FILELIST_PATH = DATA_PATH + "wiki13_count09_text.csv";
+	private static final String QUERY_FILE_PATH = DATA_PATH + "all-topics.xml";
+	private static final String QREL_FILE_PATH = DATA_PATH + "all-topics.qrels";
 
 	public static void main(String[] args) {
 		if (args.length < 1) {
@@ -32,7 +34,7 @@ public class WikiMapleExperiment {
 		} else if (args[0].equals("--index")) {
 			buildIndex(FILELIST_PATH, INDEX_PATH);
 		} else if (args[0].equals("--query")) {
-			List<QueryResult> results = runQueriesOnGlobalIndex(INDEX_PATH, "", "");
+			List<QueryResult> results = runQueriesOnGlobalIndex(INDEX_PATH, QUERY_FILE_PATH, QREL_FILE_PATH);
 			Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(FILELIST_PATH);
 			writeResultsToFile(results, DATA_PATH + "/wiki_result_x100.csv");
 			results = filterResults(results, idPopMap);
@@ -89,7 +91,7 @@ public class WikiMapleExperiment {
 			pops.add(idPopMap.get(id));
 		}
 		Collections.sort(pops, Collections.reverseOrder());
-		double cutoffWeight = pops.get((int)Math.floor(cutoffSize * pops.size()) - 1);
+		double cutoffWeight = pops.get((int) Math.floor(cutoffSize * pops.size()) - 1);
 		System.out.println(cutoffWeight);
 		List<String> newTopResults = new ArrayList<String>();
 		List<String> newTopResultTitles = new ArrayList<String>();
@@ -102,7 +104,7 @@ public class WikiMapleExperiment {
 		result.setTopResults(newTopResults);
 		result.setTopResultsTitle(newTopResultTitles);
 	}
-	
+
 	public static void writeResultsToFile(List<QueryResult> results, String resultFilePath) {
 		LOGGER.log(Level.INFO, "Writing results..");
 		try (FileWriter fw = new FileWriter(resultFilePath)) {
