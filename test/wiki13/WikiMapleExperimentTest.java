@@ -23,10 +23,11 @@ public class WikiMapleExperimentTest {
 		idPopMap.put("doc2", 10.0);
 		idPopMap.put("doc3", 100.0);
 		assertEquals(3, result1.getTopResults().size());
-		WikiMapleExperiment.filterQueryResult(result1, idPopMap, 1);
+		QueryResult result2 = WikiMapleExperiment.filterQueryResult(result1, idPopMap, 1);
+		assertEquals(3, result2.getTopResults().size());
+		result2 = WikiMapleExperiment.filterQueryResult(result1, idPopMap, 0.5);
 		assertEquals(3, result1.getTopResults().size());
-		WikiMapleExperiment.filterQueryResult(result1, idPopMap, 0.5);
-		assertEquals(1, result1.getTopResults().size());
+		assertEquals(1, result2.getTopResults().size());
 	}
 
 }
