@@ -25,7 +25,6 @@ public class WikiMapleExperiment {
 	private static final String DATA_PATH = "/data/ghadakcv/data/";
 	private static final String INDEX_PATH = DATA_PATH + "wiki_index";
 	private static final String FILELIST_PATH = DATA_PATH + "/wiki13_count09_text.csv";
-	private static final String RESULT_FILE_PATH = DATA_PATH + "/wiki_result.csv";
 
 	public static void main(String[] args) {
 		if (args.length < 1) {
@@ -35,8 +34,11 @@ public class WikiMapleExperiment {
 		} else if (args[0].equals("--query")) {
 			List<QueryResult> results = runQueriesOnGlobalIndex(INDEX_PATH, "", "");
 			Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(FILELIST_PATH);
+			writeResultsToFile(results, DATA_PATH + "/wiki_result_x100.csv");
 			results = filterResults(results, idPopMap);
-			writeResultsToFile(results, RESULT_FILE_PATH);
+			writeResultsToFile(results, DATA_PATH + "/wiki_result_x70.csv");
+		} else {
+			LOGGER.log(Level.SEVERE, "Flag not recognized. Available flags are: \n\t--index\n\t--query\n");
 		}
 	}
 
@@ -72,7 +74,7 @@ public class WikiMapleExperiment {
 	static List<QueryResult> filterResults(List<QueryResult> results, Map<String, Double> idPopMap) {
 		LOGGER.log(Level.INFO, "Caching results..");
 		for (QueryResult result : results) {
-			filterQueryResult(result, idPopMap, 1);
+			filterQueryResult(result, idPopMap, 0.7);
 		}
 		return results;
 	}
