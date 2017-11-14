@@ -33,15 +33,22 @@ public class WikiMapleExperiment {
 	public static void main(String[] args) {
 		if (args.length < 1) {
 			LOGGER.log(Level.SEVERE,
-					"A flag should be specified. Available flags are: \n\t--index\n\t--query\n");
+					"A flag should be specified. Available flags are: \n\t--index\n\t--query-X\n");
 		} else if (args[0].equals("--index")) {
 			buildIndex(FILELIST_PATH, INDEX_PATH);
-		} else if (args[0].equals("--query")) {
+		} else if (args[0].equals("--query-1")) {
 			List<QueryResult> results = runQueriesOnGlobalIndex(INDEX_PATH,
 					QUERY_FILE_PATH, QREL_FILE_PATH);
 			Map<String, Double> idPopMap = PopularityUtils
 					.loadIdPopularityMap(FILELIST_PATH);
-			filterAllResults(results, idPopMap, DATA_PATH);
+			filterResultsWithQueryThreshold(results, idPopMap, DATA_PATH);
+		} else if (args[0].equals("--query-2")) {
+			List<InexFile> inexFiles = InexFile.loadInexFileList(FILELIST_PATH);
+			List<QueryResult> results = runQueriesOnGlobalIndex(INDEX_PATH,
+					QUERY_FILE_PATH, QREL_FILE_PATH);
+			Map<String, Double> idPopMap = PopularityUtils
+					.loadIdPopularityMap(FILELIST_PATH);
+			filterResultsWithDatabaseThreshold(results, idPopMap, DATA_PATH, inexFiles);
 		} else {
 			LOGGER.log(Level.SEVERE,
 					"Flag not recognized. Available flags are: \n\t--index\n\t--query\n");
@@ -82,7 +89,7 @@ public class WikiMapleExperiment {
 		return results;
 	}
 
-	static void filterAllResults(List<QueryResult> results,
+	static void filterResultsWithQueryThreshold(List<QueryResult> results,
 			Map<String, Double> idPopMap, String resultDirectoryPath) {
 		LOGGER.log(Level.INFO, "Caching results..");
 		QueryResult newResult;
@@ -94,7 +101,9 @@ public class WikiMapleExperiment {
 				mrrWriter.write(result.query.getText());
 				recallWriter.write(result.query.getText());
 				for (double x = 0.01; x <= 1; x += 0.01) {
-					newResult = filterQueryResult(result, idPopMap, x);
+					double threshold = findThresholdPerQuery(result, idPopMap,
+							x);
+					newResult = filterQueryResult(result, idPopMap, threshold);
 					p20Writer.write("," + newResult.precisionAtK(20));
 					mrrWriter.write("," + newResult.mrr());
 					recallWriter.write("," + newResult.recallAtK(1000));
@@ -108,13 +117,36 @@ public class WikiMapleExperiment {
 		}
 	}
 
-	static QueryResult filterQueryResult(QueryResult result,
-			Map<String, Double> idPopMap, double cutoffSize) {
-		QueryResult newResult = new QueryResult(result.query);
-		if (result.getTopResults().size() < 2) {
-			LOGGER.log(Level.WARNING, "query just has zero or one result");
-			return newResult;
+	static void filterResultsWithDatabaseThreshold(
+			List<QueryResult> results, Map<String, Double> idPopMap,
+			String resultDirectoryPath, List<InexFile> inexFiles) {
+		LOGGER.log(Level.INFO, "Caching results..");
+		QueryResult newResult;
+		try (FileWriter p20Writer = new FileWriter(resultDirectoryPath + "wiki_p20.csv");
+				FileWriter mrrWriter = new FileWriter(resultDirectoryPath + "wiki_mrr.csv");
+				FileWriter recallWriter = new FileWriter(resultDirectoryPath + "wiki_recall.csv")) {
+			for (QueryResult result : results) {
+				p20Writer.write(result.query.getText());
+				mrrWriter.write(result.query.getText());
+				recallWriter.write(result.query.getText());
+				for (double x = 0.01; x <= 1; x += 0.01) {
+					double threshold = findThresholdPerDatabase(inexFiles, x);
+					newResult = filterQueryResult(result, idPopMap, threshold);
+					p20Writer.write("," + newResult.precisionAtK(20));
+					mrrWriter.write("," + newResult.mrr());
+					recallWriter.write("," + newResult.recallAtK(1000));
+				}
+				p20Writer.write("\n");
+				mrrWriter.write("\n");
+				recallWriter.write("\n");
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
+	}
+
+	private static double findThresholdPerQuery(QueryResult result,
+			Map<String, Double> idPopMap, double cutoffSize) {
 		List<Double> pops = new ArrayList<Double>();
 		for (String id : result.getTopResults()) {
 			pops.add(idPopMap.get(id));
@@ -122,6 +154,23 @@ public class WikiMapleExperiment {
 		Collections.sort(pops, Collections.reverseOrder());
 		double cutoffWeight = pops.get((int) Math.floor(cutoffSize
 				* pops.size()) - 1);
+		return cutoffWeight;
+	}
+
+	private static double findThresholdPerDatabase(List<InexFile> inexFiles,
+			double cutoffSize) {
+		// TODO: what if cutoff == 0
+		int lastItem = (int) Math.floor(cutoffSize * inexFiles.size() - 1);
+		return inexFiles.get(lastItem).weight;
+	}
+
+	private static QueryResult filterQueryResult(QueryResult result,
+			Map<String, Double> idPopMap, double cutoffWeight) {
+		QueryResult newResult = new QueryResult(result.query);
+		if (result.getTopResults().size() < 2) {
+			LOGGER.log(Level.WARNING, "query just has zero or one result");
+			return newResult;
+		}
 		List<String> newTopResults = new ArrayList<String>();
 		List<String> newTopResultTitles = new ArrayList<String>();
 		for (int i = 0; i < result.getTopResults().size(); i++) {
