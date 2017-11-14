@@ -110,7 +110,7 @@ public class WikiMapleExperiment {
 					newResult = filterQueryResult(result, idPopMap, threshold);
 					p20Writer.write("," + newResult.precisionAtK(20));
 					mrrWriter.write("," + newResult.mrr());
-					rec200Writer.write("," + newResult.mrr());
+					rec200Writer.write("," + newResult.recallAtK(200));
 					recallWriter.write("," + newResult.recallAtK(1000));
 				}
 				p20Writer.write("\n");
@@ -146,7 +146,7 @@ public class WikiMapleExperiment {
 					newResult = filterQueryResult(result, idPopMap, threshold);
 					p20Writer.write("," + newResult.precisionAtK(20));
 					mrrWriter.write("," + newResult.mrr());
-					rec200Writer.write("," + newResult.mrr());
+					rec200Writer.write("," + newResult.recallAtK(200));
 					recallWriter.write("," + newResult.recallAtK(1000));
 				}
 				p20Writer.write("\n");
