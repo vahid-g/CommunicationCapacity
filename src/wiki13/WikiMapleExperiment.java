@@ -27,8 +27,8 @@ public class WikiMapleExperiment {
 	private static final String INDEX_PATH = DATA_PATH + "wiki_index";
 	private static final String FILELIST_PATH = DATA_PATH
 			+ "wiki13_count13_text.csv";
-	private static final String QUERY_FILE_PATH = DATA_PATH + "all-topics.xml";
-	private static final String QREL_FILE_PATH = DATA_PATH + "all-topics.qrels";
+	private static final String QUERY_FILE_PATH = DATA_PATH + "2013-adhoc.xml";
+	private static final String QREL_FILE_PATH = DATA_PATH + "2013-adhoc.qrels";
 
 	public static void main(String[] args) {
 		if (args.length < 1) {
@@ -41,14 +41,15 @@ public class WikiMapleExperiment {
 					QUERY_FILE_PATH, QREL_FILE_PATH);
 			Map<String, Double> idPopMap = PopularityUtils
 					.loadIdPopularityMap(FILELIST_PATH);
-			filterResultsWithQueryThreshold(results, idPopMap, DATA_PATH);
+			filterResultsWithQueryThreshold(results, idPopMap, "./");
 		} else if (args[0].equals("--query-2")) {
 			List<InexFile> inexFiles = InexFile.loadInexFileList(FILELIST_PATH);
 			List<QueryResult> results = runQueriesOnGlobalIndex(INDEX_PATH,
 					QUERY_FILE_PATH, QREL_FILE_PATH);
 			Map<String, Double> idPopMap = PopularityUtils
 					.loadIdPopularityMap(FILELIST_PATH);
-			filterResultsWithDatabaseThreshold(results, idPopMap, DATA_PATH, inexFiles);
+			filterResultsWithDatabaseThreshold(results, idPopMap, "./",
+					inexFiles);
 		} else {
 			LOGGER.log(Level.SEVERE,
 					"Flag not recognized. Available flags are: \n\t--index\n\t--query\n");
@@ -95,10 +96,13 @@ public class WikiMapleExperiment {
 		QueryResult newResult;
 		try (FileWriter p20Writer = new FileWriter("wiki_p20.csv");
 				FileWriter mrrWriter = new FileWriter("wiki_mrr.csv");
+				FileWriter rec200Writer = new FileWriter(resultDirectoryPath
+						+ "wiki_recall200.csv");
 				FileWriter recallWriter = new FileWriter("wiki_recall.csv")) {
 			for (QueryResult result : results) {
 				p20Writer.write(result.query.getText());
 				mrrWriter.write(result.query.getText());
+				rec200Writer.write(result.query.getText());
 				recallWriter.write(result.query.getText());
 				for (double x = 0.01; x <= 1; x += 0.01) {
 					double threshold = findThresholdPerQuery(result, idPopMap,
@@ -106,10 +110,12 @@ public class WikiMapleExperiment {
 					newResult = filterQueryResult(result, idPopMap, threshold);
 					p20Writer.write("," + newResult.precisionAtK(20));
 					mrrWriter.write("," + newResult.mrr());
+					rec200Writer.write("," + newResult.mrr());
 					recallWriter.write("," + newResult.recallAtK(1000));
 				}
 				p20Writer.write("\n");
 				mrrWriter.write("\n");
+				rec200Writer.write("\n");
 				recallWriter.write("\n");
 			}
 		} catch (IOException e) {
@@ -117,27 +123,35 @@ public class WikiMapleExperiment {
 		}
 	}
 
-	static void filterResultsWithDatabaseThreshold(
-			List<QueryResult> results, Map<String, Double> idPopMap,
-			String resultDirectoryPath, List<InexFile> inexFiles) {
+	static void filterResultsWithDatabaseThreshold(List<QueryResult> results,
+			Map<String, Double> idPopMap, String resultDirectoryPath,
+			List<InexFile> inexFiles) {
 		LOGGER.log(Level.INFO, "Caching results..");
 		QueryResult newResult;
-		try (FileWriter p20Writer = new FileWriter(resultDirectoryPath + "wiki_p20.csv");
-				FileWriter mrrWriter = new FileWriter(resultDirectoryPath + "wiki_mrr.csv");
-				FileWriter recallWriter = new FileWriter(resultDirectoryPath + "wiki_recall.csv")) {
+		try (FileWriter p20Writer = new FileWriter(resultDirectoryPath
+				+ "wiki_p20.csv");
+				FileWriter mrrWriter = new FileWriter(resultDirectoryPath
+						+ "wiki_mrr.csv");
+				FileWriter rec200Writer = new FileWriter(resultDirectoryPath
+						+ "wiki_recall200.csv");
+				FileWriter recallWriter = new FileWriter(resultDirectoryPath
+						+ "wiki_recall.csv")) {
 			for (QueryResult result : results) {
 				p20Writer.write(result.query.getText());
 				mrrWriter.write(result.query.getText());
+				rec200Writer.write(result.query.getText());
 				recallWriter.write(result.query.getText());
 				for (double x = 0.01; x <= 1; x += 0.01) {
 					double threshold = findThresholdPerDatabase(inexFiles, x);
 					newResult = filterQueryResult(result, idPopMap, threshold);
 					p20Writer.write("," + newResult.precisionAtK(20));
 					mrrWriter.write("," + newResult.mrr());
+					rec200Writer.write("," + newResult.mrr());
 					recallWriter.write("," + newResult.recallAtK(1000));
 				}
 				p20Writer.write("\n");
 				mrrWriter.write("\n");
+				rec200Writer.write("\n");
 				recallWriter.write("\n");
 			}
 		} catch (IOException e) {
