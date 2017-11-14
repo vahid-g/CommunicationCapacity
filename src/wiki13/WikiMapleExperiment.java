@@ -26,7 +26,7 @@ public class WikiMapleExperiment {
 	private static final String DATA_PATH = "/data/ghadakcv/";
 	private static final String INDEX_PATH = DATA_PATH + "wiki_index";
 	private static final String FILELIST_PATH = DATA_PATH
-			+ "wiki13_count09_text.csv";
+			+ "wiki13_count13_text.csv";
 	private static final String QUERY_FILE_PATH = DATA_PATH + "all-topics.xml";
 	private static final String QREL_FILE_PATH = DATA_PATH + "all-topics.qrels";
 
