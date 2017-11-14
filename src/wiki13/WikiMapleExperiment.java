@@ -26,7 +26,7 @@ public class WikiMapleExperiment {
 	private static final String DATA_PATH = "/data/ghadakcv/";
 	private static final String INDEX_PATH = DATA_PATH + "wiki_index";
 	private static final String FILELIST_PATH = DATA_PATH
-			+ "wiki13_count09_text.csv";
+			+ "wiki13_count13_text.csv";
 	private static final String QUERY_FILE_PATH = DATA_PATH + "all-topics.xml";
 	private static final String QREL_FILE_PATH = DATA_PATH + "all-topics.qrels";
 
@@ -74,8 +74,8 @@ public class WikiMapleExperiment {
 				queriesFilePath, qrelsFilePath);
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-		fieldToBoost.put(Wiki13Indexer.TITLE_ATTRIB, 0.1f);
-		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 0.9f);
+		fieldToBoost.put(Wiki13Indexer.TITLE_ATTRIB, 0.15f);
+		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 0.85f);
 		LOGGER.log(Level.INFO, "Running queries..");
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 				queries, indexPath, new BM25Similarity(), fieldToBoost);
