@@ -96,9 +96,9 @@ public class WikiMapleExperiment {
 		QueryResult newResult;
 		try (FileWriter p20Writer = new FileWriter("wiki_p20.csv");
 				FileWriter mrrWriter = new FileWriter("wiki_mrr.csv");
-				FileWriter rec200Writer = new FileWriter(resultDirectoryPath
-						+ "wiki_recall200.csv");
-				FileWriter recallWriter = new FileWriter("wiki_recall.csv")) {
+				FileWriter rec200Writer = new FileWriter("wiki_recall200.csv");
+				FileWriter recallWriter = new FileWriter("wiki_recall.csv");
+				FileWriter logWriter = new FileWriter("log.csv")) {
 			for (QueryResult result : results) {
 				p20Writer.write(result.query.getText());
 				mrrWriter.write(result.query.getText());
@@ -159,7 +159,7 @@ public class WikiMapleExperiment {
 		}
 	}
 
-	private static double findThresholdPerQuery(QueryResult result,
+	protected static double findThresholdPerQuery(QueryResult result,
 			Map<String, Double> idPopMap, double cutoffSize) {
 		List<Double> pops = new ArrayList<Double>();
 		for (String id : result.getTopResults()) {
@@ -171,14 +171,14 @@ public class WikiMapleExperiment {
 		return cutoffWeight;
 	}
 
-	private static double findThresholdPerDatabase(List<InexFile> inexFiles,
+	protected static double findThresholdPerDatabase(List<InexFile> inexFiles,
 			double cutoffSize) {
 		// TODO: what if cutoff == 0
 		int lastItem = (int) Math.floor(cutoffSize * inexFiles.size() - 1);
 		return inexFiles.get(lastItem).weight;
 	}
 
-	private static QueryResult filterQueryResult(QueryResult result,
+	protected static QueryResult filterQueryResult(QueryResult result,
 			Map<String, Double> idPopMap, double cutoffWeight) {
 		QueryResult newResult = new QueryResult(result.query);
 		if (result.getTopResults().size() < 2) {
