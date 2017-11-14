@@ -93,7 +93,7 @@ public class WikiMapleExperiment {
 				p20Writer.write(result.query.getText());
 				mrrWriter.write(result.query.getText());
 				recallWriter.write(result.query.getText());
-				for (double x = 0.1; x <= 1; x += 0.1) {
+				for (double x = 0.01; x <= 1; x += 0.01) {
 					newResult = filterQueryResult(result, idPopMap, x);
 					p20Writer.write("," + newResult.precisionAtK(20));
 					mrrWriter.write("," + newResult.mrr());
