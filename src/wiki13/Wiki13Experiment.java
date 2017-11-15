@@ -1,5 +1,7 @@
 package wiki13;
 
+import indexing.InexFile;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,10 +11,15 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.search.similarities.BM25Similarity;
 
-import indexing.InexFile;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
@@ -27,19 +34,46 @@ public class Wiki13Experiment {
 
 	public static void main(String[] args) {
 
-		long start_t = System.currentTimeMillis();
-		int expNo = Integer.parseInt(args[0]);
-		int totalExp = Integer.parseInt(args[1]);
-		String indexPath = INDEX_BASE + "wiki13_p" + totalExp + "_w13"
-				+ "/part_" + expNo;
-		buildGlobalIndex(expNo, totalExp, FILELIST_PATH, indexPath);
-		// gridSearchExperiment(gamma);
-		// expTextInex13(expNo, totalExp, gamma);
-		// expTextMsn(expNo, totalExp);
-		// runQueriesOnGlobalIndex(expNo, totalExp);
+		Options options = new Options();
+		Option indexOption = new Option("i", "index", false,
+				"Flag to run indexing experiment");
+		options.addOption(indexOption);
+		Option queryOption = new Option("q", "query", false,
+				"Flag to run querying experiment");
+		options.addOption(queryOption);
+		Option totalExpNumberOption = new Option("t", "total", true,
+				"Total number of experiments");
+		totalExpNumberOption.setRequired(true);
+		options.addOption(totalExpNumberOption);
+		Option expNumberOption = new Option("e", "exp", true,
+				"Number of experiment");
+		expNumberOption.setRequired(true);
+		options.addOption(expNumberOption);
+		CommandLineParser clp = new DefaultParser();
+		HelpFormatter formatter = new HelpFormatter();
+		CommandLine cl;
 
-		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
-				+ (System.currentTimeMillis() - start_t) / 60000 + " minutes");
+		try {
+			cl = clp.parse(options, args);
+			int expNo = Integer.parseInt(cl.getOptionValue("e"));
+			int totalExp = Integer.parseInt(cl.getOptionValue("t"));
+			String indexPath = INDEX_BASE + "wiki13_p" + totalExp + "_w13"
+					+ "/part_" + expNo;
+			long start_t = System.currentTimeMillis();
+			if (cl.hasOption("i")) {
+				buildGlobalIndex(expNo, totalExp, FILELIST_PATH, indexPath);
+			}
+			if (cl.hasOption("1")) {
+				runQueriesOnGlobalIndex(expNo, totalExp);
+			}
+			LOGGER.log(Level.INFO, "Time spent for experiment " + expNo
+					+ " is " + (System.currentTimeMillis() - start_t) / 60000
+					+ " minutes");
+		} catch (org.apache.commons.cli.ParseException e) {
+			LOGGER.log(Level.INFO, e.getMessage());
+			formatter.printHelp("utility-name", options);
+			return;
+		}
 	}
 
 	static void gridSearchExperiment(float gamma) {
@@ -85,7 +119,7 @@ public class Wiki13Experiment {
 		}
 	}
 
-	public static void expTextMsn(int expNo, int totalExp) {
+	static void expTextMsn(int expNo, int totalExp) {
 		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13
 				+ "msn_index13_" + expNo;
 		try {
@@ -131,7 +165,7 @@ public class Wiki13Experiment {
 		}
 	}
 
-	public static void expTextInex13(int expNo, int totalExp, float gamma) {
+	static void expTextInex13(int expNo, int totalExp, float gamma) {
 		String indexPath = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "index13_"
 				+ expNo;
 		try {
@@ -187,7 +221,7 @@ public class Wiki13Experiment {
 	}
 
 	// builds the index on cluster-share
-	public static void buildGlobalIndex(int expNo, int totalExp,
+	static void buildGlobalIndex(int expNo, int totalExp,
 			String filelistPopularityPath, String indexPath) {
 		try {
 			List<InexFile> pathCountList = InexFile
@@ -214,7 +248,7 @@ public class Wiki13Experiment {
 		}
 	}
 
-	public static void runQueriesOnGlobalIndex(int expNo, int totalExp) {
+	static void runQueriesOnGlobalIndex(int expNo, int totalExp) {
 		String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "wiki13_p"
 				+ totalExp + "_w09_bm" + "/part_" + expNo;
 		LOGGER.log(Level.INFO, "Loading and running queries..");

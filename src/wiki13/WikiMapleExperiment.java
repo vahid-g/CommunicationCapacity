@@ -1,5 +1,7 @@
 package wiki13;
 
+import indexing.InexFile;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -8,12 +10,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.lucene.search.similarities.BM25Similarity;
 
-import indexing.InexFile;
 import popularity.PopularityUtils;
 import query.ExperimentQuery;
 import query.QueryResult;
@@ -36,6 +38,12 @@ public class WikiMapleExperiment {
 					"A flag should be specified. Available flags are: \n\t--index\n\t--query-X\n");
 		} else if (args[0].equals("--index")) {
 			buildIndex(FILELIST_PATH, INDEX_PATH);
+		} else if (args[0].equals("--query-0")) {
+			List<QueryResult> results = runQueriesOnGlobalIndex(INDEX_PATH,
+					QUERY_FILE_PATH, QREL_FILE_PATH);
+			Map<String, Double> idPopMap = PopularityUtils
+					.loadIdPopularityMap(FILELIST_PATH);
+			logResultsWithPopularity(results, idPopMap);
 		} else if (args[0].equals("--query-1")) {
 			List<QueryResult> results = runQueriesOnGlobalIndex(INDEX_PATH,
 					QUERY_FILE_PATH, QREL_FILE_PATH);
@@ -90,8 +98,26 @@ public class WikiMapleExperiment {
 		return results;
 	}
 
-	static void filterResultsWithQueryThreshold(List<QueryResult> results,
-			Map<String, Double> idPopMap, String resultDirectoryPath) {
+	protected static void logResultsWithPopularity(List<QueryResult> results,
+			Map<String, Double> idPopMap) {
+		LOGGER.log(Level.INFO, "Logging query results..");
+		try (FileWriter fw = new FileWriter("query-result.log")) {
+			for (QueryResult result : results) {
+				for (int i = 0; i < result.getTopResults().size(); i++) {
+					Set<String> rels = result.query.getQrelScoreMap().keySet();
+					String id = result.getTopResults().get(i);
+					fw.write(id + ": " + result.getTopResultsTitle().get(i)
+							+ "\t" + idPopMap.get(id) + rels.contains(id)
+							+ "\n");
+				}
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+	}
+	protected static void filterResultsWithQueryThreshold(
+			List<QueryResult> results, Map<String, Double> idPopMap,
+			String resultDirectoryPath) {
 		LOGGER.log(Level.INFO, "Caching results..");
 		QueryResult newResult;
 		try (FileWriter p20Writer = new FileWriter("wiki_p20.csv");
@@ -123,9 +149,9 @@ public class WikiMapleExperiment {
 		}
 	}
 
-	static void filterResultsWithDatabaseThreshold(List<QueryResult> results,
-			Map<String, Double> idPopMap, String resultDirectoryPath,
-			List<InexFile> inexFiles) {
+	protected static void filterResultsWithDatabaseThreshold(
+			List<QueryResult> results, Map<String, Double> idPopMap,
+			String resultDirectoryPath, List<InexFile> inexFiles) {
 		LOGGER.log(Level.INFO, "Caching results..");
 		QueryResult newResult;
 		try (FileWriter p20Writer = new FileWriter(resultDirectoryPath
