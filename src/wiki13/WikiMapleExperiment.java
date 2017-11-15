@@ -63,7 +63,6 @@ public class WikiMapleExperiment {
 					"Flag not recognized. Available flags are: \n\t--index\n\t--query\n");
 		}
 	}
-
 	private static void buildIndex(String fileListPath,
 			String indexDirectoryPath) {
 		try {
@@ -103,13 +102,23 @@ public class WikiMapleExperiment {
 		LOGGER.log(Level.INFO, "Logging query results..");
 		try (FileWriter fw = new FileWriter("query-result.log")) {
 			for (QueryResult result : results) {
+				double threshold = findThresholdPerQuery(result, idPopMap, 0.3);
+				fw.write(result.query.getText() + "\t" + threshold + "\n");
+				int counter = 1;
 				for (int i = 0; i < result.getTopResults().size(); i++) {
+					if (counter++ > 20)
+						break;
 					Set<String> rels = result.query.getQrelScoreMap().keySet();
 					String id = result.getTopResults().get(i);
-					fw.write(id + ": " + result.getTopResultsTitle().get(i)
-							+ "\t" + idPopMap.get(id) + rels.contains(id)
-							+ "\n");
+					String rel = "-";
+					if (rels.contains(id)) {
+						rel = "+";
+					}
+					fw.write("\t" + rel + "\t" + idPopMap.get(id) + "\t"
+							+ result.getTopResultsTitle().get(i) + "\n");
+
 				}
+				fw.write("======================\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);

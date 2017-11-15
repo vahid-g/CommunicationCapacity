@@ -61,9 +61,11 @@ public class Wiki13Experiment {
 					+ "/part_" + expNo;
 			long start_t = System.currentTimeMillis();
 			if (cl.hasOption("i")) {
+				LOGGER.log(Level.INFO, "Building index..");
 				buildGlobalIndex(expNo, totalExp, FILELIST_PATH, indexPath);
 			}
-			if (cl.hasOption("1")) {
+			if (cl.hasOption("q")) {
+				LOGGER.log(Level.INFO, "querying " + expNo + " at " + totalExp);
 				runQueriesOnGlobalIndex(expNo, totalExp);
 			}
 			LOGGER.log(Level.INFO, "Time spent for experiment " + expNo
@@ -75,7 +77,6 @@ public class Wiki13Experiment {
 			return;
 		}
 	}
-
 	static void gridSearchExperiment(float gamma) {
 		// Note that the path count should be sorted!
 		List<InexFile> pathCountList = InexFile
