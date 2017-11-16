@@ -2,12 +2,20 @@ package query;
 
 import indexing.InexFile;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class QueryResult {
+
+	private static final Logger LOGGER = Logger.getLogger(QueryResult.class
+			.getName());
 
 	public ExperimentQuery query;
 	protected List<String> topResults = new ArrayList<String>();
@@ -114,10 +122,33 @@ public class QueryResult {
 		return query.getText() + "," + resultTuples;
 	}
 
-	public String miniLog(Map<String, InexFile> idToInexfile) {
+	public String miniLog(Map<String, Double> idPopMap) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(this.query.getText() + "\n");
+		int counter = 1;
+		for (int i = 0; i < this.getTopResults().size(); i++) {
+			if (counter++ > 20)
+				break;
+			Set<String> rels = this.query.getQrelScoreMap().keySet();
+			String docId = this.getTopResults().get(i);
+			String rel1Char = "-";
+			if (rels.contains(docId)) {
+				rel1Char = "+";
+			}
+			sb.append("\t" + rel1Char + "\t" + idPopMap.get(docId) + "\t"
+					+ this.getTopResultsTitle().get(i) + "\n");
+
+		}
+		sb.append("======================\n");
+		return sb.toString();
+	}
+
+	@Deprecated
+	public String logForImdb(Map<String, InexFile> idToInexfile) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("qid: " + query.getId() + "\t" + query.getText() + "\n");
-		sb.append("|relevant tuples| = " + query.getQrelScoreMap().size() + "\n");
+		sb.append("|relevant tuples| = " + query.getQrelScoreMap().size()
+				+ "\n");
 		sb.append("|returned results| = " + this.topResults.size() + "\n");
 		int counter = 0;
 		sb.append("available missed files: \n");
@@ -181,6 +212,18 @@ public class QueryResult {
 	@Override
 	public String toString() {
 		return query.getId() + "," + query.getText();
+	}
+
+	public static void logResultsWithPopularity(List<QueryResult> results,
+			Map<String, Double> idPopMap, String logFilePath) {
+		LOGGER.log(Level.INFO, "Logging query results..");
+		try (FileWriter fw = new FileWriter(logFilePath)) {
+			for (QueryResult result : results) {
+				fw.write(result.miniLog(idPopMap));
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
 	}
 
 }

@@ -100,7 +100,6 @@ public class QueryServices {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			searcher.setSimilarity(similarity);
 			for (ExperimentQuery queryDAO : queries) {
-				// LOGGER.log(Level.INFO,queryCoutner++);
 				Query query = buildLuceneQuery(queryDAO.getText(), fieldToBoost);
 				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 				QueryResult iqr = new QueryResult(queryDAO);
@@ -209,6 +208,7 @@ public class QueryServices {
 			DocumentBuilder db = dbf.newDocumentBuilder();
 			org.w3c.dom.Document doc = db.parse(new File(path));
 			NodeList nodeList = doc.getElementsByTagName("topic");
+			int nullQrelCounter = 0;
 			for (int i = 0; i < nodeList.getLength(); i++) {
 				Node node = nodeList.item(i);
 				int qid = Integer.parseInt(node.getAttributes()
@@ -226,14 +226,15 @@ public class QueryServices {
 				}
 				Set<Qrel> qrels = qidQrels.get(qid);
 				if (qrels == null) {
-					LOGGER.log(Level.SEVERE, "no qrels for query: " + qid
-							+ " in file: " + qrelPath);
+					nullQrelCounter++;
 				} else {
 					ExperimentQuery iq = new ExperimentQuery(qid, queryText,
 							qrels);
 					queryList.add(iq);
 				}
 			}
+			LOGGER.log(Level.WARNING, "Number of queries without qrel in "
+					+ qrelPath + " is: " + nullQrelCounter);
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}

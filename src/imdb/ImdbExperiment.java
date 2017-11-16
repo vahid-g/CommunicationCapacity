@@ -301,7 +301,7 @@ public class ImdbExperiment {
 								+ ".log")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.toString() + "\n");
-				fw2.write(mqr.miniLog(idToInexFile) + "\n");
+				fw2.write(mqr.logForImdb(idToInexFile) + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage());
@@ -351,7 +351,7 @@ public class ImdbExperiment {
 					.loadFilePathCountTitleMap(ImdbClusterDirectoryInfo.FILE_LIST);
 			for (QueryResult mqr : results) {
 				fw.write(mqr.resultString() + "\n");
-				fw2.write(mqr.miniLog(idToInexFile) + "\n");
+				fw2.write(mqr.logForImdb(idToInexFile) + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage());

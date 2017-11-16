@@ -20,6 +20,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.search.similarities.BM25Similarity;
 
+import popularity.PopularityUtils;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
@@ -35,18 +36,17 @@ public class Wiki13Experiment {
 	public static void main(String[] args) {
 
 		Options options = new Options();
-		Option indexOption = new Option("i", "index", false,
+		Option indexOption = new Option("index", false,
 				"Flag to run indexing experiment");
 		options.addOption(indexOption);
-		Option queryOption = new Option("q", "query", false,
+		Option queryOption = new Option("query", false,
 				"Flag to run querying experiment");
 		options.addOption(queryOption);
-		Option totalExpNumberOption = new Option("t", "total", true,
+		Option totalExpNumberOption = new Option("total", true,
 				"Total number of experiments");
 		totalExpNumberOption.setRequired(true);
 		options.addOption(totalExpNumberOption);
-		Option expNumberOption = new Option("e", "exp", true,
-				"Number of experiment");
+		Option expNumberOption = new Option("exp", true, "Number of experiment");
 		expNumberOption.setRequired(true);
 		options.addOption(expNumberOption);
 		CommandLineParser clp = new DefaultParser();
@@ -60,20 +60,26 @@ public class Wiki13Experiment {
 			String indexPath = INDEX_BASE + "wiki13_p" + totalExp + "_w13"
 					+ "/part_" + expNo;
 			long start_t = System.currentTimeMillis();
-			if (cl.hasOption("i")) {
+			if (cl.hasOption("index")) {
 				LOGGER.log(Level.INFO, "Building index..");
 				buildGlobalIndex(expNo, totalExp, FILELIST_PATH, indexPath);
 			}
-			if (cl.hasOption("q")) {
+			if (cl.hasOption("query")) {
 				LOGGER.log(Level.INFO, "querying " + expNo + " at " + totalExp);
-				runQueriesOnGlobalIndex(expNo, totalExp);
+				List<QueryResult> results = runQueriesOnGlobalIndex(expNo,
+						totalExp, indexPath);
+				writeResultsToFile(results, "result/" + expNo + ".csv");
+				Map<String, Double> idPopMap = PopularityUtils
+						.loadIdPopularityMap(FILELIST_PATH);
+				QueryResult.logResultsWithPopularity(results, idPopMap, expNo
+						+ ".log");
 			}
 			LOGGER.log(Level.INFO, "Time spent for experiment " + expNo
 					+ " is " + (System.currentTimeMillis() - start_t) / 60000
 					+ " minutes");
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.INFO, e.getMessage());
-			formatter.printHelp("utility-name", options);
+			formatter.printHelp("", options);
 			return;
 		}
 	}
@@ -249,9 +255,8 @@ public class Wiki13Experiment {
 		}
 	}
 
-	static void runQueriesOnGlobalIndex(int expNo, int totalExp) {
-		String indexPath = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "wiki13_p"
-				+ totalExp + "_w09_bm" + "/part_" + expNo;
+	static List<QueryResult> runQueriesOnGlobalIndex(int expNo, int totalExp,
+			String indexPath) {
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				ClusterDirectoryInfo.INEX13_QUERY_FILE,
@@ -262,9 +267,12 @@ public class Wiki13Experiment {
 		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 0.9f);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 				queries, indexPath, new BM25Similarity(), fieldToBoost);
+		return results;
+	}
+
+	static void writeResultsToFile(List<QueryResult> results,
+			String resultFileName) {
 		LOGGER.log(Level.INFO, "Writing results..");
-		String resultFileName = ClusterDirectoryInfo.RESULT_DIR + expNo
-				+ ".csv";
 		try (FileWriter fw = new FileWriter(resultFileName)) {
 			for (QueryResult iqr : results) {
 				fw.write(iqr.resultString() + "\n");

@@ -123,13 +123,4 @@ public class Wiki13Indexer extends GeneralIndexer {
 		}
 	}
 
-	// code for smoothed document boosting:
-	// int N = 0;
-	// for (InexFile entry : fileCountList) {
-	// N += entry.weight;
-	// }
-	// int V = fileCountList.size();
-	// float alpha = 1.0f;
-	// float smoothed = (count + alpha) / (N + V * alpha);
-
 }
