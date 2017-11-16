@@ -130,7 +130,7 @@ public class Wiki09Experiments {
 	public static void gridSearchExperiment(float gamma) {
 		List<InexFile> fileList = InexFile.loadInexFileList(ClusterDirectoryInfo.PATH_COUNT_FILE09);
 		// Note! don't need to sort path_counts based on weight
-		String indexName = ClusterDirectoryInfo.LOCAL_INDEX_BASE13 + "inex09_grid_" + (gamma * 10);
+		String indexName = "/scratch/ghadakcv/index" + "inex09_grid_" + (gamma * 10);
 		LOGGER.log(Level.INFO, "Building index..");
 		new Wiki09Indexer().buildIndex(fileList, indexName);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
