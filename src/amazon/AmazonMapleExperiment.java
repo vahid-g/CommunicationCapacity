@@ -40,9 +40,6 @@ public class AmazonMapleExperiment {
 	private static final String QUERY_FILE = DATA_FOLDER
 			+ "inex14sbs.topics.xml";
 	private static final String QREL_FILE = DATA_FOLDER + "inex14sbs.qrels";
-	private static final String LTID_LIST = DATA_FOLDER
-			+ "ltid_ratecountsum.sor";
-
 	private static final AmazonDocumentField[] fields = {
 			AmazonDocumentField.TITLE, AmazonDocumentField.CONTENT,
 			AmazonDocumentField.CREATORS, AmazonDocumentField.TAGS,
@@ -72,7 +69,8 @@ public class AmazonMapleExperiment {
 		fieldBoostMap.put(AmazonDocumentField.CREATORS.toString(), 0.04f);
 		fieldBoostMap.put(AmazonDocumentField.TAGS.toString(), 0.1f);
 		fieldBoostMap.put(AmazonDocumentField.DEWEY.toString(), 0.02f);
-		// List<String> sortedLtidList = loadLtidList(LTID_LIST);
+		// List<String> sortedLtidList = loadLtidList(DATA_FOLDER
+		// + "ltid_ratecountsum.sor");
 		List<String> sortedLtidList = loadIsbnList(FILE_LIST);
 		Map<String, String> isbnToLtid = AmazonIsbnConverter
 				.loadIsbnToLtidMap(ISBN_DICT_PATH);
@@ -124,8 +122,7 @@ public class AmazonMapleExperiment {
 						line.indexOf('.'));
 				sortedIsbnList.add(isbn);
 			} else {
-				LOGGER.log(Level.SEVERE,
-						"couldn't parse: " + line);
+				LOGGER.log(Level.SEVERE, "couldn't parse: " + line);
 			}
 		}
 		return sortedIsbnList;
