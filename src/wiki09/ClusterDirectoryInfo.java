@@ -29,25 +29,8 @@ public class ClusterDirectoryInfo {
 	public static final String PATH_COUNT_FILE09 = CLUSTER_BASE
 			+ "data/path_counts/pathcount_09_0103.csv";
 
-	// 2013 files
-	public static final String DATASET13_PATH = CLUSTER_BASE
-			+ "data-sets/inex_13";
-	public static final String LOCAL_INDEX_BASE13 = "/scratch/ghadakcv/index13/";
-	public static final String PATH13_COUNT13 = CLUSTER_BASE
-			+ "data/path_counts/pathcount_13_0103_text.csv";
-	public static final String PATH13_COUNT09 = CLUSTER_BASE
-			+ "data/path_counts/wiki13_count09_text.csv";
-
-	// INEX 2013 query files
-	public static final String INEX13_QUERY_FILE = ClusterDirectoryInfo.CLUSTER_BASE
-			+ "data/inex_ld/2013-ld-adhoc-topics.xml";
-	public static final String INEX13_QREL_FILE = ClusterDirectoryInfo.CLUSTER_BASE
-			+ "data/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
 
 	static {
-		File indexBaseDir = new File(ClusterDirectoryInfo.LOCAL_INDEX_BASE13);
-		if (!indexBaseDir.exists())
-			indexBaseDir.mkdirs();
 		File resultDir = new File(ClusterDirectoryInfo.RESULT_DIR);
 		if (!resultDir.exists())
 			resultDir.mkdirs();
