@@ -116,27 +116,14 @@ public class QueryResult {
 		return sb.toString();
 	}
 
-	public String logTopResults() {
-		int k = 20;
-		int limit = topResultsTitle.size() > k ? k : topResultsTitle.size();
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < limit - 1; i++) {
-			sb.append(topResultsTitle.get(i) + ",");
-		}
-		if (limit > 0)
-			sb.append(topResultsTitle.get(limit - 1));
-		String resultTuples = sb.toString();
-		return query.getText() + "," + resultTuples;
-	}
-
 	public String miniLog(Map<String, Double> idPopMap, int k) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.query.getText() + "\n");
 		int counter = 1;
+		Set<String> rels = this.query.getQrelScoreMap().keySet();
 		for (int i = 0; i < this.getTopResults().size(); i++) {
 			if (counter++ > k)
 				break;
-			Set<String> rels = this.query.getQrelScoreMap().keySet();
 			String docId = this.getTopResults().get(i);
 			String rel1Char = "-";
 			if (rels.contains(docId)) {
@@ -150,6 +137,19 @@ public class QueryResult {
 					+ this.getTopResultsTitle().get(i) + "\t" + explanation.replace("\n", " ") + "\n");
 
 		}
+		sb.append("...");
+		int i = Math.min(1000, this.getTopResults().size());
+		String docId = this.getTopResults().get(i);
+		String rel1Char = "-";
+		if (rels.contains(docId)) {
+			rel1Char = "+";
+		}
+		String explanation = "";
+		if (explanations.get(i) != null) {
+			explanation = explanations.get(i).toString();
+		}
+		sb.append("\t" + rel1Char + "\t" + idPopMap.get(docId) + "\t"
+				+ this.getTopResultsTitle().get(i) + "\t" + explanation.replace("\n", " ") + "\n");
 		sb.append("======================\n");
 		return sb.toString();
 	}
