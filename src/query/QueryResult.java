@@ -20,6 +20,7 @@ public class QueryResult {
 	public ExperimentQuery query;
 	protected List<String> topResults = new ArrayList<String>();
 	protected List<String> topResultsTitle = new ArrayList<String>();
+	protected List<String> explanations = new ArrayList<String>();
 
 	public QueryResult(ExperimentQuery query) {
 		this.query = query;
@@ -28,6 +29,12 @@ public class QueryResult {
 	public void addResult(String docId, String docTitle) {
 		topResults.add(docId);
 		topResultsTitle.add(docId + ": " + docTitle);
+	}
+
+	public void addResult(String docId, String docTitle, String explanation) {
+		topResults.add(docId);
+		topResultsTitle.add(docId + ": " + docTitle);
+		explanations.add(explanation);
 	}
 
 	public double averagePrecision() {
@@ -41,7 +48,7 @@ public class QueryResult {
 		return ap / query.getQrelScoreMap().size();
 	}
 
-	double idcg(int p) {
+	public double idcg(int p) {
 		List<Integer> qrelScoreList = new ArrayList<Integer>();
 		if (query.getQrelScoreMap().size() > 0)
 			qrelScoreList.addAll(query.getQrelScoreMap().values());
@@ -122,12 +129,12 @@ public class QueryResult {
 		return query.getText() + "," + resultTuples;
 	}
 
-	public String miniLog(Map<String, Double> idPopMap) {
+	public String miniLog(Map<String, Double> idPopMap, int k) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.query.getText() + "\n");
 		int counter = 1;
 		for (int i = 0; i < this.getTopResults().size(); i++) {
-			if (counter++ > 20)
+			if (counter++ > k)
 				break;
 			Set<String> rels = this.query.getQrelScoreMap().keySet();
 			String docId = this.getTopResults().get(i);
@@ -135,8 +142,12 @@ public class QueryResult {
 			if (rels.contains(docId)) {
 				rel1Char = "+";
 			}
+			String explanation = "";
+			if (explanations.get(i) != null) {
+				explanation = explanations.get(i).toString();
+			}
 			sb.append("\t" + rel1Char + "\t" + idPopMap.get(docId) + "\t"
-					+ this.getTopResultsTitle().get(i) + "\n");
+					+ this.getTopResultsTitle().get(i) + "\t" + explanation.replace("\n", " ") + "\n");
 
 		}
 		sb.append("======================\n");
@@ -197,16 +208,24 @@ public class QueryResult {
 		return topResults;
 	}
 
-	public List<String> getTopResultsTitle() {
-		return topResultsTitle;
-	}
-
 	public void setTopResults(List<String> topResults) {
 		this.topResults = topResults;
 	}
 
+	public List<String> getTopResultsTitle() {
+		return topResultsTitle;
+	}
+
 	public void setTopResultsTitle(List<String> topResultsTitle) {
 		this.topResultsTitle = topResultsTitle;
+	}
+
+	public List<String> getExplanations() {
+		return explanations;
+	}
+
+	public void setExplanations(List<String> explanations) {
+		this.explanations = explanations;
 	}
 
 	@Override
@@ -215,11 +234,11 @@ public class QueryResult {
 	}
 
 	public static void logResultsWithPopularity(List<QueryResult> results,
-			Map<String, Double> idPopMap, String logFilePath) {
+			Map<String, Double> idPopMap, String logFilePath, int k) {
 		LOGGER.log(Level.INFO, "Logging query results..");
 		try (FileWriter fw = new FileWriter(logFilePath)) {
 			for (QueryResult result : results) {
-				fw.write(result.miniLog(idPopMap));
+				fw.write(result.miniLog(idPopMap, k));
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);

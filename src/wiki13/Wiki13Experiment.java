@@ -75,7 +75,7 @@ public class Wiki13Experiment {
 				Map<String, Double> idPopMap = PopularityUtils
 						.loadIdPopularityMap(FILELIST_PATH);
 				QueryResult.logResultsWithPopularity(results, idPopMap, expNo
-						+ ".log");
+						+ ".log", 50);
 			}
 			LOGGER.log(Level.INFO, "Time spent for experiment " + expNo
 					+ " is " + (System.currentTimeMillis() - start_t) / 60000
@@ -263,10 +263,10 @@ public class Wiki13Experiment {
 				queryFilePath, qrelFilePath, "title");
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-		fieldToBoost.put(Wiki13Indexer.TITLE_ATTRIB, 0.1f);
-		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 0.9f);
+		fieldToBoost.put(Wiki13Indexer.TITLE_ATTRIB, 0.15f);
+		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 0.85f);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(
-				queries, indexPath, new BM25Similarity(), fieldToBoost);
+				queries, indexPath, new BM25Similarity(), fieldToBoost, true);
 		return results;
 	}
 

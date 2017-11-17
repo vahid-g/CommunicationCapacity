@@ -29,6 +29,7 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
@@ -92,6 +93,14 @@ public class QueryServices {
 	public static List<QueryResult> runQueriesWithBoosting(
 			List<ExperimentQuery> queries, String indexPath,
 			Similarity similarity, Map<String, Float> fieldToBoost) {
+		return runQueriesWithBoosting(queries, indexPath, similarity,
+				fieldToBoost, false);
+	}
+
+	public static List<QueryResult> runQueriesWithBoosting(
+			List<ExperimentQuery> queries, String indexPath,
+			Similarity similarity, Map<String, Float> fieldToBoost,
+			boolean explain) {
 		List<QueryResult> iqrList = new ArrayList<QueryResult>();
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
 				.get(indexPath)))) {
@@ -99,16 +108,23 @@ public class QueryServices {
 					"Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
 			searcher.setSimilarity(similarity);
-			for (ExperimentQuery queryDAO : queries) {
-				Query query = buildLuceneQuery(queryDAO.getText(), fieldToBoost);
-				TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
-				QueryResult iqr = new QueryResult(queryDAO);
-				for (int i = 0; i < Math.min(TOP_DOC_COUNT,
-						topDocs.scoreDocs.length); i++) {
-					Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
+			for (ExperimentQuery experimentQuery : queries) {
+				Query query = buildLuceneQuery(experimentQuery.getText(),
+						fieldToBoost);
+				ScoreDoc[] hits = searcher.search(query, TOP_DOC_COUNT).scoreDocs;
+				QueryResult iqr = new QueryResult(experimentQuery);
+				LOGGER.log(Level.INFO, "{0} docs returned for query: {1}",
+						new Object[]{hits.length, experimentQuery.getText()});
+				for (int i = 0; i < Math.min(TOP_DOC_COUNT, hits.length); i++) {
+					Document doc = searcher.doc(hits[i].doc);
 					String docId = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
 					String docTitle = doc.get(GeneralIndexer.TITLE_ATTRIB);
-					iqr.addResult(docId, docTitle);
+					if (explain) {
+						iqr.addResult(docId, docTitle,
+								hits[i].score + "");
+					} else {
+						iqr.addResult(docId, docTitle);
+					}
 				}
 				iqrList.add(iqr);
 			}
@@ -117,7 +133,6 @@ public class QueryServices {
 		}
 		return iqrList;
 	}
-
 	public static int lookupDocumentId(String id, IndexReader reader) {
 		TermQuery termQuery = new TermQuery(new Term(
 				GeneralIndexer.DOCNAME_ATTRIB, id));

@@ -7,7 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -24,7 +23,6 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import popularity.PopularityUtils;
 import query.ExperimentQuery;
 import query.QueryResult;
-import query.QueryServices;
 
 public class WikiMapleExperiment {
 
@@ -50,32 +48,40 @@ public class WikiMapleExperiment {
 
 		try {
 			cl = clp.parse(options, args);
-			if (cl.hasOption("i")) {
+			if (cl.hasOption("index")) {
 				buildIndex(FILELIST_PATH, INDEX_PATH);
-			} else if (cl.hasOption("q")) {
-				String flag = cl.getOptionValue("q");
+			} else if (cl.hasOption("query")) {
+				String flag = cl.getOptionValue("query");
 				if (flag == null) {
 					throw new org.apache.commons.cli.ParseException(
-							"-q needs an argument");
+							"-query needs an argument");
 				} else if (flag.equals("cache")) {
-					List<QueryResult> results = runQueriesOnGlobalIndex(
-							INDEX_PATH, QUERY_FILE_PATH, QREL_FILE_PATH);
+					List<QueryResult> results = Wiki13Experiment
+							.runQueriesOnGlobalIndex(INDEX_PATH,
+									QUERY_FILE_PATH, QREL_FILE_PATH);
 					Map<String, Double> idPopMap = PopularityUtils
 							.loadIdPopularityMap(FILELIST_PATH);
 					QueryResult.logResultsWithPopularity(results, idPopMap,
-							"initial_ret.log");
+							"before.log", 50);
 					List<Double> thresholds = new ArrayList<Double>();
 					List<InexFile> inexFiles = InexFile
 							.loadInexFileList(FILELIST_PATH);
-					for (double i = 0.01; i <= 1; i++)
-						thresholds.add(inexFiles.get((int) Math.floor(inexFiles
-								.size() * i - 1)).weight);
+					for (double i = 1; i <= 50; i++) {
+						int size = (int) Math.floor(inexFiles.size()
+								* (i / 50.0) - 1);
+						thresholds.add(inexFiles.get(size).weight);
+					}
+					LOGGER.log(Level.INFO, "Caching thresholds: {0}",
+							thresholds);
 					List<List<QueryResult>> resultsList = filterResultsWithSingleThreshold(
 							results, idPopMap, thresholds);
+					QueryResult.logResultsWithPopularity(resultsList.get(0),
+							idPopMap, "after.log", 50);
 					writeResultsListToFile(resultsList, "cache/");
 				} else if (flag.equals("filter")) {
-					List<QueryResult> results = runQueriesOnGlobalIndex(
-							INDEX_PATH, QUERY_FILE_PATH, QREL_FILE_PATH);
+					List<QueryResult> results = Wiki13Experiment
+							.runQueriesOnGlobalIndex(INDEX_PATH,
+									QUERY_FILE_PATH, QREL_FILE_PATH);
 					Map<String, Double> idPopMap = PopularityUtils
 							.loadIdPopularityMap(FILELIST_PATH);
 					List<List<QueryResult>> resultsList = filterResultsWithQueryThreshold(
@@ -109,37 +115,6 @@ public class WikiMapleExperiment {
 		}
 	}
 
-	private static List<QueryResult> runQueriesOnGlobalIndex(String indexPath,
-			String queriesFilePath, String qrelsFilePath) {
-		LOGGER.log(Level.INFO, "Loading queries..");
-		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-				queriesFilePath, qrelsFilePath);
-		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-		fieldToBoost.put(Wiki13Indexer.TITLE_ATTRIB, 0.15f);
-		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 0.85f);
-		LOGGER.log(Level.INFO, "Running queries..");
-		List<QueryResult> results = QueryServices.runQueriesWithBoosting(
-				queries, indexPath, new BM25Similarity(), fieldToBoost);
-		return results;
-	}
-
-	protected static List<List<QueryResult>> filterResultsWithQueryThreshold(
-			List<QueryResult> results, Map<String, Double> idPopMap) {
-		List<List<QueryResult>> resultsList = new ArrayList<List<QueryResult>>();
-		LOGGER.log(Level.INFO, "Caching results..");
-		QueryResult newResult;
-		for (double x = 0.01; x <= 1; x += 0.01) {
-			List<QueryResult> newResults = new ArrayList<QueryResult>();
-			for (QueryResult result : results) {
-				double threshold = findThresholdPerQuery(result, idPopMap, x);
-				newResult = filterQueryResult(result, idPopMap, threshold);
-				newResults.add(newResult);
-			}
-		}
-		return resultsList;
-	}
-
 	protected static List<List<QueryResult>> filterResultsWithSingleThreshold(
 			List<QueryResult> results, Map<String, Double> idPopMap,
 			List<Double> thresholds) {
@@ -150,6 +125,22 @@ public class WikiMapleExperiment {
 			List<QueryResult> newResults = new ArrayList<QueryResult>();
 			for (QueryResult result : results) {
 				newResult = filterQueryResult(result, idPopMap, x);
+				newResults.add(newResult);
+			}
+			resultsList.add(newResults);
+		}
+		return resultsList;
+	}
+	protected static List<List<QueryResult>> filterResultsWithQueryThreshold(
+			List<QueryResult> results, Map<String, Double> idPopMap) {
+		List<List<QueryResult>> resultsList = new ArrayList<List<QueryResult>>();
+		LOGGER.log(Level.INFO, "Caching results..");
+		QueryResult newResult;
+		for (double x = 0.01; x <= 1; x += 0.01) {
+			List<QueryResult> newResults = new ArrayList<QueryResult>();
+			for (QueryResult result : results) {
+				double threshold = findThresholdPerQuery(result, idPopMap, x);
+				newResult = filterQueryResult(result, idPopMap, threshold);
 				newResults.add(newResult);
 			}
 		}
@@ -184,14 +175,17 @@ public class WikiMapleExperiment {
 		}
 		List<String> newTopResults = new ArrayList<String>();
 		List<String> newTopResultTitles = new ArrayList<String>();
+		List<String> newExplanation = new ArrayList<String>();
 		for (int i = 0; i < result.getTopResults().size(); i++) {
 			if (idPopMap.get(result.getTopResults().get(i)) >= cutoffWeight) {
 				newTopResults.add(result.getTopResults().get(i));
 				newTopResultTitles.add(result.getTopResultsTitle().get(i));
+				newExplanation.add(result.getExplanations().get(i));
 			}
 		}
 		newResult.setTopResults(newTopResults);
 		newResult.setTopResultsTitle(newTopResultTitles);
+		newResult.setExplanations(newExplanation);
 		return newResult;
 	}
 
@@ -200,8 +194,7 @@ public class WikiMapleExperiment {
 		try (FileWriter p20Writer = new FileWriter("wiki_p20.csv");
 				FileWriter mrrWriter = new FileWriter("wiki_mrr.csv");
 				FileWriter rec200Writer = new FileWriter("wiki_recall200.csv");
-				FileWriter recallWriter = new FileWriter("wiki_recall.csv");
-				FileWriter logWriter = new FileWriter("log.csv")) {
+				FileWriter recallWriter = new FileWriter("wiki_recall.csv")) {
 			for (int i = 0; i < resultsList.get(0).size(); i++) {
 				ExperimentQuery query = resultsList.get(0).get(i).query;
 				p20Writer.write(query.getText());
