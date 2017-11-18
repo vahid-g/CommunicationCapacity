@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,6 +28,7 @@ import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.QueryParser.Operator;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -113,15 +115,13 @@ public class QueryServices {
 						fieldToBoost);
 				ScoreDoc[] hits = searcher.search(query, TOP_DOC_COUNT).scoreDocs;
 				QueryResult iqr = new QueryResult(experimentQuery);
-				LOGGER.log(Level.INFO, "{0} docs returned for query: {1}",
-						new Object[]{hits.length, experimentQuery.getText()});
 				for (int i = 0; i < Math.min(TOP_DOC_COUNT, hits.length); i++) {
 					Document doc = searcher.doc(hits[i].doc);
 					String docId = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
 					String docTitle = doc.get(GeneralIndexer.TITLE_ATTRIB);
 					if (explain) {
 						iqr.addResult(docId, docTitle,
-								hits[i].score + "");
+								hits[i].score + " idf: " + buildIdfString(searcher.explain(query, hits[i].doc)));
 					} else {
 						iqr.addResult(docId, docTitle);
 					}
@@ -133,6 +133,21 @@ public class QueryServices {
 		}
 		return iqrList;
 	}
+	
+	private static String buildIdfString(Explanation explanation) {
+		LinkedList<Explanation> queue = new LinkedList<Explanation>();
+		queue.add(explanation);
+		StringBuilder sb = new StringBuilder();
+		while (!queue.isEmpty()){
+			Explanation exp = queue.removeLast();
+			for (Explanation child : exp.getDetails())
+				queue.add(child);
+			if (exp.getDescription().startsWith("idf"))
+				sb.append(exp.getValue() + " ");
+		}
+		return sb.toString();
+	}
+	
 	public static int lookupDocumentId(String id, IndexReader reader) {
 		TermQuery termQuery = new TermQuery(new Term(
 				GeneralIndexer.DOCNAME_ATTRIB, id));

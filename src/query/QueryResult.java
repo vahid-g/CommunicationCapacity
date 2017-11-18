@@ -32,8 +32,7 @@ public class QueryResult {
 	}
 
 	public void addResult(String docId, String docTitle, String explanation) {
-		topResults.add(docId);
-		topResultsTitle.add(docId + ": " + docTitle);
+		addResult(docId, docTitle);
 		explanations.add(explanation);
 	}
 
@@ -118,38 +117,27 @@ public class QueryResult {
 
 	public String miniLog(Map<String, Double> idPopMap, int k) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(this.query.getText() + "\n");
+		sb.append(this.query.getId() + ": " + this.query.getText()
+				+ " |rets| = " + this.getTopResults().size() + "\n");
 		int counter = 1;
 		Set<String> rels = this.query.getQrelScoreMap().keySet();
 		for (int i = 0; i < this.getTopResults().size(); i++) {
-			if (counter++ > k)
-				break;
 			String docId = this.getTopResults().get(i);
-			String rel1Char = "-";
-			if (rels.contains(docId)) {
-				rel1Char = "+";
+			if (counter++ <= k || rels.contains(docId) || 
+					(i == Math.min(999, this.getTopResults().size() - 1))) {
+				String rel1Char = "-";
+				if (rels.contains(docId)) {
+					rel1Char = "+";
+				}
+				String explanation = "";
+				if (explanations.get(i) != null) {
+					explanation = explanations.get(i);
+				}
+				sb.append(String.format("\t %s (%d) \t %s \t %s \t %s \n",
+						rel1Char, i, idPopMap.get(docId), this
+								.getTopResultsTitle().get(i), explanation));
 			}
-			String explanation = "";
-			if (explanations.get(i) != null) {
-				explanation = explanations.get(i).toString();
-			}
-			sb.append("\t" + rel1Char + "\t" + idPopMap.get(docId) + "\t"
-					+ this.getTopResultsTitle().get(i) + "\t" + explanation.replace("\n", " ") + "\n");
-
 		}
-		sb.append("...");
-		int i = Math.min(1000, this.getTopResults().size());
-		String docId = this.getTopResults().get(i);
-		String rel1Char = "-";
-		if (rels.contains(docId)) {
-			rel1Char = "+";
-		}
-		String explanation = "";
-		if (explanations.get(i) != null) {
-			explanation = explanations.get(i).toString();
-		}
-		sb.append("\t" + rel1Char + "\t" + idPopMap.get(docId) + "\t"
-				+ this.getTopResultsTitle().get(i) + "\t" + explanation.replace("\n", " ") + "\n");
 		sb.append("======================\n");
 		return sb.toString();
 	}

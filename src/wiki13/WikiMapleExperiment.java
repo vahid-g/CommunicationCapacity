@@ -23,6 +23,7 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import popularity.PopularityUtils;
 import query.ExperimentQuery;
 import query.QueryResult;
+import query.QueryServices;
 
 public class WikiMapleExperiment {
 
@@ -32,8 +33,12 @@ public class WikiMapleExperiment {
 	private static final String INDEX_PATH = DATA_PATH + "wiki_index";
 	private static final String FILELIST_PATH = DATA_PATH
 			+ "wiki13_count13_text.csv";
+	private static final String FILELIST_COUNT09_PATH = DATA_PATH
+			+ "wiki13_count09_text.csv";
 	private static final String QUERY_FILE_PATH = DATA_PATH + "2013-adhoc.xml";
 	private static final String QREL_FILE_PATH = DATA_PATH + "2013-adhoc.qrels";
+	private static final String MSN_QUERY_FILE_PATH = DATA_PATH + "msn_query_qid.csv";
+	private static final String MSN_QREL_FILE_PATH = DATA_PATH + "msn.qrels";
 
 	public static void main(String[] args) {
 		Options options = new Options();
@@ -42,6 +47,8 @@ public class WikiMapleExperiment {
 		Option queryOption = new Option("query", true,
 				"run querying with cache/filter");
 		options.addOption(queryOption);
+		Option useMsnOption = new Option("msn", false, "specifies the query log (msn/inex)");
+		options.addOption(useMsnOption);
 		CommandLineParser clp = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cl;
@@ -55,12 +62,22 @@ public class WikiMapleExperiment {
 				if (flag == null) {
 					throw new org.apache.commons.cli.ParseException(
 							"-query needs an argument");
-				} else if (flag.equals("cache")) {
-					List<QueryResult> results = Wiki13Experiment
-							.runQueriesOnGlobalIndex(INDEX_PATH,
-									QUERY_FILE_PATH, QREL_FILE_PATH);
-					Map<String, Double> idPopMap = PopularityUtils
+				}
+				List<ExperimentQuery> queries;
+				Map<String, Double> idPopMap;
+				if (cl.hasOption("msn")) {
+					queries = QueryServices.loadMsnQueries(MSN_QUERY_FILE_PATH, MSN_QREL_FILE_PATH);
+					idPopMap = PopularityUtils
+							.loadIdPopularityMap(FILELIST_COUNT09_PATH);
+				} else {
+					queries = QueryServices.loadInexQueries(
+							QUERY_FILE_PATH, QREL_FILE_PATH, "title");
+					idPopMap = PopularityUtils
 							.loadIdPopularityMap(FILELIST_PATH);
+				}
+				List<QueryResult> results = Wiki13Experiment
+						.runQueriesOnGlobalIndex(INDEX_PATH, queries);
+				if (flag.equals("cache")) {
 					QueryResult.logResultsWithPopularity(results, idPopMap,
 							"before.log", 50);
 					List<Double> thresholds = new ArrayList<Double>();
@@ -79,11 +96,6 @@ public class WikiMapleExperiment {
 							idPopMap, "after.log", 50);
 					writeResultsListToFile(resultsList, "cache/");
 				} else if (flag.equals("filter")) {
-					List<QueryResult> results = Wiki13Experiment
-							.runQueriesOnGlobalIndex(INDEX_PATH,
-									QUERY_FILE_PATH, QREL_FILE_PATH);
-					Map<String, Double> idPopMap = PopularityUtils
-							.loadIdPopularityMap(FILELIST_PATH);
 					List<List<QueryResult>> resultsList = filterResultsWithQueryThreshold(
 							results, idPopMap);
 					writeResultsListToFile(resultsList, "filter/");
@@ -94,8 +106,8 @@ public class WikiMapleExperiment {
 			formatter.printHelp("", options);
 			return;
 		}
-
 	}
+	
 	private static void buildIndex(String fileListPath,
 			String indexDirectoryPath) {
 		try {
@@ -134,7 +146,7 @@ public class WikiMapleExperiment {
 	protected static List<List<QueryResult>> filterResultsWithQueryThreshold(
 			List<QueryResult> results, Map<String, Double> idPopMap) {
 		List<List<QueryResult>> resultsList = new ArrayList<List<QueryResult>>();
-		LOGGER.log(Level.INFO, "Caching results..");
+		LOGGER.log(Level.INFO, "Filtering results..");
 		QueryResult newResult;
 		for (double x = 0.01; x <= 1; x += 0.01) {
 			List<QueryResult> newResults = new ArrayList<QueryResult>();
@@ -157,13 +169,6 @@ public class WikiMapleExperiment {
 		double cutoffWeight = pops.get((int) Math.floor(cutoffSize
 				* pops.size()) - 1);
 		return cutoffWeight;
-	}
-
-	protected static double findThresholdPerDatabase(List<InexFile> inexFiles,
-			double cutoffSize) {
-		// TODO: what if cutoff == 0
-		int lastItem = (int) Math.floor(cutoffSize * inexFiles.size() - 1);
-		return inexFiles.get(lastItem).weight;
 	}
 
 	protected static QueryResult filterQueryResult(QueryResult result,

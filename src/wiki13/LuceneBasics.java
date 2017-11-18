@@ -9,6 +9,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -31,9 +32,10 @@ public class LuceneBasics {
 		Document doc1 = new Document();
 		Document doc2 = new Document();
 		Document doc3 = new Document();
-		doc1.add(new Field("fieldname", "this is the text", TextField.TYPE_STORED));
+		doc1.add(new Field("fieldname", "this is the text",
+				TextField.TYPE_STORED));
 		doc2.add(new Field("fieldname", "text text text", TextField.TYPE_STORED));
-		doc3.add(new Field("fieldname", "new sh*t", TextField.TYPE_STORED));
+		doc3.add(new Field("fieldname", "new sh*t text", TextField.TYPE_STORED));
 		iwriter.addDocument(doc1);
 		iwriter.addDocument(doc2);
 		iwriter.addDocument(doc3);
@@ -45,16 +47,26 @@ public class LuceneBasics {
 		isearcher.setSimilarity(new BM25Similarity());
 		// Parse a simple query that searches for "text":
 		QueryParser parser = new QueryParser("fieldname", analyzer);
-		Query query = parser.parse("text");
+		Query query = parser.parse("new text");
 		ScoreDoc[] hits = isearcher.search(query, 1000).scoreDocs;
 		// Iterate through the results:
 		for (int i = 0; i < hits.length; i++) {
 			Document hitDoc = isearcher.doc(hits[i].doc);
 			System.out.println(hits[i].score + "\t" + hitDoc.get("fieldname"));
-			System.out.println(isearcher.explain(query, hits[i].doc));
+			// System.out.println(isearcher.explain(query, hits[i].doc));
+			// System.out.println(isearcher.explain(query,
+			// hits[i].doc).getDetails()[0].getDetails()[0].getDetails()[0]);
+			printExp(isearcher.explain(query, hits[i].doc), "-");
 		}
 		ireader.close();
 		directory.close();
+	}
+	
+	static void printExp(Explanation exp, String prefix){
+		System.out.println(prefix + exp.getDescription() + " ==> " + exp.getValue());
+		for (Explanation childExp : exp.getDetails()) {
+			printExp(childExp, prefix + "  ");
+		}
 	}
 
 }
