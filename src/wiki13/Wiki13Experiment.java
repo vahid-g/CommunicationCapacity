@@ -79,7 +79,7 @@ public class Wiki13Experiment {
 							QUERYFILE_PATH, QREL_PATH, "title");
 				}
 				LOGGER.log(Level.INFO, "querying " + expNo + " at " + totalExp);
-				List<QueryResult> results = runQueriesOnGlobalIndex(indexPath, queries);
+				List<QueryResult> results = runQueriesOnGlobalIndex(indexPath, queries, 0.1f);
 				writeResultsToFile(results, "result/" + expNo + ".csv");
 				Map<String, Double> idPopMap = PopularityUtils
 						.loadIdPopularityMap(FILELIST_PATH);
@@ -262,11 +262,11 @@ public class Wiki13Experiment {
 		}
 	}
 
-	static List<QueryResult> runQueriesOnGlobalIndex(String indexPath, List<ExperimentQuery> queries) {
+	static List<QueryResult> runQueriesOnGlobalIndex(String indexPath, List<ExperimentQuery> queries, float gamma) {
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-		fieldToBoost.put(Wiki13Indexer.TITLE_ATTRIB, 0.15f);
-		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 0.85f);
+		fieldToBoost.put(Wiki13Indexer.TITLE_ATTRIB, gamma);
+		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 1 - gamma);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 				queries, indexPath, new BM25Similarity(), fieldToBoost, false);
 		return results;

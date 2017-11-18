@@ -29,6 +29,7 @@ public class QueryResult {
 	public void addResult(String docId, String docTitle) {
 		topResults.add(docId);
 		topResultsTitle.add(docId + ": " + docTitle);
+		explanations.add(""); //TODO what we can do here?
 	}
 
 	public void addResult(String docId, String docTitle, String explanation) {

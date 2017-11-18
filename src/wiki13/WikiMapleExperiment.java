@@ -44,11 +44,17 @@ public class WikiMapleExperiment {
 		Options options = new Options();
 		Option indexOption = new Option("index", false, "run indexing mode");
 		options.addOption(indexOption);
-		Option queryOption = new Option("query", true,
-				"run querying with cache/filter");
+		Option queryOption = new Option("query", false,
+				"run querying");
 		options.addOption(queryOption);
+		Option filterOption = new Option("filter", false, "enables filtering mode");
+		options.addOption(filterOption);
+		Option cacheOption = new Option("cache", false, "enables caching mode");
+		options.addOption(cacheOption);
 		Option useMsnOption = new Option("msn", false, "specifies the query log (msn/inex)");
 		options.addOption(useMsnOption);
+		Option partitionsOption = new Option("total", true, "number of partitions");
+		options.addOption(partitionsOption);
 		CommandLineParser clp = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cl;
@@ -76,26 +82,28 @@ public class WikiMapleExperiment {
 							.loadIdPopularityMap(FILELIST_PATH);
 				}
 				List<QueryResult> results = Wiki13Experiment
-						.runQueriesOnGlobalIndex(INDEX_PATH, queries);
-				if (flag.equals("cache")) {
-					QueryResult.logResultsWithPopularity(results, idPopMap,
-							"before.log", 50);
+						.runQueriesOnGlobalIndex(INDEX_PATH, queries, 0.1f);
+				int partitions = Integer.parseInt(cl.getOptionValue("total", "50"));
+				if (cl.hasOption("cache")) {
+//					QueryResult.logResultsWithPopularity(results, idPopMap,
+//							"before.log", partitions);
 					List<Double> thresholds = new ArrayList<Double>();
 					List<InexFile> inexFiles = InexFile
 							.loadInexFileList(FILELIST_PATH);
-					for (double i = 1; i <= 50; i++) {
+					for (double i = 1; i <= partitions; i++) {
 						int size = (int) Math.floor(inexFiles.size()
-								* (i / 50.0) - 1);
+								* (i / (double)partitions) - 1);
 						thresholds.add(inexFiles.get(size).weight);
 					}
 					LOGGER.log(Level.INFO, "Caching thresholds: {0}",
 							thresholds);
 					List<List<QueryResult>> resultsList = filterResultsWithSingleThreshold(
 							results, idPopMap, thresholds);
-					QueryResult.logResultsWithPopularity(resultsList.get(0),
-							idPopMap, "after.log", 50);
+//					QueryResult.logResultsWithPopularity(resultsList.get(0),
+//							idPopMap, "after.log", partitions);
 					writeResultsListToFile(resultsList, "cache/");
-				} else if (flag.equals("filter")) {
+				} 
+				if (cl.hasOption("filter")) {
 					List<List<QueryResult>> resultsList = filterResultsWithQueryThreshold(
 							results, idPopMap);
 					writeResultsListToFile(resultsList, "filter/");
@@ -148,36 +156,37 @@ public class WikiMapleExperiment {
 		List<List<QueryResult>> resultsList = new ArrayList<List<QueryResult>>();
 		LOGGER.log(Level.INFO, "Filtering results..");
 		QueryResult newResult;
-		for (double x = 0.01; x <= 1; x += 0.01) {
+		for (double x = 0.02; x <= 1; x += 0.02) {
 			List<QueryResult> newResults = new ArrayList<QueryResult>();
 			for (QueryResult result : results) {
 				double threshold = findThresholdPerQuery(result, idPopMap, x);
 				newResult = filterQueryResult(result, idPopMap, threshold);
 				newResults.add(newResult);
 			}
+			resultsList.add(newResults);
 		}
 		return resultsList;
 	}
 
 	protected static double findThresholdPerQuery(QueryResult result,
 			Map<String, Double> idPopMap, double cutoffSize) {
+		if (result.getTopResults().size() == 0) {
+			LOGGER.log(Level.WARNING, "Query with no result {0}", result.query);
+			return 0;
+		}
 		List<Double> pops = new ArrayList<Double>();
 		for (String id : result.getTopResults()) {
 			pops.add(idPopMap.get(id));
 		}
 		Collections.sort(pops, Collections.reverseOrder());
-		double cutoffWeight = pops.get((int) Math.floor(cutoffSize
-				* pops.size()) - 1);
+		double cutoffWeight = pops.get((int)Math.max(0, Math.floor(cutoffSize
+				* pops.size()) - 1));
 		return cutoffWeight;
 	}
 
 	protected static QueryResult filterQueryResult(QueryResult result,
 			Map<String, Double> idPopMap, double cutoffWeight) {
 		QueryResult newResult = new QueryResult(result.query);
-		if (result.getTopResults().size() < 2) {
-			LOGGER.log(Level.WARNING, "query just has zero or one result");
-			return newResult;
-		}
 		List<String> newTopResults = new ArrayList<String>();
 		List<String> newTopResultTitles = new ArrayList<String>();
 		List<String> newExplanation = new ArrayList<String>();
@@ -196,10 +205,13 @@ public class WikiMapleExperiment {
 
 	protected static void writeResultsListToFile(
 			List<List<QueryResult>> resultsList, String resultDirectoryPath) {
-		try (FileWriter p20Writer = new FileWriter("wiki_p20.csv");
-				FileWriter mrrWriter = new FileWriter("wiki_mrr.csv");
-				FileWriter rec200Writer = new FileWriter("wiki_recall200.csv");
-				FileWriter recallWriter = new FileWriter("wiki_recall.csv")) {
+		File resultsDir = new File(resultDirectoryPath);
+		if (!resultsDir.exists())
+			resultsDir.mkdirs();
+		try (FileWriter p20Writer = new FileWriter(resultDirectoryPath + "wiki_p20.csv");
+				FileWriter mrrWriter = new FileWriter(resultDirectoryPath + "wiki_mrr.csv");
+				FileWriter rec200Writer = new FileWriter(resultDirectoryPath + "wiki_recall200.csv");
+				FileWriter recallWriter = new FileWriter(resultDirectoryPath + "wiki_recall.csv")) {
 			for (int i = 0; i < resultsList.get(0).size(); i++) {
 				ExperimentQuery query = resultsList.get(0).get(i).query;
 				p20Writer.write(query.getText());
