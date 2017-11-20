@@ -81,10 +81,11 @@ public class Wiki13Experiment {
 				LOGGER.log(Level.INFO, "querying " + expNo + " at " + totalExp);
 				List<QueryResult> results = runQueriesOnGlobalIndex(indexPath, queries);
 				writeResultsToFile(results, "result/" + expNo + ".csv");
+				LOGGER.log(Level.INFO, "logging.. ");
 				Map<String, Double> idPopMap = PopularityUtils
 						.loadIdPopularityMap(FILELIST_PATH);
-				QueryResult.logResultsWithPopularity(results, idPopMap, expNo
-						+ ".log", 50);
+				QueryResult.logResultsWithPopularity(results, idPopMap, "result/" + expNo
+						+ ".log", 20);
 			}
 			LOGGER.log(Level.INFO, "Time spent for experiment " + expNo
 					+ " is " + (System.currentTimeMillis() - start_t) / 60000
