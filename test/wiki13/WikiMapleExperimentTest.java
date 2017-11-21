@@ -14,7 +14,8 @@ public class WikiMapleExperimentTest {
 
 	@Test
 	public void testFilterQueryResult() {
-		QueryResult result1 = new QueryResult(new ExperimentQuery(1, "query text"));
+		QueryResult result1 = new QueryResult(new ExperimentQuery(1,
+				"query text"));
 		result1.addResult("doc1", "good doc");
 		result1.addResult("doc2", "fairDoc");
 		result1.addResult("doc3", "bad doc");
@@ -22,12 +23,13 @@ public class WikiMapleExperimentTest {
 		idPopMap.put("doc1", 1.0);
 		idPopMap.put("doc2", 10.0);
 		idPopMap.put("doc3", 100.0);
-		assertEquals(3, result1.getTopResults().size());
-		QueryResult result2 = WikiMapleExperiment.filterQueryResult(result1, idPopMap, 1);
-		assertEquals(3, result2.getTopResults().size());
-		result2 = WikiMapleExperiment.filterQueryResult(result1, idPopMap, 0.5);
-		assertEquals(3, result1.getTopResults().size());
-		assertEquals(1, result2.getTopResults().size());
+		assertEquals(3, result1.getTopDocuments().size());
+		QueryResult result2 = WikiMapleExperiment.filterQueryResult(result1,
+				idPopMap, 1);
+		assertEquals(3, result2.getTopDocuments().size());
+		result2 = WikiMapleExperiment.filterQueryResult(result1, idPopMap, 11);
+		assertEquals(3, result1.getTopDocuments().size());
+		assertEquals(1, result2.getTopDocuments().size());
 	}
 
 }

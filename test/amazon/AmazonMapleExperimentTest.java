@@ -59,7 +59,7 @@ public class AmazonMapleExperimentTest {
 		cache.add("lt2");
 		cache.add("lt3");
 		AmazonMapleExperiment.filterCacheResults(queryResult, cache);
-		assertEquals(1, queryResult.getTopResults().size());
+		assertEquals(1, queryResult.getTopDocuments().size());
 	}
 	
 	@Test

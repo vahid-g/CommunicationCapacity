@@ -62,9 +62,9 @@ public class AmazonQueryResultProcessorTest {
 	public void testConvertIsbnAnswersToSetAndFilter() {
 		AmazonQueryResultProcessor.convertIsbnAnswersToLtidAndFilter(
 				queryResult, isbnToLtid);
-		assertEquals(3, queryResult.getTopResults().size());
-		assertEquals("lt1", queryResult.getTopResults().get(0));
-		assertEquals("lt2", queryResult.getTopResults().get(1));
+		assertEquals(2, queryResult.getTopDocuments().size());
+		assertEquals("lt1", queryResult.getTopDocuments().get(0).id);
+		assertEquals("lt2", queryResult.getTopDocuments().get(1).id);
 	}
 
 	@Test

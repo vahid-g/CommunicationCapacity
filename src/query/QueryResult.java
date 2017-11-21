@@ -1,7 +1,5 @@
 package query;
 
-import indexing.InexFile;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,33 +12,55 @@ import java.util.logging.Logger;
 
 public class QueryResult {
 
+	public class TopDocument {
+		public final String id;
+		public final String title;
+		public final String explanation;
+
+		public TopDocument(String id, String title, String explanation) {
+			this.id = id;
+			this.title = title;
+			this.explanation = explanation;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (other == null)
+				return false;
+			if (other == this)
+				return true;
+			if (!(other instanceof TopDocument))
+				return false;
+			TopDocument otherTopDocument = (TopDocument) other;
+			return (this.id.equals(otherTopDocument.id));
+		}
+	}
+
 	private static final Logger LOGGER = Logger.getLogger(QueryResult.class
 			.getName());
 
 	public ExperimentQuery query;
-	protected List<String> topResults = new ArrayList<String>();
-	protected List<String> topResultsTitle = new ArrayList<String>();
-	protected List<String> explanations = new ArrayList<String>();
+	private List<TopDocument> topDocuments = new ArrayList<TopDocument>();
 
 	public QueryResult(ExperimentQuery query) {
 		this.query = query;
 	}
 
 	public void addResult(String docId, String docTitle) {
-		topResults.add(docId);
-		topResultsTitle.add(docId + ": " + docTitle);
+		addResult(docId, docTitle, "");
 	}
 
 	public void addResult(String docId, String docTitle, String explanation) {
-		addResult(docId, docTitle);
-		explanations.add(explanation);
+		TopDocument doc = new TopDocument(docId, docId + ": " + docTitle,
+				explanation);
+		topDocuments.add(doc);
 	}
 
 	public double averagePrecision() {
 		double pk = precisionAtK(1);
 		double ap = pk;
-		for (int k = 1; k < topResults.size(); k++) {
-			if (query.hasQrelId(topResults.get(k)))
+		for (int k = 1; k < topDocuments.size(); k++) {
+			if (query.hasQrelId(topDocuments.get(k).id))
 				ap += (pk * k + 1) / (k + 1);
 			pk = (pk * k) / (k + 1);
 		}
@@ -60,8 +80,8 @@ public class QueryResult {
 	}
 
 	public double mrr() {
-		for (int i = 0; i < topResults.size(); i++) {
-			if (query.hasQrelId(topResults.get(i))) {
+		for (int i = 0; i < topDocuments.size(); i++) {
+			if (query.hasQrelId(topDocuments.get(i).id)) {
 				return (1.0 / (i + 1));
 			}
 		}
@@ -70,8 +90,8 @@ public class QueryResult {
 
 	public double ndcg(int p) {
 		double dcg = 0;
-		for (int i = 0; i < Math.min(p, topResults.size()); i++) {
-			String currentResult = topResults.get(i);
+		for (int i = 0; i < Math.min(p, topDocuments.size()); i++) {
+			String currentResult = topDocuments.get(i).id;
 			if (query.getQrelScoreMap().containsKey(currentResult)) {
 				dcg += query.getQrelScoreMap().get(currentResult)
 						/ (Math.log(i + 2) / Math.log(2));
@@ -85,8 +105,8 @@ public class QueryResult {
 
 	public double precisionAtK(int k) {
 		double truePositives = 0;
-		for (int i = 0; i < Math.min(k, topResults.size()); i++) {
-			if (query.getQrelScoreMap().containsKey(topResults.get(i)))
+		for (int i = 0; i < Math.min(k, topDocuments.size()); i++) {
+			if (query.getQrelScoreMap().containsKey(topDocuments.get(i).id))
 				truePositives++;
 		}
 		return truePositives / k;
@@ -94,8 +114,8 @@ public class QueryResult {
 
 	public double recallAtK(int k) {
 		double truePositives = 0;
-		for (int i = 0; i < Math.min(k, topResults.size()); i++) {
-			if (query.getQrelScoreMap().containsKey(topResults.get(i)))
+		for (int i = 0; i < Math.min(k, topDocuments.size()); i++) {
+			if (query.getQrelScoreMap().containsKey(topDocuments.get(i).id))
 				truePositives++;
 		}
 		return truePositives / query.getQrelScoreMap().size();
@@ -105,7 +125,7 @@ public class QueryResult {
 		StringBuilder sb = new StringBuilder();
 		int counter = 0;
 		for (String qrel : query.getQrelScoreMap().keySet()) {
-			if (!topResults.contains(qrel)) {
+			if (!this.containsTopDocument(qrel)) {
 				sb.append(query.getId() + "," + query.getText() + "," + qrel
 						+ "\n");
 			}
@@ -118,71 +138,24 @@ public class QueryResult {
 	public String miniLog(Map<String, Double> idPopMap, int k) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.query.getId() + ": " + this.query.getText()
-				+ " |rets| = " + this.getTopResults().size() + "\n");
+				+ " |rets| = " + topDocuments.size() + "\n");
 		int counter = 1;
 		Set<String> rels = this.query.getQrelScoreMap().keySet();
-		for (int i = 0; i < this.getTopResults().size(); i++) {
-			String docId = this.getTopResults().get(i);
-			if (counter++ <= k || rels.contains(docId) || 
-					(i == Math.min(999, this.getTopResults().size() - 1))) {
+		for (int i = 0; i < topDocuments.size(); i++) {
+			String docId = topDocuments.get(i).id;
+			if (counter++ <= k || rels.contains(docId)
+					|| (i == Math.min(999, topDocuments.size() - 1))) {
 				String rel1Char = "-";
 				if (rels.contains(docId)) {
 					rel1Char = "+";
 				}
-				String explanation = "";
-				if (explanations.get(i) != null) {
-					explanation = explanations.get(i);
-				}
+				String explanation = topDocuments.get(i).explanation;
 				sb.append(String.format("\t %s (%d) \t %s \t %s \t %s \n",
-						rel1Char, i, idPopMap.get(docId), this
-								.getTopResultsTitle().get(i), explanation));
+						rel1Char, i, idPopMap.get(docId),
+						topDocuments.get(i).title, explanation));
 			}
 		}
 		sb.append("======================\n");
-		return sb.toString();
-	}
-
-	@Deprecated
-	public String logForImdb(Map<String, InexFile> idToInexfile) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("qid: " + query.getId() + "\t" + query.getText() + "\n");
-		sb.append("|relevant tuples| = " + query.getQrelScoreMap().size()
-				+ "\n");
-		sb.append("|returned results| = " + this.topResults.size() + "\n");
-		int counter = 0;
-		sb.append("available missed files: \n");
-		for (String rel : query.getQrelScoreMap().keySet()) {
-			if (!topResults.contains(rel) && idToInexfile.containsKey(rel)) {
-				sb.append(rel + "\t" + idToInexfile.get(rel).title + "\n");
-			}
-			if (++counter > 20)
-				break;
-		}
-		sb.append("unavailable missed files: \n");
-		counter = 0;
-		for (String rel : query.getQrelScoreMap().keySet()) {
-			if (!topResults.contains(rel) && !idToInexfile.containsKey(rel)) {
-				sb.append(rel + "\n");
-			}
-			if (++counter > 20)
-				break;
-		}
-		sb.append("top 20: \n");
-		counter = 0;
-		for (String topResult : topResultsTitle) {
-			sb.append(topResult + "\t");
-			if (++counter > 20)
-				break;
-		}
-		sb.append("top false positives: \n");
-		counter = 0;
-		for (int i = 0; i < this.topResults.size(); i++) {
-			if (!query.hasQrelId(topResults.get(i)))
-				sb.append(topResultsTitle.get(i) + "\n");
-			if (++counter > 20)
-				break;
-		}
-		sb.append("-------------------------------------\n");
 		return sb.toString();
 	}
 
@@ -190,30 +163,6 @@ public class QueryResult {
 		return query.getText() + "," + precisionAtK(10) + ","
 				+ precisionAtK(20) + "," + mrr() + "," + averagePrecision()
 				+ "," + recallAtK(200) + "," + recallAtK(1000) + "," + ndcg(10);
-	}
-
-	public List<String> getTopResults() {
-		return topResults;
-	}
-
-	public void setTopResults(List<String> topResults) {
-		this.topResults = topResults;
-	}
-
-	public List<String> getTopResultsTitle() {
-		return topResultsTitle;
-	}
-
-	public void setTopResultsTitle(List<String> topResultsTitle) {
-		this.topResultsTitle = topResultsTitle;
-	}
-
-	public List<String> getExplanations() {
-		return explanations;
-	}
-
-	public void setExplanations(List<String> explanations) {
-		this.explanations = explanations;
 	}
 
 	@Override
@@ -231,6 +180,23 @@ public class QueryResult {
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
+	}
+
+	public List<TopDocument> getTopDocuments() {
+		return topDocuments;
+	}
+
+	public void setTopDocuments(List<TopDocument> topDocuments) {
+		this.topDocuments = topDocuments;
+	}
+
+	public boolean containsTopDocument(String id) {
+		for (TopDocument topDocument : topDocuments) {
+			if (topDocument.id.equals(id)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

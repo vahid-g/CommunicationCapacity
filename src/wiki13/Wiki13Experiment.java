@@ -64,7 +64,6 @@ public class Wiki13Experiment {
 			int totalExp = Integer.parseInt(cl.getOptionValue("total"));
 			String indexPath = INDEX_BASE + "wiki13_p" + totalExp + "_w13"
 					+ "/part_" + expNo;
-			long start_t = System.currentTimeMillis();
 			if (cl.hasOption("index")) {
 				LOGGER.log(Level.INFO, "Building index..");
 				buildGlobalIndex(expNo, totalExp, FILELIST_PATH, indexPath);
@@ -79,17 +78,20 @@ public class Wiki13Experiment {
 							QUERYFILE_PATH, QREL_PATH, "title");
 				}
 				LOGGER.log(Level.INFO, "querying " + expNo + " at " + totalExp);
+				long startTime = System.currentTimeMillis();
 				List<QueryResult> results = runQueriesOnGlobalIndex(indexPath, queries);
 				writeResultsToFile(results, "result/" + expNo + ".csv");
+				long endTime = System.currentTimeMillis();
 				LOGGER.log(Level.INFO, "logging.. ");
 				Map<String, Double> idPopMap = PopularityUtils
 						.loadIdPopularityMap(FILELIST_PATH);
 				QueryResult.logResultsWithPopularity(results, idPopMap, "result/" + expNo
 						+ ".log", 20);
+				LOGGER.log(Level.INFO, "Time spent for experiment " + expNo
+						+ " is " + (endTime - startTime) / 60000
+						+ " minutes");
 			}
-			LOGGER.log(Level.INFO, "Time spent for experiment " + expNo
-					+ " is " + (System.currentTimeMillis() - start_t) / 60000
-					+ " minutes");
+			
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.INFO, e.getMessage());
 			formatter.printHelp("", options);

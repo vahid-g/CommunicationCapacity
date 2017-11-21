@@ -295,13 +295,9 @@ public class ImdbExperiment {
 				indexName, queryAttribs);
 		LOGGER.log(Level.INFO, "Writing results to file..");
 		try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR
-				+ "imdb_" + expNo + ".csv");
-				FileWriter fw2 = new FileWriter(
-						ImdbClusterDirectoryInfo.RESULT_DIR + "imdb_" + expNo
-								+ ".log")) {
+				+ "imdb_" + expNo + ".csv")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.toString() + "\n");
-				fw2.write(mqr.logForImdb(idToInexFile) + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage());
@@ -347,11 +343,8 @@ public class ImdbExperiment {
 				FileWriter fw2 = new FileWriter(
 						ImdbClusterDirectoryInfo.RESULT_DIR + "imdb_" + expNo
 								+ ".log")) {
-			Map<String, InexFile> idToInexFile = InexFile
-					.loadFilePathCountTitleMap(ImdbClusterDirectoryInfo.FILE_LIST);
 			for (QueryResult mqr : results) {
 				fw.write(mqr.resultString() + "\n");
-				fw2.write(mqr.logForImdb(idToInexFile) + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage());

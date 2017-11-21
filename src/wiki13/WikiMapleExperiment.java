@@ -162,7 +162,8 @@ public class WikiMapleExperiment {
 	protected static double findThresholdPerQuery(QueryResult result,
 			Map<String, Double> idPopMap, double cutoffSize) {
 		List<Double> pops = new ArrayList<Double>();
-		for (String id : result.getTopResults()) {
+		for (QueryResult.TopDocument doc : result.getTopDocuments()) {
+			String id = doc.id;
 			pops.add(idPopMap.get(id));
 		}
 		Collections.sort(pops, Collections.reverseOrder());
@@ -174,23 +175,18 @@ public class WikiMapleExperiment {
 	protected static QueryResult filterQueryResult(QueryResult result,
 			Map<String, Double> idPopMap, double cutoffWeight) {
 		QueryResult newResult = new QueryResult(result.query);
-		if (result.getTopResults().size() < 2) {
+		if (result.getTopDocuments().size() < 2) {
 			LOGGER.log(Level.WARNING, "query just has zero or one result");
 			return newResult;
 		}
-		List<String> newTopResults = new ArrayList<String>();
-		List<String> newTopResultTitles = new ArrayList<String>();
-		List<String> newExplanation = new ArrayList<String>();
-		for (int i = 0; i < result.getTopResults().size(); i++) {
-			if (idPopMap.get(result.getTopResults().get(i)) >= cutoffWeight) {
-				newTopResults.add(result.getTopResults().get(i));
-				newTopResultTitles.add(result.getTopResultsTitle().get(i));
-				newExplanation.add(result.getExplanations().get(i));
+		List<QueryResult.TopDocument> newTopDocuments = new ArrayList<QueryResult.TopDocument>();
+		for (int i = 0; i < result.getTopDocuments().size(); i++) {
+			String id = result.getTopDocuments().get(i).id;
+			if (idPopMap.get(id) >= cutoffWeight) {
+				newTopDocuments.add(result.getTopDocuments().get(i));
 			}
 		}
-		newResult.setTopResults(newTopResults);
-		newResult.setTopResultsTitle(newTopResultTitles);
-		newResult.setExplanations(newExplanation);
+		newResult.setTopDocuments(newTopDocuments);
 		return newResult;
 	}
 

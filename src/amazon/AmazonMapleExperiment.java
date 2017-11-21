@@ -129,12 +129,10 @@ public class AmazonMapleExperiment {
 	}
 	static void filterCacheResults(QueryResult queryResult,
 			TreeSet<String> cache) {
-		List<String> topResults = queryResult.getTopResults();
-		List<String> topResultTitle = queryResult.getTopResultsTitle();
-		for (int i = 0; i < topResults.size(); i++) {
-			if (!cache.contains(topResults.get(i))) {
-				topResults.remove(topResults.get(i));
-				topResultTitle.remove(topResultTitle.get(i));
+		List<QueryResult.TopDocument> topDocuments = queryResult.getTopDocuments();
+		for (int i = 0; i < topDocuments.size(); i++) {
+			if (!cache.contains(topDocuments.get(i).id)) {
+				topDocuments.remove(topDocuments.get(i));
 			}
 		}
 	}
