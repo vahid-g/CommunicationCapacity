@@ -260,8 +260,7 @@ public class Wiki13Experiment {
 		}
 	}
 
-	static List<QueryResult> runQueriesOnGlobalIndex(String indexPath,
-			List<ExperimentQuery> queries, float gamma) {
+	static List<QueryResult> runQueriesOnGlobalIndex(String indexPath, List<ExperimentQuery> queries, float gamma) {
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 		fieldToBoost.put(Wiki13Indexer.TITLE_ATTRIB, gamma);
