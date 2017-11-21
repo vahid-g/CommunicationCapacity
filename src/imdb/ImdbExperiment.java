@@ -32,7 +32,6 @@ import org.xml.sax.SAXException;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import wiki09.ClusterDirectoryInfo;
 
 public class ImdbExperiment {
 
@@ -314,7 +313,7 @@ public class ImdbExperiment {
 		List<InexFile> fileList = InexFile
 				.loadInexFileList(ImdbClusterDirectoryInfo.FILE_LIST);
 		LOGGER.log(Level.INFO, "Building index..");
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE + "imdb_"
+		String indexName = "/scratch/cluster-share/ghadakcv/data/index/imdb_"
 				+ total + "_" + expNo;
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
 		new ImdbIndexer().buildIndex(fileList, indexName);
@@ -322,8 +321,7 @@ public class ImdbExperiment {
 
 	public static void expGlobal(int expNo, int total) {
 		// list should be sorted
-		String indexName = ClusterDirectoryInfo.GLOBAL_INDEX_BASE
-				+ "imdb_50/imdb_" + total + "_" + expNo;
+		String indexName = "/scratch/cluster-share/ghadakcv/data/index/imdb_50/imdb_" + total + "_" + expNo;
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				ImdbClusterDirectoryInfo.QUERY_FILE,

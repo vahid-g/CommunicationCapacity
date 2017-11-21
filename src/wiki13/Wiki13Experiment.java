@@ -24,7 +24,6 @@ import popularity.PopularityUtils;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import wiki09.ClusterDirectoryInfo;
 
 public class Wiki13Experiment {
 
@@ -32,9 +31,11 @@ public class Wiki13Experiment {
 			.getName());
 	private static final String INDEX_BASE = "/scratch/cluster-share/ghadakcv/data/index/";
 	private static final String FILELIST_PATH = "/scratch/cluster-share/ghadakcv/data/path_counts/wiki13_count13_text.csv";
-	public static final String FILELIST_PATH_COUNT09 = "/scratch/cluster-share/ghadakcv/data/path_counts/wiki13_count09_text.csv";
+	private static final String FILELIST_PATH_COUNT09 = "/scratch/cluster-share/ghadakcv/data/path_counts/wiki13_count09_text.csv";
 	private static final String QUERYFILE_PATH = "/scratch/cluster-share/ghadakcv/data/queries/inex_ld/2013-ld-adhoc-topics.xml";
 	private static final String QREL_PATH = "/scratch/cluster-share/ghadakcv/data/queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
+	private static final String MSN_QUERY_QID = "/scratch/cluster-share/ghadakcv/data/msn/query_qid.csv";
+	private static final String MSN_QID_QREL = "/scratch/cluster-share/ghadakcv/data/msn/qid_qrel.csv";
 
 	public static void main(String[] args) {
 
@@ -71,8 +72,7 @@ public class Wiki13Experiment {
 			if (cl.hasOption("query")) {
 				List<ExperimentQuery> queries;
 				if (cl.hasOption("msn")) {
-					queries = QueryServices.loadMsnQueries(ClusterDirectoryInfo.MSN_QUERY_QID,  
-							ClusterDirectoryInfo.MSN_QID_QREL);
+					queries = QueryServices.loadMsnQueries(MSN_QUERY_QID, MSN_QID_QREL);
 				} else {
 					queries = QueryServices.loadInexQueries(
 							QUERYFILE_PATH, QREL_PATH, "title");
@@ -115,9 +115,6 @@ public class Wiki13Experiment {
 		gammas[1] = 1 - gamma;
 		Wiki13Indexer.buildIndexOnText(pathCountList, indexName, gammas);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
-		// List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
-		// ClusterDirectoryInfo.MSN_QUERY_QID_S,
-		// ClusterDirectoryInfo.MSN_QID_QREL);
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				queryFilePath, qrelPath, "title");
 		queries = queries.subList(0, queries.size() / 5);
@@ -125,8 +122,7 @@ public class Wiki13Experiment {
 		List<QueryResult> results = QueryServices
 				.runQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
-				+ "inex13_grid_" + Float.toString(gamma).replace(".", "")
+		try (FileWriter fw = new FileWriter("inex13_grid_" + Float.toString(gamma).replace(".", "")
 				+ ".csv")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.resultString() + "\n");
@@ -161,16 +157,13 @@ public class Wiki13Experiment {
 			float gammas[] = {0.9f, 0.1f};
 			Wiki13Indexer.buildIndexOnText(pathCountList, indexName, gammas);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
-			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
-					ClusterDirectoryInfo.MSN_QUERY_QID,
-					ClusterDirectoryInfo.MSN_QID_QREL);
+			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(MSN_QUERY_QID, MSN_QID_QREL);
 			LOGGER.log(Level.INFO,
 					"Number of loaded queries: " + queries.size());
 			List<QueryResult> results = QueryServices.runQueries(queries,
 					indexName);
 			LOGGER.log(Level.INFO, "Writing results..");
-			try (FileWriter fw = new FileWriter(ClusterDirectoryInfo.RESULT_DIR
-					+ "msn13_" + totalExp + "_" + expNo + ".csv")) {
+			try (FileWriter fw = new FileWriter("msn13_" + totalExp + "_" + expNo + ".csv")) {
 				for (QueryResult mqr : results) {
 					fw.write(mqr.toString() + "\n");
 				}
@@ -187,7 +180,7 @@ public class Wiki13Experiment {
 		}
 	}
 
-	static void expTextInex13(int expNo, int totalExp, float gamma,
+	static void expTextInex(int expNo, int totalExp, float gamma,
 			String queryFilePath, String qrelPath, String filelistPath) {
 		String indexPath = "/scratch/ghadakcv/index/" + "index13_" + expNo;
 		try {
@@ -216,8 +209,7 @@ public class Wiki13Experiment {
 			List<QueryResult> results = QueryServices.runQueries(queries,
 					indexPath);
 			LOGGER.log(Level.INFO, "Writing results..");
-			String resultFileName = ClusterDirectoryInfo.RESULT_DIR + expNo
-					+ ".csv";
+			String resultFileName = expNo + ".csv";
 			try (FileWriter fw = new FileWriter(resultFileName)) {
 				for (QueryResult iqr : results) {
 					fw.write(iqr.toString() + "\n");
