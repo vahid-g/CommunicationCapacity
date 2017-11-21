@@ -34,8 +34,8 @@ public class Wiki13Experiment {
 	private static final String FILELIST_PATH_COUNT09 = "/scratch/cluster-share/ghadakcv/data/path_counts/wiki13_count09_text.csv";
 	private static final String QUERYFILE_PATH = "/scratch/cluster-share/ghadakcv/data/queries/inex_ld/2013-ld-adhoc-topics.xml";
 	private static final String QREL_PATH = "/scratch/cluster-share/ghadakcv/data/queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
-	private static final String MSN_QUERY_QID = "/scratch/cluster-share/ghadakcv/data/msn/query_qid.csv";
-	private static final String MSN_QID_QREL = "/scratch/cluster-share/ghadakcv/data/msn/qid_qrel.csv";
+	private static final String MSN_QUERY_QID = "/scratch/cluster-share/ghadakcv/data/queries/msn/query_qid.csv";
+	private static final String MSN_QID_QREL = "/scratch/cluster-share/ghadakcv/data/queries/msn/qid_qrel.csv";
 
 	public static void main(String[] args) {
 
@@ -91,7 +91,7 @@ public class Wiki13Experiment {
 				QueryResult.logResultsWithPopularity(results, idPopMap,
 						"result/" + expNo + ".log", 20);
 				LOGGER.log(Level.INFO, "Time spent for experiment " + expNo
-						+ " is " + (endTime - startTime) / 60000 + " minutes");
+						+ " is " + (endTime - startTime) / 1000 + " secs");
 			}
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.INFO, e.getMessage());
