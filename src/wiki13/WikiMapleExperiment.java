@@ -76,7 +76,7 @@ public class WikiMapleExperiment {
 							.loadIdPopularityMap(FILELIST_PATH);
 				}
 				List<QueryResult> results = Wiki13Experiment
-						.runQueriesOnGlobalIndex(INDEX_PATH, queries);
+						.runQueriesOnGlobalIndex(INDEX_PATH, queries, 0.15f);
 				if (flag.equals("cache")) {
 					QueryResult.logResultsWithPopularity(results, idPopMap,
 							"before.log", 50);

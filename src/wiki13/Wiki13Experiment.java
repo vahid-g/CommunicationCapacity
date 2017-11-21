@@ -53,7 +53,8 @@ public class Wiki13Experiment {
 		Option expNumberOption = new Option("exp", true, "Number of experiment");
 		expNumberOption.setRequired(true);
 		options.addOption(expNumberOption);
-		Option useMsnQueryLogOption = new Option("msn", false, "specifies the query log (msn/inex)");
+		Option useMsnQueryLogOption = new Option("msn", false,
+				"specifies the query log (msn/inex)");
 		options.addOption(useMsnQueryLogOption);
 		CommandLineParser clp = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
@@ -72,26 +73,27 @@ public class Wiki13Experiment {
 			if (cl.hasOption("query")) {
 				List<ExperimentQuery> queries;
 				if (cl.hasOption("msn")) {
-					queries = QueryServices.loadMsnQueries(MSN_QUERY_QID, MSN_QID_QREL);
+					queries = QueryServices.loadMsnQueries(MSN_QUERY_QID,
+							MSN_QID_QREL);
 				} else {
-					queries = QueryServices.loadInexQueries(
-							QUERYFILE_PATH, QREL_PATH, "title");
+					queries = QueryServices.loadInexQueries(QUERYFILE_PATH,
+							QREL_PATH, "title");
 				}
 				LOGGER.log(Level.INFO, "querying " + expNo + " at " + totalExp);
 				long startTime = System.currentTimeMillis();
-				List<QueryResult> results = runQueriesOnGlobalIndex(indexPath, queries);
+				List<QueryResult> results = runQueriesOnGlobalIndex(indexPath,
+						queries, 0.1f);
 				writeResultsToFile(results, "result/" + expNo + ".csv");
 				long endTime = System.currentTimeMillis();
 				LOGGER.log(Level.INFO, "logging.. ");
 				Map<String, Double> idPopMap = PopularityUtils
 						.loadIdPopularityMap(FILELIST_PATH);
-				QueryResult.logResultsWithPopularity(results, idPopMap, "result/" + expNo
-						+ ".log", 20);
+				QueryResult.logResultsWithPopularity(results, idPopMap,
+						"result/" + expNo + ".log", 20);
 				LOGGER.log(Level.INFO, "Time spent for experiment " + expNo
-						+ " is " + (endTime - startTime) / 60000
-						+ " minutes");
+						+ " is " + (endTime - startTime) / 60000 + " minutes");
 			}
-			
+
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.INFO, e.getMessage());
 			formatter.printHelp("", options);
@@ -122,8 +124,8 @@ public class Wiki13Experiment {
 		List<QueryResult> results = QueryServices
 				.runQueries(queries, indexName);
 		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter("inex13_grid_" + Float.toString(gamma).replace(".", "")
-				+ ".csv")) {
+		try (FileWriter fw = new FileWriter("inex13_grid_"
+				+ Float.toString(gamma).replace(".", "") + ".csv")) {
 			for (QueryResult mqr : results) {
 				fw.write(mqr.resultString() + "\n");
 			}
@@ -157,13 +159,15 @@ public class Wiki13Experiment {
 			float gammas[] = {0.9f, 0.1f};
 			Wiki13Indexer.buildIndexOnText(pathCountList, indexName, gammas);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
-			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(MSN_QUERY_QID, MSN_QID_QREL);
+			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
+					MSN_QUERY_QID, MSN_QID_QREL);
 			LOGGER.log(Level.INFO,
 					"Number of loaded queries: " + queries.size());
 			List<QueryResult> results = QueryServices.runQueries(queries,
 					indexName);
 			LOGGER.log(Level.INFO, "Writing results..");
-			try (FileWriter fw = new FileWriter("msn13_" + totalExp + "_" + expNo + ".csv")) {
+			try (FileWriter fw = new FileWriter("msn13_" + totalExp + "_"
+					+ expNo + ".csv")) {
 				for (QueryResult mqr : results) {
 					fw.write(mqr.toString() + "\n");
 				}
@@ -257,11 +261,12 @@ public class Wiki13Experiment {
 		}
 	}
 
-	static List<QueryResult> runQueriesOnGlobalIndex(String indexPath, List<ExperimentQuery> queries) {
+	static List<QueryResult> runQueriesOnGlobalIndex(String indexPath,
+			List<ExperimentQuery> queries, float gamma) {
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-		fieldToBoost.put(Wiki13Indexer.TITLE_ATTRIB, 0.15f);
-		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 0.85f);
+		fieldToBoost.put(Wiki13Indexer.TITLE_ATTRIB, gamma);
+		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 1 - gamma);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 				queries, indexPath, new BM25Similarity(), fieldToBoost, false);
 		return results;
