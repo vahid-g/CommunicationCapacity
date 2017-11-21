@@ -93,7 +93,6 @@ public class Wiki13Experiment {
 				LOGGER.log(Level.INFO, "Time spent for experiment " + expNo
 						+ " is " + (endTime - startTime) / 60000 + " minutes");
 			}
-
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.INFO, e.getMessage());
 			formatter.printHelp("", options);

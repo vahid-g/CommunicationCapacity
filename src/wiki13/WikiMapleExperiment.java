@@ -30,7 +30,6 @@ public class WikiMapleExperiment {
 	private static final Logger LOGGER = Logger
 			.getLogger(WikiMapleExperiment.class.getName());
 	private static final String DATA_PATH = "/data/ghadakcv/";
-	private static final String INDEX_PATH = DATA_PATH + "wiki_index";
 	private static final String FILELIST_PATH = DATA_PATH
 			+ "wiki13_count13_text.csv";
 	private static final String FILELIST_COUNT09_PATH = DATA_PATH
@@ -54,9 +53,10 @@ public class WikiMapleExperiment {
 		CommandLine cl;
 
 		try {
+			String indexPath = "wiki_index";
 			cl = clp.parse(options, args);
 			if (cl.hasOption("index")) {
-				buildIndex(FILELIST_PATH, INDEX_PATH);
+				buildIndex(FILELIST_PATH, DATA_PATH + indexPath);
 			} else if (cl.hasOption("query")) {
 				String flag = cl.getOptionValue("query");
 				if (flag == null) {
@@ -76,7 +76,7 @@ public class WikiMapleExperiment {
 							.loadIdPopularityMap(FILELIST_PATH);
 				}
 				List<QueryResult> results = Wiki13Experiment
-						.runQueriesOnGlobalIndex(INDEX_PATH, queries, 0.15f);
+						.runQueriesOnGlobalIndex(indexPath, queries, 0.1f);
 				if (flag.equals("cache")) {
 					QueryResult.logResultsWithPopularity(results, idPopMap,
 							"before.log", 50);
@@ -99,7 +99,7 @@ public class WikiMapleExperiment {
 					List<List<QueryResult>> resultsList = filterResultsWithQueryThreshold(
 							results, idPopMap);
 					writeResultsListToFile(resultsList, "filter/");
-				}
+				} 
 			}
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.INFO, e.getMessage());

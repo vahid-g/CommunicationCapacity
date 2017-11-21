@@ -108,6 +108,8 @@ public class Wiki13Indexer extends GeneralIndexer {
 			Document doc = new Document();
 			doc.add(new StringField(indexing.GeneralIndexer.DOCNAME_ATTRIB,
 					FilenameUtils.removeExtension(file.getName()), Field.Store.YES));
+			doc.add(new StringField(indexing.GeneralIndexer.WEIGHT_ATTRIB, 
+					String.valueOf(pct.weight), Field.Store.YES));
 			TextField titleField = new TextField(indexing.GeneralIndexer.TITLE_ATTRIB, pct.title, Field.Store.YES);
 			doc.add(titleField);
 			TextField contentField = new TextField(indexing.GeneralIndexer.CONTENT_ATTRIB, fileContent,

@@ -20,6 +20,7 @@ public abstract class GeneralIndexer {
 	public static final String CONTENT_ATTRIB = "content";
 	public static final String DOCNAME_ATTRIB = "name";
 	public static final String TITLE_ATTRIB = "title";
+	public static final String WEIGHT_ATTRIB = "title";
 
 	static final Logger LOGGER = Logger.getLogger(GeneralIndexer.class.getName());
 	
