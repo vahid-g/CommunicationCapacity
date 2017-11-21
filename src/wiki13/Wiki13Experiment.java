@@ -218,8 +218,6 @@ public class Wiki13Experiment {
 					fw.write(iqr.toString() + "\n");
 				}
 				LOGGER.log(Level.INFO, "cleanup..");
-
-				// to outer layer
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

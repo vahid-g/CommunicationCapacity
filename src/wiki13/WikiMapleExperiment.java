@@ -197,6 +197,7 @@ public class WikiMapleExperiment {
 			String id = result.getTopDocuments().get(i).id;
 			if (idPopMap.get(id) >= cutoffWeight) {
 				newTopDocuments.add(result.getTopDocuments().get(i));
+
 			}
 		}
 		newResult.setTopDocuments(newTopDocuments);
