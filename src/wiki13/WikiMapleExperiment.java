@@ -54,6 +54,8 @@ public class WikiMapleExperiment {
 		options.addOption(useMsnOption);
 		Option partitionsOption = new Option("total", true, "number of partitions");
 		options.addOption(partitionsOption);
+		Option iqOption = new Option("iq", false, "index and query");
+		options.addOption(iqOption);
 		CommandLineParser clp = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cl;
@@ -63,6 +65,16 @@ public class WikiMapleExperiment {
 			cl = clp.parse(options, args);
 			if (cl.hasOption("index")) {
 				buildIndex(FILELIST_PATH, DATA_PATH + indexPath);
+			} else if (cl.hasOption("iq")) {
+				for (int i = 1; i <= 100; i++){
+					Wiki13Experiment.buildGlobalIndex(i, 100, FILELIST_COUNT09_PATH, indexPath + "_" + i);
+				}
+				List<ExperimentQuery> queries = QueryServices.loadMsnQueries(MSN_QUERY_FILE_PATH, MSN_QREL_FILE_PATH);
+				for (int i = 1; i <= 100; i++){
+					List<QueryResult> results = Wiki13Experiment
+							.runQueriesOnGlobalIndex(indexPath + "_" + i, queries, 0.1f);
+					Wiki13Experiment.writeResultsToFile(results, "results/" + i);
+				}
 			} else if (cl.hasOption("query")) {
 				String flag = cl.getOptionValue("query");
 				if (flag == null) {
