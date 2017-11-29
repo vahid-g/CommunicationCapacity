@@ -1,6 +1,5 @@
-package amazon.indexing;
+package indexing;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
@@ -15,17 +14,14 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 
-import indexing.GeneralIndexer;
-import indexing.InexFile;
-
-public class AmazonDatasetIndexer {
+public class InexDatasetIndexer {
 
 	private static final Logger LOGGER = Logger.getLogger(GeneralIndexer.class.getName());
 
 	private InexFileIndexer fileIndexer;
 	private IndexWriterConfig indexWriterConfig;
 
-	public AmazonDatasetIndexer(InexFileIndexer fileIndexer) {
+	public InexDatasetIndexer(InexFileIndexer fileIndexer) {
 		this.fileIndexer = fileIndexer;
 	}
 	
@@ -41,7 +37,7 @@ public class AmazonDatasetIndexer {
 		try (FSDirectory directory = FSDirectory.open(Paths.get(indexPath));
 				IndexWriter writer = new IndexWriter(directory, indexWriterConfig)) {
 			for (InexFile ifm : list) {
-				fileIndexer.index(new File(ifm.path), writer);
+				fileIndexer.index(ifm, writer);
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);

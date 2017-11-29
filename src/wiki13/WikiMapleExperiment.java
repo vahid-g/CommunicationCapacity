@@ -1,5 +1,6 @@
 package wiki13;
 
+import indexing.InexDatasetIndexer;
 import indexing.InexFile;
 
 import java.io.File;
@@ -18,7 +19,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.lucene.search.similarities.BM25Similarity;
 
 import popularity.PopularityUtils;
 import query.ExperimentQuery;
@@ -43,16 +43,18 @@ public class WikiMapleExperiment {
 		Options options = new Options();
 		Option indexOption = new Option("index", false, "run indexing mode");
 		options.addOption(indexOption);
-		Option queryOption = new Option("query", false,
-				"run querying");
+		Option queryOption = new Option("query", false, "run querying");
 		options.addOption(queryOption);
-		Option filterOption = new Option("filter", false, "enables filtering mode");
+		Option filterOption = new Option("filter", false,
+				"enables filtering mode");
 		options.addOption(filterOption);
 		Option cacheOption = new Option("cache", false, "enables caching mode");
 		options.addOption(cacheOption);
-		Option useMsnOption = new Option("msn", false, "specifies the query log (msn/inex)");
+		Option useMsnOption = new Option("msn", false,
+				"specifies the query log (msn/inex)");
 		options.addOption(useMsnOption);
-		Option partitionsOption = new Option("total", true, "number of partitions");
+		Option partitionsOption = new Option("total", true,
+				"number of partitions");
 		options.addOption(partitionsOption);
 		Option iqOption = new Option("iq", false, "index and query");
 		options.addOption(iqOption);
@@ -66,14 +68,18 @@ public class WikiMapleExperiment {
 			if (cl.hasOption("index")) {
 				buildIndex(FILELIST_PATH, DATA_PATH + indexPath);
 			} else if (cl.hasOption("iq")) {
-				for (int i = 1; i <= 100; i++){
-					Wiki13Experiment.buildGlobalIndex(i, 100, FILELIST_COUNT09_PATH, indexPath + "_" + i);
+				for (int i = 1; i <= 100; i++) {
+					Wiki13Experiment.buildGlobalIndex(i, 100,
+							FILELIST_COUNT09_PATH, indexPath + "_" + i);
 				}
-				List<ExperimentQuery> queries = QueryServices.loadMsnQueries(MSN_QUERY_FILE_PATH, MSN_QREL_FILE_PATH);
-				for (int i = 1; i <= 100; i++){
+				List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
+						MSN_QUERY_FILE_PATH, MSN_QREL_FILE_PATH);
+				for (int i = 1; i <= 100; i++) {
 					List<QueryResult> results = Wiki13Experiment
-							.runQueriesOnGlobalIndex(indexPath + "_" + i, queries, 0.1f);
-					Wiki13Experiment.writeResultsToFile(results, "results/" + i);
+							.runQueriesOnGlobalIndex(indexPath + "_" + i,
+									queries, 0.1f);
+					Wiki13Experiment
+							.writeResultsToFile(results, "results/" + i);
 				}
 			} else if (cl.hasOption("query")) {
 				String flag = cl.getOptionValue("query");
@@ -84,42 +90,44 @@ public class WikiMapleExperiment {
 				List<ExperimentQuery> queries;
 				Map<String, Double> idPopMap;
 				if (cl.hasOption("msn")) {
-					queries = QueryServices.loadMsnQueries(MSN_QUERY_FILE_PATH, MSN_QREL_FILE_PATH);
+					queries = QueryServices.loadMsnQueries(MSN_QUERY_FILE_PATH,
+							MSN_QREL_FILE_PATH);
 					idPopMap = PopularityUtils
 							.loadIdPopularityMap(FILELIST_COUNT09_PATH);
 				} else {
-					queries = QueryServices.loadInexQueries(
-							QUERY_FILE_PATH, QREL_FILE_PATH, "title");
+					queries = QueryServices.loadInexQueries(QUERY_FILE_PATH,
+							QREL_FILE_PATH, "title");
 					idPopMap = PopularityUtils
 							.loadIdPopularityMap(FILELIST_PATH);
 				}
 				List<QueryResult> results = Wiki13Experiment
 						.runQueriesOnGlobalIndex(indexPath, queries, 0.1f);
-				int partitions = Integer.parseInt(cl.getOptionValue("total", "50"));
+				int partitions = Integer.parseInt(cl.getOptionValue("total",
+						"50"));
 				if (cl.hasOption("cache")) {
-//					QueryResult.logResultsWithPopularity(results, idPopMap,
-//							"before.log", partitions);
+					// QueryResult.logResultsWithPopularity(results, idPopMap,
+					// "before.log", partitions);
 					List<Double> thresholds = new ArrayList<Double>();
 					List<InexFile> inexFiles = InexFile
 							.loadInexFileList(FILELIST_PATH);
 					for (double i = 1; i <= partitions; i++) {
 						int size = (int) Math.floor(inexFiles.size()
-								* (i / (double)partitions) - 1);
+								* (i / (double) partitions) - 1);
 						thresholds.add(inexFiles.get(size).weight);
 					}
 					LOGGER.log(Level.INFO, "Caching thresholds: {0}",
 							thresholds);
 					List<List<QueryResult>> resultsList = filterResultsWithSingleThreshold(
 							results, idPopMap, thresholds);
-//					QueryResult.logResultsWithPopularity(resultsList.get(0),
-//							idPopMap, "after.log", partitions);
+					// QueryResult.logResultsWithPopularity(resultsList.get(0),
+					// idPopMap, "after.log", partitions);
 					writeResultsListToFile(resultsList, "cache/");
-				} 
+				}
 				if (cl.hasOption("filter")) {
 					List<List<QueryResult>> resultsList = filterResultsWithQueryThreshold(
 							results, idPopMap);
 					writeResultsListToFile(resultsList, "filter/");
-				} 
+				}
 			}
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.INFO, e.getMessage());
@@ -127,7 +135,7 @@ public class WikiMapleExperiment {
 			return;
 		}
 	}
-	
+
 	private static void buildIndex(String fileListPath,
 			String indexDirectoryPath) {
 		try {
@@ -140,8 +148,9 @@ public class WikiMapleExperiment {
 				indexPathFile.mkdirs();
 			}
 			LOGGER.log(Level.INFO, "Building index at: " + indexDirectoryPath);
-			new Wiki13Indexer().buildIndexOnText(pathCountList, indexDirectoryPath,
-					new BM25Similarity());
+			Wiki13FileIndexer fileIndexer = new Wiki13FileIndexer();
+			InexDatasetIndexer idi = new InexDatasetIndexer(fileIndexer);
+			idi.buildIndex(pathCountList, indexDirectoryPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -192,8 +201,8 @@ public class WikiMapleExperiment {
 			pops.add(idPopMap.get(id));
 		}
 		Collections.sort(pops, Collections.reverseOrder());
-		double cutoffWeight = pops.get((int)Math.max(0, Math.floor(cutoffSize
-				* pops.size()) - 1));
+		double cutoffWeight = pops.get((int) Math.max(0,
+				Math.floor(cutoffSize * pops.size()) - 1));
 		return cutoffWeight;
 	}
 
@@ -221,10 +230,14 @@ public class WikiMapleExperiment {
 		File resultsDir = new File(resultDirectoryPath);
 		if (!resultsDir.exists())
 			resultsDir.mkdirs();
-		try (FileWriter p20Writer = new FileWriter(resultDirectoryPath + "wiki_p20.csv");
-				FileWriter mrrWriter = new FileWriter(resultDirectoryPath + "wiki_mrr.csv");
-				FileWriter rec200Writer = new FileWriter(resultDirectoryPath + "wiki_recall200.csv");
-				FileWriter recallWriter = new FileWriter(resultDirectoryPath + "wiki_recall.csv")) {
+		try (FileWriter p20Writer = new FileWriter(resultDirectoryPath
+				+ "wiki_p20.csv");
+				FileWriter mrrWriter = new FileWriter(resultDirectoryPath
+						+ "wiki_mrr.csv");
+				FileWriter rec200Writer = new FileWriter(resultDirectoryPath
+						+ "wiki_recall200.csv");
+				FileWriter recallWriter = new FileWriter(resultDirectoryPath
+						+ "wiki_recall.csv")) {
 			for (int i = 0; i < resultsList.get(0).size(); i++) {
 				ExperimentQuery query = resultsList.get(0).get(i).query;
 				p20Writer.write(query.getText());

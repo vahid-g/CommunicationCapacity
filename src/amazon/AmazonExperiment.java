@@ -1,5 +1,6 @@
 package amazon;
 
+import indexing.InexDatasetIndexer;
 import indexing.InexFile;
 
 import java.io.File;
@@ -24,8 +25,7 @@ import query.QueryResult;
 import query.QueryServices;
 import amazon.datatools.AmazonDeweyConverter;
 import amazon.datatools.AmazonIsbnConverter;
-import amazon.indexing.AmazonDatasetIndexer;
-import amazon.indexing.AmazonIndexer;
+import amazon.indexing.AmazonFileIndexer;
 import amazon.popularity.AmazonIsbnPopularityMap;
 import amazon.query.AmazonQueryResultProcessor;
 
@@ -86,12 +86,12 @@ public class AmazonExperiment {
 		List<InexFile> fileList = InexFile.loadInexFileList(this.isbnsFilePath);
 		LOGGER.log(Level.INFO, "Building index..");
 		fileList = fileList.subList(0, (fileList.size() * expNo) / total);
-		AmazonIndexer fileIndexer = new AmazonIndexer(fields,
+		AmazonFileIndexer fileIndexer = new AmazonFileIndexer(fields,
 				AmazonIsbnConverter
 						.loadIsbnToLtidMap(AmazonDirectoryInfo.ISBN_DICT),
 				AmazonDeweyConverter
 						.getInstance(AmazonDirectoryInfo.DEWEY_DICT));
-		AmazonDatasetIndexer datasetIndexer = new AmazonDatasetIndexer(
+		InexDatasetIndexer datasetIndexer = new InexDatasetIndexer(
 				fileIndexer);
 		datasetIndexer.buildIndex(fileList, indexPath);
 	}

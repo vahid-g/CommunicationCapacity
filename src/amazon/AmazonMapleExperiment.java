@@ -1,5 +1,6 @@
 package amazon;
 
+import indexing.InexDatasetIndexer;
 import indexing.InexFile;
 
 import java.io.FileWriter;
@@ -21,8 +22,7 @@ import query.QueryResult;
 import query.QueryServices;
 import amazon.datatools.AmazonDeweyConverter;
 import amazon.datatools.AmazonIsbnConverter;
-import amazon.indexing.AmazonDatasetIndexer;
-import amazon.indexing.AmazonIndexer;
+import amazon.indexing.AmazonFileIndexer;
 import amazon.query.AmazonQueryResultProcessor;
 
 public class AmazonMapleExperiment {
@@ -50,10 +50,10 @@ public class AmazonMapleExperiment {
 	static void buildIndex() {
 		List<InexFile> fileList = InexFile.loadInexFileList(FILE_LIST);
 		LOGGER.log(Level.INFO, "Building index..");
-		AmazonIndexer fileIndexer = new AmazonIndexer(fields,
+		AmazonFileIndexer fileIndexer = new AmazonFileIndexer(fields,
 				AmazonIsbnConverter.loadIsbnToLtidMap(ISBN_DICT_PATH),
 				AmazonDeweyConverter.getInstance(DEWEY_DICT));
-		AmazonDatasetIndexer datasetIndexer = new AmazonDatasetIndexer(
+		InexDatasetIndexer datasetIndexer = new InexDatasetIndexer(
 				fileIndexer);
 		datasetIndexer.buildIndex(fileList, INDEX_PATH);
 	}

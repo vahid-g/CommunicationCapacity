@@ -1,5 +1,6 @@
 package wiki13;
 
+import indexing.InexDatasetIndexer;
 import indexing.InexFile;
 
 import java.io.File;
@@ -17,7 +18,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.io.FileUtils;
 import org.apache.lucene.search.similarities.BM25Similarity;
 
 import popularity.PopularityUtils;
@@ -29,13 +29,13 @@ public class Wiki13Experiment {
 
 	public static final Logger LOGGER = Logger.getLogger(Wiki13Experiment.class
 			.getName());
-	private static final String INDEX_BASE = "/scratch/cluster-share/ghadakcv/data/index/";
-	private static final String FILELIST_PATH = "/scratch/cluster-share/ghadakcv/data/path_counts/wiki13_count13_text.csv";
-	private static final String FILELIST_PATH_COUNT09 = "/scratch/cluster-share/ghadakcv/data/path_counts/wiki13_count09_text.csv";
-	private static final String QUERYFILE_PATH = "/scratch/cluster-share/ghadakcv/data/queries/inex_ld/2013-ld-adhoc-topics.xml";
-	private static final String QREL_PATH = "/scratch/cluster-share/ghadakcv/data/queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
-	private static final String MSN_QUERY_QID = "/scratch/cluster-share/ghadakcv/data/queries/msn/query_qid.csv";
-	private static final String MSN_QID_QREL = "/scratch/cluster-share/ghadakcv/data/queries/msn/qid_qrel.csv";
+	static final String INDEX_BASE = "/scratch/cluster-share/ghadakcv/data/index/";
+	static final String FILELIST_PATH = "/scratch/cluster-share/ghadakcv/data/path_counts/wiki13_count13_text.csv";
+	static final String FILELIST_PATH_COUNT09 = "/scratch/cluster-share/ghadakcv/data/path_counts/wiki13_count09_text.csv";
+	static final String QUERYFILE_PATH = "/scratch/cluster-share/ghadakcv/data/queries/inex_ld/2013-ld-adhoc-topics.xml";
+	static final String QREL_PATH = "/scratch/cluster-share/ghadakcv/data/queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
+	static final String MSN_QUERY_QID = "/scratch/cluster-share/ghadakcv/data/queries/msn/query_qid.csv";
+	static final String MSN_QID_QREL = "/scratch/cluster-share/ghadakcv/data/queries/msn/qid_qrel.csv";
 
 	public static void main(String[] args) {
 
@@ -100,136 +100,6 @@ public class Wiki13Experiment {
 		}
 	}
 
-	static void gridSearchExperiment(float gamma, String queryFilePath,
-			String qrelPath) {
-		// Note that the path count should be sorted!
-		List<InexFile> pathCountList = InexFile
-				.loadInexFileList(FILELIST_PATH_COUNT09);
-		pathCountList = pathCountList.subList(0, pathCountList.size() / 10);
-		LOGGER.log(Level.INFO,
-				"Number of loaded path_counts: " + pathCountList.size());
-		String indexName = "/scratch/ghadakcv/index/" + "inex13_grid_"
-				+ Float.toString(gamma).replace(".", "");
-		LOGGER.log(Level.INFO, "Building index..");
-		float gammas[] = new float[2];
-		gammas[0] = gamma;
-		gammas[1] = 1 - gamma;
-		new Wiki13Indexer().buildIndexOnText(pathCountList, indexName, gammas);
-		LOGGER.log(Level.INFO, "Loading and running queries..");
-		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-				queryFilePath, qrelPath, "title");
-		queries = queries.subList(0, queries.size() / 5);
-		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
-		List<QueryResult> results = QueryServices
-				.runQueries(queries, indexName);
-		LOGGER.log(Level.INFO, "Writing results to file..");
-		try (FileWriter fw = new FileWriter("inex13_grid_"
-				+ Float.toString(gamma).replace(".", "") + ".csv")) {
-			for (QueryResult mqr : results) {
-				fw.write(mqr.resultString() + "\n");
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try {
-			LOGGER.log(Level.INFO, "cleanup..");
-			FileUtils.deleteDirectory(new File(indexName));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	static void expTextMsn(int expNo, int totalExp) {
-		String indexName = "/scratch/ghadakcv/index/" + "msn_index13_" + expNo;
-		try {
-			List<InexFile> pathCountList = InexFile
-					.loadInexFileList(FILELIST_PATH_COUNT09);
-			double total = (double) totalExp;
-			pathCountList = pathCountList.subList(0,
-					(int) (((double) expNo / total) * pathCountList.size()));
-			LOGGER.log(Level.INFO, "Number of loaded path_counts: "
-					+ pathCountList.size());
-			LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
-			LOGGER.log(
-					Level.INFO,
-					"Smallest score: "
-							+ pathCountList.get(pathCountList.size() - 1).weight);
-			LOGGER.log(Level.INFO, "Building index..");
-			float gammas[] = {0.9f, 0.1f};
-			new Wiki13Indexer().buildIndexOnText(pathCountList, indexName, gammas);
-			LOGGER.log(Level.INFO, "Loading and running queries..");
-			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
-					MSN_QUERY_QID, MSN_QID_QREL);
-			LOGGER.log(Level.INFO,
-					"Number of loaded queries: " + queries.size());
-			List<QueryResult> results = QueryServices.runQueries(queries,
-					indexName);
-			LOGGER.log(Level.INFO, "Writing results..");
-			try (FileWriter fw = new FileWriter("msn13_" + totalExp + "_"
-					+ expNo + ".csv")) {
-				for (QueryResult mqr : results) {
-					fw.write(mqr.toString() + "\n");
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} finally {
-			try {
-				LOGGER.log(Level.INFO, "cleanup..");
-				FileUtils.deleteDirectory(new File(indexName));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	static void expTextInex(int expNo, int totalExp, float gamma,
-			String queryFilePath, String qrelPath, String filelistPath) {
-		String indexPath = "/scratch/ghadakcv/index/" + "index13_" + expNo;
-		try {
-			List<InexFile> pathCountList = InexFile
-					.loadInexFileList(filelistPath);
-			double total = (double) totalExp;
-			pathCountList = pathCountList.subList(0,
-					(int) (((double) expNo / total) * pathCountList.size()));
-			LOGGER.log(Level.INFO, "Number of loaded path_counts: "
-					+ pathCountList.size());
-			LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
-			LOGGER.log(
-					Level.INFO,
-					"Smallest score: "
-							+ pathCountList.get(pathCountList.size() - 1).weight);
-			LOGGER.log(Level.INFO, "Building index..");
-			float[] gammas = new float[2];
-			gammas[0] = gamma;
-			gammas[1] = 1 - gamma;
-			new Wiki13Indexer().buildIndexOnText(pathCountList, indexPath, gammas);
-			LOGGER.log(Level.INFO, "Loading and running queries..");
-			List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-					queryFilePath, qrelPath, "title");
-			LOGGER.log(Level.INFO,
-					"Number of loaded queries: " + queries.size());
-			List<QueryResult> results = QueryServices.runQueries(queries,
-					indexPath);
-			LOGGER.log(Level.INFO, "Writing results..");
-			String resultFileName = expNo + ".csv";
-			try (FileWriter fw = new FileWriter(resultFileName)) {
-				for (QueryResult iqr : results) {
-					fw.write(iqr.toString() + "\n");
-				}
-				LOGGER.log(Level.INFO, "cleanup..");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} finally {
-			try {
-				FileUtils.deleteDirectory(new File(indexPath));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
 	// builds the index on cluster-share
 	static void buildGlobalIndex(int expNo, int totalExp,
 			String filelistPopularityPath, String indexPath) {
@@ -251,18 +121,20 @@ public class Wiki13Experiment {
 				indexPathFile.mkdirs();
 			}
 			LOGGER.log(Level.INFO, "Building index at: " + indexPath);
-			new Wiki13Indexer().buildIndexOnText(pathCountList, indexPath,
-					new BM25Similarity());
+			Wiki13FileIndexer fileIndexer = new Wiki13FileIndexer();
+			InexDatasetIndexer idi = new InexDatasetIndexer(fileIndexer);
+			idi.buildIndex(pathCountList, indexPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	static List<QueryResult> runQueriesOnGlobalIndex(String indexPath, List<ExperimentQuery> queries, float gamma) {
+	static List<QueryResult> runQueriesOnGlobalIndex(String indexPath,
+			List<ExperimentQuery> queries, float gamma) {
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-		fieldToBoost.put(Wiki13Indexer.TITLE_ATTRIB, gamma);
-		fieldToBoost.put(Wiki13Indexer.CONTENT_ATTRIB, 1 - gamma);
+		fieldToBoost.put(Wiki13FileIndexer.TITLE_ATTRIB, gamma);
+		fieldToBoost.put(Wiki13FileIndexer.CONTENT_ATTRIB, 1 - gamma);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 				queries, indexPath, new BM25Similarity(), fieldToBoost, false);
 		return results;

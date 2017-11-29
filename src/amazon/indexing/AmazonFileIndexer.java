@@ -1,5 +1,8 @@
 package amazon.indexing;
 
+import indexing.InexFile;
+import indexing.InexFileIndexer;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -22,19 +25,19 @@ import amazon.AmazonDocumentField;
 import amazon.datatools.AmazonDeweyConverter;
 import amazon.utils.AmazonXmlUtils;
 
-public class AmazonIndexer implements InexFileIndexer {
+public class AmazonFileIndexer implements InexFileIndexer {
 
 	public static final String DOCNAME_ATTRIB = "name";
 	public static final String LTID_ATTRIB = "ltid";
 
-	private static final Logger LOGGER = Logger.getLogger(AmazonIndexer.class
+	private static final Logger LOGGER = Logger.getLogger(AmazonFileIndexer.class
 			.getName());
 
 	private final Map<String, String> isbnToLtid;
 	private final AmazonDeweyConverter deweyToCategory;
 	private AmazonDocumentField[] fields;
 
-	public AmazonIndexer(AmazonDocumentField[] fields,
+	public AmazonFileIndexer(AmazonDocumentField[] fields,
 			Map<String, String> isbnLtidDict, AmazonDeweyConverter deweyIsbnDict) {
 		this.fields = fields;
 		this.isbnToLtid = isbnLtidDict;
@@ -42,7 +45,8 @@ public class AmazonIndexer implements InexFileIndexer {
 	}
 
 	@Override
-	public void index(File file, IndexWriter writer) {
+	public void index(InexFile inexFile, IndexWriter writer) {
+		File file = new File(inexFile.path);
 		try {
 			Map<AmazonDocumentField, String> dataMap = parseAmazonXml(file);
 			Document luceneDoc = new Document();

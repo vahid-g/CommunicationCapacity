@@ -1,5 +1,7 @@
 package amazon.indexing;
 
+import indexing.InexFile;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -28,7 +30,7 @@ import amazon.datatools.AmazonIsbnConverter;
 
 public class AmazonIndexerTest extends TestCase {
 
-	AmazonIndexer indexer;
+	AmazonFileIndexer indexer;
 
 	@Before
 	public void setUp() {
@@ -37,7 +39,7 @@ public class AmazonIndexerTest extends TestCase {
 		Map<String, String> isbnConverter = AmazonIsbnConverter
 				.loadIsbnToLtidMap("test_data/isbn_ltid.csv");
 		AmazonDeweyConverter deweyConverter = AmazonDeweyConverter.getInstance("test_data/dewey.tsv");
-		indexer = new AmazonIndexer(fields, isbnConverter, deweyConverter);
+		indexer = new AmazonFileIndexer(fields, isbnConverter, deweyConverter);
 	}
 
 	@Test
@@ -50,14 +52,14 @@ public class AmazonIndexerTest extends TestCase {
 
 	@Test
 	public void testIndex() throws IOException, ParseException {
-		File file = new File("test_data/1931243999.xml");
+		InexFile inexFile = new InexFile("test_data/1931243999.xml", 1);
 		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(new StandardAnalyzer());
 		indexWriterConfig.setOpenMode(OpenMode.CREATE);
 		indexWriterConfig.setRAMBufferSizeMB(1024.00);
 		indexWriterConfig.setSimilarity(new BM25Similarity());
 		RAMDirectory rd = new RAMDirectory();
 		IndexWriter writer = new IndexWriter(rd, indexWriterConfig);
-		indexer.index(file, writer);
+		indexer.index(inexFile, writer);
 		writer.close();
 		IndexReader reader = DirectoryReader.open(rd);
 		IndexSearcher searcher = new IndexSearcher(reader);
