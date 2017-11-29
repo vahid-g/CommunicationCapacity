@@ -61,7 +61,7 @@ public class WikiMapleExperiment {
 		CommandLine cl;
 
 		try {
-			String indexPath = "wiki_index";
+			String indexPath = DATA_PATH + "wiki_index";
 			cl = clp.parse(options, args);
 			if (cl.hasOption("index")) {
 				buildIndex(FILELIST_PATH, DATA_PATH + indexPath);
