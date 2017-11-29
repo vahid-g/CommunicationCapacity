@@ -279,28 +279,37 @@ public class WikiMapleExperiment {
 		}
 	}
 
-	public List<Double> computeQueryDifficulty(String indexPath,
+	public static List<Double> computeQueryDifficulty(String indexPath,
 			List<ExperimentQuery> queries, String field) {
 		List<Double> difficulties = new ArrayList<Double>();
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
 				.get(indexPath)))) {
-			long titleTermCount = reader.getSumTotalTermFreq(field);
-			LOGGER.log(Level.INFO, "Total number of terms in " + indexPath + ": " + titleTermCount); 
-			for (ExperimentQuery query : queries) {
-				List<String> terms = Arrays
-						.asList(query.getText().split("[ \"'+]")).stream()
-						.filter(str -> !str.isEmpty())
-						.collect(Collectors.toList());
-				int qLength = terms.size();
-				long termCountSum = 0;
-				for (String term : terms) {
-					termCountSum += reader.totalTermFreq(new Term(term, WikiFileIndexer.TITLE_ATTRIB));
-				}
-				long ictf = titleTermCount / termCountSum;
-				difficulties.add( 1.0 / qLength + ictf / qLength);
-			}
+			computeQueryDifficulty(reader, queries, field);
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return difficulties;
+	}
+
+	public static List<Double> computeQueryDifficulty(IndexReader reader,
+			List<ExperimentQuery> queries, String field) throws IOException {
+		List<Double> difficulties = new ArrayList<Double>();
+		long titleTermCount = reader.getSumTotalTermFreq(field);
+		LOGGER.log(Level.INFO, "Total number of terms in " + field + ": "
+				+ titleTermCount);
+		for (ExperimentQuery query : queries) {
+			List<String> terms = Arrays
+					.asList(query.getText().split("[ \"'+]")).stream()
+					.filter(str -> !str.isEmpty()).collect(Collectors.toList());
+			int qLength = terms.size();
+			long termCountSum = 0;
+			for (String term : terms) {
+				System.out.println("term = " + term);
+				termCountSum += reader.totalTermFreq(new Term(term, field));
+				System.out.println("count = " + termCountSum);
+			}
+			double ictf = Math.log(titleTermCount / (termCountSum + 1.0));
+			difficulties.add(1.0 / qLength + ictf / qLength);
 		}
 		return difficulties;
 	}
