@@ -4,16 +4,16 @@ import java.io.File;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import junit.framework.TestCase;
 
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.sun.org.apache.xerces.internal.dom.DocumentImpl;
-
 import amazon.AmazonDocumentField;
-import junit.framework.TestCase;
 
 public class AmazonXmlUtilsTest extends TestCase {
 
@@ -38,8 +38,10 @@ public class AmazonXmlUtilsTest extends TestCase {
 	}
 
 	@Test
-	public void testExtractNodeTextContent() {
-		Document xmlDoc = new DocumentImpl();
+	public void testExtractNodeTextContent() throws ParserConfigurationException {
+		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		DocumentBuilder db = dbf.newDocumentBuilder();
+		Document xmlDoc = db.newDocument();
 		Element root = xmlDoc.createElement("book");
 		Node innerItem = xmlDoc.createElement("innerItem");
 		innerItem.appendChild(xmlDoc.createTextNode("innerText"));

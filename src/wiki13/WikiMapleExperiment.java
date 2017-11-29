@@ -6,12 +6,15 @@ import indexing.InexFile;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -19,6 +22,10 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.store.FSDirectory;
 
 import popularity.PopularityUtils;
 import query.ExperimentQuery;
@@ -78,8 +85,7 @@ public class WikiMapleExperiment {
 					List<QueryResult> results = WikiExperiment
 							.runQueriesOnGlobalIndex(indexPath + "_" + i,
 									queries, 0.1f);
-					WikiExperiment
-							.writeResultsToFile(results, "results/" + i);
+					WikiExperiment.writeResultsToFile(results, "results/" + i);
 				}
 			} else if (cl.hasOption("query")) {
 				String flag = cl.getOptionValue("query");
@@ -271,6 +277,32 @@ public class WikiMapleExperiment {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public List<Double> computeQueryDifficulty(String indexPath,
+			List<ExperimentQuery> queries, String field) {
+		List<Double> difficulties = new ArrayList<Double>();
+		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
+				.get(indexPath)))) {
+			long titleTermCount = reader.getSumTotalTermFreq(field);
+			LOGGER.log(Level.INFO, "Total number of terms in " + indexPath + ": " + titleTermCount); 
+			for (ExperimentQuery query : queries) {
+				List<String> terms = Arrays
+						.asList(query.getText().split("[ \"'+]")).stream()
+						.filter(str -> !str.isEmpty())
+						.collect(Collectors.toList());
+				int qLength = terms.size();
+				long termCountSum = 0;
+				for (String term : terms) {
+					termCountSum += reader.totalTermFreq(new Term(term, WikiFileIndexer.TITLE_ATTRIB));
+				}
+				long ictf = titleTermCount / termCountSum;
+				difficulties.add( 1.0 / qLength + ictf / qLength);
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return difficulties;
 	}
 
 }
