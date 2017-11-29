@@ -21,10 +21,10 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 
-public class Wiki13FileIndexer implements InexFileIndexer {
+public class WikiFileIndexer implements InexFileIndexer {
 
 	private static final Logger LOGGER = Logger
-			.getLogger(Wiki13FileIndexer.class.getName());
+			.getLogger(WikiFileIndexer.class.getName());
 
 	public static final String CONTENT_ATTRIB = "content";
 	public static final String DOCNAME_ATTRIB = "name";

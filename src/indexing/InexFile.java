@@ -15,9 +15,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FilenameUtils;
 
-import wiki13.Wiki13Experiment;
-
-public class InexFile{
+public class InexFile {
 
 	public String id;
 	public String path;
@@ -25,7 +23,7 @@ public class InexFile{
 	public String title;
 
 	static final Logger LOGGER = Logger.getLogger(InexFile.class.getName());
-	
+
 	public static class ReverseWeightComparator implements Comparator<InexFile> {
 		@Override
 		public int compare(InexFile o1, InexFile o2) {
@@ -45,9 +43,7 @@ public class InexFile{
 	}
 
 	// can parse inex file path csv file with 2 or 3 fields
-	public static List<InexFile> loadInexFileList(
-			String pathCountTitleFile) {
-		Wiki13Experiment.LOGGER.log(Level.INFO, "Loading path-count-titles..");
+	public static List<InexFile> loadInexFileList(String pathCountTitleFile) {
 		List<InexFile> pathCountList = new ArrayList<InexFile>();
 		try (BufferedReader br = new BufferedReader(new FileReader(
 				pathCountTitleFile))) {
@@ -75,14 +71,14 @@ public class InexFile{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		LOGGER.log(Level.INFO, "Size of List<InexFile>: " + pathCountList.size());
+		LOGGER.log(Level.INFO,
+				"Size of List<InexFile>: " + pathCountList.size());
 		return pathCountList;
 	}
 
 	public static Map<String, InexFile> loadFilePathCountTitleMap(
 			String pathCountTitleFile) {
-		List<InexFile> fileList = InexFile
-				.loadInexFileList(pathCountTitleFile);
+		List<InexFile> fileList = InexFile.loadInexFileList(pathCountTitleFile);
 		HashMap<String, InexFile> idToInexFile = new HashMap<String, InexFile>();
 		for (InexFile file : fileList) {
 			idToInexFile.put(FilenameUtils.removeExtension(new File(file.path)

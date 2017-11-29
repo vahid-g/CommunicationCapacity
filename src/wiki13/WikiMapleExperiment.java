@@ -69,16 +69,16 @@ public class WikiMapleExperiment {
 				buildIndex(FILELIST_PATH, DATA_PATH + indexPath);
 			} else if (cl.hasOption("iq")) {
 				for (int i = 1; i <= 100; i++) {
-					Wiki13Experiment.buildGlobalIndex(i, 100,
+					WikiExperiment.buildGlobalIndex(i, 100,
 							FILELIST_COUNT09_PATH, indexPath + "_" + i);
 				}
 				List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
 						MSN_QUERY_FILE_PATH, MSN_QREL_FILE_PATH);
 				for (int i = 1; i <= 100; i++) {
-					List<QueryResult> results = Wiki13Experiment
+					List<QueryResult> results = WikiExperiment
 							.runQueriesOnGlobalIndex(indexPath + "_" + i,
 									queries, 0.1f);
-					Wiki13Experiment
+					WikiExperiment
 							.writeResultsToFile(results, "results/" + i);
 				}
 			} else if (cl.hasOption("query")) {
@@ -100,7 +100,7 @@ public class WikiMapleExperiment {
 					idPopMap = PopularityUtils
 							.loadIdPopularityMap(FILELIST_PATH);
 				}
-				List<QueryResult> results = Wiki13Experiment
+				List<QueryResult> results = WikiExperiment
 						.runQueriesOnGlobalIndex(indexPath, queries, 0.1f);
 				int partitions = Integer.parseInt(cl.getOptionValue("total",
 						"50"));
@@ -148,7 +148,7 @@ public class WikiMapleExperiment {
 				indexPathFile.mkdirs();
 			}
 			LOGGER.log(Level.INFO, "Building index at: " + indexDirectoryPath);
-			Wiki13FileIndexer fileIndexer = new Wiki13FileIndexer();
+			WikiFileIndexer fileIndexer = new WikiFileIndexer();
 			InexDatasetIndexer idi = new InexDatasetIndexer(fileIndexer);
 			idi.buildIndex(pathCountList, indexDirectoryPath);
 		} catch (Exception e) {

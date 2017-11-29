@@ -25,9 +25,9 @@ import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
 
-public class Wiki13Experiment {
+public class WikiExperiment {
 
-	public static final Logger LOGGER = Logger.getLogger(Wiki13Experiment.class
+	public static final Logger LOGGER = Logger.getLogger(WikiExperiment.class
 			.getName());
 	static final String INDEX_BASE = "/scratch/cluster-share/ghadakcv/data/index/";
 	static final String FILELIST_PATH = "/scratch/cluster-share/ghadakcv/data/path_counts/wiki13_count13_text.csv";
@@ -121,7 +121,7 @@ public class Wiki13Experiment {
 				indexPathFile.mkdirs();
 			}
 			LOGGER.log(Level.INFO, "Building index at: " + indexPath);
-			Wiki13FileIndexer fileIndexer = new Wiki13FileIndexer();
+			WikiFileIndexer fileIndexer = new WikiFileIndexer();
 			InexDatasetIndexer idi = new InexDatasetIndexer(fileIndexer);
 			idi.buildIndex(pathCountList, indexPath);
 		} catch (Exception e) {
@@ -133,8 +133,8 @@ public class Wiki13Experiment {
 			List<ExperimentQuery> queries, float gamma) {
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
-		fieldToBoost.put(Wiki13FileIndexer.TITLE_ATTRIB, gamma);
-		fieldToBoost.put(Wiki13FileIndexer.CONTENT_ATTRIB, 1 - gamma);
+		fieldToBoost.put(WikiFileIndexer.TITLE_ATTRIB, gamma);
+		fieldToBoost.put(WikiFileIndexer.CONTENT_ATTRIB, 1 - gamma);
 		List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 				queries, indexPath, new BM25Similarity(), fieldToBoost, false);
 		return results;
