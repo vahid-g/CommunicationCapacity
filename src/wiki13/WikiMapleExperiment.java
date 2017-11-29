@@ -34,10 +34,10 @@ public class WikiMapleExperiment {
 			+ "wiki13_count13_text.csv";
 	private static final String FILELIST_COUNT09_PATH = DATA_PATH
 			+ "wiki13_count09_text.csv";
-	private static final String QUERY_FILE_PATH = DATA_PATH + "2013-adhoc.xml";
-	private static final String QREL_FILE_PATH = DATA_PATH + "2013-adhoc.qrels";
-	private static final String MSN_QUERY_FILE_PATH = DATA_PATH + "msn_query_qid.csv";
-	private static final String MSN_QREL_FILE_PATH = DATA_PATH + "msn.qrels";
+	private static final String QUERY_FILE_PATH = "~/Workspace/queries/2013-adhoc.xml";
+	private static final String QREL_FILE_PATH = "~/Workspace/queries/2013-adhoc.qrels";
+	private static final String MSN_QUERY_FILE_PATH = "~/Workspace/queries/msn_query_qid.csv";
+	private static final String MSN_QREL_FILE_PATH = "~/Workspace/queries/msn.qrels";
 
 	public static void main(String[] args) {
 		Options options = new Options();
