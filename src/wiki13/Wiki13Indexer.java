@@ -22,7 +22,6 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
@@ -66,18 +65,18 @@ public class Wiki13Indexer extends GeneralIndexer {
 		}
 	}
 
-	public static void buildIndexOnText(List<InexFile> fileCountList, String indexPath, float[] gamma) {
+	public void buildIndexOnText(List<InexFile> fileCountList, String indexPath, float[] gamma) {
 		buildIndexOnText(fileCountList, indexPath, new ClassicSimilarity());
 	}
 
-	public static void buildIndexOnText(List<InexFile> fileCountList, String indexPath, Similarity similarity) {
+	public void buildIndexOnText(List<InexFile> fileCountList, String indexPath, Similarity similarity) {
 		// indexing
 		FSDirectory directory = null;
 		IndexWriter writer = null;
 		try {
 			directory = FSDirectory.open(Paths.get(indexPath));
-			IndexWriterConfig config = getIndexWriterConfig().setSimilarity(similarity);
-			writer = new IndexWriter(directory, config);
+			indexWriterConfig.setSimilarity(similarity);
+			writer = new IndexWriter(directory, indexWriterConfig);
 			for (InexFile entry : fileCountList) {
 				indexTxtFileWithWeight(entry, writer);
 			}
@@ -99,7 +98,7 @@ public class Wiki13Indexer extends GeneralIndexer {
 		}
 	}
 
-	static void indexTxtFileWithWeight(InexFile pct, IndexWriter writer) {
+	void indexTxtFileWithWeight(InexFile pct, IndexWriter writer) {
 		File file = new File(pct.path);
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];

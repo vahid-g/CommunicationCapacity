@@ -114,7 +114,7 @@ public class Wiki13Experiment {
 		float gammas[] = new float[2];
 		gammas[0] = gamma;
 		gammas[1] = 1 - gamma;
-		Wiki13Indexer.buildIndexOnText(pathCountList, indexName, gammas);
+		new Wiki13Indexer().buildIndexOnText(pathCountList, indexName, gammas);
 		LOGGER.log(Level.INFO, "Loading and running queries..");
 		List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 				queryFilePath, qrelPath, "title");
@@ -156,7 +156,7 @@ public class Wiki13Experiment {
 							+ pathCountList.get(pathCountList.size() - 1).weight);
 			LOGGER.log(Level.INFO, "Building index..");
 			float gammas[] = {0.9f, 0.1f};
-			Wiki13Indexer.buildIndexOnText(pathCountList, indexName, gammas);
+			new Wiki13Indexer().buildIndexOnText(pathCountList, indexName, gammas);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
 			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
 					MSN_QUERY_QID, MSN_QID_QREL);
@@ -203,7 +203,7 @@ public class Wiki13Experiment {
 			float[] gammas = new float[2];
 			gammas[0] = gamma;
 			gammas[1] = 1 - gamma;
-			Wiki13Indexer.buildIndexOnText(pathCountList, indexPath, gammas);
+			new Wiki13Indexer().buildIndexOnText(pathCountList, indexPath, gammas);
 			LOGGER.log(Level.INFO, "Loading and running queries..");
 			List<ExperimentQuery> queries = QueryServices.loadInexQueries(
 					queryFilePath, qrelPath, "title");
@@ -251,7 +251,7 @@ public class Wiki13Experiment {
 				indexPathFile.mkdirs();
 			}
 			LOGGER.log(Level.INFO, "Building index at: " + indexPath);
-			Wiki13Indexer.buildIndexOnText(pathCountList, indexPath,
+			new Wiki13Indexer().buildIndexOnText(pathCountList, indexPath,
 					new BM25Similarity());
 		} catch (Exception e) {
 			e.printStackTrace();

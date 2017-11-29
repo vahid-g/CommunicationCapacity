@@ -140,7 +140,7 @@ public class WikiMapleExperiment {
 				indexPathFile.mkdirs();
 			}
 			LOGGER.log(Level.INFO, "Building index at: " + indexDirectoryPath);
-			Wiki13Indexer.buildIndexOnText(pathCountList, indexDirectoryPath,
+			new Wiki13Indexer().buildIndexOnText(pathCountList, indexDirectoryPath,
 					new BM25Similarity());
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -23,37 +23,28 @@ public abstract class GeneralIndexer {
 	public static final String WEIGHT_ATTRIB = "title";
 
 	static final Logger LOGGER = Logger.getLogger(GeneralIndexer.class.getName());
+	protected IndexWriterConfig indexWriterConfig;
+	
+	public GeneralIndexer() {
+		indexWriterConfig = new IndexWriterConfig(new StandardAnalyzer());
+		indexWriterConfig.setOpenMode(OpenMode.CREATE);
+		indexWriterConfig.setRAMBufferSizeMB(1024.00);
+	}
 	
 	public void buildIndex(List<InexFile> list, String indexPath) {
 		buildIndex(list, indexPath, new ClassicSimilarity());
 	}
 
 	public void buildIndex(List<InexFile> list, String indexPath, Similarity similarity) {
-		FSDirectory directory = null;
-		IndexWriter writer = null;
-		try {
-			directory = FSDirectory.open(Paths.get(indexPath));
-			IndexWriterConfig iwc = getIndexWriterConfig().setSimilarity(similarity);
-			writer = new IndexWriter(directory, iwc);
+		indexWriterConfig.setSimilarity(similarity);
+		try (FSDirectory directory = FSDirectory.open(Paths.get(indexPath));
+				IndexWriter writer = new IndexWriter(directory, indexWriterConfig)) {
 			for (InexFile ifm : list) {
 				indexXmlFile(new File(ifm.path), writer, 1);
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (writer != null)
-				try {
-					writer.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			if (directory != null)
-				try {
-					directory.close();
-				} catch (IOException e) {
-					LOGGER.log(Level.SEVERE, e.getMessage());
-				}
-		}
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		} 
 	}
 
 	public void buildIndexDocBoosted(List<InexFile> fileList, String indexPath) {
@@ -68,7 +59,7 @@ public abstract class GeneralIndexer {
 		IndexWriter writer = null;
 		try {
 			directory = FSDirectory.open(Paths.get(indexPath));
-			writer = new IndexWriter(directory, getIndexWriterConfig());
+			writer = new IndexWriter(directory, indexWriterConfig);
 			for (InexFile inexFile : fileList) {
 				float count = (float) inexFile.weight;
 				float smoothed = (count + alpha) / (N + V * alpha);
@@ -90,14 +81,6 @@ public abstract class GeneralIndexer {
 					LOGGER.log(Level.SEVERE, e.getMessage());
 				}
 		}
-	}
-
-	protected static IndexWriterConfig getIndexWriterConfig() {
-		IndexWriterConfig config;
-		config = new IndexWriterConfig(new StandardAnalyzer());
-		config.setOpenMode(OpenMode.CREATE);
-		config.setRAMBufferSizeMB(1024.00);
-		return config;
 	}
 
 	protected abstract void indexXmlFile(File file, IndexWriter writer, float docBoost);

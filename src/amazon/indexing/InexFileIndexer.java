@@ -4,7 +4,7 @@ import java.io.File;
 
 import org.apache.lucene.index.IndexWriter;
 
-public interface AmazonFileIndexerInterface {
+public interface InexFileIndexer {
 	
 	public void index(File file, IndexWriter writer);
 

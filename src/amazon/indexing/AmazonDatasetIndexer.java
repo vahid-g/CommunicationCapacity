@@ -22,10 +22,10 @@ public class AmazonDatasetIndexer {
 
 	private static final Logger LOGGER = Logger.getLogger(GeneralIndexer.class.getName());
 
-	private AmazonFileIndexerInterface fileIndexer;
+	private InexFileIndexer fileIndexer;
 	private IndexWriterConfig indexWriterConfig;
 
-	public AmazonDatasetIndexer(AmazonFileIndexerInterface fileIndexer) {
+	public AmazonDatasetIndexer(InexFileIndexer fileIndexer) {
 		this.fileIndexer = fileIndexer;
 	}
 	

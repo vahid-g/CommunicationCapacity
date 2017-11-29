@@ -22,7 +22,7 @@ import amazon.AmazonDocumentField;
 import amazon.datatools.AmazonDeweyConverter;
 import amazon.utils.AmazonXmlUtils;
 
-public class AmazonIndexer implements AmazonFileIndexerInterface {
+public class AmazonIndexer implements InexFileIndexer {
 
 	public static final String DOCNAME_ATTRIB = "name";
 	public static final String LTID_ATTRIB = "ltid";
