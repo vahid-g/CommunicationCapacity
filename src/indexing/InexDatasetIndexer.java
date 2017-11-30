@@ -45,9 +45,8 @@ public class InexDatasetIndexer {
 		    failedIndexCounter++;
 		}
 	    }
-	    LOGGER.log(Level.INFO,
-		    "Number of failed files to index = {0} out of {1} files",
-		    new int[] { failedIndexCounter, list.size() });
+	    LOGGER.log(Level.INFO, "Number of failed files to index = "
+		    + failedIndexCounter + " out of " + list.size() + " files");
 	} catch (IOException e) {
 	    LOGGER.log(Level.SEVERE, e.getMessage(), e);
 	}
