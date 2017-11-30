@@ -101,7 +101,7 @@ public class WikiExperiment {
 	}
 
 	// builds the index on cluster-share
-	static void buildGlobalIndex(int expNo, int totalExp,
+	public static void buildGlobalIndex(int expNo, int totalExp,
 			String filelistPopularityPath, String indexPath) {
 		try {
 			List<InexFile> pathCountList = InexFile
@@ -129,7 +129,7 @@ public class WikiExperiment {
 		}
 	}
 
-	static List<QueryResult> runQueriesOnGlobalIndex(String indexPath,
+	public static List<QueryResult> runQueriesOnGlobalIndex(String indexPath,
 			List<ExperimentQuery> queries, float gamma) {
 		LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 		Map<String, Float> fieldToBoost = new HashMap<String, Float>();
@@ -140,7 +140,7 @@ public class WikiExperiment {
 		return results;
 	}
 
-	static void writeResultsToFile(List<QueryResult> results,
+	public static void writeResultsToFile(List<QueryResult> results,
 			String resultFileName) {
 		LOGGER.log(Level.INFO, "Writing results..");
 		try (FileWriter fw = new FileWriter(resultFileName)) {
@@ -148,7 +148,7 @@ public class WikiExperiment {
 				fw.write(iqr.resultString() + "\n");
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	}
 
