@@ -29,7 +29,7 @@ public class WikiFileIndexer implements InexFileIndexer {
 	public static final String CONTENT_ATTRIB = "content";
 	public static final String DOCNAME_ATTRIB = "name";
 	public static final String TITLE_ATTRIB = "title";
-	public static final String WEIGHT_ATTRIB = "title";
+	public static final String WEIGHT_ATTRIB = "weight";
 
 	public void index(InexFile pct, IndexWriter writer) {
 		File file = new File(pct.path);
