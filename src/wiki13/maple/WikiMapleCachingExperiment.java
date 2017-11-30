@@ -47,7 +47,6 @@ public class WikiMapleCachingExperiment {
 		CommandLineParser clp = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cl;
-
 		try {
 			String indexDirPath = WikiMapleExperiment.DATA_PATH + "wiki_index/";
 			cl = clp.parse(options, args);
