@@ -1,6 +1,6 @@
 package wiki13;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import indexing.InexFile;
 
 import java.io.IOException;
@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -43,29 +42,28 @@ public class WikiMapleExperimentTest {
 		assertEquals(3, result1.getTopDocuments().size());
 		assertEquals(1, result2.getTopDocuments().size());
 	}
-	
+
 	@Test
 	public void testComputeQueryDifficulty() throws IOException {
 		InexFile inexFile = new InexFile("test_data/sample_wiki_file.txt", 1);
 		inexFile.title = "hanhan";
-		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(new StandardAnalyzer());
+		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(
+				new StandardAnalyzer());
 		indexWriterConfig.setOpenMode(OpenMode.CREATE);
-		RAMDirectory rd = new RAMDirectory();
-		IndexWriter writer = new IndexWriter(rd, indexWriterConfig);
-		WikiFileIndexer indexer = new WikiFileIndexer();
-		indexer.index(inexFile, writer);
-		writer.close();
-		IndexReader reader = DirectoryReader.open(rd);
-		Document doc = reader.document(0);
-		System.out.println("title:" + doc.get("title"));
-		System.out.println("content:" + doc.get("content"));
-		
-//		List<ExperimentQuery> queries = new ArrayList<ExperimentQuery>();
-//		ExperimentQuery query1 = new ExperimentQuery(1, "hanhan");
-//		queries.add(query1);
-//		List<Double> results = WikiMapleExperiment.computeQueryDifficulty(reader, queries, WikiFileIndexer.TITLE_ATTRIB);
-//		rd.close();
-//		assertEquals(1 + Math.log(6/3), results.get(0), 0.01);
+		try (RAMDirectory rd = new RAMDirectory()) {
+			try (IndexWriter writer = new IndexWriter(rd, indexWriterConfig)) {
+				WikiFileIndexer indexer = new WikiFileIndexer();
+				indexer.index(inexFile, writer);
+			}
+			IndexReader reader = DirectoryReader.open(rd);
+			List<ExperimentQuery> queries = new ArrayList<ExperimentQuery>();
+			ExperimentQuery query1 = new ExperimentQuery(1, "hanhan"); 
+			queries.add(query1);
+			List<Double> results = WikiMapleExperiment.computeQueryDifficulty(
+					reader, queries, WikiFileIndexer.CONTENT_ATTRIB);
+			rd.close();
+			assertEquals(1 + Math.log(6 / 3), results.get(0), 0.01);
+		}
 	}
 
 }

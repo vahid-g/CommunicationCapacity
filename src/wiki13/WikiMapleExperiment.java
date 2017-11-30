@@ -304,8 +304,8 @@ public class WikiMapleExperiment {
 			int qLength = terms.size();
 			long termCountSum = 0;
 			for (String term : terms) {
-				System.out.println("term = " + term);
-				termCountSum += reader.totalTermFreq(new Term(term, field));
+				System.out.println("term = \"" + term + "\"");
+				termCountSum += reader.totalTermFreq(new Term(field, term));
 				System.out.println("count = " + termCountSum);
 			}
 			double ictf = Math.log(titleTermCount / (termCountSum + 1.0));
@@ -313,5 +313,4 @@ public class WikiMapleExperiment {
 		}
 		return difficulties;
 	}
-
 }
