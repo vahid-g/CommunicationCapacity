@@ -90,10 +90,10 @@ public class WikiExperiment {
 	}
     }
 
-    public static void writeListToFile(List<Double> list, String filename) {
+    public static void writeMapToFile(Map<String, Double> map, String filename) {
 	try (FileWriter fw = new FileWriter(filename)) {
-	    for (Double d : list) {
-		fw.write(d + "\n");
+	    for (String s : map.keySet()) {
+		fw.write(s + "," + map.get(s) + "\n");
 	    }
 	} catch (IOException e) {
 	    LOGGER.log(Level.SEVERE, e.getMessage(), e);

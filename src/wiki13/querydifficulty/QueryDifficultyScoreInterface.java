@@ -2,14 +2,15 @@ package wiki13.querydifficulty;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.index.IndexReader;
 
 import query.ExperimentQuery;
 
-public interface QueryDifficultyMethod {
+public interface QueryDifficultyScoreInterface {
 
-    public List<Double> computeScore(IndexReader reader,
+    public Map<String, Double> computeScore(IndexReader reader,
 	    List<ExperimentQuery> queries, String field) throws IOException;
 
 }

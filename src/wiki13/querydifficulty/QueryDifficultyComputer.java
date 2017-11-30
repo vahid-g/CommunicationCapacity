@@ -2,8 +2,9 @@ package wiki13.querydifficulty;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,15 +19,15 @@ public class QueryDifficultyComputer {
     private static final Logger LOGGER = Logger
 	    .getLogger(MethodClarityScoreTest.class.getName());
 
-    private QueryDifficultyMethod method;
+    private QueryDifficultyScoreInterface method;
 
-    public QueryDifficultyComputer(QueryDifficultyMethod method) {
+    public QueryDifficultyComputer(QueryDifficultyScoreInterface method) {
 	this.method = method;
     }
 
-    public List<Double> computeQueryDifficulty(String indexPath,
+    public Map<String, Double> computeQueryDifficulty(String indexPath,
 	    List<ExperimentQuery> queries, String field) {
-	List<Double> difficulties = new ArrayList<Double>();
+	Map<String, Double> difficulties = new HashMap<String, Double>();
 	try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
 		.get(indexPath)))) {
 	    difficulties = method.computeScore(reader, queries, field);

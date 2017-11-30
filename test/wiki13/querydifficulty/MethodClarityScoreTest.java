@@ -1,11 +1,12 @@
 package wiki13.querydifficulty;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import indexing.InexFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
@@ -37,11 +38,11 @@ public class MethodClarityScoreTest {
 	    List<ExperimentQuery> queries = new ArrayList<ExperimentQuery>();
 	    ExperimentQuery query1 = new ExperimentQuery(1, "hanhan");
 	    queries.add(query1);
-	    MethodClarityScore mcs = new MethodClarityScore();
-	    List<Double> results = mcs.computeScore(reader, queries,
+	    ClarityScore mcs = new ClarityScore();
+	    Map<String, Double> results = mcs.computeScore(reader, queries,
 		    WikiFileIndexer.CONTENT_ATTRIB);
 	    rd.close();
-	    assertEquals(1 + Math.log(6 / 3), results.get(0), 0.01);
+	    assertEquals(1 + Math.log(6 / 3), results.get("hanhan"), 0.01);
 	}
     }
 }

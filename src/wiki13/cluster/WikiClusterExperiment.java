@@ -18,7 +18,7 @@ import query.QueryResult;
 import query.QueryServices;
 import wiki13.WikiExperiment;
 import wiki13.WikiFileIndexer;
-import wiki13.querydifficulty.MethodClarityScore;
+import wiki13.querydifficulty.ClarityScore;
 import wiki13.querydifficulty.QueryDifficultyComputer;
 
 public class WikiClusterExperiment {
@@ -105,14 +105,14 @@ public class WikiClusterExperiment {
 		}
 		LOGGER.log(Level.INFO, "querylog size " + queries.size());
 		QueryDifficultyComputer qdc = new QueryDifficultyComputer(
-			new MethodClarityScore());
-		List<Double> titleDifficulties = qdc.computeQueryDifficulty(
+			new ClarityScore());
+		Map<String, Double> titleDifficulties = qdc.computeQueryDifficulty(
 			indexPath, queries, WikiFileIndexer.TITLE_ATTRIB);
-		List<Double> contentDifficulties = qdc.computeQueryDifficulty(
+		Map<String, Double> contentDifficulties = qdc.computeQueryDifficulty(
 			indexPath, queries, WikiFileIndexer.CONTENT_ATTRIB);
-		WikiExperiment.writeListToFile(titleDifficulties, "title_diff_"
+		WikiExperiment.writeMapToFile(titleDifficulties, "title_diff_"
 			+ expNo + ".csv");
-		WikiExperiment.writeListToFile(contentDifficulties,
+		WikiExperiment.writeMapToFile(contentDifficulties,
 			"content_diff_" + expNo + ".csv");
 
 	    }
