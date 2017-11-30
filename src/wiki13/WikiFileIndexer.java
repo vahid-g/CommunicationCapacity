@@ -8,7 +8,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -30,9 +29,12 @@ public class WikiFileIndexer implements InexFileIndexer {
 	public static final String DOCNAME_ATTRIB = "name";
 	public static final String TITLE_ATTRIB = "title";
 	public static final String WEIGHT_ATTRIB = "weight";
-
-	public void index(InexFile pct, IndexWriter writer) {
+	
+	public boolean index(InexFile pct, IndexWriter writer) {
 		File file = new File(pct.path);
+		if (!file.exists()) {
+		    return false;
+		}
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];
 			fis.read(data);
@@ -49,14 +51,11 @@ public class WikiFileIndexer implements InexFileIndexer {
 					Field.Store.YES);
 			doc.add(contentField);
 			writer.addDocument(doc);
-		} catch (NoSuchFileException e) {
-			LOGGER.log(Level.WARNING, "File not found: " + pct.title + " "
-					+ pct.path);
-		} catch (FileNotFoundException e) {
-			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
+			return false;
 		}
+		return true;
 	}
 
 	protected void indexXmlFile(File file, IndexWriter writer) {

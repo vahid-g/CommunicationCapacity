@@ -16,32 +16,40 @@ import org.apache.lucene.store.FSDirectory;
 
 public class InexDatasetIndexer {
 
-	private static final Logger LOGGER = Logger.getLogger(GeneralIndexer.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(GeneralIndexer.class
+	    .getName());
 
-	private InexFileIndexer fileIndexer;
-	private IndexWriterConfig indexWriterConfig;
+    private InexFileIndexer fileIndexer;
+    private IndexWriterConfig indexWriterConfig;
 
-	public InexDatasetIndexer(InexFileIndexer fileIndexer) {
-		this.fileIndexer = fileIndexer;
-	}
-	
-	public void buildIndex(List<InexFile> list, String indexPath) {
-		buildIndex(list, indexPath, new BM25Similarity());
-	}
-	
-	public void buildIndex(List<InexFile> list, String indexPath, Similarity similarity) {
-		indexWriterConfig = new IndexWriterConfig(new StandardAnalyzer());
-		indexWriterConfig.setOpenMode(OpenMode.CREATE);
-		indexWriterConfig.setRAMBufferSizeMB(1024.00);
-		indexWriterConfig.setSimilarity(similarity);
-		try (FSDirectory directory = FSDirectory.open(Paths.get(indexPath));
-				IndexWriter writer = new IndexWriter(directory, indexWriterConfig)) {
-			for (InexFile ifm : list) {
-				fileIndexer.index(ifm, writer);
-			}
-		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+    public InexDatasetIndexer(InexFileIndexer fileIndexer) {
+	this.fileIndexer = fileIndexer;
+    }
+
+    public void buildIndex(List<InexFile> list, String indexPath) {
+	buildIndex(list, indexPath, new BM25Similarity());
+    }
+
+    public void buildIndex(List<InexFile> list, String indexPath,
+	    Similarity similarity) {
+	indexWriterConfig = new IndexWriterConfig(new StandardAnalyzer());
+	indexWriterConfig.setOpenMode(OpenMode.CREATE);
+	indexWriterConfig.setRAMBufferSizeMB(1024.00);
+	indexWriterConfig.setSimilarity(similarity);
+	try (FSDirectory directory = FSDirectory.open(Paths.get(indexPath));
+		IndexWriter writer = new IndexWriter(directory,
+			indexWriterConfig)) {
+	    int failedIndexCounter = 0;
+	    for (InexFile ifm : list) {
+		if (!fileIndexer.index(ifm, writer)) {
+		    failedIndexCounter++;
 		}
+	    }
+	    LOGGER.log(Level.INFO,
+		    "Number of failed files to index = {0} out of {1} files",
+		    new int[] { failedIndexCounter, list.size() });
+	} catch (IOException e) {
+	    LOGGER.log(Level.SEVERE, e.getMessage(), e);
 	}
-
+    }
 }

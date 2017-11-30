@@ -45,7 +45,7 @@ public class AmazonFileIndexer implements InexFileIndexer {
 	}
 
 	@Override
-	public void index(InexFile inexFile, IndexWriter writer) {
+	public boolean index(InexFile inexFile, IndexWriter writer) {
 		File file = new File(inexFile.path);
 		try {
 			Map<AmazonDocumentField, String> dataMap = parseAmazonXml(file);
@@ -69,7 +69,9 @@ public class AmazonFileIndexer implements InexFileIndexer {
 			writer.addDocument(luceneDoc);
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+			return false;
 		}
+		return true;
 	}
 
 	public HashMap<AmazonDocumentField, String> parseAmazonXml(File file) {
