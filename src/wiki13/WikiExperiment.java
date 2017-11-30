@@ -83,7 +83,7 @@ public class WikiExperiment {
 				long startTime = System.currentTimeMillis();
 				List<QueryResult> results = runQueriesOnGlobalIndex(indexPath,
 						queries, 0.1f);
-				writeResultsToFile(results, "result/" + expNo + ".csv");
+				writeResultsToFile(results, "result/", expNo + ".csv");
 				long endTime = System.currentTimeMillis();
 				LOGGER.log(Level.INFO, "logging.. ");
 				Map<String, Double> idPopMap = PopularityUtils
@@ -141,8 +141,12 @@ public class WikiExperiment {
 	}
 
 	public static void writeResultsToFile(List<QueryResult> results,
-			String resultFileName) {
+			String resultDirPath, String resultFileName) {
 		LOGGER.log(Level.INFO, "Writing results..");
+		File resultDir = new File(resultDirPath);
+		if (!resultDir.exists()) {
+			resultDir.mkdirs();
+		}
 		try (FileWriter fw = new FileWriter(resultFileName)) {
 			for (QueryResult iqr : results) {
 				fw.write(iqr.resultString() + "\n");

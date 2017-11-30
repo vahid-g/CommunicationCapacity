@@ -1,4 +1,4 @@
-package wiki13;
+package wiki13.maple;
 
 import static org.junit.Assert.assertEquals;
 import indexing.InexFile;
@@ -17,6 +17,7 @@ import org.apache.lucene.store.RAMDirectory;
 import org.junit.Test;
 
 import query.ExperimentQuery;
+import wiki13.WikiFileIndexer;
 import wiki13.maple.WikiMapleCachingExperiment;
 
 public class WikiMapleCachingExperimentTest {

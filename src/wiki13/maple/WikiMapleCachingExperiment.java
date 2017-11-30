@@ -1,5 +1,6 @@
 package wiki13.maple;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
 import wiki13.WikiExperiment;
+import wiki13.WikiFileIndexer;
 
 public class WikiMapleCachingExperiment {
 
@@ -36,11 +38,6 @@ public class WikiMapleCachingExperiment {
 		options.addOption(indexOption);
 		Option queryOption = new Option("query", false, "run querying");
 		options.addOption(queryOption);
-		Option filterOption = new Option("filter", false,
-				"enables filtering mode");
-		options.addOption(filterOption);
-		Option cacheOption = new Option("cache", false, "enables caching mode");
-		options.addOption(cacheOption);
 		Option useMsnOption = new Option("msn", false,
 				"specifies the query log (msn/inex)");
 		options.addOption(useMsnOption);
@@ -52,14 +49,15 @@ public class WikiMapleCachingExperiment {
 		CommandLine cl;
 
 		try {
-			String indexPath = WikiMapleExperiment.DATA_PATH + "wiki_index/";
+			String indexDirPath = WikiMapleExperiment.DATA_PATH + "wiki_index/";
 			cl = clp.parse(options, args);
 			int partitionCount = Integer.parseInt(cl.getOptionValue("total",
 					"100"));
 			if (cl.hasOption("index")) {
-				for (int i = 1; i <= partitionCount; i++) {
-					WikiExperiment.buildGlobalIndex(i, partitionCount,
-							WikiMapleExperiment.FILELIST_PATH, indexPath + i);
+				for (int expNo = 1; expNo <= partitionCount; expNo++) {
+					WikiExperiment.buildGlobalIndex(expNo, partitionCount,
+							WikiMapleExperiment.FILELIST_PATH, indexDirPath
+									+ expNo);
 				}
 			}
 			if (cl.hasOption("query")) {
@@ -73,12 +71,19 @@ public class WikiMapleCachingExperiment {
 							WikiMapleExperiment.QUERY_FILE_PATH,
 							WikiMapleExperiment.QREL_FILE_PATH, "title");
 				}
-				for (int i = 1; i <= partitionCount; i++) {
+				for (int expNo = 1; expNo <= partitionCount; expNo++) {
+					String indexPath = indexDirPath + expNo;
 					List<QueryResult> results = WikiExperiment
-							.runQueriesOnGlobalIndex(indexPath + i, queries,
-									0.15f);
-					WikiExperiment.writeResultsToFile(results, "result/" + i
+							.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
+					WikiExperiment.writeResultsToFile(results, "result/", expNo
 							+ ".csv");
+					List<Double> titleDifficulties = computeQueryDifficulty(
+							indexPath, queries, WikiFileIndexer.TITLE_ATTRIB);
+					List<Double> contentDifficulties = computeQueryDifficulty(
+							indexPath, queries, WikiFileIndexer.CONTENT_ATTRIB);
+					writeListToFile(titleDifficulties, "result/title_diff.csv");
+					writeListToFile(contentDifficulties,
+							"result/content_diff.csv");
 				}
 			}
 		} catch (org.apache.commons.cli.ParseException e) {
@@ -87,7 +92,7 @@ public class WikiMapleCachingExperiment {
 		}
 	}
 
-	public static List<Double> computeQueryDifficulty(String indexPath,
+	static List<Double> computeQueryDifficulty(String indexPath,
 			List<ExperimentQuery> queries, String field) {
 		List<Double> difficulties = new ArrayList<Double>();
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
@@ -99,7 +104,7 @@ public class WikiMapleCachingExperiment {
 		return difficulties;
 	}
 
-	public static List<Double> computeQueryDifficulty(IndexReader reader,
+	static List<Double> computeQueryDifficulty(IndexReader reader,
 			List<ExperimentQuery> queries, String field) throws IOException {
 		List<Double> difficulties = new ArrayList<Double>();
 		long titleTermCount = reader.getSumTotalTermFreq(field);
@@ -122,4 +127,13 @@ public class WikiMapleCachingExperiment {
 		return difficulties;
 	}
 
+	static void writeListToFile(List<Double> list, String filename) {
+		try (FileWriter fw = new FileWriter(filename)) {
+			for (Double d : list) {
+				fw.write(d + "\n");
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+	}
 }
