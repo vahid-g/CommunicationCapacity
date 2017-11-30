@@ -1,8 +1,5 @@
 package wiki13.maple;
 
-import indexing.InexDatasetIndexer;
-import indexing.InexFile;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,7 +9,6 @@ import java.util.logging.Logger;
 
 import query.ExperimentQuery;
 import query.QueryResult;
-import wiki13.WikiFileIndexer;
 
 public class WikiMapleExperiment {
 
@@ -28,27 +24,6 @@ public class WikiMapleExperiment {
 	static final String MSN_QUERY_FILE_PATH = "~/Workspace/queries/msn_query_qid.csv";
 	static final String MSN_QREL_FILE_PATH = "~/Workspace/queries/msn.qrels";
 	
-
-	static void buildIndex(String fileListPath,
-			String indexDirectoryPath) {
-		try {
-			List<InexFile> pathCountList = InexFile
-					.loadInexFileList(fileListPath);
-			LOGGER.log(Level.INFO, "Number of loaded path_counts: "
-					+ pathCountList.size());
-			File indexPathFile = new File(indexDirectoryPath);
-			if (!indexPathFile.exists()) {
-				indexPathFile.mkdirs();
-			}
-			LOGGER.log(Level.INFO, "Building index at: " + indexDirectoryPath);
-			WikiFileIndexer fileIndexer = new WikiFileIndexer();
-			InexDatasetIndexer idi = new InexDatasetIndexer(fileIndexer);
-			idi.buildIndex(pathCountList, indexDirectoryPath);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	protected static void writeResultsListToFile(
 			List<List<QueryResult>> resultsList, String resultDirectoryPath) {
 		File resultsDir = new File(resultDirectoryPath);
