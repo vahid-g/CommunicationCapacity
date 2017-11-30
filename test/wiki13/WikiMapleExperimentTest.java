@@ -1,6 +1,6 @@
 package wiki13;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import indexing.InexFile;
 
 import java.io.IOException;
@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -55,12 +56,16 @@ public class WikiMapleExperimentTest {
 		indexer.index(inexFile, writer);
 		writer.close();
 		IndexReader reader = DirectoryReader.open(rd);
-		List<ExperimentQuery> queries = new ArrayList<ExperimentQuery>();
-		ExperimentQuery query1 = new ExperimentQuery(1, "hanhan");
-		queries.add(query1);
-		List<Double> results = WikiMapleExperiment.computeQueryDifficulty(reader, queries, WikiFileIndexer.TITLE_ATTRIB);
-		rd.close();
-		assertEquals(1 + Math.log(6/3), results.get(0), 0.01);
+		Document doc = reader.document(0);
+		System.out.println("title:" + doc.get("title"));
+		System.out.println("content:" + doc.get("content"));
+		
+//		List<ExperimentQuery> queries = new ArrayList<ExperimentQuery>();
+//		ExperimentQuery query1 = new ExperimentQuery(1, "hanhan");
+//		queries.add(query1);
+//		List<Double> results = WikiMapleExperiment.computeQueryDifficulty(reader, queries, WikiFileIndexer.TITLE_ATTRIB);
+//		rd.close();
+//		assertEquals(1 + Math.log(6/3), results.get(0), 0.01);
 	}
 
 }
