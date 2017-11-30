@@ -4,13 +4,9 @@ import indexing.InexFile;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -18,10 +14,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.store.FSDirectory;
 
 import query.ExperimentQuery;
 import query.QueryResult;
@@ -82,9 +74,9 @@ public class WikiMapleCachingExperiment {
 			    .runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
 		    WikiExperiment.writeResultsToFile(results, "result/", expNo
 			    + ".csv");
-		    List<Double> titleDifficulties = computeQueryDifficulty(
+		    List<Double> titleDifficulties = WikiExperiment.computeQueryDifficulty(
 			    indexPath, queries, WikiFileIndexer.TITLE_ATTRIB);
-		    List<Double> contentDifficulties = computeQueryDifficulty(
+		    List<Double> contentDifficulties = WikiExperiment.computeQueryDifficulty(
 			    indexPath, queries, WikiFileIndexer.CONTENT_ATTRIB);
 		    writeListToFile(titleDifficulties, "result/title_diff.csv");
 		    writeListToFile(contentDifficulties,
@@ -95,41 +87,6 @@ public class WikiMapleCachingExperiment {
 	    LOGGER.log(Level.INFO, e.getMessage());
 	    formatter.printHelp("", options);
 	}
-    }
-
-    static List<Double> computeQueryDifficulty(String indexPath,
-	    List<ExperimentQuery> queries, String field) {
-	List<Double> difficulties = new ArrayList<Double>();
-	try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
-		.get(indexPath)))) {
-	    computeQueryDifficulty(reader, queries, field);
-	} catch (IOException e) {
-	    LOGGER.log(Level.SEVERE, e.getMessage(), e);
-	}
-	return difficulties;
-    }
-
-    static List<Double> computeQueryDifficulty(IndexReader reader,
-	    List<ExperimentQuery> queries, String field) throws IOException {
-	List<Double> difficulties = new ArrayList<Double>();
-	long titleTermCount = reader.getSumTotalTermFreq(field);
-	LOGGER.log(Level.INFO, "Total number of terms in " + field + ": "
-		+ titleTermCount);
-	for (ExperimentQuery query : queries) {
-	    List<String> terms = Arrays
-		    .asList(query.getText().split("[ \"'+]")).stream()
-		    .filter(str -> !str.isEmpty()).collect(Collectors.toList());
-	    int qLength = terms.size();
-	    long termCountSum = 0;
-	    for (String term : terms) {
-		System.out.println("term = \"" + term + "\"");
-		termCountSum += reader.totalTermFreq(new Term(field, term));
-		System.out.println("count = " + termCountSum);
-	    }
-	    double ictf = Math.log(titleTermCount / (termCountSum + 1.0));
-	    difficulties.add(1.0 / qLength + ictf / qLength);
-	}
-	return difficulties;
     }
 
     static void writeListToFile(List<Double> list, String filename) {

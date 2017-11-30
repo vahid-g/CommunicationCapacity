@@ -17,8 +17,8 @@ import org.apache.lucene.store.RAMDirectory;
 import org.junit.Test;
 
 import query.ExperimentQuery;
+import wiki13.WikiExperiment;
 import wiki13.WikiFileIndexer;
-import wiki13.maple.WikiMapleCachingExperiment;
 
 public class WikiMapleCachingExperimentTest {
 
@@ -38,7 +38,7 @@ public class WikiMapleCachingExperimentTest {
 			List<ExperimentQuery> queries = new ArrayList<ExperimentQuery>();
 			ExperimentQuery query1 = new ExperimentQuery(1, "hanhan"); 
 			queries.add(query1);
-			List<Double> results = WikiMapleCachingExperiment.computeQueryDifficulty(
+			List<Double> results = WikiExperiment.computeQueryDifficulty(
 					reader, queries, WikiFileIndexer.CONTENT_ATTRIB);
 			rd.close();
 			assertEquals(1 + Math.log(6 / 3), results.get(0), 0.01);
