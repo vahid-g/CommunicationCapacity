@@ -1,4 +1,4 @@
-package wiki13;
+package tryout;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
