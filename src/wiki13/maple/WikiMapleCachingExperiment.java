@@ -2,8 +2,6 @@ package wiki13.maple;
 
 import indexing.InexFile;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,7 +17,6 @@ import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
 import wiki13.WikiExperiment;
-import wiki13.WikiFileIndexer;
 
 public class WikiMapleCachingExperiment {
 
@@ -74,13 +71,6 @@ public class WikiMapleCachingExperiment {
 			    .runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
 		    WikiExperiment.writeResultsToFile(results, "result/", expNo
 			    + ".csv");
-		    List<Double> titleDifficulties = WikiExperiment.computeQueryDifficulty(
-			    indexPath, queries, WikiFileIndexer.TITLE_ATTRIB);
-		    List<Double> contentDifficulties = WikiExperiment.computeQueryDifficulty(
-			    indexPath, queries, WikiFileIndexer.CONTENT_ATTRIB);
-		    writeListToFile(titleDifficulties, "result/title_diff.csv");
-		    writeListToFile(contentDifficulties,
-			    "result/content_diff.csv");
 		}
 	    }
 	} catch (org.apache.commons.cli.ParseException e) {
@@ -89,13 +79,4 @@ public class WikiMapleCachingExperiment {
 	}
     }
 
-    static void writeListToFile(List<Double> list, String filename) {
-	try (FileWriter fw = new FileWriter(filename)) {
-	    for (Double d : list) {
-		fw.write(d + "\n");
-	    }
-	} catch (IOException e) {
-	    LOGGER.log(Level.SEVERE, e.getMessage(), e);
-	}
-    }
 }
