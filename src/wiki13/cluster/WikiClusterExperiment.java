@@ -18,7 +18,7 @@ import query.QueryResult;
 import query.QueryServices;
 import wiki13.WikiExperiment;
 import wiki13.WikiFileIndexer;
-import wiki13.querydifficulty.MaxVarianceScore;
+import wiki13.querydifficulty.ClarityScore;
 import wiki13.querydifficulty.QueryDifficultyComputer;
 
 public class WikiClusterExperiment {
@@ -105,7 +105,7 @@ public class WikiClusterExperiment {
 		}
 		LOGGER.log(Level.INFO, "querylog size " + queries.size());
 		QueryDifficultyComputer qdc = new QueryDifficultyComputer(
-			new MaxVarianceScore());
+			new ClarityScore());
 		Map<String, Double> titleDifficulties = qdc
 			.computeQueryDifficulty(indexPath, queries,
 				WikiFileIndexer.TITLE_ATTRIB);
