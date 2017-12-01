@@ -91,65 +91,67 @@ public class Utils {
     public static List<FreebaseQuery> flattenFreebaseQueries(
 	    List<FreebaseQuery> queries) {
 	List<FreebaseQuery> flatList = new ArrayList<FreebaseQuery>();
-	for (FreebaseQuery query : queries){
-	    for (int i = 0; i < query.frequency; i++){
+	for (FreebaseQuery query : queries) {
+	    for (int i = 0; i < query.frequency; i++) {
 		flatList.add(new FreebaseQuery(i, query));
 	    }
 	}
 	return flatList;
     }
 
-	static void sshConnect() {
-		String user = "ghadakcv";
-		String password = "Hanh@nolde?";
-		String host = "flip.engr.oregonstate.edu";
-		int port = 22;
-		int localPort = 4321;
-		String remoteHost = "engr-db.engr.oregonstate.edu";
-		int remotePort = 3307;
-		try {
-			JSch jsch = new JSch();
-			FreebaseDataManager.session = jsch.getSession(user, host, port);
-			FreebaseDataManager.session.setPassword(password);
-			FreebaseDataManager.session
-					.setConfig("StrictHostKeyChecking", "no");
-			FreebaseDataManager.LOGGER.log(Level.INFO, "Establishing Connection...");
-			FreebaseDataManager.session.connect();
-			FreebaseDataManager.LOGGER.log(Level.INFO, "SSH Connection established.");
-			int assinged_port = FreebaseDataManager.session.setPortForwardingL(
-					localPort, remoteHost, remotePort);
-			FreebaseDataManager.LOGGER.log(Level.INFO, "localhost:" + assinged_port + " -> "
-					+ remoteHost + ":" + remotePort);
-			FreebaseDataManager.LOGGER.log(Level.INFO, "Port Forwarded");
-		} catch (JSchException e) {
-			FreebaseDataManager.LOGGER.log(Level.SEVERE, e.toString());
-		}
+    static void sshConnect() {
+	String user = "ghadakcv";
+	String password = "Hanh@nolde?";
+	String host = "flip.engr.oregonstate.edu";
+	int port = 22;
+	int localPort = 4321;
+	String remoteHost = "engr-db.engr.oregonstate.edu";
+	int remotePort = 3307;
+	try {
+	    JSch jsch = new JSch();
+	    FreebaseDataManager.session = jsch.getSession(user, host, port);
+	    FreebaseDataManager.session.setPassword(password);
+	    FreebaseDataManager.session
+		    .setConfig("StrictHostKeyChecking", "no");
+	    FreebaseDataManager.LOGGER.log(Level.INFO,
+		    "Establishing Connection...");
+	    FreebaseDataManager.session.connect();
+	    FreebaseDataManager.LOGGER.log(Level.INFO,
+		    "SSH Connection established.");
+	    int assinged_port = FreebaseDataManager.session.setPortForwardingL(
+		    localPort, remoteHost, remotePort);
+	    FreebaseDataManager.LOGGER.log(Level.INFO, "localhost:"
+		    + assinged_port + " -> " + remoteHost + ":" + remotePort);
+	    FreebaseDataManager.LOGGER.log(Level.INFO, "Port Forwarded");
+	} catch (JSchException e) {
+	    FreebaseDataManager.LOGGER.log(Level.SEVERE, e.toString());
 	}
+    }
 
-	static void sshDisconnect() {
-		FreebaseDataManager.session.disconnect();
-		FreebaseDataManager.LOGGER.log(Level.INFO, "SSH Disconnected");
-	}
+    static void sshDisconnect() {
+	FreebaseDataManager.session.disconnect();
+	FreebaseDataManager.LOGGER.log(Level.INFO, "SSH Disconnected");
+    }
 
-	public static String sendCommand(String command) {
-		StringBuilder outputBuffer = new StringBuilder();
-		try {
-			Channel channel = FreebaseDataManager.session.openChannel("exec");
-			((ChannelExec) channel).setCommand(command);
-			InputStream commandOutput = channel.getInputStream();
-			channel.connect();
-			int readByte = commandOutput.read();
-			while (readByte != 0xffffffff) {
-				outputBuffer.append((char) readByte);
-				readByte = commandOutput.read();
-			}
-			channel.disconnect();
-		} catch (IOException ioX) {
-			ioX.printStackTrace();
-		} catch (JSchException jschX) {
-			jschX.printStackTrace();
-		}
-		return outputBuffer.toString();
+    public static String sendCommand(String command) {
+	StringBuilder outputBuffer = new StringBuilder();
+	try {
+	    Channel channel = FreebaseDataManager.session.openChannel("exec");
+	    ((ChannelExec) channel).setCommand(command);
+	    InputStream commandOutput = channel.getInputStream();
+	    channel.connect();
+	    int readByte = commandOutput.read();
+	    while (readByte != 0xffffffff) {
+		outputBuffer.append((char) readByte);
+		readByte = commandOutput.read();
+	    }
+	    channel.disconnect();
+	} catch (IOException ioX) {
+	    ioX.printStackTrace();
+	} catch (JSchException jschX) {
+	    jschX.printStackTrace();
 	}
-    
+	return outputBuffer.toString();
+    }
+
 }

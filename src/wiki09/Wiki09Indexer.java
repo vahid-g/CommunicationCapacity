@@ -19,40 +19,41 @@ import org.apache.lucene.index.IndexWriter;
 
 public class Wiki09Indexer extends GeneralIndexer {
 
-	protected void indexXmlFile(File file, IndexWriter writer, float weight) {
-		try (InputStream fis = Files.newInputStream(file.toPath())) {
-			byte[] data = new byte[(int) file.length()];
-			fis.read(data);
-			String fileContent = new String(data, "UTF-8");
-			int length = fileContent.length() > 8 ? 8 : fileContent.length();
-			if (fileContent.substring(0, length).equals("REDIRECT")) {
-				return;
-			}
-			Pattern p = Pattern.compile("<title>(.*?)</title>", Pattern.DOTALL);
-			Matcher m = p.matcher(fileContent);
-			String title = "";
-			if (m.find())
-				title = m.group(1);
-			else
-				System.out.println("!!! title not found in " + file.getName());
-			title.replaceAll("<[^>]*>", " ").replaceAll("\n", " ")
-					.replaceAll("\r", " ").trim();
-			fileContent = fileContent.replaceAll("<[^>]*>", " ").trim();
-			Document doc = new Document();
-			doc.add(new StringField(GeneralIndexer.DOCNAME_ATTRIB, FilenameUtils
-					.removeExtension(file.getName()), Field.Store.YES));
-			TextField titleField = new TextField(GeneralIndexer.TITLE_ATTRIB, title,
-					Field.Store.YES);
-			doc.add(titleField);
-			TextField contentField = new TextField(GeneralIndexer.CONTENT_ATTRIB, fileContent,
-					Field.Store.YES);
-			doc.add(contentField);
-			writer.addDocument(doc);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+    protected void indexXmlFile(File file, IndexWriter writer, float weight) {
+	try (InputStream fis = Files.newInputStream(file.toPath())) {
+	    byte[] data = new byte[(int) file.length()];
+	    fis.read(data);
+	    String fileContent = new String(data, "UTF-8");
+	    int length = fileContent.length() > 8 ? 8 : fileContent.length();
+	    if (fileContent.substring(0, length).equals("REDIRECT")) {
+		return;
+	    }
+	    Pattern p = Pattern.compile("<title>(.*?)</title>", Pattern.DOTALL);
+	    Matcher m = p.matcher(fileContent);
+	    String title = "";
+	    if (m.find())
+		title = m.group(1);
+	    else
+		System.out.println("!!! title not found in " + file.getName());
+	    title.replaceAll("<[^>]*>", " ").replaceAll("\n", " ")
+		    .replaceAll("\r", " ").trim();
+	    fileContent = fileContent.replaceAll("<[^>]*>", " ").trim();
+	    Document doc = new Document();
+	    doc.add(new StringField(GeneralIndexer.DOCNAME_ATTRIB,
+		    FilenameUtils.removeExtension(file.getName()),
+		    Field.Store.YES));
+	    TextField titleField = new TextField(GeneralIndexer.TITLE_ATTRIB,
+		    title, Field.Store.YES);
+	    doc.add(titleField);
+	    TextField contentField = new TextField(
+		    GeneralIndexer.CONTENT_ATTRIB, fileContent, Field.Store.YES);
+	    doc.add(contentField);
+	    writer.addDocument(doc);
+	} catch (FileNotFoundException e) {
+	    e.printStackTrace();
+	} catch (IOException e) {
+	    e.printStackTrace();
 	}
+    }
 
 }

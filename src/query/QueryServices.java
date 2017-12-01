@@ -250,7 +250,8 @@ public class QueryServices {
 			.getNamedItem("id").getNodeValue());
 		StringBuilder sb = new StringBuilder();
 		for (String queryLabel : queryLabels) {
-		    String queryText = getText(findSubNode(queryLabel, node)).trim();
+		    String queryText = getText(findSubNode(queryLabel, node))
+			    .trim();
 		    sb.append(queryText + " ");
 		}
 		String queryText = sb.toString();

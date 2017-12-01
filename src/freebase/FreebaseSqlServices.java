@@ -9,7 +9,8 @@ public class FreebaseSqlServices {
 
     public static void deleteTable(String tableName) {
 	Statement stmt = null;
-	try (Connection databaseConnection = FreebaseDataManager.getDatabaseConnection()) {
+	try (Connection databaseConnection = FreebaseDataManager
+		.getDatabaseConnection()) {
 	    stmt = databaseConnection.createStatement();
 	    stmt.executeUpdate("delete table " + tableName);
 	} catch (Exception e) {
@@ -30,8 +31,10 @@ public class FreebaseSqlServices {
 	try (Connection conn = FreebaseDataManager.getDatabaseConnection()) {
 	    st = conn.createStatement();
 	    for (int i = 1; i <= tableNumber; i++) {
-		String sql = "create table " + newName + "_" + i + " as select * from " + tableName + " where mod("
-			+ tableName + ".counter, " + tableNumber + ") < " + i + ";";
+		String sql = "create table " + newName + "_" + i
+			+ " as select * from " + tableName + " where mod("
+			+ tableName + ".counter, " + tableNumber + ") < " + i
+			+ ";";
 		st.executeUpdate(sql);
 	    }
 	} catch (SQLException e) {
@@ -48,10 +51,12 @@ public class FreebaseSqlServices {
 
     public static void createShuffledTable(String tableName, String newTableName) {
 	Statement stmt = null;
-	try (Connection databaseConnection = FreebaseDataManager.getDatabaseConnection()) {
+	try (Connection databaseConnection = FreebaseDataManager
+		.getDatabaseConnection()) {
 	    stmt = databaseConnection.createStatement();
-	    stmt.executeUpdate(
-		    "create table " + newTableName + " as select * from table " + tableName + " order by rand()");
+	    stmt.executeUpdate("create table " + newTableName
+		    + " as select * from table " + tableName
+		    + " order by rand()");
 	} catch (Exception e) {
 	    FreebaseDataManager.LOGGER.log(Level.SEVERE, e.toString());
 	} finally {
