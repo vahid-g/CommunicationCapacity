@@ -19,10 +19,10 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 
 import query.ExperimentQuery;
 
-public class MaxVarianceScore implements QueryDifficultyScoreInterface {
+public class VarianceScore implements QueryDifficultyScoreInterface {
 
-    private static final Logger LOGGER = Logger
-	    .getLogger(MaxVarianceScore.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(VarianceScore.class
+	    .getName());
 
     @Override
     public Map<String, Double> computeScore(IndexReader reader,
@@ -38,6 +38,7 @@ public class MaxVarianceScore implements QueryDifficultyScoreInterface {
 		    .asList(query.getText().split("[ \"'+]")).stream()
 		    .filter(str -> !str.isEmpty()).collect(Collectors.toList());
 	    double maxVar = 0;
+	    double varSum = 0;
 	    for (String term : terms) {
 		Query termQuery = new TermQuery(new Term(field, term));
 		TopDocs topDocs = searcher.search(termQuery, 12000000);
@@ -55,10 +56,11 @@ public class MaxVarianceScore implements QueryDifficultyScoreInterface {
 		    double var = (scoreSquareSum / topDocs.totalHits)
 			    - Math.pow(ex, 2);
 		    maxVar = Math.max(var, maxVar);
+		    varSum += var;
 		}
 
 	    }
-	    difficulties.put(query.getText(), maxVar);
+	    difficulties.put(query.getText(), varSum / terms.size());
 	}
 	return difficulties;
     }
