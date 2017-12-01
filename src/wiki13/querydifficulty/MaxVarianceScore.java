@@ -41,21 +41,25 @@ public class MaxVarianceScore implements QueryDifficultyScoreInterface {
 	    for (String term : terms) {
 		Query termQuery = new TermQuery(new Term(field, term));
 		TopDocs topDocs = searcher.search(termQuery, 12000000);
-		LOGGER.log(Level.INFO, "Number of retrieved docs: "
+		LOGGER.log(Level.INFO, "term: " + term + " #retrieved docs: "
 			+ topDocs.totalHits);
 		double scoreSum = 0;
 		double scoreSquareSum = 0;
 		for (int i = 0; i < topDocs.totalHits; i++) {
-		    scoreSum += topDocs.scoreDocs[i].score;
-		    scoreSquareSum += Math.pow(topDocs.scoreDocs[i].score, 2);
+		    double score = topDocs.scoreDocs[i].score;
+		    scoreSum += score;
+		    scoreSquareSum += Math.pow(score, 2);
 		}
-		double var = Math.pow(scoreSum / topDocs.totalHits, 2)
-			- (scoreSquareSum / topDocs.totalHits);
-		maxVar = Math.max(var, maxVar);
+		double ex = scoreSum / topDocs.totalHits;
+		if (topDocs.totalHits > 0) {
+		    double var = (scoreSquareSum / topDocs.totalHits)
+			    - Math.pow(ex, 2);
+		    maxVar = Math.max(var, maxVar);
+		}
+
 	    }
 	    difficulties.put(query.getText(), maxVar);
 	}
 	return difficulties;
     }
-
 }
