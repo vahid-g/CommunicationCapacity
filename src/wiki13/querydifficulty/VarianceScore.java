@@ -52,13 +52,16 @@ public class VarianceScore implements QueryDifficultyScoreInterface {
 		    scoreSquareSum += Math.pow(score, 2);
 		}
 		double ex = scoreSum / topDocs.totalHits;
+		double var = 0;
 		if (topDocs.totalHits > 0) {
-		    double var = (scoreSquareSum / topDocs.totalHits)
+		    var = (scoreSquareSum / topDocs.totalHits)
 			    - Math.pow(ex, 2);
 		    maxVar = Math.max(var, maxVar);
 		    varSum += var;
 		}
-
+		LOGGER.log(Level.INFO, "\t(" + query.getText() + "): E[x] = "
+			+ ex + ", Var[x] = " + var + ", N = "
+			+ topDocs.totalHits);
 	    }
 	    difficulties.put(query.getText(), varSum / terms.size());
 	}
