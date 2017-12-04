@@ -254,7 +254,7 @@ public class QueryServices {
 			    .trim();
 		    sb.append(queryText + " ");
 		}
-		String queryText = sb.toString();
+		String queryText = sb.toString().trim();
 		if (queryText.equals("")) {
 		    LOGGER.log(Level.SEVERE, "query: " + qid
 			    + " has empty aggregated text");
