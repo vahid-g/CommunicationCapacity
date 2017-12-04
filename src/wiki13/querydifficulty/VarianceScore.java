@@ -42,8 +42,6 @@ public class VarianceScore implements QueryDifficultyScoreInterface {
 	    for (String term : terms) {
 		Query termQuery = new TermQuery(new Term(field, term));
 		TopDocs topDocs = searcher.search(termQuery, 12000000);
-		LOGGER.log(Level.INFO, "term: " + term + " #retrieved docs: "
-			+ topDocs.totalHits);
 		double scoreSum = 0;
 		double scoreSquareSum = 0;
 		for (int i = 0; i < topDocs.totalHits; i++) {
