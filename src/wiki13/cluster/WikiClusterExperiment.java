@@ -83,7 +83,7 @@ public class WikiClusterExperiment {
 		LOGGER.log(Level.INFO, "querying " + expNo + " at " + totalExp);
 		long startTime = System.currentTimeMillis();
 		List<QueryResult> results = WikiExperiment
-			.runQueriesOnGlobalIndex(indexPath, queries, 0.1f);
+			.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
 		WikiExperiment.writeResultsToFile(results, "result/", expNo
 			+ ".csv");
 		long endTime = System.currentTimeMillis();
