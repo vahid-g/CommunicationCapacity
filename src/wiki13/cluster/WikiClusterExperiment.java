@@ -20,6 +20,7 @@ import wiki13.WikiExperiment;
 import wiki13.WikiFileIndexer;
 import wiki13.querydifficulty.ClarityScore;
 import wiki13.querydifficulty.QueryDifficultyComputer;
+import wiki13.querydifficulty.VarianceScore;
 
 public class WikiClusterExperiment {
 
@@ -42,7 +43,7 @@ public class WikiClusterExperiment {
 	Option queryOption = new Option("query", false,
 		"Flag to run querying experiment");
 	options.addOption(queryOption);
-	Option difficultyOption = new Option("diff", false,
+	Option difficultyOption = new Option("diff", true,
 		"Flag to run difficulty experiment");
 	options.addOption(difficultyOption);
 	Option totalExpNumberOption = new Option("total", true,
@@ -95,6 +96,7 @@ public class WikiClusterExperiment {
 			+ " is " + (endTime - startTime) / 1000 + " secs");
 	    }
 	    if (cl.hasOption("diff")) {
+		String difficultyMetric = cl.getOptionValue("diff");
 		List<ExperimentQuery> queries;
 		if (cl.hasOption("msn")) {
 		    queries = QueryServices.loadMsnQueries(MSN_QUERY_QID,
@@ -104,8 +106,15 @@ public class WikiClusterExperiment {
 			    QREL_PATH, "title");
 		}
 		LOGGER.log(Level.INFO, "querylog size " + queries.size());
-		QueryDifficultyComputer qdc = new QueryDifficultyComputer(
-			new ClarityScore());
+		QueryDifficultyComputer qdc;
+		if (difficultyMetric.equals("scs")) {
+		    qdc = new QueryDifficultyComputer(new ClarityScore());
+		} else if (difficultyMetric.equalsIgnoreCase("var")) {
+		    qdc = new QueryDifficultyComputer(new VarianceScore());
+		} else {
+		    throw new org.apache.commons.cli.ParseException(
+			    "Difficulty metric needs to be specified");
+		}
 		Map<String, Double> titleDifficulties = qdc
 			.computeQueryDifficulty(indexPath, queries,
 				WikiFileIndexer.TITLE_ATTRIB);
