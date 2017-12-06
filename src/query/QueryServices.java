@@ -1,7 +1,5 @@
 package query;
 
-import indexing.GeneralIndexer;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,6 +37,8 @@ import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import indexing.GeneralIndexer;
 
 public class QueryServices {
 

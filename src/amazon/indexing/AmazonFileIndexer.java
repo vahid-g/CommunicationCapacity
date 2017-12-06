@@ -1,8 +1,5 @@
 package amazon.indexing;
 
-import indexing.InexFile;
-import indexing.InexFileIndexer;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -24,6 +21,8 @@ import org.w3c.dom.Node;
 import amazon.AmazonDocumentField;
 import amazon.datatools.AmazonDeweyConverter;
 import amazon.utils.AmazonXmlUtils;
+import indexing.InexFile;
+import indexing.InexFileIndexer;
 
 public class AmazonFileIndexer implements InexFileIndexer {
 

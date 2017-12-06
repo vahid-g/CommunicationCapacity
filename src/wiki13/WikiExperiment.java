@@ -1,8 +1,5 @@
 package wiki13;
 
-import indexing.InexDatasetIndexer;
-import indexing.InexFile;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -14,6 +11,8 @@ import java.util.logging.Logger;
 
 import org.apache.lucene.search.similarities.BM25Similarity;
 
+import indexing.InexDatasetIndexer;
+import indexing.InexFile;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;

@@ -16,10 +16,10 @@ import org.apache.lucene.store.FSDirectory;
 import org.junit.Before;
 import org.junit.Test;
 
+import amazon.popularity.AmazonIsbnPopularityMap;
 import query.ExperimentQuery;
 import query.Qrel;
 import query.QueryResult;
-import amazon.popularity.AmazonIsbnPopularityMap;
 
 public class AmazonQueryResultProcessorTest {
 

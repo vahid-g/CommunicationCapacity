@@ -1,7 +1,5 @@
 package imdb;
 
-import indexing.InexFile;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,6 +27,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import indexing.InexFile;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;

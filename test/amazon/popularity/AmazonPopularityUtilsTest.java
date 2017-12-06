@@ -8,8 +8,6 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import amazon.popularity.AmazonPopularityUtils;
-
 public class AmazonPopularityUtilsTest {
 
     @Test

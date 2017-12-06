@@ -1,7 +1,6 @@
 package wiki13.querydifficulty;
 
 import static org.junit.Assert.assertEquals;
-import indexing.InexFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,6 +16,7 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.Test;
 
+import indexing.InexFile;
 import query.ExperimentQuery;
 import wiki13.WikiFileIndexer;
 

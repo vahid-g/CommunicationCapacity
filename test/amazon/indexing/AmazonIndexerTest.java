@@ -1,12 +1,8 @@
 package amazon.indexing;
 
-import indexing.InexFile;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-
-import junit.framework.TestCase;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
@@ -27,6 +23,8 @@ import org.junit.Test;
 import amazon.AmazonDocumentField;
 import amazon.datatools.AmazonDeweyConverter;
 import amazon.datatools.AmazonIsbnConverter;
+import indexing.InexFile;
+import junit.framework.TestCase;
 
 public class AmazonIndexerTest extends TestCase {
 

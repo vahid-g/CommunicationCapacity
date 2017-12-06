@@ -1,7 +1,5 @@
 package wiki09;
 
-import indexing.GeneralIndexer;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -16,6 +14,8 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
+
+import indexing.GeneralIndexer;
 
 public class Wiki09Indexer extends GeneralIndexer {
 

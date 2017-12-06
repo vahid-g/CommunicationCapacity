@@ -1,8 +1,5 @@
 package amazon;
 
-import indexing.InexDatasetIndexer;
-import indexing.InexFile;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -20,14 +17,16 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
-import query.ExperimentQuery;
-import query.QueryResult;
-import query.QueryServices;
 import amazon.datatools.AmazonDeweyConverter;
 import amazon.datatools.AmazonIsbnConverter;
 import amazon.indexing.AmazonFileIndexer;
 import amazon.popularity.AmazonIsbnPopularityMap;
 import amazon.query.AmazonQueryResultProcessor;
+import indexing.InexDatasetIndexer;
+import indexing.InexFile;
+import query.ExperimentQuery;
+import query.QueryResult;
+import query.QueryServices;
 
 public class AmazonExperiment {
 

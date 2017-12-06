@@ -13,10 +13,10 @@ import java.util.TreeSet;
 import org.junit.Before;
 import org.junit.Test;
 
+import amazon.query.AmazonQueryResultProcessor;
 import query.ExperimentQuery;
 import query.Qrel;
 import query.QueryResult;
-import amazon.query.AmazonQueryResultProcessor;
 
 public class AmazonMapleExperimentTest {
 

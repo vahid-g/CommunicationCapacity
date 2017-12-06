@@ -9,10 +9,10 @@ import java.util.logging.Logger;
 
 import org.apache.lucene.index.IndexReader;
 
+import amazon.popularity.AmazonIsbnPopularityMap;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import amazon.popularity.AmazonIsbnPopularityMap;
 
 public class AmazonQueryResultProcessor {
 

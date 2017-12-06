@@ -1,7 +1,5 @@
 package wiki13.maple;
 
-import indexing.InexFile;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +14,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import indexing.InexFile;
 import popularity.PopularityUtils;
 import query.ExperimentQuery;
 import query.QueryResult;

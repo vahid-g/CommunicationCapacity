@@ -1,8 +1,5 @@
 package amazon;
 
-import indexing.InexDatasetIndexer;
-import indexing.InexFile;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,13 +14,15 @@ import java.util.logging.Logger;
 
 import org.apache.lucene.search.similarities.BM25Similarity;
 
-import query.ExperimentQuery;
-import query.QueryResult;
-import query.QueryServices;
 import amazon.datatools.AmazonDeweyConverter;
 import amazon.datatools.AmazonIsbnConverter;
 import amazon.indexing.AmazonFileIndexer;
 import amazon.query.AmazonQueryResultProcessor;
+import indexing.InexDatasetIndexer;
+import indexing.InexFile;
+import query.ExperimentQuery;
+import query.QueryResult;
+import query.QueryServices;
 
 public class AmazonMapleExperiment {
 

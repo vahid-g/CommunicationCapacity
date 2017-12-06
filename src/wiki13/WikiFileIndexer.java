@@ -1,8 +1,5 @@
 package wiki13;
 
-import indexing.InexFile;
-import indexing.InexFileIndexer;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,6 +16,9 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
+
+import indexing.InexFile;
+import indexing.InexFileIndexer;
 
 public class WikiFileIndexer implements InexFileIndexer {
 

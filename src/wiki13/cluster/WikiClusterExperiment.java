@@ -109,7 +109,7 @@ public class WikiClusterExperiment {
 		QueryDifficultyComputer qdc;
 		if (difficultyMetric.equals("scs")) {
 		    qdc = new QueryDifficultyComputer(new ClarityScore());
-		} else if (difficultyMetric.equalsIgnoreCase("var")) {
+		} else if (difficultyMetric.equals("var")) {
 		    qdc = new QueryDifficultyComputer(new VarianceScore());
 		} else {
 		    throw new org.apache.commons.cli.ParseException(

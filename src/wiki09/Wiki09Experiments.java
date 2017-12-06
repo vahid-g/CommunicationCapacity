@@ -1,7 +1,5 @@
 package wiki09;
 
-import indexing.InexFile;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -11,6 +9,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 
+import indexing.InexFile;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;

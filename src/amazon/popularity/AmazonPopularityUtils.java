@@ -1,8 +1,5 @@
 package amazon.popularity;
 
-import indexing.InexFile;
-import popularity.PopularityUtils;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -31,6 +28,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import amazon.datatools.AmazonIsbnConverter;
+import indexing.InexFile;
+import popularity.PopularityUtils;
 
 public class AmazonPopularityUtils {
 

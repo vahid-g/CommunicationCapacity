@@ -1,7 +1,5 @@
 package wiki13.maple;
 
-import indexing.InexFile;
-
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,6 +11,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import indexing.InexFile;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
