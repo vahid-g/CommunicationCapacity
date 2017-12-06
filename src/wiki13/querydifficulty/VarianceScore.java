@@ -20,15 +20,19 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import query.ExperimentQuery;
 
 public class VarianceScore implements QueryDifficultyScoreInterface {
-    
-    private boolean useMax;
 
-    public VarianceScore(boolean useMax) {
-	super();
-	this.useMax = useMax;
+    public static enum VarianceScoreMode {
+	MAX_VARIANCE, AVERAGE_VARIANCE, MAX_EX, AVERAGE_EX
     }
 
     private static final Logger LOGGER = Logger.getLogger(VarianceScore.class.getName());
+
+    private VarianceScoreMode mode;
+
+    public VarianceScore(VarianceScoreMode mode) {
+	super();
+	this.mode = mode;
+    }
 
     @Override
     public Map<String, Double> computeScore(IndexReader reader, List<ExperimentQuery> queries, String field)
@@ -42,7 +46,9 @@ public class VarianceScore implements QueryDifficultyScoreInterface {
 	    List<String> terms = Arrays.asList(query.getText().split("[ \"'+]")).stream().filter(str -> !str.isEmpty())
 		    .collect(Collectors.toList());
 	    double maxVar = 0;
+	    double maxEx = 0;
 	    double varSum = 0;
+	    double exSum = 0;
 	    QueryParser parser = new QueryParser(field, new StandardAnalyzer());
 	    for (String term : terms) {
 		try {
@@ -60,7 +66,9 @@ public class VarianceScore implements QueryDifficultyScoreInterface {
 		    if (topDocs.totalHits > 0) {
 			var = (scoreSquareSum / topDocs.totalHits) - Math.pow(ex, 2);
 			maxVar = Math.max(var, maxVar);
+			maxEx = Math.max(ex, maxEx);
 			varSum += var;
+			exSum += ex;
 		    }
 		    LOGGER.log(Level.INFO, "\t(" + query.getText() + "): E[x] = " + ex + ", Var[x] = " + var + ", N = "
 			    + topDocs.totalHits);
@@ -68,10 +76,16 @@ public class VarianceScore implements QueryDifficultyScoreInterface {
 		    LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	    }
-	    if (useMax) {
+	    if (mode.equals(VarianceScoreMode.MAX_VARIANCE)) {
 		difficulties.put(query.getText(), maxVar);
-	    } else {
+	    } else if (mode.equals(VarianceScoreMode.AVERAGE_VARIANCE)) {
 		difficulties.put(query.getText(), varSum / terms.size());
+	    } else if (mode.equals(VarianceScoreMode.MAX_EX)) {
+		difficulties.put(query.getText(), maxEx);
+	    } else if (mode.equals(VarianceScoreMode.AVERAGE_EX)) {
+		difficulties.put(query.getText(), exSum / terms.size());
+	    } else {
+		LOGGER.log(Level.SEVERE, "VarianceScore mode is not defined");
 	    }
 	}
 	return difficulties;

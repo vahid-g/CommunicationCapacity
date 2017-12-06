@@ -21,6 +21,7 @@ import wiki13.WikiFileIndexer;
 import wiki13.querydifficulty.ClarityScore;
 import wiki13.querydifficulty.QueryDifficultyComputer;
 import wiki13.querydifficulty.VarianceScore;
+import wiki13.querydifficulty.VarianceScore.VarianceScoreMode;
 
 public class WikiClusterExperiment {
 
@@ -94,9 +95,13 @@ public class WikiClusterExperiment {
 		if (difficultyMetric.equals("scs")) {
 		    qdc = new QueryDifficultyComputer(new ClarityScore());
 		} else if (difficultyMetric.equals("maxvar")) {
-		    qdc = new QueryDifficultyComputer(new VarianceScore(true));
+		    qdc = new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.MAX_VARIANCE));
 		} else if (difficultyMetric.equals("avgvar")) {
-		    qdc = new QueryDifficultyComputer(new VarianceScore(false));
+		    qdc = new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.AVERAGE_VARIANCE));
+		} else if (difficultyMetric.equals("maxex")){
+		    qdc = new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.MAX_EX));
+		} else if (difficultyMetric.equals("avgex")){
+		    qdc = new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.AVERAGE_EX));
 		} else {
 		    throw new org.apache.commons.cli.ParseException("Difficulty metric needs to be specified");
 		}
