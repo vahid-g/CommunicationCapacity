@@ -20,6 +20,13 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import query.ExperimentQuery;
 
 public class VarianceScore implements QueryDifficultyScoreInterface {
+    
+    private boolean useMax;
+
+    public VarianceScore(boolean useMax) {
+	super();
+	this.useMax = useMax;
+    }
 
     private static final Logger LOGGER = Logger.getLogger(VarianceScore.class.getName());
 
@@ -61,7 +68,11 @@ public class VarianceScore implements QueryDifficultyScoreInterface {
 		    LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	    }
-	    difficulties.put(query.getText(), varSum / terms.size());
+	    if (useMax) {
+		difficulties.put(query.getText(), maxVar);
+	    } else {
+		difficulties.put(query.getText(), varSum / terms.size());
+	    }
 	}
 	return difficulties;
     }
