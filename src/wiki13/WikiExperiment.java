@@ -19,28 +19,20 @@ import query.QueryServices;
 
 public class WikiExperiment {
 
-    private static final Logger LOGGER = Logger.getLogger(WikiExperiment.class
-	    .getName());
+    private static final Logger LOGGER = Logger.getLogger(WikiExperiment.class.getName());
 
     public static void main(String[] args) {
 
     }
 
-    public static void buildGlobalIndex(int expNo, int totalExp,
-	    String filelistPopularityPath, String indexPath) {
+    public static void buildGlobalIndex(int expNo, int totalExp, String filelistPopularityPath, String indexPath) {
 	try {
-	    List<InexFile> pathCountList = InexFile
-		    .loadInexFileList(filelistPopularityPath);
+	    List<InexFile> pathCountList = InexFile.loadInexFileList(filelistPopularityPath);
 	    double total = (double) totalExp;
-	    pathCountList = pathCountList.subList(0,
-		    (int) (((double) expNo / total) * pathCountList.size()));
-	    LOGGER.log(Level.INFO, "Number of loaded path_counts: "
-		    + pathCountList.size());
+	    pathCountList = pathCountList.subList(0, (int) (((double) expNo / total) * pathCountList.size()));
+	    LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
 	    LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
-	    LOGGER.log(
-		    Level.INFO,
-		    "Smallest score: "
-			    + pathCountList.get(pathCountList.size() - 1).weight);
+	    LOGGER.log(Level.INFO, "Smallest score: " + pathCountList.get(pathCountList.size() - 1).weight);
 	    buildGlobalIndex(pathCountList, indexPath);
 	} catch (Exception e) {
 	    e.printStackTrace();
@@ -62,25 +54,24 @@ public class WikiExperiment {
 	}
     }
 
-    public static List<QueryResult> runQueriesOnGlobalIndex(String indexPath,
-	    List<ExperimentQuery> queries, float gamma) {
+    public static List<QueryResult> runQueriesOnGlobalIndex(String indexPath, List<ExperimentQuery> queries,
+	    float gamma) {
 	LOGGER.log(Level.INFO, "Number of loaded queries: " + queries.size());
 	Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 	fieldToBoost.put(WikiFileIndexer.TITLE_ATTRIB, gamma);
 	fieldToBoost.put(WikiFileIndexer.CONTENT_ATTRIB, 1 - gamma);
-	List<QueryResult> results = QueryServices.runQueriesWithBoosting(
-		queries, indexPath, new BM25Similarity(), fieldToBoost, false);
+	List<QueryResult> results = QueryServices.runQueriesWithBoosting(queries, indexPath, new BM25Similarity(),
+		fieldToBoost, false);
 	return results;
     }
 
-    public static void writeResultsToFile(List<QueryResult> results,
-	    String resultDirPath, String resultFileName) {
+    public static void writeResultsToFile(List<QueryResult> results, String resultDirPath, String resultFileName) {
 	LOGGER.log(Level.INFO, "Writing results..");
 	File resultDir = new File(resultDirPath);
 	if (!resultDir.exists()) {
 	    resultDir.mkdirs();
 	}
-	try (FileWriter fw = new FileWriter(resultFileName)) {
+	try (FileWriter fw = new FileWriter(resultDirPath + resultFileName)) {
 	    for (QueryResult iqr : results) {
 		fw.write(iqr.resultString() + "\n");
 	    }

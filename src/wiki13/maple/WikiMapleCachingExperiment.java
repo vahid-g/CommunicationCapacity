@@ -19,8 +19,7 @@ import wiki13.WikiExperiment;
 
 public class WikiMapleCachingExperiment {
 
-    private static final Logger LOGGER = Logger
-	    .getLogger(WikiMapleCachingExperiment.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(WikiMapleCachingExperiment.class.getName());
 
     public static void main(String[] args) {
 	Options options = new Options();
@@ -28,11 +27,9 @@ public class WikiMapleCachingExperiment {
 	options.addOption(indexOption);
 	Option queryOption = new Option("query", false, "run querying");
 	options.addOption(queryOption);
-	Option useMsnOption = new Option("msn", false,
-		"specifies the query log (msn/inex)");
+	Option useMsnOption = new Option("msn", false, "specifies the query log (msn/inex)");
 	options.addOption(useMsnOption);
-	Option partitionsOption = new Option("total", true,
-		"number of partitions");
+	Option partitionsOption = new Option("total", true, "number of partitions");
 	options.addOption(partitionsOption);
 	CommandLineParser clp = new DefaultParser();
 	HelpFormatter formatter = new HelpFormatter();
@@ -40,36 +37,32 @@ public class WikiMapleCachingExperiment {
 	try {
 	    String indexDirPath = WikiMapleExperiment.DATA_PATH + "wiki_index/";
 	    cl = clp.parse(options, args);
-	    int partitionCount = Integer.parseInt(cl.getOptionValue("total",
-		    "100"));
+	    int partitionCount = Integer.parseInt(cl.getOptionValue("total", "100"));
 	    if (cl.hasOption("index")) {
-		List<InexFile> files = InexFile
-			.loadInexFileList(WikiMapleExperiment.FILELIST_PATH);
+		List<InexFile> files = InexFile.loadInexFileList(WikiMapleExperiment.FILELIST_PATH);
 		for (double expNo = 1.0; expNo <= partitionCount; expNo++) {
 		    double subsetFraction = expNo / partitionCount;
-		    List<InexFile> subsetFiles = files.subList(0,
-			    (int) (subsetFraction * files.size()));
-		    WikiExperiment.buildGlobalIndex(subsetFiles, indexDirPath
-			    + expNo);
+		    List<InexFile> subsetFiles = files.subList(0, (int) (subsetFraction * files.size()));
+		    WikiExperiment.buildGlobalIndex(subsetFiles, indexDirPath + expNo);
 		}
 	    }
 	    if (cl.hasOption("query")) {
 		List<ExperimentQuery> queries;
 		if (cl.hasOption("msn")) {
-		    queries = QueryServices.loadMsnQueries(
-			    WikiMapleExperiment.MSN_QUERY_FILE_PATH,
+		    queries = QueryServices.loadMsnQueries(WikiMapleExperiment.MSN_QUERY_FILE_PATH,
 			    WikiMapleExperiment.MSN_QREL_FILE_PATH);
 		} else {
-		    queries = QueryServices.loadInexQueries(
-			    WikiMapleExperiment.QUERY_FILE_PATH,
+		    queries = QueryServices.loadInexQueries(WikiMapleExperiment.QUERY_FILE_PATH,
 			    WikiMapleExperiment.QREL_FILE_PATH, "title");
 		}
 		for (int expNo = 1; expNo <= partitionCount; expNo++) {
 		    String indexPath = indexDirPath + expNo;
-		    List<QueryResult> results = WikiExperiment
-			    .runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
-		    WikiExperiment.writeResultsToFile(results, "result/", expNo
-			    + ".csv");
+		    long startTime = System.currentTimeMillis();
+		    List<QueryResult> results = WikiExperiment.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
+		    long spentTime = System.currentTimeMillis() - startTime;
+		    LOGGER.log(Level.INFO,
+			    "Time spent on querying " + queries.size() + " queries is " + spentTime + " seconds");
+		    WikiExperiment.writeResultsToFile(results, "result/", expNo + ".csv");
 		}
 	    }
 	} catch (org.apache.commons.cli.ParseException e) {
