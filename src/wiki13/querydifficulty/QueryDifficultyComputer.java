@@ -17,7 +17,7 @@ import query.ExperimentQuery;
 public class QueryDifficultyComputer {
 
     private static final Logger LOGGER = Logger
-	    .getLogger(MethodClarityScoreTest.class.getName());
+	    .getLogger(QueryDifficultyComputer.class.getName());
 
     private QueryDifficultyScoreInterface method;
 
