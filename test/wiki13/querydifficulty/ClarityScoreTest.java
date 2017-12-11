@@ -20,7 +20,7 @@ import indexing.InexFile;
 import query.ExperimentQuery;
 import wiki13.WikiFileIndexer;
 
-public class MethodClarityScoreTest {
+public class ClarityScoreTest {
 
     @Test
     public void testComputeQueryDifficulty() throws IOException {
