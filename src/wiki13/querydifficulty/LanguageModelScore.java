@@ -23,19 +23,19 @@ public class LanguageModelScore implements QueryDifficultyScoreInterface {
     public Map<String, Double> computeScore(IndexReader reader,
 	    List<ExperimentQuery> queries, String field) throws IOException {
 	Map<String, Double> difficulties = new HashMap<String, Double>();
-	long titleTermCount = reader.getSumTotalTermFreq(field);
+	long subsetTermCount = reader.getSumDocFreq(field);
+	long subsetVocabSize = reader.getSumTotalTermFreq(field);
 	LOGGER.log(Level.INFO, "Total number of terms in " + field + ": "
-		+ titleTermCount);
+		+ subsetTermCount);
+	LOGGER.log(Level.INFO, "Vocab size: " + subsetVocabSize);
 	for (ExperimentQuery query : queries) {
 	    List<String> terms = Arrays
 		    .asList(query.getText().split("[ \"'+]")).stream()
 		    .filter(str -> !str.isEmpty()).collect(Collectors.toList());
-	    long subsetTermCount = reader.getSumDocFreq(field);
-	    long subsetVocabSize = reader.getSumTotalTermFreq(field);
-	    double p = 1;
+	    double p = 1.0;
 	    for (String term : terms) {
 		long tf = reader.totalTermFreq(new Term(field, term));
-		double probabilityOfTermGivenSubset = (tf + 1)
+		double probabilityOfTermGivenSubset = (tf + 1.0)
 			/ (subsetTermCount + subsetVocabSize);
 		p *= probabilityOfTermGivenSubset;
 	    }
