@@ -1,6 +1,5 @@
 package wiki13.cluster;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -23,6 +22,7 @@ import wiki13.WikiFileIndexer;
 import wiki13.querydifficulty.ClarityScore;
 import wiki13.querydifficulty.LanguageModelScore;
 import wiki13.querydifficulty.QueryDifficultyComputer;
+import wiki13.querydifficulty.SimpleCacheScore;
 import wiki13.querydifficulty.VarianceScore;
 import wiki13.querydifficulty.VarianceScore.VarianceScoreMode;
 
@@ -118,6 +118,8 @@ public class WikiClusterExperiment {
 	    qdc = new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.AVERAGE_EX));
 	} else if (difficultyMetric.equals("lm")) {
 	    qdc = new QueryDifficultyComputer(new LanguageModelScore());
+	} else if (difficultyMetric.equals("simple")) {
+	    qdc = new QueryDifficultyComputer(new SimpleCacheScore());
 	} else {
 	    throw new org.apache.commons.cli.ParseException("Difficulty metric needs to be specified");
 	}
@@ -127,23 +129,5 @@ public class WikiClusterExperiment {
 		WikiFileIndexer.CONTENT_ATTRIB);
 	WikiExperiment.writeMapToFile(titleDifficulties, "title_diff_" + expNo + ".csv");
 	WikiExperiment.writeMapToFile(contentDifficulties, "content_diff_" + expNo + ".csv");
-    }
-
-    public static void runAllCacheSelectionExperiment(int expNo, String indexPath, List<ExperimentQuery> queries,
-	    String difficultyMetric) {
-	LOGGER.log(Level.INFO, "querylog size " + queries.size());
-	List<QueryDifficultyComputer> qdcList = new ArrayList<QueryDifficultyComputer>();
-	qdcList.add(new QueryDifficultyComputer(new ClarityScore()));
-	qdcList.add(new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.MAX_VARIANCE)));
-	qdcList.add(new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.AVERAGE_VARIANCE)));
-	qdcList.add(new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.MAX_EX)));
-	qdcList.add(new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.AVERAGE_EX)));
-	qdcList.add(new QueryDifficultyComputer(new LanguageModelScore()));
-	int i = 0;
-	for (QueryDifficultyComputer qdc : qdcList) {
-	    Map<String, Double> contentDifficulties = qdc.computeQueryDifficulty(indexPath, queries,
-		    WikiFileIndexer.CONTENT_ATTRIB);
-	    WikiExperiment.writeMapToFile(contentDifficulties, "content_diff_" + i++ + "_" + expNo + ".csv");
-	}
     }
 }
