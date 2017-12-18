@@ -1,5 +1,8 @@
 package wiki13.cluster;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -74,26 +77,43 @@ public class WikiClusterExperiment {
 		} else {
 		    queries = QueryServices.loadInexQueries(QUERYFILE_PATH, QREL_PATH, "title");
 		}
-		LOGGER.log(Level.INFO, "querying " + expNo + " at " + totalExp);
-		long startTime = System.currentTimeMillis();
-		List<QueryResult> results = WikiExperiment.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
-		WikiExperiment.writeResultsToFile(results, "result/", expNo + ".csv");
-		long endTime = System.currentTimeMillis();
-		LOGGER.log(Level.INFO, "logging.. ");
-		Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(FILELIST_PATH);
-		QueryResult.logResultsWithPopularity(results, idPopMap, "result/" + expNo + ".log", 20);
-		LOGGER.log(Level.INFO,
-			"Time spent for experiment " + expNo + " is " + (endTime - startTime) / 1000 + " secs");
-	    }
-	    if (cl.hasOption("diff")) {
-		List<ExperimentQuery> queries;
-		if (cl.hasOption("msn")) {
-		    queries = QueryServices.loadMsnQueries(MSN_QUERY_QID, MSN_QID_QREL);
+		if (cl.hasOption("diff")) {
+		    String difficultyMetric = cl.getOptionValue("diff");
+		    runCacheSelectionExperiment(expNo, indexPath, queries, difficultyMetric);
+		} else if (cl.hasOption("pop")) {
+		    List<QueryResult> results = WikiExperiment.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
+		    Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(FILELIST_PATH);
+		    List<String> metric = new ArrayList<String>();
+		    for (QueryResult result : results) {
+			double popSum = 0;
+			double popSquaredSum = 0;
+			for (int i = 0; i < 20; i++) {
+			    double popularity = idPopMap.get(result.getTopDocuments().get(i).id);
+			    popSum += popularity;
+			    popSquaredSum += Math.pow(popularity, 2);
+			}
+			double ex = popSum / 20;
+			metric.add(ex + ", " + ((popSquaredSum / 20) - Math.pow(ex, 2)));
+		    }
+		    try (FileWriter fw = new FileWriter(expNo + ".csv")) {
+			for (int i = 0; i < results.size(); i++) {
+			    fw.write(results.get(i).query.getText() + ", " + metric.get(i) + "\n");
+			}
+		    } catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		    }
 		} else {
-		    queries = QueryServices.loadInexQueries(QUERYFILE_PATH, QREL_PATH, "title");
+		    LOGGER.log(Level.INFO, "querying " + expNo + " at " + totalExp);
+		    long startTime = System.currentTimeMillis();
+		    List<QueryResult> results = WikiExperiment.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
+		    WikiExperiment.writeResultsToFile(results, "result/", expNo + ".csv");
+		    long endTime = System.currentTimeMillis();
+		    LOGGER.log(Level.INFO, "logging.. ");
+		    Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(FILELIST_PATH);
+		    QueryResult.logResultsWithPopularity(results, idPopMap, "result/" + expNo + ".log", 20);
+		    LOGGER.log(Level.INFO,
+			    "Time spent for experiment " + expNo + " is " + (endTime - startTime) / 1000 + " secs");
 		}
-		String difficultyMetric = cl.getOptionValue("diff");
-		runCacheSelectionExperiment(expNo, indexPath, queries, difficultyMetric);
 	    }
 	} catch (org.apache.commons.cli.ParseException e) {
 	    LOGGER.log(Level.INFO, e.getMessage());
