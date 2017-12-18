@@ -49,6 +49,8 @@ public class WikiClusterExperiment {
 	options.addOption(queryOption);
 	Option difficultyOption = new Option("diff", true, "Flag to run difficulty experiment");
 	options.addOption(difficultyOption);
+	Option popOption = new Option("pop", false, "Flag to run pop difficulty experiment");
+	options.addOption(popOption);
 	Option totalExpNumberOption = new Option("total", true, "Total number of experiments");
 	totalExpNumberOption.setRequired(true);
 	options.addOption(totalExpNumberOption);
