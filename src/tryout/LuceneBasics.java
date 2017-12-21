@@ -1,7 +1,11 @@
 package tryout;
 
+import java.io.StringReader;
+
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
@@ -23,6 +27,23 @@ import org.apache.lucene.store.RAMDirectory;
 public class LuceneBasics {
 
     public static void main(String[] args) throws Exception {
+	try2();
+    }
+    
+    
+    static void try2() throws Exception {
+	Analyzer analyzer = new StandardAnalyzer();
+	TokenStream tokenStream = analyzer.tokenStream("field", new StringReader("Text \"text-text\""));
+	 CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+	tokenStream.reset();
+	while (tokenStream.incrementToken()) {
+	    System.out.println(termAtt.toString());
+	}
+	analyzer.close();
+
+    }
+    
+    static void try1() throws Exception {
 	Analyzer analyzer = new StandardAnalyzer();
 	Directory directory = new RAMDirectory();
 	IndexWriterConfig config = new IndexWriterConfig(analyzer);

@@ -1,12 +1,15 @@
 package wiki13.querydifficulty;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 
@@ -15,19 +18,33 @@ import query.ExperimentQuery;
 public class SimpleCacheScore implements QueryDifficultyScoreInterface {
 
     @Override
-    public Map<String, Double> computeScore(IndexReader reader, List<ExperimentQuery> queries, String field)
-	    throws IOException {
+    public Map<String, Double> computeScore(IndexReader reader,
+	    List<ExperimentQuery> queries, String field) throws IOException {
 	Map<String, Double> difficulties = new HashMap<String, Double>();
-	for (ExperimentQuery query : queries) {
-	    double termCounter = 0.0;
-	    List<String> terms = Arrays.asList(query.getText().split("[ \"'+]")).stream().filter(str -> !str.isEmpty())
-		    .collect(Collectors.toList());
-	    for (String term : terms) {
-		if (reader.totalTermFreq(new Term(field, term)) > 0) {
-		    termCounter++;
+	try (Analyzer analyzer = new StandardAnalyzer()) {
+	    for (ExperimentQuery query : queries) {
+		double termCounter = 0.0;
+		double allTermsCounter = 0.0;
+		TokenStream tokenStream = analyzer.tokenStream(field,
+			new StringReader(query.getText()));
+		CharTermAttribute termAtt = tokenStream
+			.addAttribute(CharTermAttribute.class);
+		try {
+		    tokenStream.reset();
+		    while (tokenStream.incrementToken()) {
+			allTermsCounter++;
+			String term = termAtt.toString();
+			if (reader.totalTermFreq(new Term(field, term)) > 0) {
+			    termCounter++;
+			}
+		    }
+		    tokenStream.end();
+		} finally {
+		    tokenStream.close();
 		}
+		difficulties
+			.put(query.getText(), termCounter / allTermsCounter);
 	    }
-	    difficulties.put(query.getText(), termCounter / terms.size());
 	}
 	return difficulties;
     }
