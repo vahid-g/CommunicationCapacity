@@ -89,7 +89,7 @@ public class WikiClusterExperiment {
 		    for (QueryResult result : results) {
 			double popSum = 0;
 			double popSquaredSum = 0;
-			for (int i = 0; i < 20; i++) {
+			for (int i = 0; i < Math.min(20, result.getTopDocuments().size()); i++) {
 			    double popularity = idPopMap.get(result.getTopDocuments().get(i).id);
 			    popSum += popularity;
 			    popSquaredSum += Math.pow(popularity, 2);
