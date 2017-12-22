@@ -2,6 +2,7 @@ package wiki13.cluster;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,9 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.store.FSDirectory;
 
 import popularity.PopularityUtils;
 import query.ExperimentQuery;
@@ -23,6 +27,7 @@ import query.QueryServices;
 import wiki13.WikiExperiment;
 import wiki13.WikiFileIndexer;
 import wiki13.querydifficulty.ClarityScore;
+import wiki13.querydifficulty.JelinekMercerScore;
 import wiki13.querydifficulty.LanguageModelScore;
 import wiki13.querydifficulty.QueryDifficultyComputer;
 import wiki13.querydifficulty.SimpleCacheScore;
@@ -34,7 +39,7 @@ public class WikiCacheSelectionClusterExperiment {
     public static final Logger LOGGER = Logger
 	    .getLogger(WikiCacheSelectionClusterExperiment.class.getName());
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
 	Options options = new Options();
 	Option expNumberOption = new Option("exp", true, "Number of experiment");
@@ -101,8 +106,8 @@ public class WikiCacheSelectionClusterExperiment {
 		    LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	    } else {
-		runCacheSelectionExperiment(expNo, indexPath, queries,
-			difficultyMetric);
+		runCacheSelectionExperiment(expNo, totalExp, indexPath,
+			queries, difficultyMetric);
 	    }
 	} catch (org.apache.commons.cli.ParseException e) {
 	    LOGGER.log(Level.INFO, e.getMessage());
@@ -111,9 +116,9 @@ public class WikiCacheSelectionClusterExperiment {
 	}
     }
 
-    public static void runCacheSelectionExperiment(int expNo, String indexPath,
-	    List<ExperimentQuery> queries, String difficultyMetric)
-	    throws ParseException {
+    public static void runCacheSelectionExperiment(int expNo, int totalExp,
+	    String indexPath, List<ExperimentQuery> queries,
+	    String difficultyMetric) throws ParseException, IOException {
 	LOGGER.log(Level.INFO, "querylog size " + queries.size());
 	QueryDifficultyComputer qdc;
 	if (difficultyMetric.equals("scs")) {
@@ -134,6 +139,12 @@ public class WikiCacheSelectionClusterExperiment {
 	    qdc = new QueryDifficultyComputer(new LanguageModelScore());
 	} else if (difficultyMetric.equals("simple")) {
 	    qdc = new QueryDifficultyComputer(new SimpleCacheScore());
+	} else if (difficultyMetric.equals("jms")) {
+	    IndexReader globalReader = DirectoryReader.open(FSDirectory
+		    .open(Paths.get(WikiClusterPaths.INDEX_BASE + "wiki13_p"
+			    + totalExp + "_w13" + "/part_" + totalExp)));
+	    qdc = new QueryDifficultyComputer(new JelinekMercerScore(
+		    globalReader));
 	} else {
 	    throw new org.apache.commons.cli.ParseException(
 		    "Difficulty metric needs to be specified");
