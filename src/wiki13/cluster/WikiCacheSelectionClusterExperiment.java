@@ -1,0 +1,150 @@
+package wiki13.cluster;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import popularity.PopularityUtils;
+import query.ExperimentQuery;
+import query.QueryResult;
+import query.QueryServices;
+import wiki13.WikiExperiment;
+import wiki13.WikiFileIndexer;
+import wiki13.querydifficulty.ClarityScore;
+import wiki13.querydifficulty.LanguageModelScore;
+import wiki13.querydifficulty.QueryDifficultyComputer;
+import wiki13.querydifficulty.SimpleCacheScore;
+import wiki13.querydifficulty.VarianceScore;
+import wiki13.querydifficulty.VarianceScore.VarianceScoreMode;
+
+public class WikiCacheSelectionClusterExperiment {
+
+    public static final Logger LOGGER = Logger
+	    .getLogger(WikiCacheSelectionClusterExperiment.class.getName());
+
+    public static void main(String[] args) {
+
+	Options options = new Options();
+	Option expNumberOption = new Option("exp", true, "Number of experiment");
+	expNumberOption.setRequired(true);
+	Option totalExpNumberOption = new Option("total", true,
+		"Total number of experiments");
+	totalExpNumberOption.setRequired(true);
+	options.addOption(totalExpNumberOption);
+	options.addOption(expNumberOption);
+	Option difficultyOption = new Option("diff", true,
+		"Flag to run difficulty experiment");
+	difficultyOption.setRequired(true);
+	options.addOption(difficultyOption);
+	Option useMsnQueryLogOption = new Option("msn", false,
+		"specifies the query log (msn/inex)");
+	options.addOption(useMsnQueryLogOption);
+	CommandLineParser clp = new DefaultParser();
+	HelpFormatter formatter = new HelpFormatter();
+	CommandLine cl;
+
+	try {
+	    cl = clp.parse(options, args);
+	    int expNo = Integer.parseInt(cl.getOptionValue("exp"));
+	    int totalExp = Integer.parseInt(cl.getOptionValue("total"));
+	    String indexPath = WikiClusterPaths.INDEX_BASE + "wiki13_p"
+		    + totalExp + "_w13" + "/part_" + expNo;
+	    List<ExperimentQuery> queries;
+	    if (cl.hasOption("msn")) {
+		queries = QueryServices.loadMsnQueries(
+			WikiClusterPaths.MSN_QUERY_QID,
+			WikiClusterPaths.MSN_QID_QREL);
+	    } else {
+		queries = QueryServices.loadInexQueries(
+			WikiClusterPaths.QUERYFILE_PATH,
+			WikiClusterPaths.QREL_PATH, "title");
+	    }
+	    String difficultyMetric = cl.getOptionValue("diff");
+	    if (difficultyMetric.equals("pop")) {
+		List<QueryResult> results = WikiExperiment
+			.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
+		Map<String, Double> idPopMap = PopularityUtils
+			.loadIdPopularityMap(WikiClusterPaths.FILELIST_PATH);
+		List<String> metric = new ArrayList<String>();
+		for (QueryResult result : results) {
+		    double popSum = 0;
+		    double popSquaredSum = 0;
+		    for (int i = 0; i < Math.min(20, result.getTopDocuments()
+			    .size()); i++) {
+			double popularity = idPopMap.get(result
+				.getTopDocuments().get(i).id);
+			popSum += popularity;
+			popSquaredSum += Math.pow(popularity, 2);
+		    }
+		    double ex = popSum / 20;
+		    metric.add(ex + ", "
+			    + ((popSquaredSum / 20) - Math.pow(ex, 2)));
+		}
+		try (FileWriter fw = new FileWriter(expNo + ".csv")) {
+		    for (int i = 0; i < results.size(); i++) {
+			fw.write(results.get(i).query.getText() + ", "
+				+ metric.get(i) + "\n");
+		    }
+		} catch (IOException e) {
+		    LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+	    } else {
+		runCacheSelectionExperiment(expNo, indexPath, queries,
+			difficultyMetric);
+	    }
+	} catch (org.apache.commons.cli.ParseException e) {
+	    LOGGER.log(Level.INFO, e.getMessage());
+	    formatter.printHelp("", options);
+	    return;
+	}
+    }
+
+    public static void runCacheSelectionExperiment(int expNo, String indexPath,
+	    List<ExperimentQuery> queries, String difficultyMetric)
+	    throws ParseException {
+	LOGGER.log(Level.INFO, "querylog size " + queries.size());
+	QueryDifficultyComputer qdc;
+	if (difficultyMetric.equals("scs")) {
+	    qdc = new QueryDifficultyComputer(new ClarityScore());
+	} else if (difficultyMetric.equals("maxvar")) {
+	    qdc = new QueryDifficultyComputer(new VarianceScore(
+		    VarianceScoreMode.MAX_VARIANCE));
+	} else if (difficultyMetric.equals("avgvar")) {
+	    qdc = new QueryDifficultyComputer(new VarianceScore(
+		    VarianceScoreMode.AVERAGE_VARIANCE));
+	} else if (difficultyMetric.equals("maxex")) {
+	    qdc = new QueryDifficultyComputer(new VarianceScore(
+		    VarianceScoreMode.MAX_EX));
+	} else if (difficultyMetric.equals("avgex")) {
+	    qdc = new QueryDifficultyComputer(new VarianceScore(
+		    VarianceScoreMode.AVERAGE_EX));
+	} else if (difficultyMetric.equals("lm")) {
+	    qdc = new QueryDifficultyComputer(new LanguageModelScore());
+	} else if (difficultyMetric.equals("simple")) {
+	    qdc = new QueryDifficultyComputer(new SimpleCacheScore());
+	} else {
+	    throw new org.apache.commons.cli.ParseException(
+		    "Difficulty metric needs to be specified");
+	}
+	Map<String, Double> titleDifficulties = qdc.computeQueryDifficulty(
+		indexPath, queries, WikiFileIndexer.TITLE_ATTRIB);
+	Map<String, Double> contentDifficulties = qdc.computeQueryDifficulty(
+		indexPath, queries, WikiFileIndexer.CONTENT_ATTRIB);
+	WikiExperiment.writeMapToFile(titleDifficulties, "title_diff_" + expNo
+		+ ".csv");
+	WikiExperiment.writeMapToFile(contentDifficulties, "content_diff_"
+		+ expNo + ".csv");
+    }
+}
