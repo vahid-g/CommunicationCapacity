@@ -32,16 +32,8 @@ import wiki13.querydifficulty.VarianceScore.VarianceScoreMode;
 public class WikiClusterExperiment {
 
     public static final Logger LOGGER = Logger.getLogger(WikiClusterExperiment.class.getName());
-    static final String INDEX_BASE = "/scratch/cluster-share/ghadakcv/data/index/";
-    static final String FILELIST_PATH = "/scratch/cluster-share/ghadakcv/data/path_counts/wiki13_count13_text.csv";
-    static final String FILELIST_PATH_COUNT09 = "/scratch/cluster-share/ghadakcv/data/path_counts/wiki13_count09_text.csv";
-    static final String QUERYFILE_PATH = "/scratch/cluster-share/ghadakcv/data/queries/inex_ld/2013-ld-adhoc-topics.xml";
-    static final String QREL_PATH = "/scratch/cluster-share/ghadakcv/data/queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
-    static final String MSN_QUERY_QID = "/scratch/cluster-share/ghadakcv/data/queries/msn/query_qid.csv";
-    static final String MSN_QID_QREL = "/scratch/cluster-share/ghadakcv/data/queries/msn/qid_qrel.csv";
 
     public static void main(String[] args) {
-
 	Options options = new Options();
 	Option indexOption = new Option("index", false, "Flag to run indexing experiment");
 	options.addOption(indexOption);
@@ -67,24 +59,24 @@ public class WikiClusterExperiment {
 	    cl = clp.parse(options, args);
 	    int expNo = Integer.parseInt(cl.getOptionValue("exp"));
 	    int totalExp = Integer.parseInt(cl.getOptionValue("total"));
-	    String indexPath = INDEX_BASE + "wiki13_p" + totalExp + "_w13" + "/part_" + expNo;
+	    String indexPath = WikiClusterPaths.INDEX_BASE + "wiki13_p" + totalExp + "_w13" + "/part_" + expNo;
 	    if (cl.hasOption("index")) {
 		LOGGER.log(Level.INFO, "Building index..");
-		WikiExperiment.buildGlobalIndex(expNo, totalExp, FILELIST_PATH, indexPath);
+		WikiExperiment.buildGlobalIndex(expNo, totalExp, WikiClusterPaths.FILELIST_PATH, indexPath);
 	    }
 	    if (cl.hasOption("query")) {
 		List<ExperimentQuery> queries;
 		if (cl.hasOption("msn")) {
-		    queries = QueryServices.loadMsnQueries(MSN_QUERY_QID, MSN_QID_QREL);
+		    queries = QueryServices.loadMsnQueries(WikiClusterPaths.MSN_QUERY_QID, WikiClusterPaths.MSN_QID_QREL);
 		} else {
-		    queries = QueryServices.loadInexQueries(QUERYFILE_PATH, QREL_PATH, "title");
+		    queries = QueryServices.loadInexQueries(WikiClusterPaths.QUERYFILE_PATH, WikiClusterPaths.QREL_PATH, "title");
 		}
 		if (cl.hasOption("diff")) {
 		    String difficultyMetric = cl.getOptionValue("diff");
 		    runCacheSelectionExperiment(expNo, indexPath, queries, difficultyMetric);
 		} else if (cl.hasOption("pop")) {
 		    List<QueryResult> results = WikiExperiment.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
-		    Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(FILELIST_PATH);
+		    Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(WikiClusterPaths.FILELIST_PATH);
 		    List<String> metric = new ArrayList<String>();
 		    for (QueryResult result : results) {
 			double popSum = 0;
@@ -111,7 +103,7 @@ public class WikiClusterExperiment {
 		    WikiExperiment.writeResultsToFile(results, "result/", expNo + ".csv");
 		    long endTime = System.currentTimeMillis();
 		    LOGGER.log(Level.INFO, "logging.. ");
-		    Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(FILELIST_PATH);
+		    Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(WikiClusterPaths.FILELIST_PATH);
 		    QueryResult.logResultsWithPopularity(results, idPopMap, "result/" + expNo + ".log", 20);
 		    LOGGER.log(Level.INFO,
 			    "Time spent for experiment " + expNo + " is " + (endTime - startTime) / 1000 + " secs");
