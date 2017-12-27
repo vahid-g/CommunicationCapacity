@@ -19,6 +19,7 @@ import org.junit.Test;
 import indexing.InexFile;
 import query.ExperimentQuery;
 import wiki13.WikiFileIndexer;
+import wiki13.cacheselection.ClarityScore;
 
 public class ClarityScoreTest {
 

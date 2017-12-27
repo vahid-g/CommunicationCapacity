@@ -26,13 +26,13 @@ import query.QueryResult;
 import query.QueryServices;
 import wiki13.WikiExperiment;
 import wiki13.WikiFileIndexer;
-import wiki13.querydifficulty.ClarityScore;
-import wiki13.querydifficulty.JelinekMercerScore;
-import wiki13.querydifficulty.LanguageModelScore;
-import wiki13.querydifficulty.QueryDifficultyComputer;
-import wiki13.querydifficulty.SimpleCacheScore;
-import wiki13.querydifficulty.VarianceScore;
-import wiki13.querydifficulty.VarianceScore.VarianceScoreMode;
+import wiki13.cacheselection.ClarityScore;
+import wiki13.cacheselection.JelinekMercerScore;
+import wiki13.cacheselection.LanguageModelScore;
+import wiki13.cacheselection.QueryDifficultyComputer;
+import wiki13.cacheselection.SimpleCacheScore;
+import wiki13.cacheselection.VarianceScore;
+import wiki13.cacheselection.VarianceScore.VarianceScoreMode;
 
 public class WikiCacheSelectionClusterExperiment {
 

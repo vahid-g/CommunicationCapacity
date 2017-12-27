@@ -1,4 +1,4 @@
-package wiki13.querydifficulty;
+package wiki13.cacheselection;
 
 import java.io.IOException;
 import java.io.StringReader;
