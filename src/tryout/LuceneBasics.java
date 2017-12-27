@@ -33,7 +33,7 @@ import org.apache.lucene.util.BytesRef;
 public class LuceneBasics {
 
     public static void main(String[] args) throws Exception {
-	try3();
+	try2();
     }
 
     static void try3() throws Exception {
@@ -74,7 +74,7 @@ public class LuceneBasics {
 
     static void try2() throws Exception {
 	Analyzer analyzer = new StandardAnalyzer();
-	TokenStream tokenStream = analyzer.tokenStream("field", new StringReader("Text \"text-text\""));
+	TokenStream tokenStream = analyzer.tokenStream("field", new StringReader("Text \"han-han\""));
 	CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 	tokenStream.reset();
 	while (tokenStream.incrementToken()) {
