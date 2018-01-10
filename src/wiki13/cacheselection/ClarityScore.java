@@ -1,4 +1,4 @@
-package wiki13.querydifficulty;
+package wiki13.cacheselection;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -33,7 +33,7 @@ public class ClarityScore implements QueryDifficultyScoreInterface {
 	    int qLength = terms.size();
 	    long termCountSum = 0;
 	    for (String term : terms) {
-		termCountSum += reader.totalTermFreq(new Term(field, term));
+		termCountSum += reader.totalTermFreq(new Term(field, term.toLowerCase()));
 	    }
 	    double ictf = Math.log(titleTermCount / (termCountSum + 1.0));
 	    difficulties.put(query.getText(), 1.0 / qLength + ictf / qLength);

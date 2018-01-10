@@ -1,4 +1,4 @@
-package wiki13.querydifficulty;
+package wiki13.cacheselection;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -19,29 +19,27 @@ import query.ExperimentQuery;
 
 public class JelinekMercerScore implements QueryDifficultyScoreInterface {
 
-    private static final Logger LOGGER = Logger
-	    .getLogger(JelinekMercerScore.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(JelinekMercerScore.class.getName());
 
     private IndexReader globalIndexReader;
-    
+
     public JelinekMercerScore(IndexReader globalIndexReader) {
 	this.globalIndexReader = globalIndexReader;
     }
-    
+
     @Override
-    public Map<String, Double> computeScore(IndexReader reader,
-	    List<ExperimentQuery> queries, String field) throws IOException {
+    public Map<String, Double> computeScore(IndexReader reader, List<ExperimentQuery> queries, String field)
+	    throws IOException {
 	Map<String, Double> difficulties = new HashMap<String, Double>();
-	long tfSum = reader.getSumDocFreq(field);
-	long globalTfSum = globalIndexReader.getSumDocFreq(field);
-	LOGGER.log(Level.INFO, "Total number of terms in " + field + ": "
-		+ tfSum);
+	long tfSum = reader.getSumTotalTermFreq(field);
+	long globalTfSum = globalIndexReader.getSumTotalTermFreq(field);
+	LOGGER.log(Level.INFO, "TF sum:" + tfSum);
+	LOGGER.log(Level.INFO, "Global TF sum:" + globalTfSum);
 	for (ExperimentQuery query : queries) {
 	    try (Analyzer analyzer = new StandardAnalyzer()) {
 		TokenStream tokenStream = analyzer.tokenStream(field,
-			new StringReader(query.getText()));
-		CharTermAttribute termAtt = tokenStream
-			.addAttribute(CharTermAttribute.class);
+			new StringReader(query.getText().replaceAll("'", "`")));
+		CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 		double p = 1.0;
 		try {
 		    tokenStream.reset();
@@ -50,8 +48,11 @@ public class JelinekMercerScore implements QueryDifficultyScoreInterface {
 			Term currentTokenTerm = new Term(field, term);
 			long tf = reader.totalTermFreq(currentTokenTerm);
 			long gtf = globalIndexReader.totalTermFreq(currentTokenTerm);
-			double probabilityOfTermGivenSubset = tf / Math.max(tfSum, 1);
-			double probabilityOfTermGivenDatabase = gtf / Math.max(globalTfSum, 1); 
+			if (gtf == 0) {
+			    System.out.println("zero gtf for: " + term);
+			}
+			double probabilityOfTermGivenSubset = tf / Math.max(tfSum, 1.0);
+			double probabilityOfTermGivenDatabase = gtf / Math.max(globalTfSum, 1.0);
 			p *= 0.5 * probabilityOfTermGivenSubset + 0.5 * probabilityOfTermGivenDatabase;
 		    }
 		    tokenStream.end();

@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import query.ExperimentQuery;
 import wiki13.WikiFileIndexer;
+import wiki13.cacheselection.JelinekMercerScore;
 
 public class JelinekMercerScoreTest {
 
@@ -41,7 +42,7 @@ public class JelinekMercerScoreTest {
    		    WikiFileIndexer.CONTENT_ATTRIB);
    	    rd.close();
    	    rd2.close();
-   	    double score = 0.5 * (2 / 6) + 0.5 * (3 / 8);
+   	    double score = 0.5 * (2.0 / 6) + 0.5 * (3.0 / 8);
    	    assertEquals(score, results.get("hanhan"), 0.01);
    	}
        }
