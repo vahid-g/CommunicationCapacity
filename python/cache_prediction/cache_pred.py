@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn import linear_model
 from sklearn.metrics import confusion_matrix
 
-df = pd.read_csv('data.csv')
+df = pd.read_csv('../../data/python_data/cache_pred.csv')
 df = df.sample(frac=1) #shuffles rows
 df_size = df.shape[0]
 split_index = int(df_size/2)
