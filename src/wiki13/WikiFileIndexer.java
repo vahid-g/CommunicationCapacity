@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
@@ -42,8 +43,7 @@ public class WikiFileIndexer implements InexFileIndexer {
 	    Document doc = new Document();
 	    doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils
 		    .removeExtension(file.getName()), Field.Store.YES));
-	    doc.add(new StringField(WEIGHT_ATTRIB, String.valueOf(pct.weight),
-		    Field.Store.YES));
+	    doc.add(new StoredField(WEIGHT_ATTRIB, String.valueOf(pct.weight)));
 	    TextField titleField = new TextField(TITLE_ATTRIB, pct.title,
 		    Field.Store.YES);
 	    doc.add(titleField);

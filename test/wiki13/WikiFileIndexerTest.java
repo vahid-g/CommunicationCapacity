@@ -22,6 +22,7 @@ public class WikiFileIndexerTest {
     public void test() throws IOException {
 	InexFile inexFile = new InexFile("test_data/sample_wiki_file.txt", 1);
 	inexFile.title = "hanhan";
+	inexFile.weight = 631217150;
 	IndexWriterConfig indexWriterConfig = new IndexWriterConfig(
 		new StandardAnalyzer());
 	indexWriterConfig.setOpenMode(OpenMode.CREATE);
@@ -34,6 +35,7 @@ public class WikiFileIndexerTest {
 	    IndexReader reader = DirectoryReader.open(ramDirectory);
 	    Document doc = reader.document(0);
 	    assertEquals(inexFile.title, doc.get(WikiFileIndexer.TITLE_ATTRIB));
+	    assertEquals(inexFile.weight, Double.parseDouble(doc.get(WikiFileIndexer.WEIGHT_ATTRIB)), 0.001);
 	}
     }
 
