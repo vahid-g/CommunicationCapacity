@@ -33,6 +33,7 @@ print("testing mean accuracy = %f" % lr.score(X_test, y_test))
 
 y_pred = lr.predict(X_test)
 tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+print("precision = %f" % (tp / (tp + fn)))
 print("Specifity = %f" % (tn / (tn + fp)))
 print("tn = %d" % tn)
 
@@ -48,6 +49,7 @@ print("testing mean accuracy = %f" % lr.score(X_test, y_test))
 
 y_pred = lr.predict(X_test)
 tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+print("precision = %f" % (tp / (tp + fn)))
 print("Specifity = %f" % (tn / (tn + fp)))
 print("tn = %d" % tn)
 
