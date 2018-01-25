@@ -80,10 +80,16 @@ public class WikiMapleCachingExperiment {
 		if (cl.hasOption("query")) {
 		    for (int expNo = 1; expNo <= partitionCount; expNo++) {
 			String indexPath = indexDirPath + expNo;
+			List<QueryResult> results;
 			long startTime = System.currentTimeMillis();
-			List<QueryResult> results = WikiExperiment
-				.runQueriesOnGlobalIndex(indexPath, queries,
-					gamma);
+			if (cl.hasOption("boost")) {
+			    results = WikiExperiment.runQueriesOnGlobalIndex(
+				    indexPath, queries, gamma, true);
+			} else {
+			    results = WikiExperiment.runQueriesOnGlobalIndex(
+				    indexPath, queries, gamma);
+			}
+
 			long spentTime = System.currentTimeMillis() - startTime;
 			LOGGER.log(Level.INFO,
 				"Time spent on querying " + queries.size()
@@ -98,13 +104,8 @@ public class WikiMapleCachingExperiment {
 			for (int expNo = 1; expNo <= partitionCount; expNo++) {
 			    String indexPath = indexDirPath + expNo;
 			    long startTime = System.currentTimeMillis();
-			    if (cl.hasOption("boost")) {
-				WikiExperiment.runQueriesOnGlobalIndex(
-					indexPath, queries, gamma, true);
-			    } else {
-				WikiExperiment.runQueriesOnGlobalIndex(
-					indexPath, queries, gamma);
-			    }
+			    WikiExperiment.runQueriesOnGlobalIndex(indexPath,
+				    queries, gamma);
 			    long spentTime = System.currentTimeMillis()
 				    - startTime;
 			    times[expNo - 1] += spentTime;
