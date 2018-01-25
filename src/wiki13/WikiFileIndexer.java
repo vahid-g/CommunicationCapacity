@@ -23,8 +23,8 @@ import indexing.InexFileIndexer;
 
 public class WikiFileIndexer implements InexFileIndexer {
 
-    private static final Logger LOGGER = Logger.getLogger(WikiFileIndexer.class
-	    .getName());
+    private static final Logger LOGGER = Logger
+	    .getLogger(WikiFileIndexer.class.getName());
 
     public static final String CONTENT_ATTRIB = "content";
     public static final String DOCNAME_ATTRIB = "name";
@@ -41,9 +41,10 @@ public class WikiFileIndexer implements InexFileIndexer {
 	    fis.read(data);
 	    String fileContent = new String(data, "UTF-8");
 	    Document doc = new Document();
-	    doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils
-		    .removeExtension(file.getName()), Field.Store.YES));
-	    doc.add(new StoredField(WEIGHT_ATTRIB, String.valueOf(pct.weight)));
+	    doc.add(new StringField(DOCNAME_ATTRIB,
+		    FilenameUtils.removeExtension(file.getName()),
+		    Field.Store.YES));
+	    doc.add(new StoredField(WEIGHT_ATTRIB, pct.weight));
 	    TextField titleField = new TextField(TITLE_ATTRIB, pct.title,
 		    Field.Store.YES);
 	    doc.add(titleField);
@@ -52,7 +53,8 @@ public class WikiFileIndexer implements InexFileIndexer {
 	    doc.add(contentField);
 	    writer.addDocument(doc);
 	} catch (IOException e) {
-	    LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
+	    LOGGER.log(Level.SEVERE,
+		    e.toString() + "\n" + e.fillInStackTrace());
 	    return false;
 	}
 	return true;
@@ -66,8 +68,8 @@ public class WikiFileIndexer implements InexFileIndexer {
 	    if (fileContent.contains("<listitem>REDIRECT")) {
 		return;
 	    }
-	    Pattern p = Pattern.compile(
-		    "<article id=\"\\d*\" title=\"(.*?)\">", Pattern.DOTALL);
+	    Pattern p = Pattern.compile("<article id=\"\\d*\" title=\"(.*?)\">",
+		    Pattern.DOTALL);
 	    Matcher m = p.matcher(fileContent);
 	    String title = "";
 	    if (m.find())
@@ -76,8 +78,9 @@ public class WikiFileIndexer implements InexFileIndexer {
 		LOGGER.log(Level.INFO, "Title not found in " + file.getName());
 	    fileContent = fileContent.replaceAll("<[^>]*>", " ").trim();
 	    Document doc = new Document();
-	    doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils
-		    .removeExtension(file.getName()), Field.Store.YES));
+	    doc.add(new StringField(DOCNAME_ATTRIB,
+		    FilenameUtils.removeExtension(file.getName()),
+		    Field.Store.YES));
 	    TextField titleField = new TextField(TITLE_ATTRIB, title,
 		    Field.Store.YES);
 	    doc.add(titleField);
@@ -86,9 +89,11 @@ public class WikiFileIndexer implements InexFileIndexer {
 	    doc.add(contentField);
 	    writer.addDocument(doc);
 	} catch (FileNotFoundException e) {
-	    LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
+	    LOGGER.log(Level.SEVERE,
+		    e.toString() + "\n" + e.fillInStackTrace());
 	} catch (IOException e) {
-	    LOGGER.log(Level.SEVERE, e.toString() + "\n" + e.fillInStackTrace());
+	    LOGGER.log(Level.SEVERE,
+		    e.toString() + "\n" + e.fillInStackTrace());
 	}
     }
 

@@ -39,6 +39,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import indexing.GeneralIndexer;
+import wiki13.WikiFileIndexer;
 
 public class QueryServices {
 
@@ -66,8 +67,8 @@ public class QueryServices {
     public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
 	    String indexPath, Similarity similarity, String[] attribs) {
 	List<QueryResult> iqrList = new ArrayList<QueryResult>();
-	try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
-		.get(indexPath)))) {
+	try (IndexReader reader = DirectoryReader
+		.open(FSDirectory.open(Paths.get(indexPath)))) {
 	    LOGGER.log(Level.INFO,
 		    "Number of docs in index: " + reader.numDocs());
 	    IndexSearcher searcher = new IndexSearcher(reader);
@@ -96,37 +97,40 @@ public class QueryServices {
 	    List<ExperimentQuery> queries, String indexPath,
 	    Similarity similarity, Map<String, Float> fieldToBoost) {
 	return runQueriesWithBoosting(queries, indexPath, similarity,
-		fieldToBoost, false);
+		fieldToBoost, false, false);
     }
 
     public static List<QueryResult> runQueriesWithBoosting(
 	    List<ExperimentQuery> queries, String indexPath,
 	    Similarity similarity, Map<String, Float> fieldToBoost,
-	    boolean explain) {
+	    boolean explain, boolean boostDoc) {
 	List<QueryResult> iqrList = new ArrayList<QueryResult>();
-	try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
-		.get(indexPath)))) {
+	try (IndexReader reader = DirectoryReader
+		.open(FSDirectory.open(Paths.get(indexPath)))) {
 	    LOGGER.log(Level.INFO,
 		    "Number of docs in index: " + reader.numDocs());
 	    IndexSearcher searcher = new IndexSearcher(reader);
 	    searcher.setSimilarity(similarity);
 	    for (ExperimentQuery experimentQuery : queries) {
-		Query query = buildLuceneQuery(experimentQuery.getText(),
-			fieldToBoost);
-		ScoreDoc[] hits = searcher.search(query, TOP_DOC_COUNT).scoreDocs;
+		Query query;
+		if (boostDoc) {
+		    query = buildBoostedLuceneQuery(experimentQuery.getText(),
+			    fieldToBoost);
+		} else {
+		    query = buildLuceneQuery(experimentQuery.getText(),
+			    fieldToBoost);
+		}
+		ScoreDoc[] hits = searcher.search(query,
+			TOP_DOC_COUNT).scoreDocs;
 		QueryResult iqr = new QueryResult(experimentQuery);
 		for (int i = 0; i < Math.min(TOP_DOC_COUNT, hits.length); i++) {
 		    Document doc = searcher.doc(hits[i].doc);
 		    String docId = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
 		    String docTitle = doc.get(GeneralIndexer.TITLE_ATTRIB);
 		    if (explain) {
-			iqr.addResult(
-				docId,
-				docTitle,
-				hits[i].score
-					+ " idf: "
-					+ buildIdfString(searcher.explain(
-						query, hits[i].doc)));
+			iqr.addResult(docId, docTitle,
+				hits[i].score + " idf: " + buildIdfString(
+					searcher.explain(query, hits[i].doc)));
 		    } else {
 			iqr.addResult(docId, docTitle);
 		    }
@@ -154,8 +158,8 @@ public class QueryServices {
     }
 
     public static int lookupDocumentId(String id, IndexReader reader) {
-	TermQuery termQuery = new TermQuery(new Term(
-		GeneralIndexer.DOCNAME_ATTRIB, id));
+	TermQuery termQuery = new TermQuery(
+		new Term(GeneralIndexer.DOCNAME_ATTRIB, id));
 	IndexSearcher searcher = new IndexSearcher(reader);
 	TopDocs topDocs = null;
 	try {
@@ -182,6 +186,13 @@ public class QueryServices {
 	    e.printStackTrace();
 	}
 	return query;
+    }
+
+    public static Query buildBoostedLuceneQuery(String queryString,
+	    Map<String, Float> fieldToBoost) {
+	return new BoostedScoreQuery(
+		buildLuceneQuery(queryString, fieldToBoost),
+		WikiFileIndexer.WEIGHT_ATTRIB);
     }
 
     public static Query buildLuceneQuery(String queryString, String... fields) {
@@ -246,8 +257,8 @@ public class QueryServices {
 	    int nullQrelCounter = 0;
 	    for (int i = 0; i < nodeList.getLength(); i++) {
 		Node node = nodeList.item(i);
-		int qid = Integer.parseInt(node.getAttributes()
-			.getNamedItem("id").getNodeValue());
+		int qid = Integer.parseInt(
+			node.getAttributes().getNamedItem("id").getNodeValue());
 		StringBuilder sb = new StringBuilder();
 		for (String queryLabel : queryLabels) {
 		    String queryText = getText(findSubNode(queryLabel, node))
@@ -256,8 +267,8 @@ public class QueryServices {
 		}
 		String queryText = sb.toString().trim();
 		if (queryText.equals("")) {
-		    LOGGER.log(Level.SEVERE, "query: " + qid
-			    + " has empty aggregated text");
+		    LOGGER.log(Level.SEVERE,
+			    "query: " + qid + " has empty aggregated text");
 		    continue;
 		}
 		Set<Qrel> qrels = qidQrels.get(qid);
