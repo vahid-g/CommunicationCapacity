@@ -39,6 +39,9 @@ public class WikiMapleCachingExperiment {
 	Option partitionsOption = new Option("total", true,
 		"number of partitions");
 	options.addOption(partitionsOption);
+	Option gammaOption = new Option("gamma", true,
+		"the weight of title field");
+	options.addOption(gammaOption);
 	Option boostDocs = new Option("boost", false,
 		"boost documents using their weights");
 	options.addOption(boostDocs);
@@ -63,6 +66,8 @@ public class WikiMapleCachingExperiment {
 	    }
 	    if (cl.hasOption("query") || cl.hasOption("timing")) {
 		List<ExperimentQuery> queries;
+		float gamma = Float
+			.parseFloat(cl.getOptionValue("gamma", "0.15f"));
 		if (cl.hasOption("msn")) {
 		    queries = QueryServices.loadMsnQueries(
 			    WikiMapleExperiment.MSN_QUERY_FILE_PATH,
@@ -78,7 +83,7 @@ public class WikiMapleCachingExperiment {
 			long startTime = System.currentTimeMillis();
 			List<QueryResult> results = WikiExperiment
 				.runQueriesOnGlobalIndex(indexPath, queries,
-					0.15f);
+					gamma);
 			long spentTime = System.currentTimeMillis() - startTime;
 			LOGGER.log(Level.INFO,
 				"Time spent on querying " + queries.size()
@@ -95,10 +100,10 @@ public class WikiMapleCachingExperiment {
 			    long startTime = System.currentTimeMillis();
 			    if (cl.hasOption("boost")) {
 				WikiExperiment.runQueriesOnGlobalIndex(
-					indexPath, queries, 0.15f, true);
+					indexPath, queries, gamma, true);
 			    } else {
 				WikiExperiment.runQueriesOnGlobalIndex(
-					indexPath, queries, 0.15f);
+					indexPath, queries, gamma);
 			    }
 			    long spentTime = System.currentTimeMillis()
 				    - startTime;
