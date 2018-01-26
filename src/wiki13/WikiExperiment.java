@@ -70,7 +70,7 @@ public class WikiExperiment {
 	fieldToBoost.put(WikiFileIndexer.CONTENT_ATTRIB, 1 - gamma);
 	List<QueryResult> results = QueryServices.runQueriesWithBoosting(
 		queries, indexPath, new BM25Similarity(), fieldToBoost, false,
-		false);
+		boostDoc);
 	return results;
     }
 
