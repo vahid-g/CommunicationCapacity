@@ -35,12 +35,15 @@ public class WikiClusterExperiment {
 		"Total number of experiments");
 	totalExpNumberOption.setRequired(true);
 	options.addOption(totalExpNumberOption);
-	Option expNumberOption = new Option("exp", true, "Number of experiment");
+	Option expNumberOption = new Option("exp", true,
+		"Number of experiment");
 	expNumberOption.setRequired(true);
 	options.addOption(expNumberOption);
 	Option useMsnQueryLogOption = new Option("msn", false,
 		"specifies the query log (msn/inex)");
 	options.addOption(useMsnQueryLogOption);
+	Option boostOption = new Option("boost", false, "Document boosting");
+	options.addOption(boostOption);
 	CommandLineParser clp = new DefaultParser();
 	HelpFormatter formatter = new HelpFormatter();
 	CommandLine cl;
@@ -49,6 +52,7 @@ public class WikiClusterExperiment {
 	    cl = clp.parse(options, args);
 	    int expNo = Integer.parseInt(cl.getOptionValue("exp"));
 	    int totalExp = Integer.parseInt(cl.getOptionValue("total"));
+	    float gamma = 0.15f;
 	    String indexPath = WikiClusterPaths.INDEX_BASE + "wiki13_p"
 		    + totalExp + "_w13" + "/part_" + expNo;
 	    if (cl.hasOption("index")) {
@@ -70,10 +74,16 @@ public class WikiClusterExperiment {
 
 		LOGGER.log(Level.INFO, "querying " + expNo + " at " + totalExp);
 		long startTime = System.currentTimeMillis();
-		List<QueryResult> results = WikiExperiment
-			.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
-		WikiExperiment.writeResultsToFile(results, "result/", expNo
-			+ ".csv");
+		List<QueryResult> results;
+		if (cl.hasOption("boost")) {
+		    results = WikiExperiment.runQueriesOnGlobalIndex(indexPath,
+			    queries, gamma, true);
+		} else {
+		    results = WikiExperiment.runQueriesOnGlobalIndex(indexPath,
+			    queries, gamma);
+		}
+		WikiExperiment.writeResultsToFile(results, "result/",
+			expNo + ".csv");
 		long endTime = System.currentTimeMillis();
 		LOGGER.log(Level.INFO, "logging.. ");
 		Map<String, Double> idPopMap = PopularityUtils
