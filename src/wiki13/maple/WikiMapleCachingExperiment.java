@@ -2,6 +2,7 @@ package wiki13.maple;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -78,6 +79,7 @@ public class WikiMapleCachingExperiment {
 			    WikiMapleExperiment.QREL_FILE_PATH, "title");
 		}
 		if (cl.hasOption("query")) {
+		    List<List<QueryResult>> allResults = new ArrayList<List<QueryResult>>();
 		    for (int expNo = 1; expNo <= partitionCount; expNo++) {
 			String indexPath = indexDirPath + expNo;
 			List<QueryResult> results;
@@ -89,15 +91,15 @@ public class WikiMapleCachingExperiment {
 			    results = WikiExperiment.runQueriesOnGlobalIndex(
 				    indexPath, queries, gamma);
 			}
-
+			allResults.add(results);
 			long spentTime = System.currentTimeMillis() - startTime;
 			LOGGER.log(Level.INFO,
 				"Time spent on querying " + queries.size()
 					+ " queries is " + spentTime
 					+ " seconds");
-			WikiExperiment.writeResultsToFile(results, "result/",
-				expNo + ".csv");
 		    }
+		    WikiMapleExperiment.writeResultsListToFile(allResults,
+			    "result/");
 		} else if (cl.hasOption("timing")) {
 		    long times[] = new long[partitionCount];
 		    for (int i = 0; i < 10; i++) {
