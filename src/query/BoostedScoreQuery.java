@@ -12,8 +12,6 @@ import org.apache.lucene.queries.CustomScoreProvider;
 import org.apache.lucene.queries.CustomScoreQuery;
 import org.apache.lucene.search.Query;
 
-import wiki13.WikiFileIndexer;
-
 public class BoostedScoreQuery extends CustomScoreQuery {
 
     private String boostFieldLabel;
@@ -39,7 +37,7 @@ public class BoostedScoreQuery extends CustomScoreQuery {
 	public float customScore(int doc_id, float score, float valSrcScore)
 		throws IOException {
 	    Document doc = reader.document(doc_id, fieldsToLoad);
-	    IndexableField field = doc.getField(WikiFileIndexer.WEIGHT_ATTRIB);
+	    IndexableField field = doc.getField(boostFieldLabel);
 	    double weight = field.numericValue().doubleValue();
 	    if (weight == 0)
 		weight = 1;
