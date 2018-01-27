@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -17,15 +18,10 @@ import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -39,7 +35,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import indexing.GeneralIndexer;
-import wiki13.WikiFileIndexer;
 
 public class QueryServices {
 
@@ -73,9 +68,13 @@ public class QueryServices {
 		    "Number of docs in index: " + reader.numDocs());
 	    IndexSearcher searcher = new IndexSearcher(reader);
 	    searcher.setSimilarity(similarity);
+	    Map<String, Float> fieldBoostMap = new HashMap<String, Float>();
+	    for (String attrib : attribs) {
+		fieldBoostMap.put(attrib, 1.0f);
+	    }
+	    LuceneQueryBuilder lqb = new LuceneQueryBuilder(fieldBoostMap);
 	    for (ExperimentQuery queryDAO : queries) {
-		// LOGGER.log(Level.INFO,queryCoutner++);
-		Query query = buildLuceneQuery(queryDAO.getText(), attribs);
+		Query query = lqb.buildQuery(queryDAO.getText());
 		TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
 		QueryResult iqr = new QueryResult(queryDAO);
 		for (int i = 0; i < Math.min(TOP_DOC_COUNT,
@@ -95,15 +94,14 @@ public class QueryServices {
 
     public static List<QueryResult> runQueriesWithBoosting(
 	    List<ExperimentQuery> queries, String indexPath,
-	    Similarity similarity, Map<String, Float> fieldToBoost) {
+	    Similarity similarity, Map<String, Float> fieldBoostMap) {
 	return runQueriesWithBoosting(queries, indexPath, similarity,
-		fieldToBoost, false, false);
+		new LuceneQueryBuilder(fieldBoostMap), false);
     }
 
     public static List<QueryResult> runQueriesWithBoosting(
 	    List<ExperimentQuery> queries, String indexPath,
-	    Similarity similarity, Map<String, Float> fieldToBoost,
-	    boolean explain, boolean boostDoc) {
+	    Similarity similarity, LuceneQueryBuilder lqb, boolean explain) {
 	List<QueryResult> iqrList = new ArrayList<QueryResult>();
 	try (IndexReader reader = DirectoryReader
 		.open(FSDirectory.open(Paths.get(indexPath)))) {
@@ -112,14 +110,7 @@ public class QueryServices {
 	    IndexSearcher searcher = new IndexSearcher(reader);
 	    searcher.setSimilarity(similarity);
 	    for (ExperimentQuery experimentQuery : queries) {
-		Query query;
-		if (boostDoc) {
-		    query = buildBoostedLuceneQuery(experimentQuery.getText(),
-			    fieldToBoost);
-		} else {
-		    query = buildLuceneQuery(experimentQuery.getText(),
-			    fieldToBoost);
-		}
+		Query query = lqb.buildQuery(experimentQuery.getText());
 		ScoreDoc[] hits = searcher.search(query,
 			TOP_DOC_COUNT).scoreDocs;
 		QueryResult iqr = new QueryResult(experimentQuery);
@@ -171,42 +162,6 @@ public class QueryServices {
 	    return topDocs.totalHits;
 	else
 	    return 0;
-    }
-
-    public static Query buildLuceneQuery(String queryString,
-	    Map<String, Float> fieldToBoost) {
-	MultiFieldQueryParser multiFieldParser = new MultiFieldQueryParser(
-		fieldToBoost.keySet().toArray(new String[0]),
-		new StandardAnalyzer(), fieldToBoost);
-	multiFieldParser.setDefaultOperator(Operator.OR);
-	Query query = null;
-	try {
-	    query = multiFieldParser.parse(QueryParser.escape(queryString));
-	} catch (ParseException e) {
-	    e.printStackTrace();
-	}
-	return query;
-    }
-
-    public static Query buildBoostedLuceneQuery(String queryString,
-	    Map<String, Float> fieldToBoost) {
-	return new BoostedScoreQuery(
-		buildLuceneQuery(queryString, fieldToBoost),
-		WikiFileIndexer.WEIGHT_ATTRIB);
-    }
-
-    public static Query buildLuceneQuery(String queryString, String... fields) {
-	MultiFieldQueryParser multiFieldParser = new MultiFieldQueryParser(
-		fields, new StandardAnalyzer());
-	multiFieldParser.setDefaultOperator(Operator.OR);
-	Query query = null;
-	try {
-	    query = multiFieldParser.parse(QueryParser.escape(queryString));
-	} catch (ParseException e) {
-	    e.printStackTrace();
-	}
-	LOGGER.log(Level.INFO, "Lucene query: " + query.toString());
-	return query;
     }
 
     public static List<ExperimentQuery> loadMsnQueries(String queryPath,

@@ -71,8 +71,8 @@ public class WikiClusterExperiment {
 	    }
 	    LOGGER.log(Level.INFO,
 		    "Submitting {0} queries to partition {1} at index {2} with gamma = {3} and docboost = {4}",
-		    new Object[] { queries.size(), currentPartitionCountOption,
-			    totalPartitionCountOption, gamma, docBoost });
+		    new Object[] { queries.size(), currentPartition,
+			    totalPartitionCount, gamma, docBoost });
 	    long startTime = System.currentTimeMillis();
 	    List<QueryResult> results = WikiExperiment.runQueriesOnGlobalIndex(
 		    indexPath, queries, gamma, docBoost);

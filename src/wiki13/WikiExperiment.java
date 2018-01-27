@@ -14,6 +14,7 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import indexing.InexDatasetIndexer;
 import indexing.InexFile;
 import query.ExperimentQuery;
+import query.LuceneQueryBuilder;
 import query.QueryResult;
 import query.QueryServices;
 
@@ -68,9 +69,15 @@ public class WikiExperiment {
 	Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 	fieldToBoost.put(WikiFileIndexer.TITLE_ATTRIB, gamma);
 	fieldToBoost.put(WikiFileIndexer.CONTENT_ATTRIB, 1 - gamma);
+	LuceneQueryBuilder lqb;
+	if (boostDoc) {
+	    lqb = new LuceneQueryBuilder(fieldToBoost,
+		    WikiFileIndexer.WEIGHT_ATTRIB);
+	} else {
+	    lqb = new LuceneQueryBuilder(fieldToBoost);
+	}
 	List<QueryResult> results = QueryServices.runQueriesWithBoosting(
-		queries, indexPath, new BM25Similarity(), fieldToBoost, false,
-		boostDoc);
+		queries, indexPath, new BM25Similarity(), lqb, false);
 	return results;
     }
 
