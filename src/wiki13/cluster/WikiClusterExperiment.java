@@ -25,33 +25,40 @@ public class WikiClusterExperiment {
 
     public static void main(String[] args) {
 	Options options = new Options();
-	Option queryOption = new Option("query", false,
-		"Flag to run querying experiment");
-	options.addOption(queryOption);
-	Option totalExpNumberOption = new Option("total", true,
+	Option totalPartitionCountOption = new Option("total", true,
 		"Total number of experiments");
-	totalExpNumberOption.setRequired(true);
-	options.addOption(totalExpNumberOption);
-	Option expNumberOption = new Option("exp", true,
+	totalPartitionCountOption.setRequired(true);
+	options.addOption(totalPartitionCountOption);
+	Option currentPartitionCountOption = new Option("exp", true,
 		"Number of experiment");
-	expNumberOption.setRequired(true);
-	options.addOption(expNumberOption);
+	currentPartitionCountOption.setRequired(true);
+	options.addOption(currentPartitionCountOption);
 	Option useMsnQueryLogOption = new Option("msn", false,
 		"specifies the query log (msn/inex)");
 	options.addOption(useMsnQueryLogOption);
+	Option gammaOption = new Option("gamma", true,
+		"Weight of Title in scoring");
+	options.addOption(gammaOption);
+	Option queryLogOption = new Option("log", false,
+		"Generates verbose query logs");
+	options.addOption(queryLogOption);
 	Option boostOption = new Option("boost", false, "Document boosting");
 	options.addOption(boostOption);
 	CommandLineParser clp = new DefaultParser();
 	HelpFormatter formatter = new HelpFormatter();
 	CommandLine cl;
-
 	try {
 	    cl = clp.parse(options, args);
-	    int expNo = Integer.parseInt(cl.getOptionValue("exp"));
-	    int totalExp = Integer.parseInt(cl.getOptionValue("total"));
-	    float gamma = 0.15f;
+	    final int currentPartition = Integer
+		    .parseInt(cl.getOptionValue("exp"));
+	    final int totalPartitionCount = Integer
+		    .parseInt(cl.getOptionValue("total"));
+	    final float gamma = Float
+		    .parseFloat(cl.getOptionValue("gamma", "0.15"));
+	    final boolean docBoost = cl.hasOption("boost");
 	    String indexPath = WikiClusterPaths.INDEX_BASE + "wiki13_p"
-		    + totalExp + "_w13" + "/part_" + expNo;
+		    + totalPartitionCount + "_w13" + "/part_"
+		    + currentPartition;
 	    List<ExperimentQuery> queries;
 	    if (cl.hasOption("msn")) {
 		queries = QueryServices.loadMsnQueries(
@@ -62,27 +69,26 @@ public class WikiClusterExperiment {
 			WikiClusterPaths.QUERYFILE_PATH,
 			WikiClusterPaths.QREL_PATH, "title");
 	    }
-
-	    LOGGER.log(Level.INFO, "querying " + expNo + " at " + totalExp);
+	    LOGGER.log(Level.INFO,
+		    "Submitting {0} queries to partition {1} at index {2} with gamma = {3} and docboost = {4}",
+		    new Object[] { queries.size(), currentPartitionCountOption,
+			    totalPartitionCountOption, gamma, docBoost });
 	    long startTime = System.currentTimeMillis();
-	    List<QueryResult> results;
-	    if (cl.hasOption("boost")) {
-		results = WikiExperiment.runQueriesOnGlobalIndex(indexPath,
-			queries, gamma, true);
-	    } else {
-		results = WikiExperiment.runQueriesOnGlobalIndex(indexPath,
-			queries, gamma);
-	    }
-	    WikiExperiment.writeResultsToFile(results, "result/",
-		    expNo + ".csv");
+	    List<QueryResult> results = WikiExperiment.runQueriesOnGlobalIndex(
+		    indexPath, queries, gamma, docBoost);
 	    long endTime = System.currentTimeMillis();
-	    LOGGER.log(Level.INFO, "logging.. ");
-	    Map<String, Double> idPopMap = PopularityUtils
-		    .loadIdPopularityMap(WikiClusterPaths.FILELIST_PATH);
-	    QueryResult.logResultsWithPopularity(results, idPopMap,
-		    "result/" + expNo + ".log", 20);
-	    LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
-		    + (endTime - startTime) / 1000 + " secs");
+	    LOGGER.log(Level.INFO, "Querying done in {0} seconds",
+		    (endTime - startTime) / 1000);
+	    WikiExperiment.writeResultsToFile(results, "result/",
+		    currentPartition + ".csv");
+	    if (cl.hasOption("log")) {
+		LOGGER.log(Level.INFO, "logging.. ");
+		Map<String, Double> idPopMap = PopularityUtils
+			.loadIdPopularityMap(WikiClusterPaths.FILELIST_PATH);
+		QueryResult.logResultsWithPopularity(results, idPopMap,
+			"result/" + currentPartition + ".log", 20);
+		LOGGER.log(Level.INFO, "Logging done. ");
+	    }
 	} catch (org.apache.commons.cli.ParseException e) {
 	    LOGGER.log(Level.INFO, e.getMessage());
 	    formatter.printHelp("", options);
