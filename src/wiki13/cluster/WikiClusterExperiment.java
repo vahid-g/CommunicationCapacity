@@ -25,9 +25,6 @@ public class WikiClusterExperiment {
 
     public static void main(String[] args) {
 	Options options = new Options();
-	Option indexOption = new Option("index", false,
-		"Flag to run indexing experiment");
-	options.addOption(indexOption);
 	Option queryOption = new Option("query", false,
 		"Flag to run querying experiment");
 	options.addOption(queryOption);
@@ -55,44 +52,37 @@ public class WikiClusterExperiment {
 	    float gamma = 0.15f;
 	    String indexPath = WikiClusterPaths.INDEX_BASE + "wiki13_p"
 		    + totalExp + "_w13" + "/part_" + expNo;
-	    if (cl.hasOption("index")) {
-		LOGGER.log(Level.INFO, "Building index..");
-		WikiExperiment.buildGlobalIndex(expNo, totalExp,
-			WikiClusterPaths.FILELIST_PATH, indexPath);
+	    List<ExperimentQuery> queries;
+	    if (cl.hasOption("msn")) {
+		queries = QueryServices.loadMsnQueries(
+			WikiClusterPaths.MSN_QUERY_QID,
+			WikiClusterPaths.MSN_QID_QREL);
+	    } else {
+		queries = QueryServices.loadInexQueries(
+			WikiClusterPaths.QUERYFILE_PATH,
+			WikiClusterPaths.QREL_PATH, "title");
 	    }
-	    if (cl.hasOption("query")) {
-		List<ExperimentQuery> queries;
-		if (cl.hasOption("msn")) {
-		    queries = QueryServices.loadMsnQueries(
-			    WikiClusterPaths.MSN_QUERY_QID,
-			    WikiClusterPaths.MSN_QID_QREL);
-		} else {
-		    queries = QueryServices.loadInexQueries(
-			    WikiClusterPaths.QUERYFILE_PATH,
-			    WikiClusterPaths.QREL_PATH, "title");
-		}
 
-		LOGGER.log(Level.INFO, "querying " + expNo + " at " + totalExp);
-		long startTime = System.currentTimeMillis();
-		List<QueryResult> results;
-		if (cl.hasOption("boost")) {
-		    results = WikiExperiment.runQueriesOnGlobalIndex(indexPath,
-			    queries, gamma, true);
-		} else {
-		    results = WikiExperiment.runQueriesOnGlobalIndex(indexPath,
-			    queries, gamma);
-		}
-		WikiExperiment.writeResultsToFile(results, "result/",
-			expNo + ".csv");
-		long endTime = System.currentTimeMillis();
-		LOGGER.log(Level.INFO, "logging.. ");
-		Map<String, Double> idPopMap = PopularityUtils
-			.loadIdPopularityMap(WikiClusterPaths.FILELIST_PATH);
-		QueryResult.logResultsWithPopularity(results, idPopMap,
-			"result/" + expNo + ".log", 20);
-		LOGGER.log(Level.INFO, "Time spent for experiment " + expNo
-			+ " is " + (endTime - startTime) / 1000 + " secs");
+	    LOGGER.log(Level.INFO, "querying " + expNo + " at " + totalExp);
+	    long startTime = System.currentTimeMillis();
+	    List<QueryResult> results;
+	    if (cl.hasOption("boost")) {
+		results = WikiExperiment.runQueriesOnGlobalIndex(indexPath,
+			queries, gamma, true);
+	    } else {
+		results = WikiExperiment.runQueriesOnGlobalIndex(indexPath,
+			queries, gamma);
 	    }
+	    WikiExperiment.writeResultsToFile(results, "result/",
+		    expNo + ".csv");
+	    long endTime = System.currentTimeMillis();
+	    LOGGER.log(Level.INFO, "logging.. ");
+	    Map<String, Double> idPopMap = PopularityUtils
+		    .loadIdPopularityMap(WikiClusterPaths.FILELIST_PATH);
+	    QueryResult.logResultsWithPopularity(results, idPopMap,
+		    "result/" + expNo + ".log", 20);
+	    LOGGER.log(Level.INFO, "Time spent for experiment " + expNo + " is "
+		    + (endTime - startTime) / 1000 + " secs");
 	} catch (org.apache.commons.cli.ParseException e) {
 	    LOGGER.log(Level.INFO, e.getMessage());
 	    formatter.printHelp("", options);
