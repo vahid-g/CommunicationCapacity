@@ -9,9 +9,9 @@ import org.junit.Test;
 public class MslrExperimentTest {
 
     @Test
-    public void test() {
-	List<Integer> results = MslrExperiment.loadSortedClickCountList();
-	assertEquals(3, (int)results.get(0));
+    public void testLoadSortedClickCountList() {
+	List<Integer> results = MslrExperiment.loadSortedClickCountList("test_data/mslr_sample.txt");
+	assertEquals(3, (int) results.get(0));
     }
 
 }
