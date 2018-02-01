@@ -17,11 +17,17 @@ public class MslrExperiment {
 
     final static int MAX_PAGECOUNT = 2789632;
 
+    final static int RELEVANCE_THRESHOLD = 2;
+
     public static void main(String[] args) {
-	String querysetPath = args[1];
-	int partitionCount = 10;
+	String querysetPath = args[0];
+	int partitionCount = 50;
 	System.out.println("Loading sorted click counts..");
 	List<Integer> clickCountsList = loadSortedClickCountList(querysetPath);
+	System.out.println("Making thresholds list..");
+	List<Integer> thresholdList = buildThresholdsList(clickCountsList,
+		partitionCount);
+	System.out.println("Thresholds: " + thresholdList);
 	System.out.println("Loading query results..");
 	Map<Integer, List<QueryResult>> qidResultMap = null;
 	try (BufferedReader br = new BufferedReader(
@@ -33,24 +39,43 @@ public class MslrExperiment {
 	    e.printStackTrace();
 	}
 	System.out.println("Computing query results..");
-	try (FileWriter fw = new FileWriter("mslr_result.csv")) {
+	try (FileWriter fwPre = new FileWriter("pre20.csv");
+		FileWriter fwRecall = new FileWriter("recall.csv");
+		FileWriter fwMRR = new FileWriter("mrr.csv");
+		FileWriter fwMAP = new FileWriter("map.csv");
+		FileWriter fwNDCG = new FileWriter("ndcg.csv")) {
 	    for (int qid : qidResultMap.keySet()) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(qid);
-		for (double i = 1; i <= partitionCount; i++) {
-		    double partitionPercentage = i / partitionCount;
-		    int threshold = clickCountsList.get((int) Math
-			    .ceil(partitionPercentage * clickCountsList.size())
-			    - 1);
-		    System.out.println(threshold);
-		    List<QueryResult> results = qidResultMap.get(qid);
-		    results = results.stream()
+		StringBuilder preStringBuilder = new StringBuilder();
+		StringBuilder recStringBuilder = new StringBuilder();
+		StringBuilder mrrStringBuilder = new StringBuilder();
+		StringBuilder mapStringBuilder = new StringBuilder();
+		StringBuilder ndcgStringBuilder = new StringBuilder();
+		preStringBuilder.append(qid);
+		recStringBuilder.append(qid);
+		mrrStringBuilder.append(qid);
+		mapStringBuilder.append(qid);
+		ndcgStringBuilder.append(qid);
+		List<QueryResult> results = qidResultMap.get(qid);
+		int rels = (int) results.stream()
+			.filter(r -> r.rel > RELEVANCE_THRESHOLD).count();
+		for (int threshold : thresholdList) {
+		    List<QueryResult> filteredResults = results.stream()
 			    .filter(result -> result.clickCount >= threshold)
 			    .collect(Collectors.toList());
-		    double pk = precisionAtK(results, 10);
-		    sb.append("," + pk);
+		    preStringBuilder
+			    .append("," + precisionAtK(filteredResults, 20));
+		    recStringBuilder
+			    .append("," + recall(filteredResults, rels));
+		    mrrStringBuilder.append("," + mrr(filteredResults));
+		    mapStringBuilder
+			    .append("," + averagePrecision(filteredResults));
+		    ndcgStringBuilder.append("," + ndcg(filteredResults, 20));
 		}
-		fw.write(sb.toString() + "\n");
+		fwPre.write(preStringBuilder.toString() + "\n");
+		fwRecall.write(recStringBuilder.toString() + "\n");
+		fwMRR.write(mrrStringBuilder.toString() + "\n");
+		fwMAP.write(mapStringBuilder.toString() + "\n");
+		fwNDCG.write(ndcgStringBuilder.toString() + "\n");
 	    }
 	} catch (IOException e) {
 	    e.printStackTrace();
@@ -83,6 +108,8 @@ public class MslrExperiment {
 		String urlID = fieldsList.stream()
 			.map(x -> getValueOfKeyValueString(x))
 			.collect(Collectors.joining(" "));
+		Integer queryClickCount = Integer
+			.parseInt(getValueOfKeyValueString(fields[135]));
 		Integer clickCount = Integer
 			.parseInt(getValueOfKeyValueString(fields[136]));
 		if (urlClickCountMap.containsKey(urlID)) {
@@ -137,14 +164,81 @@ public class MslrExperiment {
 	int counter = 0;
 	double tp = 0;
 	for (QueryResult result : results) {
-	    if (counter >= k) {
+	    if (counter++ >= k) {
 		break;
 	    }
-	    if (result.rel > 0) { // TODO this threshold should be set
+	    if (result.rel > RELEVANCE_THRESHOLD) {
 		tp++;
 	    }
 	}
 	return tp / k;
+    }
+
+    protected static double recall(List<QueryResult> results, int rels) {
+	if (rels == 0) return 0;
+	long tp = results.stream().filter(r -> r.rel > RELEVANCE_THRESHOLD)
+		.count();
+	return ((double) tp) / rels;
+    }
+
+    protected static double mrr(List<QueryResult> results) {
+	for (int i = 0; i < results.size(); i++) {
+	    if (results.get(i).rel > RELEVANCE_THRESHOLD) {
+		return (1.0 / (i + 1));
+	    }
+	}
+	return 0;
+    }
+
+    protected static double averagePrecision(List<QueryResult> results) {
+	double rels = 0;
+	double sum = 0;
+	for (int i = 0; i < results.size(); i++) {
+	    if (results.get(i).rel > RELEVANCE_THRESHOLD) {
+		rels++;
+		sum += rels / (i + 1);
+	    }
+	}
+	return sum / rels;
+    }
+
+    protected static double ndcg(List<QueryResult> results, int p) {
+	double dcg = 0;
+	for (int i = 0; i < Math.min(p, results.size()); i++) {
+	    if (results.get(i).rel > RELEVANCE_THRESHOLD) {
+		dcg += results.get(i).rel / (Math.log(i + 2) / Math.log(2));
+	    }
+	}
+	double idcg = idcg(results, p);
+	if (idcg == 0)
+	    return 0;
+	return dcg / idcg;
+    }
+
+    protected static double idcg(List<QueryResult> results, int p) {
+	List<Double> qrelScoreList = results.stream().map(r -> r.bm25)
+		.collect(Collectors.toList());
+	Collections.sort(qrelScoreList, Collections.reverseOrder());
+	double dcg = 0;
+	for (int i = 0; i < Math.min(qrelScoreList.size(), p); i++) {
+	    dcg += qrelScoreList.get(i) / (Math.log(i + 2) / Math.log(2));
+	}
+	return dcg;
+    }
+
+    protected static List<Integer> buildThresholdsList(
+	    List<Integer> clickCounts, int partitionCount) {
+	if (partitionCount > clickCounts.size()) {
+	    System.err.println("Partition size is larger than clickCounts!");
+	    return clickCounts;
+	}
+	List<Integer> thresholds = new ArrayList<Integer>();
+	int step = (clickCounts.size() + 1) / partitionCount;
+	for (int i = 1; i < partitionCount; i++) {
+	    thresholds.add(clickCounts.get(i * step - 1));
+	}
+	thresholds.add(clickCounts.get(clickCounts.size() - 1));
+	return thresholds;
     }
 
     protected static List<Integer> parseQueries(String dataFile) {
@@ -207,7 +301,11 @@ public class MslrExperiment {
     protected static class BM25Comparator implements Comparator<QueryResult> {
 	@Override
 	public int compare(QueryResult o1, QueryResult o2) {
-	    return (o1.bm25 > o2.bm25) ? 1 : 0;
+	    if (o1.bm25 > o2.bm25)
+		return -1;
+	    else if (o1.bm25 < o2.bm25)
+		return 1;
+	    return 0;
 	}
     }
 }
