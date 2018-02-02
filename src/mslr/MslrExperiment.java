@@ -17,7 +17,7 @@ public class MslrExperiment {
 
     final static int MAX_PAGECOUNT = 2789632;
 
-    final static int RELEVANCE_THRESHOLD = 2;
+    final static int RELEVANCE_THRESHOLD = 1;
 
     public static void main(String[] args) {
 	String querysetPath = args[0];
@@ -175,7 +175,8 @@ public class MslrExperiment {
     }
 
     protected static double recall(List<QueryResult> results, int rels) {
-	if (rels == 0) return 0;
+	if (rels == 0)
+	    return 0;
 	long tp = results.stream().filter(r -> r.rel > RELEVANCE_THRESHOLD)
 		.count();
 	return ((double) tp) / rels;
@@ -192,6 +193,8 @@ public class MslrExperiment {
 
     protected static double averagePrecision(List<QueryResult> results) {
 	double rels = 0;
+	if (rels == 0)
+	    return 0;
 	double sum = 0;
 	for (int i = 0; i < results.size(); i++) {
 	    if (results.get(i).rel > RELEVANCE_THRESHOLD) {
