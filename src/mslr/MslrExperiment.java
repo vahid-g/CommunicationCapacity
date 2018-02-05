@@ -74,7 +74,7 @@ public class MslrExperiment {
 		    preStringBuilder.append("," + precisionAtK(filteredResults, 20));
 		    recStringBuilder.append("," + recall(filteredResults, rels));
 		    mrrStringBuilder.append("," + mrr(filteredResults));
-		    mapStringBuilder.append("," + averagePrecision(filteredResults));
+		    mapStringBuilder.append("," + averagePrecision(filteredResults, rels));
 		    ndcgStringBuilder.append("," + ndcg(filteredResults, 20));
 		}
 		fwPre.write(preStringBuilder.toString() + "\n");
@@ -87,7 +87,7 @@ public class MslrExperiment {
 	    e.printStackTrace();
 	}
     }
-    
+
     protected static Map<Integer, List<QueryResult>> loadQueryResultsWithUrlId(BufferedReader br,
 	    List<URL> urlClickCountList) throws IOException {
 	Map<Integer, List<QueryResult>> qidResultMap = new HashMap<Integer, List<QueryResult>>();
@@ -140,8 +140,7 @@ public class MslrExperiment {
 	fieldsList.add(fields[128]);
 	fieldsList.add(fields[129]);
 	fieldsList.add(fields[130]);
-	String urlStringId = fieldsList.stream().map(x -> getValueOfKeyValueString(x))
-	    .collect(Collectors.joining("|"));
+	String urlStringId = fieldsList.stream().map(x -> getValueOfKeyValueString(x)).collect(Collectors.joining("|"));
 	return urlStringId;
     }
 
@@ -182,12 +181,11 @@ public class MslrExperiment {
 		int rels = (int) results.stream().filter(r -> r.rel > RELEVANCE_THRESHOLD).count();
 		for (int threshold : thresholdList) {
 		    List<QueryResult> filteredResults = results.stream()
-			    .filter(result -> result.url.clickCount >= threshold)
-			    .collect(Collectors.toList());
+			    .filter(result -> result.url.clickCount >= threshold).collect(Collectors.toList());
 		    preStringBuilder.append("," + precisionAtK(filteredResults, 20));
 		    recStringBuilder.append("," + recall(filteredResults, rels));
 		    mrrStringBuilder.append("," + mrr(filteredResults));
-		    mapStringBuilder.append("," + averagePrecision(filteredResults));
+		    mapStringBuilder.append("," + averagePrecision(filteredResults, rels));
 		    ndcgStringBuilder.append("," + ndcg(filteredResults, 20));
 		}
 		fwPre.write(preStringBuilder.toString() + "\n");
@@ -303,8 +301,7 @@ public class MslrExperiment {
 	return 0;
     }
 
-    protected static double averagePrecision(List<QueryResult> results) {
-	double rels = 0;
+    protected static double averagePrecision(List<QueryResult> results, double rels) {
 	if (rels == 0)
 	    return 0;
 	double sum = 0;
@@ -317,27 +314,29 @@ public class MslrExperiment {
 	return sum / rels;
     }
 
-    protected static double ndcg(List<QueryResult> results, int p) {
+    protected static double ndcg(final List<QueryResult> results, int p) {
 	double dcg = 0;
-	for (int i = 0; i < Math.min(p, results.size()); i++) {
-	    if (results.get(i).rel > RELEVANCE_THRESHOLD) {
-		dcg += results.get(i).rel / (Math.log(i + 2) / Math.log(2));
+	for (int i = 1; i <= Math.min(p, results.size()); i++) {
+	    if (results.get(i - 1).rel > RELEVANCE_THRESHOLD) {
+		dcg += results.get(i - 1).rel / (Math.log(i + 1) / Math.log(2));
 	    }
 	}
-	double idcg = idcg(results, p);
+	double idcg = idcg(results);
 	if (idcg == 0)
 	    return 0;
+	if (dcg < 0 || idcg < 0) {
+	    System.out.println("negative ndcg dcg: " + dcg + " idcg: " + idcg);
+	}
 	return dcg / idcg;
     }
 
-    protected static double idcg(List<QueryResult> results, int p) {
-	List<Double> qrelScoreList = results.stream().map(r -> r.bm25).collect(Collectors.toList());
-	Collections.sort(qrelScoreList, Collections.reverseOrder());
-	double dcg = 0;
-	for (int i = 0; i < Math.min(qrelScoreList.size(), p); i++) {
-	    dcg += qrelScoreList.get(i) / (Math.log(i + 2) / Math.log(2));
+    protected static double idcg(final List<QueryResult> results) {
+	List<QueryResult> rels = results.stream().filter(r -> r.rel > RELEVANCE_THRESHOLD).collect(Collectors.toList());
+	double idcg = 0;
+	for (int i = 1; i <= rels.size(); i++) {
+	    idcg += (Math.pow(2, results.get(i - 1).rel) - 1) / (Math.log(i + 1) / Math.log(2));
 	}
-	return dcg;
+	return idcg;
     }
 
     protected static List<Integer> buildThresholdsList(List<Integer> clickCounts, int partitionCount) {
