@@ -35,7 +35,17 @@ public class WikiFileIndexerTest {
 	    IndexReader reader = DirectoryReader.open(ramDirectory);
 	    Document doc = reader.document(0);
 	    assertEquals(inexFile.title, doc.get(WikiFileIndexer.TITLE_ATTRIB));
-	    assertEquals(inexFile.weight, Double.parseDouble(doc.get(WikiFileIndexer.WEIGHT_ATTRIB)), 0.001);
+	    assertEquals(inexFile.weight,
+		    Double.parseDouble(doc.get(WikiFileIndexer.WEIGHT_ATTRIB)),
+		    0.001);
+
+	    // final Fields fields = MultiFields.getFields(reader);
+	    // final Iterator<String> iterator = fields.iterator();
+	    // System.out.println(fields.size());
+	    // while (iterator.hasNext()) {
+	    // final String field = iterator.next();
+	    // System.out.println(field);
+	    // }
 	}
     }
 

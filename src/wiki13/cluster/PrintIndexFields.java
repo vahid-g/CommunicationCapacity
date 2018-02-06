@@ -14,7 +14,7 @@ public class PrintIndexFields {
 
     public static void main(String[] args) {
 	String indexPath = WikiClusterPaths.INDEX_BASE
-		+ "wiki13_p50_w13/part_1";
+		+ "wiki13_p50_w13/part_41";
 	try (FSDirectory directory = FSDirectory.open(Paths.get(indexPath));
 		IndexReader reader = DirectoryReader.open(directory)) {
 	    final Fields fields = MultiFields.getFields(reader);
