@@ -237,7 +237,7 @@ public class ImdbExperiment {
 	fieldToBoost.put(ImdbIndexer.ACTORS_ATTRIB, 2f);
 	fieldToBoost.put(ImdbIndexer.REST_ATTRIB, 2f);
 	List<QueryResult> results = QueryServices.runQueriesWithBoosting(
-		queries, indexName, new BM25Similarity(), fieldToBoost);
+		queries, indexName, new BM25Similarity(), fieldToBoost, 200);
 	allResults.add(results);
 	fieldToBoost = new HashMap<String, Float>();
 	fieldToBoost.put(ImdbIndexer.TITLE_ATTRIB, 0.20f);
@@ -246,7 +246,7 @@ public class ImdbExperiment {
 	fieldToBoost.put(ImdbIndexer.ACTORS_ATTRIB, 0.18f);
 	fieldToBoost.put(ImdbIndexer.REST_ATTRIB, 0.19f);
 	results = QueryServices.runQueriesWithBoosting(queries, indexName,
-		new BM25Similarity(), fieldToBoost);
+		new BM25Similarity(), fieldToBoost, 200);
 	allResults.add(results);
 
 	LOGGER.log(Level.INFO, "Writing results to file..");
@@ -290,7 +290,7 @@ public class ImdbExperiment {
 		ImdbIndexer.KEYWORDS_ATTRIB, ImdbIndexer.PLOT_ATTRIB,
 		ImdbIndexer.ACTORS_ATTRIB };
 	List<QueryResult> results = QueryServices.runQueries(queries,
-		indexName, queryAttribs);
+		indexName, queryAttribs, 200);
 	LOGGER.log(Level.INFO, "Writing results to file..");
 	try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR
 		+ "imdb_" + expNo + ".csv")) {
@@ -334,7 +334,7 @@ public class ImdbExperiment {
 	fieldToBoost.put(ImdbIndexer.ACTORS_ATTRIB, 2.0f);
 	fieldToBoost.put(ImdbIndexer.REST_ATTRIB, 2.0f);
 	List<QueryResult> results = QueryServices.runQueriesWithBoosting(
-		queries, indexName, new ClassicSimilarity(), fieldToBoost);
+		queries, indexName, new ClassicSimilarity(), fieldToBoost, 200);
 	LOGGER.log(Level.INFO, "Writing results to file..");
 	try (FileWriter fw = new FileWriter(ImdbClusterDirectoryInfo.RESULT_DIR
 		+ "imdb_" + expNo + ".csv");

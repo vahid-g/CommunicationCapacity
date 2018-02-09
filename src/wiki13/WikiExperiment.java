@@ -77,7 +77,7 @@ public class WikiExperiment {
 	    lqb = new LuceneQueryBuilder(fieldToBoost);
 	}
 	List<QueryResult> results = QueryServices.runQueriesWithBoosting(
-		queries, indexPath, new BM25Similarity(), lqb, false);
+		queries, indexPath, new BM25Similarity(), lqb, false, 200);
 	return results;
     }
 

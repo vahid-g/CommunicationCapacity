@@ -38,8 +38,6 @@ import indexing.GeneralIndexer;
 
 public class QueryServices {
 
-    final static int TOP_DOC_COUNT = 1000;
-
     static final Logger LOGGER = Logger
 	    .getLogger(QueryServices.class.getName());
 
@@ -51,16 +49,18 @@ public class QueryServices {
 	    String indexPath) {
 	String[] attribs = { GeneralIndexer.TITLE_ATTRIB,
 		GeneralIndexer.CONTENT_ATTRIB };
-	return runQueries(queries, indexPath, attribs);
+	return runQueries(queries, indexPath, attribs, 200);
     }
 
     public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
-	    String indexPath, String[] attribs) {
-	return runQueries(queries, indexPath, new ClassicSimilarity(), attribs);
+	    String indexPath, String[] attribs, int topDocCount) {
+	return runQueries(queries, indexPath, new ClassicSimilarity(), attribs,
+		topDocCount);
     }
 
     public static List<QueryResult> runQueries(List<ExperimentQuery> queries,
-	    String indexPath, Similarity similarity, String[] attribs) {
+	    String indexPath, Similarity similarity, String[] attribs,
+	    int topDocCount) {
 	List<QueryResult> iqrList = new ArrayList<QueryResult>();
 	try (IndexReader reader = DirectoryReader
 		.open(FSDirectory.open(Paths.get(indexPath)))) {
@@ -75,9 +75,9 @@ public class QueryServices {
 	    LuceneQueryBuilder lqb = new LuceneQueryBuilder(fieldBoostMap);
 	    for (ExperimentQuery queryDAO : queries) {
 		Query query = lqb.buildQuery(queryDAO.getText());
-		TopDocs topDocs = searcher.search(query, TOP_DOC_COUNT);
+		TopDocs topDocs = searcher.search(query, topDocCount);
 		QueryResult iqr = new QueryResult(queryDAO);
-		for (int i = 0; i < Math.min(TOP_DOC_COUNT,
+		for (int i = 0; i < Math.min(topDocCount,
 			topDocs.scoreDocs.length); i++) {
 		    Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
 		    String docId = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
@@ -94,14 +94,16 @@ public class QueryServices {
 
     public static List<QueryResult> runQueriesWithBoosting(
 	    List<ExperimentQuery> queries, String indexPath,
-	    Similarity similarity, Map<String, Float> fieldBoostMap) {
+	    Similarity similarity, Map<String, Float> fieldBoostMap,
+	    int topDocCount) {
 	return runQueriesWithBoosting(queries, indexPath, similarity,
-		new LuceneQueryBuilder(fieldBoostMap), false);
+		new LuceneQueryBuilder(fieldBoostMap), false, topDocCount);
     }
 
     public static List<QueryResult> runQueriesWithBoosting(
 	    List<ExperimentQuery> queries, String indexPath,
-	    Similarity similarity, LuceneQueryBuilder lqb, boolean explain) {
+	    Similarity similarity, LuceneQueryBuilder lqb, boolean explain,
+	    int topDocCount) {
 	List<QueryResult> iqrList = new ArrayList<QueryResult>();
 	try (IndexReader reader = DirectoryReader
 		.open(FSDirectory.open(Paths.get(indexPath)))) {
@@ -111,10 +113,9 @@ public class QueryServices {
 	    searcher.setSimilarity(similarity);
 	    for (ExperimentQuery experimentQuery : queries) {
 		Query query = lqb.buildQuery(experimentQuery.getText());
-		ScoreDoc[] hits = searcher.search(query,
-			TOP_DOC_COUNT).scoreDocs;
+		ScoreDoc[] hits = searcher.search(query, topDocCount).scoreDocs;
 		QueryResult iqr = new QueryResult(experimentQuery);
-		for (int i = 0; i < Math.min(TOP_DOC_COUNT, hits.length); i++) {
+		for (int i = 0; i < Math.min(topDocCount, hits.length); i++) {
 		    Document doc = searcher.doc(hits[i].doc);
 		    String docId = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
 		    String docTitle = doc.get(GeneralIndexer.TITLE_ATTRIB);
