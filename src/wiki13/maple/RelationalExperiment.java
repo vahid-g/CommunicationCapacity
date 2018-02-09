@@ -42,8 +42,12 @@ public class RelationalExperiment {
 		List<QueryResult> results = WikiExperiment
 			.runQueriesOnGlobalIndex(indexPath, queries, gamma);
 		for (QueryResult result : results) {
-		    List<String> ids = result.getTopDocuments().stream()
-			    .map(t -> t.id).collect(Collectors.toList());
+		    List<String> ids = result.getTopDocuments()
+			    .subList(0,
+				    Math.min(result.getTopDocuments().size(),
+					    20))
+			    .stream().map(t -> t.id)
+			    .collect(Collectors.toList());
 		    submitSqlQuery(con, ids);
 		}
 		long spentTime = (System.currentTimeMillis() - startTime)
