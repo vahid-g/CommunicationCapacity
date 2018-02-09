@@ -54,7 +54,7 @@ public class RelationalExperiment {
 			/ 1000;
 		System.out.println("Total time: " + spentTime + " secs");
 		System.out.println("Time per query: "
-			+ spentTime / results.size() + " secs");
+			+ spentTime / (double)results.size() + " secs");
 	    } catch (SQLException e) {
 		e.printStackTrace();
 	    }
@@ -79,7 +79,6 @@ public class RelationalExperiment {
 	    while (rs.next()) {
 		String id = rs.getString("id");
 		results.add(id);
-		System.out.println(id);
 	    }
 	} catch (SQLException e) {
 	    e.printStackTrace();
