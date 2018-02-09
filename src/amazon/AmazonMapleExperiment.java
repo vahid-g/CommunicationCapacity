@@ -74,7 +74,7 @@ public class AmazonMapleExperiment {
 		.loadIsbnToLtidMap(ISBN_DICT_PATH);
 	for (int i = 1; i <= 50; i++) {
 	    List<QueryResult> results = QueryServices.runQueriesWithBoosting(
-		    queries, INDEX_PATH, new BM25Similarity(), fieldBoostMap);
+		    queries, INDEX_PATH, new BM25Similarity(), fieldBoostMap, 200);
 	    int subsetSize = (int) (i * sortedLtidList.size() / 50.0);
 	    TreeSet<String> cache = new TreeSet<String>(sortedLtidList.subList(
 		    0, subsetSize));

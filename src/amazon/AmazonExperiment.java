@@ -97,8 +97,8 @@ public class AmazonExperiment {
     Map<String, Float> gridSearchOnGlobalIndex(String queryFile,
 	    String qrelFile, String[] queryFields) {
 	LOGGER.log(Level.INFO, "Loading and running queries..");
-	List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-		queryFile, qrelFile, queryFields);
+	List<ExperimentQuery> queries = QueryServices.loadInexQueries(queryFile,
+		qrelFile, queryFields);
 	LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
 	int fieldCount = fields.length;
 	float[] p10 = new float[fieldCount];
@@ -113,7 +113,8 @@ public class AmazonExperiment {
 	    LOGGER.log(Level.INFO, "Field as doc result with " + fields[i]
 		    + " : " + fieldToBoost.toString());
 	    List<QueryResult> results = QueryServices.runQueriesWithBoosting(
-		    queries, indexPath, new BM25Similarity(), fieldToBoost);
+		    queries, indexPath, new BM25Similarity(), fieldToBoost,
+		    200);
 	    for (QueryResult queryResult : results) {
 		p10[i] += queryResult.precisionAtK(10);
 		mrr[i] += queryResult.mrr();
@@ -159,11 +160,11 @@ public class AmazonExperiment {
     void expOnGlobalIndex(Map<String, Float> fieldToBoost, String queryFile,
 	    String qrelFile, String[] queryFields, boolean extraLogging) {
 	LOGGER.log(Level.INFO, "Loading and running queries..");
-	List<ExperimentQuery> queries = QueryServices.loadInexQueries(
-		queryFile, qrelFile, queryFields);
+	List<ExperimentQuery> queries = QueryServices.loadInexQueries(queryFile,
+		qrelFile, queryFields);
 	LOGGER.log(Level.INFO, "Submitting query.. #query = " + queries.size());
 	List<QueryResult> results = QueryServices.runQueriesWithBoosting(
-		queries, indexPath, new BM25Similarity(), fieldToBoost);
+		queries, indexPath, new BM25Similarity(), fieldToBoost, 200);
 	LOGGER.log(Level.INFO, "updating ISBN results to LTID..");
 	Map<String, String> isbnToLtid = AmazonIsbnConverter
 		.loadIsbnToLtidMap(AmazonDirectoryInfo.ISBN_DICT);
@@ -185,8 +186,8 @@ public class AmazonExperiment {
 		    + this.experimentName + "_" + expNo + ".log";
 	    try (FileWriter fw = new FileWriter(resultPath);
 		    FileWriter fw2 = new FileWriter(logPath);
-		    IndexReader reader = DirectoryReader.open(FSDirectory
-			    .open(Paths.get(indexPath)))) {
+		    IndexReader reader = DirectoryReader
+			    .open(FSDirectory.open(Paths.get(indexPath)))) {
 		for (QueryResult mqr : results) {
 		    fw.write(mqr.resultString() + "\n");
 		    fw2.write(AmazonQueryResultProcessor.generateLog(mqr,
