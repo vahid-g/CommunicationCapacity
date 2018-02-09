@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -19,20 +20,18 @@ import wiki13.WikiExperiment;
 public class RelationalExperiment {
 
     public static void main(String[] args) {
-	// 1: query the main index and retrieve wik-id of the returned tuples
-	// 2: build a sql query to retrieve img and links of the returned
-	// tuples,
-	// submit sql and report the final timing
-
-	// step #1
-	int partition = 1;
+	// step #1: query the main index and retrieve wik-id of the returned
+	// tuples
+	int partition = Integer.parseInt(args[0]);
 	String indexPath = WikiMapleExperiment.DATA_PATH + "wiki_index/"
 		+ partition;
 	float gamma = 1f;
 	List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
 		WikiMapleExperiment.MSN_QUERY_FILE_PATH,
 		WikiMapleExperiment.MSN_QREL_FILE_PATH);
-	// step #2
+
+	// step #2: build a sql query to retrieve img and links of the returned
+	// tuples, submit sql and report the final timing
 	Properties config = new Properties();
 	try (FileInputStream in = new FileInputStream("config.properties")) {
 	    config.load(in);
@@ -57,20 +56,24 @@ public class RelationalExperiment {
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}
-
     }
 
-    public static void submitSqlQuery(Connection con, List<String> ids)
+    public static List<String> submitSqlQuery(Connection con, List<String> ids)
 	    throws SQLException {
 	Statement stmt = null;
-	String query = "SELECT * FROM article a, img i, link l "
-		+ "WHERE a.id = i.id and a.id = l.id AND a.id in "
+	List<String> results = new ArrayList<String>();
+	String query = "SELECT a.id FROM tbl_article_wiki13 a left join "
+		+ "tbl_article_image_09 i on a.id = i.article_id left join "
+		+ "tbl_article_link_09 l on id=l.article_id WHERE a.id in "
 		+ ids.toString().replace('[', '(').replace(']', ')') + ";";
+	System.out.println(query);
 	try {
 	    stmt = con.createStatement();
 	    ResultSet rs = stmt.executeQuery(query);
+	    System.out.println(rs.getFetchSize());
 	    while (rs.next()) {
 		String id = rs.getString("id");
+		results.add(id);
 		System.out.println(id);
 	    }
 	} catch (SQLException e) {
@@ -80,6 +83,7 @@ public class RelationalExperiment {
 		stmt.close();
 	    }
 	}
+	return results;
     }
 
     static Connection getDatabaseConnection(Object user, Object password,
@@ -90,7 +94,8 @@ public class RelationalExperiment {
 	connectionProps.put("password", password);
 	Connection conn = null;
 	try {
-	    conn = DriverManager.getConnection(dbUrl.toString(), connectionProps);
+	    conn = DriverManager.getConnection(dbUrl.toString(),
+		    connectionProps);
 	} catch (SQLException e) {
 	    e.printStackTrace();
 	    return null;
