@@ -13,3 +13,6 @@
 data
 bin
 /jars/
+
+#config
+config.properties

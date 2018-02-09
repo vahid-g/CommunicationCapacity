@@ -7,10 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Properties;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import freebase.FreebaseDataManager;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
