@@ -4,8 +4,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-public class CreateConfig {
+public class General {
     public static void main(String[] args) throws IOException {
+
+    }
+
+    public static void createConfig() throws IOException {
 	FileOutputStream out = new FileOutputStream(
 		"example-config.properties");
 	Properties defaultProps = new Properties();
@@ -16,4 +20,5 @@ public class CreateConfig {
 	defaultProps.store(out, "---Default Config Properties---");
 	out.close();
     }
+
 }

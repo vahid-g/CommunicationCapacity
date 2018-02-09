@@ -1,5 +1,7 @@
 package wiki13.maple;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -30,24 +32,31 @@ public class RelationalExperiment {
 	List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
 		WikiMapleExperiment.MSN_QUERY_FILE_PATH,
 		WikiMapleExperiment.MSN_QREL_FILE_PATH);
-	long startTime = System.currentTimeMillis();
-	List<QueryResult> results = WikiExperiment
-		.runQueriesOnGlobalIndex(indexPath, queries, gamma);
-
 	// step #2
-	try (Connection con = getDatabaseConnection()) {
-	    for (QueryResult result : results) {
-		List<String> ids = result.getTopDocuments().stream()
-			.map(t -> t.id).collect(Collectors.toList());
-		submitSqlQuery(con, ids);
+	Properties config = new Properties();
+	try (FileInputStream in = new FileInputStream("config.properties")) {
+	    config.load(in);
+	    try (Connection con = getDatabaseConnection(config.get("username"),
+		    config.get("password"), config.get("db-url"))) {
+		long startTime = System.currentTimeMillis();
+		List<QueryResult> results = WikiExperiment
+			.runQueriesOnGlobalIndex(indexPath, queries, gamma);
+		for (QueryResult result : results) {
+		    List<String> ids = result.getTopDocuments().stream()
+			    .map(t -> t.id).collect(Collectors.toList());
+		    submitSqlQuery(con, ids);
+		}
+		long spentTime = (System.currentTimeMillis() - startTime)
+			/ 1000;
+		System.out.println("Total time: " + spentTime + " secs");
+		System.out.println("Time per query: "
+			+ spentTime / results.size() + " secs");
+	    } catch (SQLException e) {
+		e.printStackTrace();
 	    }
-	} catch (SQLException e) {
+	} catch (IOException e) {
 	    e.printStackTrace();
 	}
-	long spentTime = (System.currentTimeMillis() - startTime) / 1000;
-	System.out.println("Total time: " + spentTime + " secs");
-	System.out.println(
-		"Time per query: " + spentTime / results.size() + " secs");
 
     }
 
@@ -73,18 +82,20 @@ public class RelationalExperiment {
 	}
     }
 
-    static Connection getDatabaseConnection() throws SQLException {
+    static Connection getDatabaseConnection(Object user, Object password,
+	    Object dbUrl) throws SQLException {
 	Properties connectionProps = new Properties();
-	connectionProps.put("user", "khodadaa");
-	connectionProps.put("password", "");
+	System.out.println(user + ", " + password + ", " + dbUrl);
+	connectionProps.put("user", user);
+	connectionProps.put("password", password);
 	Connection conn = null;
 	try {
-	    conn = DriverManager.getConnection(
-		    "jdbc:mysql://engr-db.engr.oregonstate.edu:3307/khodadaa",
-		    connectionProps);
+	    conn = DriverManager.getConnection(dbUrl.toString(), connectionProps);
 	} catch (SQLException e) {
 	    e.printStackTrace();
+	    return null;
 	}
+	System.out.println("Successfully connected to db");
 	return conn;
     }
 
