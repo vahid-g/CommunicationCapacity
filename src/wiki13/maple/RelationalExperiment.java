@@ -1,7 +1,7 @@
 package wiki13.maple;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -33,7 +33,9 @@ public class RelationalExperiment {
 	// step #2: build a sql query to retrieve img and links of the returned
 	// tuples, submit sql and report the final timing
 	Properties config = new Properties();
-	try (FileInputStream in = new FileInputStream("config.properties")) {
+	// try (FileInputStream in = new FileInputStream("config.properties")) {
+	try (InputStream in = RelationalExperiment.class
+		.getResourceAsStream("/config.properties")) {
 	    config.load(in);
 	    try (Connection con = getDatabaseConnection(config.get("username"),
 		    config.get("password"), config.get("db-url"))) {
@@ -89,7 +91,6 @@ public class RelationalExperiment {
     static Connection getDatabaseConnection(Object user, Object password,
 	    Object dbUrl) throws SQLException {
 	Properties connectionProps = new Properties();
-	System.out.println(user + ", " + password + ", " + dbUrl);
 	connectionProps.put("user", user);
 	connectionProps.put("password", password);
 	Connection conn = null;
