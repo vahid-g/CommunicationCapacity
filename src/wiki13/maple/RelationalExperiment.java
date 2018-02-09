@@ -33,9 +33,8 @@ public class RelationalExperiment {
 	// step #2: build a sql query to retrieve img and links of the returned
 	// tuples, submit sql and report the final timing
 	Properties config = new Properties();
-	// try (FileInputStream in = new FileInputStream("config.properties")) {
 	try (InputStream in = RelationalExperiment.class
-		.getResourceAsStream("/config.properties")) {
+		.getResourceAsStream("/config/config.properties")) {
 	    config.load(in);
 	    try (Connection con = getDatabaseConnection(config.get("username"),
 		    config.get("password"), config.get("db-url"))) {
