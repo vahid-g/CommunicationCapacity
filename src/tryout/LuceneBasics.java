@@ -1,10 +1,8 @@
 package tryout;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Iterator;
-import java.util.Properties;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
@@ -42,14 +40,7 @@ import query.BoostedScoreQuery;
 public class LuceneBasics {
 
     public static void main(String[] args) throws Exception {
-	FileOutputStream out = new FileOutputStream("example-config.properties");
-	Properties defaultProps = new Properties();
-	defaultProps.setProperty("db-url", "jdbc:mysql://engr-db.engr.oregonstate.edu");
-	defaultProps.setProperty("db-port", "3306");
-	defaultProps.setProperty("db-name", "your-db-name");
-	defaultProps.setProperty("password", "****");
-	defaultProps.store(out, "---Default Config Properties---");
-	out.close();
+	
     }
 
     // testing document boosting using costume built query class
