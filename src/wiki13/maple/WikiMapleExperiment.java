@@ -16,10 +16,10 @@ public class WikiMapleExperiment {
     static final String DATA_PATH = "/data/ghadakcv/";
     static final String FILELIST_PATH = DATA_PATH + "wiki13_count13_text.csv";
     static final String FILELIST_COUNT09_PATH = DATA_PATH + "wiki13_count09_text.csv";
-    static final String QUERY_FILE_PATH = "/nfs/stak/users/ghadakcv/Workspace/queries/2013-adhoc.xml";
-    static final String QREL_FILE_PATH = "/nfs/stak/users/ghadakcv/Workspace/queries/2013-adhoc.qrels";
-    static final String MSN_QUERY_FILE_PATH = "/nfs/stak/users/ghadakcv/Workspace/queries/msn_query_qid.csv";
-    static final String MSN_QREL_FILE_PATH = "/nfs/stak/users/ghadakcv/Workspace/queries/msn.qrels";
+    static final String QUERY_FILE_PATH = "/nfs/stak/users/ghadakcv/workspace/queries/2013-adhoc.xml";
+    static final String QREL_FILE_PATH = "/nfs/stak/users/ghadakcv/workspace/queries/2013-adhoc.qrels";
+    static final String MSN_QUERY_FILE_PATH = "/nfs/stak/users/ghadakcv/workspace/queries/msn_query_qid.csv";
+    static final String MSN_QREL_FILE_PATH = "/nfs/stak/users/ghadakcv/workspace/queries/msn.qrels";
 
     protected static void writeResultsListToFile(List<List<QueryResult>> resultsList, String resultDirectoryPath) {
 	File resultsDir = new File(resultDirectoryPath);
