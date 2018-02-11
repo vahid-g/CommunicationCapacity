@@ -37,12 +37,12 @@ public class WikiPartitionIndexer {
 	    int totalPartitionCount = Integer
 		    .parseInt(cl.getOptionValue("total"));
 	    String indexPath = WikiClusterPaths.INDEX_BASE + "wiki13_p"
-		    + totalPartitionCount + "_w13" + "/part_" + partitionNumber;
+		    + totalPartitionCount + "_w09" + "/part_" + partitionNumber;
 	    LOGGER.log(Level.INFO, "Building index for partition {0}/{1}",
 		    new Object[] { partitionNumber, totalPartitionCount });
 	    long startTime = System.currentTimeMillis();
 	    WikiExperiment.buildGlobalIndex(partitionNumber,
-		    totalPartitionCount, WikiClusterPaths.FILELIST_PATH,
+		    totalPartitionCount, WikiClusterPaths.FILELIST_PATH_COUNT09,
 		    indexPath);
 	    long endTime = System.currentTimeMillis();
 	    LOGGER.log(Level.INFO, "Indexing time: {0} sec",
