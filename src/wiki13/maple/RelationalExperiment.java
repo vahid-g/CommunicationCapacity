@@ -20,41 +20,28 @@ import wiki13.WikiExperiment;
 public class RelationalExperiment {
 
     public static void main(String[] args) {
-	// step #1: query the main index and retrieve wik-id of the returned
-	// tuples
-	int partition = Integer.parseInt(args[0]);
-	String indexPath = WikiMapleExperiment.DATA_PATH + "wiki_index/"
-		+ partition;
-	float gamma = 1f;
-	List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
-		WikiMapleExperiment.MSN_QUERY_FILE_PATH,
-		WikiMapleExperiment.MSN_QREL_FILE_PATH);
-
-	// step #2: build a sql query to retrieve img and links of the returned
-	// tuples, submit sql and report the final timing
+	// int docsInSubset = 1163610;
+	String subsetIndexPath = WikiMapleExperiment.DATA_PATH
+		+ "wiki_index/99";
+	String indexPath = WikiMapleExperiment.DATA_PATH + "wiki_index/100";
 	Properties config = new Properties();
 	try (InputStream in = RelationalExperiment.class
 		.getResourceAsStream("/config/config.properties")) {
 	    config.load(in);
 	    try (Connection con = getDatabaseConnection(config.get("username"),
 		    config.get("password"), config.get("db-url"))) {
-		long startTime = System.currentTimeMillis();
-		List<QueryResult> results = WikiExperiment
-			.runQueriesOnGlobalIndex(indexPath, queries, gamma);
-		for (QueryResult result : results) {
-		    List<String> ids = result.getTopDocuments()
-			    .subList(0,
-				    Math.min(result.getTopDocuments().size(),
-					    20))
-			    .stream().map(t -> t.id)
-			    .collect(Collectors.toList());
-		    submitSqlQuery(con, ids);
-		}
-		long spentTime = (System.currentTimeMillis() - startTime)
-			/ 1000;
-		System.out.println("Total time: " + spentTime + " secs");
-		System.out.println("Time per query: "
-			+ spentTime / (double)results.size() + " secs");
+		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
+			WikiMapleExperiment.MSN_QUERY_FILE_PATH,
+			WikiMapleExperiment.MSN_QREL_FILE_PATH);
+		queries = queries.subList(0, 200);
+		String prefix = "SELECT a.id FROM tmp_article_1 a left join "
+			+ "tmp_article_image_1 i on a.id = i.article_id left join "
+			+ "tmp_article_link_1 l on a.id=l.article_id WHERE a.id in ";
+		measureQueryEfficiency(subsetIndexPath, con, queries, prefix);
+		prefix = "SELECT a.id FROM tbl_article_wiki13 a left join "
+			+ "tbl_article_image_09 i on a.id = i.article_id left join "
+			+ "tbl_article_link_09 l on a.id=l.article_id WHERE a.id in ";
+		measureQueryEfficiency(indexPath, con, queries, prefix);
 	    } catch (SQLException e) {
 		e.printStackTrace();
 	    }
@@ -63,29 +50,45 @@ public class RelationalExperiment {
 	}
     }
 
-    public static List<String> submitSqlQuery(Connection con, List<String> ids)
+    private static void measureQueryEfficiency(String indexPath, Connection con,
+	    List<ExperimentQuery> queries, String queryPrefix)
 	    throws SQLException {
-	Statement stmt = null;
+	long startTime = System.currentTimeMillis();
+	List<QueryResult> results = WikiExperiment
+		.runQueriesOnGlobalIndex(indexPath, queries, 1f);
+	int zeroResultCounter = 0;
+	for (QueryResult result : results) {
+	    List<String> ids = result.getTopDocuments()
+		    .subList(0, Math.min(result.getTopDocuments().size(), 20))
+		    .stream().map(t -> t.id).collect(Collectors.toList());
+	    if (ids.size() > 0) {
+		String query = queryPrefix
+			+ ids.toString().replace('[', '(').replace(']', ')')
+			+ ";";
+		submitSqlQuery(con, query);
+	    } else {
+		zeroResultCounter++;
+	    }
+	}
+	long spentTime = (System.currentTimeMillis() - startTime) / 1000;
+	System.out.println("Total time: " + spentTime + " secs");
+	System.out.println("Time per query: "
+		+ spentTime / (double) results.size() + " secs");
+	System.out.println("Zero result counter: " + zeroResultCounter);
+    }
+
+    public static List<String> submitSqlQuery(Connection con, String query)
+	    throws SQLException {
 	List<String> results = new ArrayList<String>();
-	String query = "SELECT a.id FROM tbl_article_wiki13 a left join "
-		+ "tbl_article_image_09 i on a.id = i.article_id left join "
-		+ "tbl_article_link_09 l on id=l.article_id WHERE a.id in "
-		+ ids.toString().replace('[', '(').replace(']', ')') + ";";
-	System.out.println(query);
-	try {
-	    stmt = con.createStatement();
+	try (Statement stmt = con.createStatement()) {
 	    ResultSet rs = stmt.executeQuery(query);
-	    System.out.println(rs.getFetchSize());
 	    while (rs.next()) {
 		String id = rs.getString("id");
 		results.add(id);
 	    }
 	} catch (SQLException e) {
+	    System.out.println(query);
 	    e.printStackTrace();
-	} finally {
-	    if (stmt != null) {
-		stmt.close();
-	    }
 	}
 	return results;
     }
