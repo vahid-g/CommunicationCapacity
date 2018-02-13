@@ -28,10 +28,10 @@ public class WikiExperiment {
     }
 
     public static void buildGlobalIndex(int expNo, int totalExp,
-	    String filelistPopularityPath, String indexPath) {
+	    String accessCountsFilePath, String indexPath) {
 	try {
 	    List<InexFile> pathCountList = InexFile
-		    .loadInexFileList(filelistPopularityPath);
+		    .loadInexFileList(accessCountsFilePath);
 	    double total = (double) totalExp;
 	    pathCountList = pathCountList.subList(0,
 		    (int) (((double) expNo / total) * pathCountList.size()));
@@ -86,7 +86,7 @@ public class WikiExperiment {
 	return runQueriesOnGlobalIndex(indexPath, queries, gamma, false);
     }
 
-    public static void writeResultsToFile(List<QueryResult> results,
+    public static void writeQueryResultsToFile(List<QueryResult> results,
 	    String resultDirPath, String resultFileName) {
 	LOGGER.log(Level.INFO, "Writing results..");
 	File resultDir = new File(resultDirPath);

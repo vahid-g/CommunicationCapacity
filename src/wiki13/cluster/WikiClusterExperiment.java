@@ -79,7 +79,7 @@ public class WikiClusterExperiment {
 	    long endTime = System.currentTimeMillis();
 	    LOGGER.log(Level.INFO, "Querying done in {0} seconds",
 		    (endTime - startTime) / 1000);
-	    WikiExperiment.writeResultsToFile(results, "result/",
+	    WikiExperiment.writeQueryResultsToFile(results, "result/",
 		    currentPartition + ".csv");
 	    if (cl.hasOption("log")) {
 		LOGGER.log(Level.INFO, "logging.. ");

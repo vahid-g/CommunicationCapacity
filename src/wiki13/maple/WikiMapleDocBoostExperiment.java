@@ -23,6 +23,6 @@ public class WikiMapleDocBoostExperiment {
 		WikiMapleExperiment.QREL_FILE_PATH, "title");
 	List<QueryResult> results = WikiExperiment
 		.runQueriesOnGlobalIndex(indexPath, queries, 0.15f, true);
-	WikiExperiment.writeResultsToFile(results, "", "msn_100_docboost.csv");
+	WikiExperiment.writeQueryResultsToFile(results, "", "msn_100_docboost.csv");
     }
 }

@@ -82,7 +82,7 @@ public class WikiMapleCachingExperiment {
 			long spentTime = System.currentTimeMillis() - startTime;
 			LOGGER.log(Level.INFO,
 				"Time spent on querying " + queries.size() + " queries is " + spentTime + " seconds");
-			WikiExperiment.writeResultsToFile(results, "result/", expNo + ".csv");
+			WikiExperiment.writeQueryResultsToFile(results, "result/", expNo + ".csv");
 		    }
 		} else if (cl.hasOption("timing")) {
 		    long times[] = new long[partitionCount];
