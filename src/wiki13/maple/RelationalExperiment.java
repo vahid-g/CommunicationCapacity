@@ -26,8 +26,8 @@ public class RelationalExperiment {
 
     static void queryEfficiencyExperiment() {
 	// int docsInSubset = 1163610;
-	String subsetIndexPath = WikiMapleExperiment.DATA_PATH + "wiki_index/1";
-	String indexPath = WikiMapleExperiment.DATA_PATH + "wiki_index/99";
+	String subsetIndexPath = WikiMaplePaths.DATA_PATH + "wiki_index/1";
+	String indexPath = WikiMaplePaths.DATA_PATH + "wiki_index/99";
 	Properties config = new Properties();
 	try (InputStream in = RelationalExperiment.class
 		.getResourceAsStream("/config/config.properties")) {
@@ -35,8 +35,8 @@ public class RelationalExperiment {
 	    try (Connection con = getDatabaseConnection(config.get("username"),
 		    config.get("password"), config.get("db-url"))) {
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
-			WikiMapleExperiment.MSN_QUERY_FILE_PATH,
-			WikiMapleExperiment.MSN_QREL_FILE_PATH);
+			WikiMaplePaths.MSN_QUERY_FILE_PATH,
+			WikiMaplePaths.MSN_QREL_FILE_PATH);
 		Collections.shuffle(queries);
 		queries = queries.subList(0, 500);
 		String prefix = "SELECT a.id FROM tmp_article_1 a left join "

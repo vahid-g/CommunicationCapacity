@@ -46,7 +46,7 @@ public class WikiMapleFilteringExperiment {
 	CommandLine cl;
 
 	try {
-	    String indexPath = WikiMapleExperiment.DATA_PATH + "wiki_index/";
+	    String indexPath = WikiMaplePaths.DATA_PATH + "wiki_index/";
 	    int partitionCount = 100;
 	    cl = clp.parse(options, args);
 	    String flag = cl.getOptionValue("query");
@@ -58,23 +58,23 @@ public class WikiMapleFilteringExperiment {
 	    Map<String, Double> idPopMap;
 	    if (cl.hasOption("msn")) {
 		queries = QueryServices.loadMsnQueries(
-			WikiMapleExperiment.MSN_QUERY_FILE_PATH,
-			WikiMapleExperiment.MSN_QREL_FILE_PATH);
+			WikiMaplePaths.MSN_QUERY_FILE_PATH,
+			WikiMaplePaths.MSN_QREL_FILE_PATH);
 		idPopMap = PopularityUtils
-			.loadIdPopularityMap(WikiMapleExperiment.FILELIST_COUNT09_PATH);
+			.loadIdPopularityMap(WikiMaplePaths.FILELIST_COUNT09_PATH);
 	    } else {
 		queries = QueryServices.loadInexQueries(
-			WikiMapleExperiment.QUERY_FILE_PATH,
-			WikiMapleExperiment.QREL_FILE_PATH, "title");
+			WikiMaplePaths.QUERY_FILE_PATH,
+			WikiMaplePaths.QREL_FILE_PATH, "title");
 		idPopMap = PopularityUtils
-			.loadIdPopularityMap(WikiMapleExperiment.FILELIST_PATH);
+			.loadIdPopularityMap(WikiMaplePaths.FILELIST_PATH);
 	    }
 	    List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(
 		    indexPath, queries, 0.15f);
 	    if (cl.hasOption("cache")) {
 		List<Double> thresholds = new ArrayList<Double>();
 		List<InexFile> inexFiles = InexFile
-			.loadInexFileList(WikiMapleExperiment.FILELIST_PATH);
+			.loadInexFileList(WikiMaplePaths.FILELIST_PATH);
 		for (double i = 1; i <= partitionCount; i++) {
 		    int size = (int) Math.floor(inexFiles.size()
 			    * (i / (double) partitionCount) - 1);

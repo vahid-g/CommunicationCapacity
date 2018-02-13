@@ -11,7 +11,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import wiki13.cluster.WikiClusterPaths;
-import wiki13.maple.WikiMapleExperiment;
+import wiki13.maple.WikiMaplePaths;
 
 public class WikiPartitionIndexer {
 
@@ -46,8 +46,8 @@ public class WikiPartitionIndexer {
 			+ partitionNumber;
 		accessCountsFilePath = WikiClusterPaths.FILELIST_PATH_COUNT09;
 	    } else if (cl.getOptionValue("server").equals("maple")) {
-		indexPath = WikiMapleExperiment.INDEX_BASE + partitionNumber;
-		accessCountsFilePath = WikiMapleExperiment.FILELIST_PATH;
+		indexPath = WikiMaplePaths.INDEX_BASE + partitionNumber;
+		accessCountsFilePath = WikiMaplePaths.FILELIST_PATH;
 	    } else {
 		throw new org.apache.commons.cli.ParseException(
 			"Server name is not valid");

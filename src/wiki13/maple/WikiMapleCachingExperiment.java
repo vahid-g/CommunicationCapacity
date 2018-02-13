@@ -50,7 +50,7 @@ public class WikiMapleCachingExperiment {
 	HelpFormatter formatter = new HelpFormatter();
 	CommandLine cl;
 	try {
-	    String indexDirPath = WikiMapleExperiment.INDEX_BASE;
+	    String indexDirPath = WikiMaplePaths.INDEX_BASE;
 	    cl = clp.parse(options, args);
 	    int partitionCount = Integer
 		    .parseInt(cl.getOptionValue("total", "100"));
@@ -58,14 +58,14 @@ public class WikiMapleCachingExperiment {
 	    float gamma = Float.parseFloat(cl.getOptionValue("gamma", "0.15f"));
 	    if (cl.hasOption("msn")) {
 		queries = QueryServices.loadMsnQueries(
-			WikiMapleExperiment.MSN_QUERY_FILE_PATH,
-			WikiMapleExperiment.MSN_QREL_FILE_PATH);
+			WikiMaplePaths.MSN_QUERY_FILE_PATH,
+			WikiMaplePaths.MSN_QREL_FILE_PATH);
 		Collections.shuffle(queries);
 		queries = queries.subList(0, 200);
 	    } else {
 		queries = QueryServices.loadInexQueries(
-			WikiMapleExperiment.QUERY_FILE_PATH,
-			WikiMapleExperiment.QREL_FILE_PATH, "title");
+			WikiMaplePaths.QUERY_FILE_PATH,
+			WikiMaplePaths.QREL_FILE_PATH, "title");
 	    }
 	    if (cl.hasOption("query")) {
 		for (int expNo = 1; expNo <= partitionCount; expNo++) {
