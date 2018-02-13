@@ -19,7 +19,7 @@ import popularity.PopularityUtils;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import wiki13.WikiExperiment;
+import wiki13.WikiExperimentHelper;
 
 public class WikiMapleFilteringExperiment {
 
@@ -69,7 +69,7 @@ public class WikiMapleFilteringExperiment {
 		idPopMap = PopularityUtils
 			.loadIdPopularityMap(WikiMapleExperiment.FILELIST_PATH);
 	    }
-	    List<QueryResult> results = WikiExperiment.runQueriesOnGlobalIndex(
+	    List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(
 		    indexPath, queries, 0.15f);
 	    if (cl.hasOption("cache")) {
 		List<Double> thresholds = new ArrayList<Double>();

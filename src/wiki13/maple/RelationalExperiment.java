@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import wiki13.WikiExperiment;
+import wiki13.WikiExperimentHelper;
 
 public class RelationalExperiment {
 
@@ -66,7 +66,7 @@ public class RelationalExperiment {
 	    List<ExperimentQuery> queries, String queryPrefix)
 	    throws SQLException {
 	long startTime = System.currentTimeMillis();
-	List<QueryResult> results = WikiExperiment
+	List<QueryResult> results = WikiExperimentHelper
 		.runQueriesOnGlobalIndex(indexPath, queries, 1f);
 	int zeroResultCounter = 0;
 	for (QueryResult result : results) {

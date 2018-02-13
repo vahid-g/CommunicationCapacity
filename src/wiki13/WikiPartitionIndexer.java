@@ -55,7 +55,7 @@ public class WikiPartitionIndexer {
 	    LOGGER.log(Level.INFO, "Building index for partition {0}/{1}",
 		    new Object[] { partitionNumber, totalPartitionCount });
 	    long startTime = System.currentTimeMillis();
-	    WikiExperiment.buildGlobalIndex(partitionNumber,
+	    WikiExperimentHelper.buildGlobalIndex(partitionNumber,
 		    totalPartitionCount, accessCountsFilePath, indexPath);
 	    long endTime = System.currentTimeMillis();
 	    LOGGER.log(Level.INFO, "Indexing time: {0} sec",

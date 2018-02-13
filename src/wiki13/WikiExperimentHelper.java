@@ -18,10 +18,10 @@ import query.LuceneQueryBuilder;
 import query.QueryResult;
 import query.QueryServices;
 
-public class WikiExperiment {
+public class WikiExperimentHelper {
 
     private static final Logger LOGGER = Logger
-	    .getLogger(WikiExperiment.class.getName());
+	    .getLogger(WikiExperimentHelper.class.getName());
 
     public static void main(String[] args) {
 

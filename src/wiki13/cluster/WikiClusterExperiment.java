@@ -16,7 +16,7 @@ import popularity.PopularityUtils;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import wiki13.WikiExperiment;
+import wiki13.WikiExperimentHelper;
 
 public class WikiClusterExperiment {
 
@@ -74,12 +74,12 @@ public class WikiClusterExperiment {
 		    new Object[] { queries.size(), currentPartition,
 			    totalPartitionCount, gamma, docBoost });
 	    long startTime = System.currentTimeMillis();
-	    List<QueryResult> results = WikiExperiment.runQueriesOnGlobalIndex(
+	    List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(
 		    indexPath, queries, gamma, docBoost);
 	    long endTime = System.currentTimeMillis();
 	    LOGGER.log(Level.INFO, "Querying done in {0} seconds",
 		    (endTime - startTime) / 1000);
-	    WikiExperiment.writeQueryResultsToFile(results, "result/",
+	    WikiExperimentHelper.writeQueryResultsToFile(results, "result/",
 		    currentPartition + ".csv");
 	    if (cl.hasOption("log")) {
 		LOGGER.log(Level.INFO, "logging.. ");

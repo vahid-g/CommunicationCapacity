@@ -17,7 +17,7 @@ import org.apache.commons.cli.Options;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import wiki13.WikiExperiment;
+import wiki13.WikiExperimentHelper;
 
 public class WikiMapleCachingExperiment {
 
@@ -73,17 +73,17 @@ public class WikiMapleCachingExperiment {
 		    List<QueryResult> results;
 		    long startTime = System.currentTimeMillis();
 		    if (cl.hasOption("boost")) {
-			results = WikiExperiment.runQueriesOnGlobalIndex(
+			results = WikiExperimentHelper.runQueriesOnGlobalIndex(
 				indexPath, queries, gamma, true);
 		    } else {
-			results = WikiExperiment.runQueriesOnGlobalIndex(
+			results = WikiExperimentHelper.runQueriesOnGlobalIndex(
 				indexPath, queries, gamma);
 		    }
 		    long spentTime = System.currentTimeMillis() - startTime;
 		    LOGGER.log(Level.INFO,
 			    "Time spent on querying " + queries.size()
 				    + " queries is " + spentTime + " seconds");
-		    WikiExperiment.writeQueryResultsToFile(results, "result/",
+		    WikiExperimentHelper.writeQueryResultsToFile(results, "result/",
 			    expNo + ".csv");
 		}
 	    } else if (cl.hasOption("timing")) {
@@ -92,7 +92,7 @@ public class WikiMapleCachingExperiment {
 		    for (int expNo = 1; expNo <= partitionCount; expNo++) {
 			String indexPath = indexDirPath + expNo;
 			long startTime = System.currentTimeMillis();
-			WikiExperiment.runQueriesOnGlobalIndex(indexPath,
+			WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath,
 				queries, gamma);
 			long spentTime = System.currentTimeMillis() - startTime;
 			times[expNo - 1] += spentTime;
@@ -115,7 +115,7 @@ public class WikiMapleCachingExperiment {
 		for (int expNo = 1; expNo <= partitionCount; expNo++) {
 		    String indexPath = indexDirPath + expNo;
 		    long startTime = System.currentTimeMillis();
-		    WikiExperiment.runQueriesOnGlobalIndex(indexPath, queries,
+		    WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries,
 			    gamma);
 		    long spentTime = System.currentTimeMillis() - startTime;
 		    times[expNo - 1] = spentTime;

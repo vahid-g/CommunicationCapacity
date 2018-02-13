@@ -24,7 +24,7 @@ import popularity.PopularityUtils;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import wiki13.WikiExperiment;
+import wiki13.WikiExperimentHelper;
 import wiki13.WikiFileIndexer;
 import wiki13.cache_selection.ClarityScore;
 import wiki13.cache_selection.JelinekMercerScore;
@@ -78,7 +78,7 @@ public class WikiCacheSelectionClusterExperiment {
 	    }
 	    String difficultyMetric = cl.getOptionValue("diff");
 	    if (difficultyMetric.equals("pop")) {
-		List<QueryResult> results = WikiExperiment
+		List<QueryResult> results = WikiExperimentHelper
 			.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
 		Map<String, Double> idPopMap = PopularityUtils
 			.loadIdPopularityMap(WikiClusterPaths.FILELIST_PATH);
@@ -153,9 +153,9 @@ public class WikiCacheSelectionClusterExperiment {
 		indexPath, queries, WikiFileIndexer.TITLE_ATTRIB);
 	Map<String, Double> contentDifficulties = qdc.computeQueryDifficulty(
 		indexPath, queries, WikiFileIndexer.CONTENT_ATTRIB);
-	WikiExperiment.writeMapToFile(titleDifficulties, "title_diff_" + expNo
+	WikiExperimentHelper.writeMapToFile(titleDifficulties, "title_diff_" + expNo
 		+ ".csv");
-	WikiExperiment.writeMapToFile(contentDifficulties, "content_diff_"
+	WikiExperimentHelper.writeMapToFile(contentDifficulties, "content_diff_"
 		+ expNo + ".csv");
     }
 }
