@@ -2,6 +2,7 @@ package wiki13.maple;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,6 +73,8 @@ public class WikiMapleCachingExperiment {
 		    queries = QueryServices.loadMsnQueries(
 			    WikiMapleExperiment.MSN_QUERY_FILE_PATH,
 			    WikiMapleExperiment.MSN_QREL_FILE_PATH);
+		    Collections.shuffle(queries);
+		    queries = queries.subList(0, 200);
 		} else {
 		    queries = QueryServices.loadInexQueries(
 			    WikiMapleExperiment.QUERY_FILE_PATH,
