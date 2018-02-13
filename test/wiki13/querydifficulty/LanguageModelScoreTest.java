@@ -19,7 +19,7 @@ import org.junit.Test;
 
 import query.ExperimentQuery;
 import wiki13.WikiFileIndexer;
-import wiki13.cacheselection.LanguageModelScore;
+import wiki13.cache_selection.LanguageModelScore;
 
 public class LanguageModelScoreTest {
 

@@ -1,4 +1,4 @@
-package wiki13.cacheselection;
+package wiki13.cache_selection;
 
 import java.io.IOException;
 import java.io.StringReader;
