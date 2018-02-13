@@ -27,7 +27,7 @@ public class RelationalExperiment {
     static void queryEfficiencyExperiment() {
 	// int docsInSubset = 1163610;
 	String subsetIndexPath = WikiMapleExperiment.DATA_PATH + "wiki_index/1";
-	String indexPath = WikiMapleExperiment.DATA_PATH + "wiki_index/100";
+	String indexPath = WikiMapleExperiment.DATA_PATH + "wiki_index/99";
 	Properties config = new Properties();
 	try (InputStream in = RelationalExperiment.class
 		.getResourceAsStream("/config/config.properties")) {
@@ -83,7 +83,7 @@ public class RelationalExperiment {
 	    }
 	}
 	long spentTime = (System.currentTimeMillis() - startTime) / 1000;
-	System.out.println("Total time: " + spentTime + " secs");
+	System.out.println("Total time: " + spentTime + " secs for " + results.size() + " results");
 	System.out.println("Time per query: "
 		+ spentTime / (double) results.size() + " secs");
 	System.out.println("Zero result counter: " + zeroResultCounter);
