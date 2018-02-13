@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -20,9 +21,12 @@ import wiki13.WikiExperiment;
 public class RelationalExperiment {
 
     public static void main(String[] args) {
+	queryEfficiencyExperiment();
+    }
+
+    static void queryEfficiencyExperiment() {
 	// int docsInSubset = 1163610;
-	String subsetIndexPath = WikiMapleExperiment.DATA_PATH
-		+ "wiki_index/99";
+	String subsetIndexPath = WikiMapleExperiment.DATA_PATH + "wiki_index/1";
 	String indexPath = WikiMapleExperiment.DATA_PATH + "wiki_index/100";
 	Properties config = new Properties();
 	try (InputStream in = RelationalExperiment.class
@@ -33,15 +37,23 @@ public class RelationalExperiment {
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
 			WikiMapleExperiment.MSN_QUERY_FILE_PATH,
 			WikiMapleExperiment.MSN_QREL_FILE_PATH);
-		queries = queries.subList(0, 200);
+		Collections.shuffle(queries);
+		queries = queries.subList(0, 500);
 		String prefix = "SELECT a.id FROM tmp_article_1 a left join "
 			+ "tmp_article_image_1 i on a.id = i.article_id left join "
 			+ "tmp_article_link_1 l on a.id=l.article_id WHERE a.id in ";
-		measureQueryEfficiency(subsetIndexPath, con, queries, prefix);
 		prefix = "SELECT a.id FROM tbl_article_wiki13 a left join "
 			+ "tbl_article_image_09 i on a.id = i.article_id left join "
 			+ "tbl_article_link_09 l on a.id=l.article_id WHERE a.id in ";
-		measureQueryEfficiency(indexPath, con, queries, prefix);
+		double time1 = 0;
+		double time2 = 0;
+		for (int i = 0; i < 10; i++) {
+		    time1 += measureQueryEfficiency(subsetIndexPath, con, queries,
+			    prefix);
+		    time2 += measureQueryEfficiency(indexPath, con, queries, prefix);
+		}
+		System.out.println("Average per query time (ms) after 10 interations:");
+		System.out.println(time1 / 10 + " " + time2 / 10);
 	    } catch (SQLException e) {
 		e.printStackTrace();
 	    }
@@ -50,7 +62,7 @@ public class RelationalExperiment {
 	}
     }
 
-    private static void measureQueryEfficiency(String indexPath, Connection con,
+    static double measureQueryEfficiency(String indexPath, Connection con,
 	    List<ExperimentQuery> queries, String queryPrefix)
 	    throws SQLException {
 	long startTime = System.currentTimeMillis();
@@ -75,9 +87,10 @@ public class RelationalExperiment {
 	System.out.println("Time per query: "
 		+ spentTime / (double) results.size() + " secs");
 	System.out.println("Zero result counter: " + zeroResultCounter);
+	return spentTime / (double) results.size();
     }
 
-    public static List<String> submitSqlQuery(Connection con, String query)
+    static List<String> submitSqlQuery(Connection con, String query)
 	    throws SQLException {
 	List<String> results = new ArrayList<String>();
 	try (Statement stmt = con.createStatement()) {
