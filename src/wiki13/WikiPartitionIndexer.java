@@ -1,4 +1,4 @@
-package wiki13.cluster;
+package wiki13;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -10,7 +10,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import wiki13.WikiExperiment;
+import wiki13.cluster.WikiClusterPaths;
+import wiki13.maple.WikiMapleExperiment;
 
 public class WikiPartitionIndexer {
 
@@ -27,23 +28,35 @@ public class WikiPartitionIndexer {
 		"Number of partition to index");
 	expNumberOption.setRequired(true);
 	options.addOption(expNumberOption);
+	Option server = new Option("server", true, "Specifies maple/hpc");
+	options.addOption(server);
 	CommandLineParser clp = new DefaultParser();
 	HelpFormatter formatter = new HelpFormatter();
 	CommandLine cl;
-
 	try {
 	    cl = clp.parse(options, args);
-	    int partitionNumber = Integer.parseInt(cl.getOptionValue("exp"));
 	    int totalPartitionCount = Integer
 		    .parseInt(cl.getOptionValue("total"));
-	    String indexPath = WikiClusterPaths.INDEX_BASE + "wiki13_p"
-		    + totalPartitionCount + "_w09" + "/part_" + partitionNumber;
+	    int partitionNumber = Integer.parseInt(cl.getOptionValue("exp"));
+	    String indexPath = "";
+	    String accessCountsFilePath = "";
+	    if (cl.getOptionValue("server").equals("hpc")) {
+		indexPath = WikiClusterPaths.INDEX_BASE + "wiki13_p"
+			+ totalPartitionCount + "_w09" + "/part_"
+			+ partitionNumber;
+		accessCountsFilePath = WikiClusterPaths.FILELIST_PATH_COUNT09;
+	    } else if (cl.getOptionValue("server").equals("maple")) {
+		indexPath = WikiMapleExperiment.INDEX_BASE + partitionNumber;
+		accessCountsFilePath = WikiMapleExperiment.FILELIST_PATH;
+	    } else {
+		throw new org.apache.commons.cli.ParseException(
+			"Server name is not valid");
+	    }
 	    LOGGER.log(Level.INFO, "Building index for partition {0}/{1}",
 		    new Object[] { partitionNumber, totalPartitionCount });
 	    long startTime = System.currentTimeMillis();
 	    WikiExperiment.buildGlobalIndex(partitionNumber,
-		    totalPartitionCount, WikiClusterPaths.FILELIST_PATH_COUNT09,
-		    indexPath);
+		    totalPartitionCount, accessCountsFilePath, indexPath);
 	    long endTime = System.currentTimeMillis();
 	    LOGGER.log(Level.INFO, "Indexing time: {0} sec",
 		    (endTime - startTime) / 1000);
@@ -53,5 +66,4 @@ public class WikiPartitionIndexer {
 	    return;
 	}
     }
-
 }
