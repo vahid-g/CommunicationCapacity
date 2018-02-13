@@ -1,4 +1,4 @@
-package wiki13.cluster;
+package wiki13;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -13,8 +13,7 @@ import org.apache.lucene.store.FSDirectory;
 public class PrintIndexFields {
 
     public static void main(String[] args) {
-	String indexPath = WikiClusterPaths.INDEX_BASE
-		+ "wiki13_p50_w13/part_41";
+	String indexPath = args[0];
 	try (FSDirectory directory = FSDirectory.open(Paths.get(indexPath));
 		IndexReader reader = DirectoryReader.open(directory)) {
 	    final Fields fields = MultiFields.getFields(reader);
