@@ -71,30 +71,28 @@ public class WikiMapleCachingExperiment {
 					WikiExperimentHelper.writeQueryResultsToFile(results, "result/", expNo + ".csv");
 				}
 			} else if (cl.hasOption("timing")) {
-				Collections.shuffle(queries);
-				queries = queries.subList(0, 200);
-				long times[] = new long[partitionCount];
-				for (int i = 0; i < 10; i++) {
+				if (cl.hasOption("msn")) {
+					queries = queries.subList(0, 200);
+				}
+				double times[] = new double[partitionCount];
+				int iterationCount = 10;
+				for (int i = 0; i < iterationCount; i++) {
 					for (int expNo = 1; expNo <= partitionCount; expNo++) {
 						String indexPath = indexDirPath + expNo;
 						long startTime = System.currentTimeMillis();
 						WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, gamma);
 						long spentTime = System.currentTimeMillis() - startTime;
 						times[expNo - 1] += spentTime;
-						LOGGER.log(Level.INFO,
-								"Time spent on querying " + queries.size() + " queries is " + spentTime + " seconds");
 					}
 				}
 				try (FileWriter fw = new FileWriter("time_results.csv")) {
-					for (Long l : times) {
-						fw.write(l / 10.0 + "\n");
+					for (double l : times) {
+						fw.write(l / iterationCount + "\n");
 					}
 				} catch (IOException e) {
 					LOGGER.log(Level.SEVERE, e.getMessage(), e);
 				}
 			} else if (cl.hasOption("single")) {
-				Collections.shuffle(queries);
-				queries = queries.subList(0, 200);
 				String iter = cl.getOptionValue("single");
 				long times[] = new long[partitionCount];
 				for (int expNo = 1; expNo <= partitionCount; expNo++) {
