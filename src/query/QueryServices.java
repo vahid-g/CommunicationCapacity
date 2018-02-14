@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -110,19 +111,22 @@ public class QueryServices {
 			for (ExperimentQuery experimentQuery : queries) {
 				Query query = lqb.buildQuery(experimentQuery.getText());
 				long startTime = System.currentTimeMillis();
-				ScoreDoc[] hits = searcher.search(query, topDocCount).scoreDocs;
+				ScoreDoc[] scoreDocHits = searcher.search(query, topDocCount).scoreDocs;
 				QueryResult iqr = new QueryResult(experimentQuery);
 				timesSum += (System.currentTimeMillis() - startTime);
-				hitCount += Math.min(topDocCount, hits.length);
-				for (int i = 0; i < Math.min(topDocCount, hits.length); i++) {
+				hitCount += Math.min(topDocCount, scoreDocHits.length);
+				Set<String> fields = new HashSet<String>();
+				fields.add(GeneralIndexer.DOCNAME_ATTRIB);
+				fields.add(GeneralIndexer.TITLE_ATTRIB);
+				for (int i = 0; i < Math.min(topDocCount, scoreDocHits.length); i++) {
 					long tmpTime = System.currentTimeMillis();
-					Document doc = searcher.doc(hits[i].doc);
+					Document doc = reader.document(scoreDocHits[i].doc, fields);
 					timesSum2 += (System.currentTimeMillis() - tmpTime);
 					String docId = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
 					String docTitle = doc.get(GeneralIndexer.TITLE_ATTRIB);
 					if (explain) {
-						iqr.addResult(docId, docTitle,
-								hits[i].score + " idf: " + buildIdfString(searcher.explain(query, hits[i].doc)));
+						iqr.addResult(docId, docTitle, scoreDocHits[i].score + " idf: "
+								+ buildIdfString(searcher.explain(query, scoreDocHits[i].doc)));
 					} else {
 						iqr.addResult(docId, docTitle);
 					}
@@ -130,8 +134,8 @@ public class QueryServices {
 				iqrList.add(iqr);
 			}
 			LOGGER.log(Level.INFO, "Number of retrieved docs: {0}", hitCount);
-			LOGGER.log(Level.INFO, "Fine time spent for {0} queries per query: {1}, {2}, {3}, {4}",
-					new Object[] { queries.size(), timesSum / queries.size(), timesSum2 / queries.size()});
+			LOGGER.log(Level.INFO, "Fine time spent for {0} queries per query: {1}, {2}",
+					new Object[] { queries.size(), timesSum / queries.size(), timesSum2 / queries.size() });
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -162,7 +166,7 @@ public class QueryServices {
 			LOGGER.log(Level.SEVERE, "lookup failed", e);
 		}
 		if (topDocs != null)
-			return topDocs.totalHits;
+			return (int) topDocs.totalHits;
 		else
 			return 0;
 	}

@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Formatter;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -22,29 +22,24 @@ import wiki13.WikiExperimentHelper;
 public class RelationalExperiment {
 
 	public static void main(String[] args) throws SQLException {
-		// queryEfficiencyExperiment();
+		queryEfficiencyExperiment();
+	}
+
+	static void debug() {
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(WikiMaplePaths.MSN_QUERY_FILE_PATH,
 				WikiMaplePaths.MSN_QREL_FILE_PATH);
 		queries = queries.subList(0, 100);
-		// String indexPath = WikiMaplePaths.INDEX_BASE + args[0];
-		// double subsetTimes[] = measureQueryEfficiency(indexPath, null, queries, "");
-		// System.out.println(args[0] + "," + subsetTimes[0]);
-
-		// double[] results = new double[10];
 		double[] tmp = new double[10];
-		for (int j = 0; j < 1; j++) {
-			for (int i = 1; i < 100; i += 10) {
+		for (int j = 0; j < 3; j++) {
+			for (int i = 91; i > 0; i -= 10) {
 				String indexPath = WikiMaplePaths.INDEX_BASE + i;
 				long startTime = System.currentTimeMillis();
 				WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, 0.1f);
 				long spentTime = System.currentTimeMillis() - startTime;
 				tmp[i / 10] = spentTime / queries.size();
-				// results[i / 10] += spentTime / queries.size();
 			}
 			System.out.println(Arrays.toString(tmp));
 		}
-		// for (int i = 0; i < 10; i++)
-		// System.out.println(results[i] / 10);
 	}
 
 	static void queryEfficiencyExperiment() {
@@ -58,30 +53,34 @@ public class RelationalExperiment {
 					config.get("db-url"))) {
 				List<ExperimentQuery> queries = QueryServices.loadMsnQueries(WikiMaplePaths.MSN_QUERY_FILE_PATH,
 						WikiMaplePaths.MSN_QREL_FILE_PATH);
-				Collections.shuffle(queries);
 				queries = queries.subList(0, 100);
-				String prefix = "SELECT a.id FROM tmp_article_1 a left join "
-						+ "tmp_article_image_1 i on a.id = i.article_id left join "
-						+ "tmp_article_link_1 l on a.id=l.article_id WHERE a.id in ";
-				prefix = "SELECT a.id FROM tbl_article_wiki13 a left join "
-						+ "tbl_article_image_09 i on a.id = i.article_id left join "
-						+ "tbl_article_link_09 l on a.id=l.article_id WHERE a.id in ";
+
+//				String subsetPrefix = "SELECT a.id FROM tmp_article_1 a left join "
+//						+ "tmp_article_image_1 i on a.id = i.article_id left join "
+//						+ "tmp_article_link_1 l on a.id= l.article_id WHERE a.id in ";
+//				String dbPrefix = "SELECT a.id FROM tbl_article_wiki13 a left join "
+//						+ "tbl_article_image_09 i on a.id = i.article_id left join "
+//						+ "tbl_article_link_09 l on a.id= l.article_id WHERE a.id in ";
+				String subsetPrefix = "SELECT a.id FROM tmp_article_1 a left join "
+						+ "tbl_article_link_09 l on a.id= l.article_id WHERE a.id in %s;";
+				String dbPrefix = "SELECT a.id FROM tbl_article_wiki13 a left join "
+						+ "tbl_article_link_09 l on a.id= l.article_id  WHERE a.id in %s;";
+
 				double[] time = new double[4];
-				int iterCount = 1;
+				int iterCount = 3;
 				for (int i = 0; i < iterCount; i++) {
-					double subsetTimes[] = measureQueryEfficiency(subsetIndexPath, con, queries, prefix);
-					double dbTimes[] = measureQueryEfficiency(indexPath, con, queries, prefix);
+					double dbTimes[] = measureQueryEfficiency(indexPath, con, queries, dbPrefix);
+					double subsetTimes[] = measureQueryEfficiency(subsetIndexPath, con, queries, subsetPrefix);
 					time[0] += subsetTimes[0];
 					time[1] += subsetTimes[1];
 					time[2] += dbTimes[0];
 					time[3] += dbTimes[1];
 				}
 				System.out.println("Average per query time (ms) after " + iterCount + " interations:");
-				System.out.println(
-						time[0] / iterCount + "," + time[1] / iterCount + "," + (time[0] + time[1]) / iterCount);
-				System.out.println(
-						time[2] / iterCount + "," + time[3] / iterCount + "," + (time[2] + time[3]) / iterCount);
-
+				System.out.println("subset: " + time[0] / iterCount + "," + time[1] / iterCount + ","
+						+ (time[0] + time[1]) / iterCount);
+				System.out.println("db: " + time[2] / iterCount + "," + time[3] / iterCount + ","
+						+ (time[2] + time[3]) / iterCount);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -95,19 +94,18 @@ public class RelationalExperiment {
 		long startTime = System.currentTimeMillis();
 		List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, 1f);
 		long middleTime = System.currentTimeMillis();
-		// int zeroResultCounter = 0;
-		// for (QueryResult result : results) {
-		// List<String> ids = result.getTopDocuments().subList(0,
-		// Math.min(result.getTopDocuments().size(), 20))
-		// .stream().map(t -> t.id).collect(Collectors.toList());
-		// if (ids.size() > 0) {
-		// String query = queryPrefix + ids.toString().replace('[', '(').replace(']',
-		// ')') + ";";
-		// submitSqlQuery(con, query);
-		// } else {
-		// zeroResultCounter++;
-		// }
-		// }
+		long sum = 0;
+		int idsCount = 0;
+		for (QueryResult result : results) {
+			List<String> ids = result.getTopDocuments().subList(0, Math.min(result.getTopDocuments().size(), 20))
+					.stream().map(t -> t.id).collect(Collectors.toList());
+			String query = String.format(queryPrefix, ids.toString().replace('[', '(').replace(']', ')'));
+			idsCount += ids.size();
+			long tmp = System.currentTimeMillis();
+			submitSqlQuery(con, query);
+			sum += System.currentTimeMillis() - tmp;
+		}
+		System.out.println(sum / results.size() + "\t" + idsCount);
 		long endTime = System.currentTimeMillis();
 		return new double[] { (middleTime - startTime) / queries.size(), (endTime - middleTime) / queries.size() };
 	}
