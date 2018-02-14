@@ -39,7 +39,7 @@ import indexing.GeneralIndexer;
 public class QueryServices {
 
 	static final Logger LOGGER = Logger.getLogger(QueryServices.class.getName());
-	
+
 	private static final int DEFAULT_TOPDOC_COUNTS = 200;
 
 	public static void main(String[] args) {
@@ -104,13 +104,20 @@ public class QueryServices {
 			LOGGER.log(Level.INFO, "Number of docs in index: " + reader.numDocs());
 			IndexSearcher searcher = new IndexSearcher(reader);
 			searcher.setSimilarity(similarity);
-			long startTime = System.currentTimeMillis();
+			double timesSum = 0;
+			double timesSum2 = 0;
+			int hitCount = 0;
 			for (ExperimentQuery experimentQuery : queries) {
 				Query query = lqb.buildQuery(experimentQuery.getText());
+				long startTime = System.currentTimeMillis();
 				ScoreDoc[] hits = searcher.search(query, topDocCount).scoreDocs;
 				QueryResult iqr = new QueryResult(experimentQuery);
+				timesSum += (System.currentTimeMillis() - startTime);
+				hitCount += Math.min(topDocCount, hits.length);
 				for (int i = 0; i < Math.min(topDocCount, hits.length); i++) {
+					long tmpTime = System.currentTimeMillis();
 					Document doc = searcher.doc(hits[i].doc);
+					timesSum2 += (System.currentTimeMillis() - tmpTime);
 					String docId = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
 					String docTitle = doc.get(GeneralIndexer.TITLE_ATTRIB);
 					if (explain) {
@@ -122,8 +129,9 @@ public class QueryServices {
 				}
 				iqrList.add(iqr);
 			}
-			long timeSpent = (System.currentTimeMillis() - startTime);
-			LOGGER.log(Level.INFO, "Fine time spent per query: {0}", timeSpent / queries.size());
+			LOGGER.log(Level.INFO, "Number of retrieved docs: {0}", hitCount);
+			LOGGER.log(Level.INFO, "Fine time spent for {0} queries per query: {1}, {2}, {3}, {4}",
+					new Object[] { queries.size(), timesSum / queries.size(), timesSum2 / queries.size()});
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

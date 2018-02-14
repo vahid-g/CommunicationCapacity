@@ -29,21 +29,22 @@ public class RelationalExperiment {
 		// String indexPath = WikiMaplePaths.INDEX_BASE + args[0];
 		// double subsetTimes[] = measureQueryEfficiency(indexPath, null, queries, "");
 		// System.out.println(args[0] + "," + subsetTimes[0]);
-		double[] results = new double[10];
+
+		// double[] results = new double[10];
 		double[] tmp = new double[10];
-		for (int j = 0; j < 10; j++) {
+		for (int j = 0; j < 1; j++) {
 			for (int i = 1; i < 100; i += 10) {
 				String indexPath = WikiMaplePaths.INDEX_BASE + i;
 				long startTime = System.currentTimeMillis();
 				WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, 0.1f);
 				long spentTime = System.currentTimeMillis() - startTime;
 				tmp[i / 10] = spentTime / queries.size();
-				results[i / 10] += spentTime / queries.size();
+				// results[i / 10] += spentTime / queries.size();
 			}
 			System.out.println(Arrays.toString(tmp));
 		}
-		for (int i = 0; i < 10; i++)
-			System.out.println(results[i] / 10);
+		// for (int i = 0; i < 10; i++)
+		// System.out.println(results[i] / 10);
 	}
 
 	static void queryEfficiencyExperiment() {
