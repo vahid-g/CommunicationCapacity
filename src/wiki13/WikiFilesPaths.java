@@ -1,37 +1,73 @@
 package wiki13;
 
-public abstract class WikiFilesPaths {
-    public String INDEX_BASE;
-    public String FILELIST_PATH;
-    public String FILELIST_PATH_COUNT09;
-    public String QUERYFILE_PATH;
-    public String QREL_PATH;
-    public String MSN_QUERY_QID;
-    public String MSN_QID_QREL;
+public class WikiFilesPaths {
 
-    public static class ClusterPaths extends WikiFilesPaths {
-	public ClusterPaths() {
-	    INDEX_BASE = "/scratch/cluster-share/ghadakcv/data/index/";
-	    FILELIST_PATH = "/scratch/cluster-share/ghadakcv/data/path_counts/wiki13_count13_text.csv";
-	    FILELIST_PATH_COUNT09 = "/scratch/cluster-share/ghadakcv/data/path_counts/wiki13_count09_text.csv";
-	    QUERYFILE_PATH = "/scratch/cluster-share/ghadakcv/data/queries/inex_ld/2013-ld-adhoc-topics.xml";
-	    QREL_PATH = "/scratch/cluster-share/ghadakcv/data/queries/inex_ld/2013-ld-adhoc-qrels/2013LDT-adhoc.qrels";
-	    MSN_QUERY_QID = "/scratch/cluster-share/ghadakcv/data/queries/msn/query_qid.csv";
-	    MSN_QID_QREL = "/scratch/cluster-share/ghadakcv/data/queries/msn/qid_qrel.csv";
+	public static WikiFilesPaths getHpcPaths() {
+		if (hpcPaths == null) {
+			String dataPath = "/scratch/cluster-share/ghadakcv/data/";
+			String indexBase = dataPath + "index/";
+			String accessCountsPath = dataPath + "path_counts/wiki13_count13_text.csv";
+			String accessCounts09Path = dataPath + "path_counts/wiki13_count09_text.csv";
+			hpcPaths = new WikiFilesPaths(indexBase, accessCountsPath, accessCounts09Path);
+		}
+		return hpcPaths;
 	}
-    }
 
-    public static class MaplePaths extends WikiFilesPaths {
-	public MaplePaths() {
-	    String DATA_PATH = "/data/ghadakcv/";
-	    INDEX_BASE = DATA_PATH + "wiki_index/";
-	    FILELIST_PATH = DATA_PATH + "wiki13_count13_text.csv";
-	    FILELIST_PATH_COUNT09 = DATA_PATH + "wiki13_count09_text.csv";
-	    QUERYFILE_PATH = "/nfs/stak/users/ghadakcv/workspace/queries/2013-adhoc.xml";
-	    QREL_PATH = "/nfs/stak/users/ghadakcv/workspace/queries/2013-adhoc.qrels";
-	    MSN_QUERY_QID = "/nfs/stak/users/ghadakcv/workspace/queries/msn_query_qid.csv";
-	    MSN_QID_QREL = "/nfs/stak/users/ghadakcv/workspace/queries/msn.qrels";
+	public static WikiFilesPaths getMaplePaths() {
+		if (maplePaths == null) {
+			String dataPath = "/data/ghadakcv/";
+			String indexBase = dataPath + "wiki_index/";
+			String accessCountsPath = dataPath + "wiki13_count13_text.csv";
+			String accessCounts09Path = dataPath + "wiki13_count09_text.csv";
+			maplePaths = new WikiFilesPaths(indexBase, accessCountsPath, accessCounts09Path);
+		}
+		return maplePaths;
 	}
-    }
+
+	private static WikiFilesPaths maplePaths = null;
+
+	private static WikiFilesPaths hpcPaths = null;
+
+	public String getIndexBase() {
+		return indexBase;
+	}
+
+	public String getAccessCountsPath() {
+		return accessCountsPath;
+	}
+
+	public String getAccessCounts09Path() {
+		return accessCounts09Path;
+	}
+
+	public String getInexQueryFilePath() {
+		return inexQueryFilePath;
+	}
+
+	public String getInexQrelFilePath() {
+		return inexQrelFilePath;
+	}
+
+	public String getMsnQueryFilePath() {
+		return msnQueryFilePath;
+	}
+
+	public String getMsnQrelFilePath() {
+		return msnQrelFilePath;
+	}
+
+	private final String indexBase;
+	private final String accessCountsPath;
+	private final String accessCounts09Path;
+	private final String inexQueryFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/2013-adhoc.xml";
+	private final String inexQrelFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/2013-adhoc.qrels";
+	private final String msnQueryFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/msn_query_qid.csv";
+	private final String msnQrelFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/msn.qrels";
+
+	private WikiFilesPaths(String indexBase, String accessCountsPath, String accessCounts09Path) {
+		this.indexBase = indexBase;
+		this.accessCountsPath = accessCountsPath;
+		this.accessCounts09Path = accessCounts09Path;
+	}
 
 }

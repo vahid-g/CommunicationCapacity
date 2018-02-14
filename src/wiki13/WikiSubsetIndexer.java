@@ -13,10 +13,10 @@ import org.apache.commons.cli.Options;
 import wiki13.cluster.WikiClusterPaths;
 import wiki13.maple.WikiMaplePaths;
 
-public class WikiPartitionIndexer {
+public class WikiSubsetIndexer {
 
     public static final Logger LOGGER = Logger
-	    .getLogger(WikiPartitionIndexer.class.getName());
+	    .getLogger(WikiSubsetIndexer.class.getName());
 
     public static void main(String[] args) {
 	Options options = new Options();
