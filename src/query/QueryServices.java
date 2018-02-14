@@ -40,7 +40,7 @@ public class QueryServices {
 
 	static final Logger LOGGER = Logger.getLogger(QueryServices.class.getName());
 	
-	private static final int DEFAULT_TOPDOC_COUNTS = 500;
+	private static final int DEFAULT_TOPDOC_COUNTS = 200;
 
 	public static void main(String[] args) {
 		loadInexQueries("inex14sbs.topics.xml", "inex14sbs.qrels", "title");

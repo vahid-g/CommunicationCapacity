@@ -2,7 +2,6 @@ package wiki13.maple;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,6 +50,9 @@ public class WikiMapleCachingExperiment {
 			if (cl.hasOption("msn")) {
 				queries = QueryServices.loadMsnQueries(WikiMaplePaths.MSN_QUERY_FILE_PATH,
 						WikiMaplePaths.MSN_QREL_FILE_PATH);
+				if (cl.hasOption("timing") || cl.hasOption("single")) {
+					queries = queries.subList(0, 200);
+				}
 			} else {
 				queries = QueryServices.loadInexQueries(WikiMaplePaths.QUERY_FILE_PATH, WikiMaplePaths.QREL_FILE_PATH,
 						"title");
@@ -71,9 +73,6 @@ public class WikiMapleCachingExperiment {
 					WikiExperimentHelper.writeQueryResultsToFile(results, "result/", expNo + ".csv");
 				}
 			} else if (cl.hasOption("timing")) {
-				if (cl.hasOption("msn")) {
-					queries = queries.subList(0, 200);
-				}
 				double times[] = new double[partitionCount];
 				int iterationCount = 10;
 				for (int i = 0; i < iterationCount; i++) {
