@@ -42,7 +42,7 @@ public class WikiFileIndexer implements InexFileIndexer {
 	    Document doc = new Document();
 	    doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils.removeExtension(file.getName()), Field.Store.YES));
 	    doc.add(new StoredField(WEIGHT_ATTRIB, pct.weight));
-	    TextField titleField = new TextField(TITLE_ATTRIB, pct.title, Field.Store.NO);
+	    TextField titleField = new TextField(TITLE_ATTRIB, pct.title, Field.Store.YES);
 	    doc.add(titleField);
 	    TextField contentField = new TextField(CONTENT_ATTRIB, fileContent, Field.Store.NO);
 	    doc.add(contentField);
