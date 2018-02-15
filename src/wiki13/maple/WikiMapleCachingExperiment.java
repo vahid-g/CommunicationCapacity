@@ -17,10 +17,12 @@ import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
 import wiki13.WikiExperimentHelper;
+import wiki13.WikiFilesPaths;
 
 public class WikiMapleCachingExperiment {
 
 	private static final Logger LOGGER = Logger.getLogger(WikiMapleCachingExperiment.class.getName());
+	private static WikiFilesPaths PATHS = WikiFilesPaths.getMaplePaths();
 
 	public static void main(String[] args) {
 		Options options = new Options();
@@ -42,24 +44,22 @@ public class WikiMapleCachingExperiment {
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cl;
 		try {
-			String indexDirPath = WikiMaplePaths.INDEX_BASE;
 			cl = clp.parse(options, args);
 			int partitionCount = Integer.parseInt(cl.getOptionValue("total", "100"));
 			List<ExperimentQuery> queries;
 			float gamma = Float.parseFloat(cl.getOptionValue("gamma", "0.15f"));
 			if (cl.hasOption("msn")) {
-				queries = QueryServices.loadMsnQueries(WikiMaplePaths.MSN_QUERY_FILE_PATH,
-						WikiMaplePaths.MSN_QREL_FILE_PATH);
+				queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(), PATHS.getMsnQrelFilePath());
 				if (cl.hasOption("timing") || cl.hasOption("single")) {
 					queries = queries.subList(0, 200);
 				}
 			} else {
-				queries = QueryServices.loadInexQueries(WikiMaplePaths.QUERY_FILE_PATH, WikiMaplePaths.QREL_FILE_PATH,
+				queries = QueryServices.loadInexQueries(PATHS.getInexQrelFilePath(), PATHS.getInexQrelFilePath(),
 						"title");
 			}
 			if (cl.hasOption("query")) {
 				for (int expNo = 1; expNo <= partitionCount; expNo++) {
-					String indexPath = indexDirPath + expNo;
+					String indexPath = PATHS.getIndexBase() + expNo;
 					List<QueryResult> results;
 					long startTime = System.currentTimeMillis();
 					if (cl.hasOption("boost")) {
@@ -77,7 +77,7 @@ public class WikiMapleCachingExperiment {
 				int iterationCount = 10;
 				for (int i = 0; i < iterationCount; i++) {
 					for (int expNo = 1; expNo <= partitionCount; expNo++) {
-						String indexPath = indexDirPath + expNo;
+						String indexPath = PATHS.getIndexBase() + expNo;
 						long startTime = System.currentTimeMillis();
 						WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, gamma);
 						long spentTime = System.currentTimeMillis() - startTime;
@@ -95,7 +95,7 @@ public class WikiMapleCachingExperiment {
 				String iter = cl.getOptionValue("single");
 				long times[] = new long[partitionCount];
 				for (int expNo = 1; expNo <= partitionCount; expNo++) {
-					String indexPath = indexDirPath + expNo;
+					String indexPath = PATHS.getIndexBase() + expNo;
 					long startTime = System.currentTimeMillis();
 					WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, gamma);
 					long spentTime = System.currentTimeMillis() - startTime;

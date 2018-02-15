@@ -10,9 +10,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import wiki13.cluster.WikiClusterPaths;
-import wiki13.maple.WikiMaplePaths;
-
 public class WikiSubsetIndexer {
 
 	public static final Logger LOGGER = Logger.getLogger(WikiSubsetIndexer.class.getName());
@@ -36,16 +33,16 @@ public class WikiSubsetIndexer {
 			int partitionNumber = Integer.parseInt(cl.getOptionValue("exp"));
 			String indexPath = "";
 			String accessCountsFilePath = "";
+			WikiFilesPaths paths;
 			if (cl.getOptionValue("server").equals("hpc")) {
-				indexPath = WikiClusterPaths.INDEX_BASE + "wiki13_p" + totalPartitionCount + "_w09" + "/"
-						+ partitionNumber;
-				accessCountsFilePath = WikiClusterPaths.FILELIST_PATH_COUNT09;
+				paths = WikiFilesPaths.getHpcPaths();
 			} else if (cl.getOptionValue("server").equals("maple")) {
-				indexPath = WikiMaplePaths.INDEX_BASE + partitionNumber;
-				accessCountsFilePath = WikiMaplePaths.FILELIST_COUNT09_PATH;
+				paths = WikiFilesPaths.getMaplePaths();
 			} else {
 				throw new org.apache.commons.cli.ParseException("Server name is not valid");
 			}
+			indexPath = paths.getIndexBase() + partitionNumber;
+			accessCountsFilePath = paths.getAccessCounts09Path();
 			LOGGER.log(Level.INFO, "Building index for partition {0}/{1}",
 					new Object[] { partitionNumber, totalPartitionCount });
 			long startTime = System.currentTimeMillis();

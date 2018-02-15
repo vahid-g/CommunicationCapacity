@@ -7,22 +7,20 @@ import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
 import wiki13.WikiExperimentHelper;
+import wiki13.WikiFilesPaths;
 
 public class WikiMapleDocBoostExperiment {
 
-    public static void main(String[] args) {
-	List<InexFile> files = InexFile
-		.loadInexFileList(WikiMaplePaths.FILELIST_PATH);
-	String indexPath = WikiMaplePaths.DATA_PATH + "wiki_index/full";
-	WikiExperimentHelper.buildGlobalIndex(files, indexPath);
-	List<ExperimentQuery> queries = QueryServices.loadMsnQueries(
-		WikiMaplePaths.MSN_QUERY_FILE_PATH,
-		WikiMaplePaths.MSN_QREL_FILE_PATH);
-	queries = QueryServices.loadInexQueries(
-		WikiMaplePaths.QUERY_FILE_PATH,
-		WikiMaplePaths.QREL_FILE_PATH, "title");
-	List<QueryResult> results = WikiExperimentHelper
-		.runQueriesOnGlobalIndex(indexPath, queries, 0.15f, true);
-	WikiExperimentHelper.writeQueryResultsToFile(results, "", "msn_100_docboost.csv");
-    }
+	private static WikiFilesPaths PATHS = WikiFilesPaths.getMaplePaths();
+
+	public static void main(String[] args) {
+		List<InexFile> files = InexFile.loadInexFileList(PATHS.getAccessCountsPath());
+		String indexPath = PATHS.getIndexBase() + "100";
+		WikiExperimentHelper.buildGlobalIndex(files, indexPath);
+		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(),
+				PATHS.getMsnQrelFilePath());
+		queries = QueryServices.loadInexQueries(PATHS.getInexQueryFilePath(), PATHS.getInexQrelFilePath(), "title");
+		List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, 0.15f, true);
+		WikiExperimentHelper.writeQueryResultsToFile(results, "", "msn_100_docboost.csv");
+	}
 }

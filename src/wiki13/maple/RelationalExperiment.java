@@ -18,23 +18,25 @@ import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
 import wiki13.WikiExperimentHelper;
+import wiki13.WikiFilesPaths;
 
 public class RelationalExperiment {
 
 	private static Logger LOGGER = Logger.getLogger(RelationalExperiment.class.getName());
+	private static WikiFilesPaths PATHS = WikiFilesPaths.getMaplePaths();
 
 	public static void main(String[] args) throws SQLException {
 		queryEfficiencyExperiment();
 	}
 
 	static void debug() {
-		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(WikiMaplePaths.MSN_QUERY_FILE_PATH,
-				WikiMaplePaths.MSN_QREL_FILE_PATH);
+		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(),
+				PATHS.getMsnQrelFilePath());
 		queries = queries.subList(0, 10);
 		double[] tmp = new double[10];
 		for (int j = 0; j < 2; j++) {
 			for (int i = 91; i > 0; i -= 10) {
-				String indexPath = WikiMaplePaths.INDEX_BASE + i;
+				String indexPath = PATHS.getIndexBase() + i;
 				long startTime = System.currentTimeMillis();
 				WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, 0.1f);
 				long spentTime = System.currentTimeMillis() - startTime;
@@ -45,15 +47,15 @@ public class RelationalExperiment {
 	}
 
 	static void queryEfficiencyExperiment() {
-		String subsetIndexPath = WikiMaplePaths.DATA_PATH + "wiki_index/1";
-		String indexPath = WikiMaplePaths.DATA_PATH + "wiki_index/100";
+		String subsetIndexPath = PATHS.getIndexBase() + "1";
+		String indexPath = PATHS.getIndexBase() + "100";
 		Properties config = new Properties();
 		try (InputStream in = RelationalExperiment.class.getResourceAsStream("/config/config.properties")) {
 			config.load(in);
 			try (Connection con = getDatabaseConnection(config.get("username"), config.get("password"),
 					config.get("db-url"))) {
-				List<ExperimentQuery> queries = QueryServices.loadMsnQueries(WikiMaplePaths.MSN_QUERY_FILE_PATH,
-						WikiMaplePaths.MSN_QREL_FILE_PATH);
+				List<ExperimentQuery> queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(),
+						PATHS.getMsnQrelFilePath());
 				queries = queries.subList(0, 10);
 				String subsetPrefix = "SELECT a.id FROM tmp_article_1 a left join "
 						+ "tbl_article_image_09 i on a.id = i.article_id WHERE a.id in %s;";
