@@ -20,9 +20,9 @@ import query.QueryServices;
 import wiki13.WikiExperimentHelper;
 import wiki13.WikiFilesPaths;
 
-public class RelationalExperiment {
+public class WikiMapleRelationalExperiment {
 
-	private static Logger LOGGER = Logger.getLogger(RelationalExperiment.class.getName());
+	private static Logger LOGGER = Logger.getLogger(WikiMapleRelationalExperiment.class.getName());
 	private static WikiFilesPaths PATHS = WikiFilesPaths.getMaplePaths();
 
 	public static void main(String[] args) throws SQLException {
@@ -50,7 +50,7 @@ public class RelationalExperiment {
 		String subsetIndexPath = PATHS.getIndexBase() + "1";
 		String indexPath = PATHS.getIndexBase() + "100";
 		Properties config = new Properties();
-		try (InputStream in = RelationalExperiment.class.getResourceAsStream("/config/config.properties")) {
+		try (InputStream in = WikiMapleRelationalExperiment.class.getResourceAsStream("/config/config.properties")) {
 			config.load(in);
 			try (Connection con = getDatabaseConnection(config.get("username"), config.get("password"),
 					config.get("db-url"))) {
