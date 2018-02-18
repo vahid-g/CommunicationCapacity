@@ -26,7 +26,8 @@ public class WikiMapleRelationalExperiment {
 	private static WikiFilesPaths PATHS = WikiFilesPaths.getMaplePaths();
 
 	public static void main(String[] args) throws SQLException {
-		queryEfficiencyExperiment();
+		LOGGER.setLevel(Level.INFO);
+		queryEfficiencyExperiment(true);
 	}
 
 	static void debug() {
@@ -46,7 +47,7 @@ public class WikiMapleRelationalExperiment {
 		}
 	}
 
-	static void queryEfficiencyExperiment() {
+	static void queryEfficiencyExperiment(boolean denorm) {
 		String subsetIndexPath = PATHS.getIndexBase() + "1";
 		String indexPath = PATHS.getIndexBase() + "100";
 		Properties config = new Properties();
@@ -57,11 +58,15 @@ public class WikiMapleRelationalExperiment {
 				List<ExperimentQuery> queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(),
 						PATHS.getMsnQrelFilePath());
 				queries = queries.subList(0, 10);
-				String subsetPrefix = "SELECT a.id FROM tmp_article_1 a left join "
-						+ "tbl_article_image_09 i on a.id = i.article_id WHERE a.id in %s;";
+				String subsetPrefix = "SELECT a.id FROM tmp_article a left join "
+						+ "tmp_image i on a.id = i.article_id left join "
+						+ " tmp_link l on a.id = l.article_id WHERE a.id in %s;";
+				if (denorm) {
+					subsetPrefix = "SELECT a.id FROM tmp_article_denorm WHERE a.id in %s;";
+				}
 				String dbPrefix = "SELECT a.id FROM tbl_article_wiki13 a left join "
-						+ "tbl_article_image_09 i on a.id = i.article_id WHERE a.id in %s;";
-
+						+ "tbl_article_image_09 i on a.id = i.article_id left join "
+						+ " tbl_article_link_09 l on a.id = l.article_id WHERE a.id in %s;";
 				double[] time = new double[4];
 				int iterCount = 2;
 				for (int i = 0; i < iterCount; i++) {
@@ -78,10 +83,10 @@ public class WikiMapleRelationalExperiment {
 				LOGGER.log(Level.INFO, "db: " + time[2] / iterCount + "," + time[3] / iterCount + ","
 						+ (time[2] + time[3]) / iterCount);
 			} catch (SQLException e) {
-				e.printStackTrace();
+				LOGGER.log(Level.SEVERE, e.getMessage(), e);
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	}
 
@@ -97,7 +102,7 @@ public class WikiMapleRelationalExperiment {
 			String query = String.format(queryPrefix, ids.toString().replace('[', '(').replace(']', ')'));
 			long tmp = System.currentTimeMillis();
 			long queryTime = submitSqlQuery(con, query);
-			LOGGER.log(Level.INFO, counter++ + ": " + ids.size() + ": " + (System.currentTimeMillis() - tmp) + ": "
+			LOGGER.log(Level.FINE, counter++ + ": " + ids.size() + ": " + (System.currentTimeMillis() - tmp) + ": "
 					+ ": " + queryTime + ": " + query);
 		}
 		long endTime = System.currentTimeMillis();
@@ -114,11 +119,10 @@ public class WikiMapleRelationalExperiment {
 				counter++;
 				rs.getString("id");
 			}
-			LOGGER.log(Level.INFO, "fetch size: " + counter);
+			LOGGER.log(Level.FINE, "fetch size: " + counter);
 			return end - begin;
 		} catch (SQLException e) {
-			LOGGER.log(Level.INFO, query);
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 		return -1;
 	}
@@ -134,7 +138,7 @@ public class WikiMapleRelationalExperiment {
 			e.printStackTrace();
 			return null;
 		}
-		LOGGER.log(Level.INFO, "Successfully connected to db");
+		LOGGER.log(Level.SEVERE, "Successfully connected to db");
 		return conn;
 	}
 
