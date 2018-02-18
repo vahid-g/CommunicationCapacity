@@ -27,7 +27,7 @@ public class WikiMapleRelationalExperiment {
 
 	public static void main(String[] args) throws SQLException {
 		LOGGER.setLevel(Level.INFO);
-		queryEfficiencyExperiment(true);
+		queryEfficiencyExperiment(args[0]);
 	}
 
 	static void debug() {
@@ -47,7 +47,7 @@ public class WikiMapleRelationalExperiment {
 		}
 	}
 
-	static void queryEfficiencyExperiment(boolean denorm) {
+	static void queryEfficiencyExperiment(String mode) {
 		String subsetIndexPath = PATHS.getIndexBase() + "1";
 		String indexPath = PATHS.getIndexBase() + "100";
 		Properties config = new Properties();
@@ -57,18 +57,31 @@ public class WikiMapleRelationalExperiment {
 					config.get("db-url"))) {
 				List<ExperimentQuery> queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(),
 						PATHS.getMsnQrelFilePath());
-				queries = queries.subList(0, 10);
-				String subsetPrefix = "SELECT a.id FROM tmp_article a left join "
-						+ "tmp_image i on a.id = i.article_id left join "
-						+ " tmp_link l on a.id = l.article_id WHERE a.id in %s;";
-				if (denorm) {
+				queries = queries.subList(0, 100);
+				String subsetPrefix = "";
+				switch (mode) {
+				case "subset":
+					subsetPrefix = "SELECT a.id FROM tmp_article a left join "
+							+ "tmp_image i on a.id = i.article_id left join "
+							+ " tmp_link l on a.id = l.article_id WHERE a.id in %s;";
+					break;
+				case "denorm":
 					subsetPrefix = "SELECT a.id FROM tmp_article_denorm WHERE a.id in %s;";
+					break;
+				case "memory":
+					subsetPrefix = "SELECT a.id FROM mem_article a left join "
+							+ "mem_image i on a.id = i.article_id left join "
+							+ " mem_link l on a.id = l.article_id WHERE a.id in %s;";
+					break;
+				default:
+					LOGGER.log(Level.SEVERE, "Mode is not correct");
+					return;
 				}
 				String dbPrefix = "SELECT a.id FROM tbl_article_wiki13 a left join "
 						+ "tbl_article_image_09 i on a.id = i.article_id left join "
 						+ " tbl_article_link_09 l on a.id = l.article_id WHERE a.id in %s;";
 				double[] time = new double[4];
-				int iterCount = 2;
+				int iterCount = 3;
 				for (int i = 0; i < iterCount; i++) {
 					double dbTimes[] = measureQueryEfficiency(indexPath, con, queries, dbPrefix);
 					double subsetTimes[] = measureQueryEfficiency(subsetIndexPath, con, queries, subsetPrefix);
@@ -138,7 +151,7 @@ public class WikiMapleRelationalExperiment {
 			e.printStackTrace();
 			return null;
 		}
-		LOGGER.log(Level.SEVERE, "Successfully connected to db");
+		LOGGER.log(Level.INFO, "Successfully connected to db");
 		return conn;
 	}
 
