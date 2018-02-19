@@ -14,40 +14,37 @@ import org.apache.lucene.search.Query;
 
 public class BoostedScoreQuery extends CustomScoreQuery {
 
-    private String boostFieldLabel;
+	private String boostFieldLabel;
 
-    public BoostedScoreQuery(Query subQuery, String boostFieldLabel) {
-	super(subQuery);
-	this.boostFieldLabel = boostFieldLabel;
-    }
+	public BoostedScoreQuery(Query subQuery, String boostFieldLabel) {
+		super(subQuery);
+		this.boostFieldLabel = boostFieldLabel;
+	}
 
-    private class BoostedScoreProvider extends CustomScoreProvider {
+	private class BoostedScoreProvider extends CustomScoreProvider {
 
-	private LeafReader reader;
-	private Set<String> fieldsToLoad = new HashSet<String>();
+		private LeafReader reader;
+		private Set<String> fieldsToLoad = new HashSet<String>();
 
-	public BoostedScoreProvider(LeafReaderContext context,
-		String boostFieldLabel) {
-	    super(context);
-	    reader = context.reader();
-	    fieldsToLoad.add(boostFieldLabel);
+		public BoostedScoreProvider(LeafReaderContext context, String boostFieldLabel) {
+			super(context);
+			reader = context.reader();
+			fieldsToLoad.add(boostFieldLabel);
+		}
+
+		@Override
+		public float customScore(int doc_id, float score, float valSrcScore) throws IOException {
+			Document doc = reader.document(doc_id, fieldsToLoad);
+			IndexableField field = doc.getField(boostFieldLabel);
+			double weight = field.numericValue().doubleValue();
+			if (weight == 0)
+				weight = 1;
+			return (float) (Math.log(score) + Math.log(weight));
+		}
 	}
 
 	@Override
-	public float customScore(int doc_id, float score, float valSrcScore)
-		throws IOException {
-	    Document doc = reader.document(doc_id, fieldsToLoad);
-	    IndexableField field = doc.getField(boostFieldLabel);
-	    double weight = field.numericValue().doubleValue();
-	    if (weight == 0)
-		weight = 1;
-	    return (float) (Math.log(score) + Math.log(weight));
+	public CustomScoreProvider getCustomScoreProvider(LeafReaderContext context) {
+		return new BoostedScoreProvider(context, boostFieldLabel);
 	}
-    }
-
-    @Override
-    public CustomScoreProvider getCustomScoreProvider(
-	    LeafReaderContext context) {
-	return new BoostedScoreProvider(context, boostFieldLabel);
-    }
 }

@@ -1,20 +1,19 @@
 package amazon;
 
 public enum AmazonDocumentField {
-    TITLE("title"), CONTENT("content"), CREATORS("creators"), TAGS("tags"), DEWEY(
-	    "dewey");
+	TITLE("title"), CONTENT("content"), CREATORS("creators"), TAGS("tags"), DEWEY("dewey");
 
-    // private static final Logger LOGGER =
-    // Logger.getLogger(AmazonDocumentField.class.getName());
+	// private static final Logger LOGGER =
+	// Logger.getLogger(AmazonDocumentField.class.getName());
 
-    private final String label;
+	private final String label;
 
-    AmazonDocumentField(final String s) {
-	label = s;
-    }
+	AmazonDocumentField(final String s) {
+		label = s;
+	}
 
-    public String toString() {
-	return label;
-    }
+	public String toString() {
+		return label;
+	}
 
 }

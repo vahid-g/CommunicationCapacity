@@ -8,70 +8,68 @@ import java.util.logging.Logger;
 
 public class ExperimentQuery {
 
-    private static final Logger LOGGER = Logger.getLogger(ExperimentQuery.class
-	    .getName());
+	private static final Logger LOGGER = Logger.getLogger(ExperimentQuery.class.getName());
 
-    private Integer id;
-    private String text;
-    private Map<String, Integer> qrelScoreMap = new HashMap<String, Integer>();
+	private Integer id;
+	private String text;
+	private Map<String, Integer> qrelScoreMap = new HashMap<String, Integer>();
 
-    public ExperimentQuery(int id, String text) {
-	this.id = id;
-	this.text = text;
-    }
-
-    public ExperimentQuery(int id, String text, Set<Qrel> qrels) {
-	this.id = id;
-	this.text = text;
-	for (Qrel qrel : qrels) {
-	    qrelScoreMap.put(qrel.getQrelId(), qrel.getRel());
+	public ExperimentQuery(int id, String text) {
+		this.id = id;
+		this.text = text;
 	}
-    }
 
-    public void addRelevantAnswer(Qrel qrel) {
-	if (qrel.getQid() != this.id) {
-	    LOGGER.log(Level.SEVERE, "Query and Qrel ids don't match!!!");
-	} else if (qrelScoreMap.keySet().contains(qrel.getQrelId())) {
-	    LOGGER.log(Level.SEVERE,
-		    "Qrel already has been added to the query!");
-	} else {
-	    qrelScoreMap.put(qrel.getQrelId(), qrel.getRel());
+	public ExperimentQuery(int id, String text, Set<Qrel> qrels) {
+		this.id = id;
+		this.text = text;
+		for (Qrel qrel : qrels) {
+			qrelScoreMap.put(qrel.getQrelId(), qrel.getRel());
+		}
 	}
-    }
 
-    @Override
-    public boolean equals(Object obj) {
-	ExperimentQuery query = (ExperimentQuery) obj;
-	return this.id.equals(query.id);
-    }
+	public void addRelevantAnswer(Qrel qrel) {
+		if (qrel.getQid() != this.id) {
+			LOGGER.log(Level.SEVERE, "Query and Qrel ids don't match!!!");
+		} else if (qrelScoreMap.keySet().contains(qrel.getQrelId())) {
+			LOGGER.log(Level.SEVERE, "Qrel already has been added to the query!");
+		} else {
+			qrelScoreMap.put(qrel.getQrelId(), qrel.getRel());
+		}
+	}
 
-    public Integer getId() {
-	return id;
-    }
+	@Override
+	public boolean equals(Object obj) {
+		ExperimentQuery query = (ExperimentQuery) obj;
+		return this.id.equals(query.id);
+	}
 
-    public Map<String, Integer> getQrelScoreMap() {
-	return qrelScoreMap;
-    }
+	public Integer getId() {
+		return id;
+	}
 
-    public String getText() {
-	return text.replace(",", " ");
-    }
+	public Map<String, Integer> getQrelScoreMap() {
+		return qrelScoreMap;
+	}
 
-    public boolean hasQrelId(String qrelId) {
-	return qrelScoreMap.containsKey(qrelId);
-    }
+	public String getText() {
+		return text.replace(",", " ");
+	}
 
-    public void setQrelScoreMap(Map<String, Integer> qrelIdQrelScore) {
-	this.qrelScoreMap = qrelIdQrelScore;
-    }
+	public boolean hasQrelId(String qrelId) {
+		return qrelScoreMap.containsKey(qrelId);
+	}
 
-    public void setText(String text) {
-	this.text = text;
-    };
+	public void setQrelScoreMap(Map<String, Integer> qrelIdQrelScore) {
+		this.qrelScoreMap = qrelIdQrelScore;
+	}
 
-    @Override
-    public String toString() {
-	return "query: " + this.text;
-    }
+	public void setText(String text) {
+		this.text = text;
+	};
+
+	@Override
+	public String toString() {
+		return "query: " + this.text;
+	}
 
 }

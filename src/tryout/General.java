@@ -5,20 +5,18 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class General {
-    public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException {
 
-    }
+	}
 
-    public static void createConfig() throws IOException {
-	FileOutputStream out = new FileOutputStream(
-		"example-config.properties");
-	Properties defaultProps = new Properties();
-	defaultProps.setProperty("db-url",
-		"jdbc:mysql://engr-db.engr.oregonstate.edu:port/db-name");
-	defaultProps.setProperty("username", "your-username");
-	defaultProps.setProperty("password", "****");
-	defaultProps.store(out, "---Default Config Properties---");
-	out.close();
-    }
+	public static void createConfig() throws IOException {
+		FileOutputStream out = new FileOutputStream("example-config.properties");
+		Properties defaultProps = new Properties();
+		defaultProps.setProperty("db-url", "jdbc:mysql://engr-db.engr.oregonstate.edu:port/db-name");
+		defaultProps.setProperty("username", "your-username");
+		defaultProps.setProperty("password", "****");
+		defaultProps.store(out, "---Default Config Properties---");
+		out.close();
+	}
 
 }

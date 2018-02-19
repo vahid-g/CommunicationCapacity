@@ -16,25 +16,22 @@ import query.ExperimentQuery;
 
 public class QueryDifficultyComputer {
 
-    private static final Logger LOGGER = Logger
-	    .getLogger(QueryDifficultyComputer.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(QueryDifficultyComputer.class.getName());
 
-    private QueryDifficultyScoreInterface method;
+	private QueryDifficultyScoreInterface method;
 
-    public QueryDifficultyComputer(QueryDifficultyScoreInterface method) {
-	this.method = method;
-    }
-
-    public Map<String, Double> computeQueryDifficulty(String indexPath,
-	    List<ExperimentQuery> queries, String field) {
-	Map<String, Double> difficulties = new HashMap<String, Double>();
-	try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths
-		.get(indexPath)))) {
-	    difficulties = method.computeScore(reader, queries, field);
-	} catch (IOException e) {
-	    LOGGER.log(Level.SEVERE, e.getMessage(), e);
+	public QueryDifficultyComputer(QueryDifficultyScoreInterface method) {
+		this.method = method;
 	}
-	return difficulties;
-    }
+
+	public Map<String, Double> computeQueryDifficulty(String indexPath, List<ExperimentQuery> queries, String field) {
+		Map<String, Double> difficulties = new HashMap<String, Double>();
+		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
+			difficulties = method.computeScore(reader, queries, field);
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return difficulties;
+	}
 
 }
