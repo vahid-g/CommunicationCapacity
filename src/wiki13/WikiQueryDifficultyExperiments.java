@@ -59,8 +59,7 @@ public class WikiQueryDifficultyExperiments {
 			cl = clp.parse(options, args);
 			int expNo = Integer.parseInt(cl.getOptionValue("exp"));
 			int totalExp = Integer.parseInt(cl.getOptionValue("total"));
-			String indexFolder = "wiki13_p50_w13/";
-			String indexPath = PATHS.getIndexBase() + indexFolder + expNo;
+			String indexPath = PATHS.getIndexBase() + expNo;
 			List<ExperimentQuery> queries;
 			if (cl.hasOption("msn")) {
 				queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(), PATHS.getMsnQrelFilePath());

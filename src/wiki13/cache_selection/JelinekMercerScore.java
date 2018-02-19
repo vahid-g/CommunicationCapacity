@@ -36,6 +36,7 @@ public class JelinekMercerScore implements QueryDifficultyScoreInterface {
 		LOGGER.log(Level.INFO, "TF sum:" + tfSum);
 		LOGGER.log(Level.INFO, "Global TF sum:" + globalTfSum);
 		for (ExperimentQuery query : queries) {
+			LOGGER.log(Level.INFO, query.getText());
 			try (Analyzer analyzer = new StandardAnalyzer()) {
 				TokenStream tokenStream = analyzer.tokenStream(field,
 						new StringReader(query.getText().replaceAll("'", "`")));
