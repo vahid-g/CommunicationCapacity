@@ -19,50 +19,51 @@ import query.ExperimentQuery;
 
 public class JelinekMercerScore implements QueryDifficultyScoreInterface {
 
-    private static final Logger LOGGER = Logger.getLogger(JelinekMercerScore.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(JelinekMercerScore.class.getName());
 
-    private IndexReader globalIndexReader;
+	private IndexReader globalIndexReader;
 
-    public JelinekMercerScore(IndexReader globalIndexReader) {
-	this.globalIndexReader = globalIndexReader;
-    }
-
-    @Override
-    public Map<String, Double> computeScore(IndexReader reader, List<ExperimentQuery> queries, String field)
-	    throws IOException {
-	Map<String, Double> difficulties = new HashMap<String, Double>();
-	long tfSum = reader.getSumTotalTermFreq(field);
-	long globalTfSum = globalIndexReader.getSumTotalTermFreq(field);
-	LOGGER.log(Level.INFO, "TF sum:" + tfSum);
-	LOGGER.log(Level.INFO, "Global TF sum:" + globalTfSum);
-	for (ExperimentQuery query : queries) {
-	    try (Analyzer analyzer = new StandardAnalyzer()) {
-		TokenStream tokenStream = analyzer.tokenStream(field,
-			new StringReader(query.getText().replaceAll("'", "`")));
-		CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
-		double p = 1.0;
-		try {
-		    tokenStream.reset();
-		    while (tokenStream.incrementToken()) {
-			String term = termAtt.toString();
-			Term currentTokenTerm = new Term(field, term);
-			long tf = reader.totalTermFreq(currentTokenTerm);
-			long gtf = globalIndexReader.totalTermFreq(currentTokenTerm);
-			if (gtf == 0) {
-			    System.out.println("zero gtf for: " + term);
-			}
-			double probabilityOfTermGivenSubset = tf / Math.max(tfSum, 1.0);
-			double probabilityOfTermGivenDatabase = gtf / Math.max(globalTfSum, 1.0);
-			p *= 0.5 * probabilityOfTermGivenSubset + 0.5 * probabilityOfTermGivenDatabase;
-		    }
-		    tokenStream.end();
-		} finally {
-		    tokenStream.close();
-		}
-		difficulties.put(query.getText(), p);
-	    }
+	public JelinekMercerScore(IndexReader globalIndexReader) {
+		this.globalIndexReader = globalIndexReader;
 	}
-	return difficulties;
-    }
+
+	@Override
+	public Map<String, Double> computeScore(IndexReader reader, List<ExperimentQuery> queries, String field)
+			throws IOException {
+		Map<String, Double> difficulties = new HashMap<String, Double>();
+		long tfSum = reader.getSumTotalTermFreq(field);
+		long globalTfSum = globalIndexReader.getSumTotalTermFreq(field);
+		LOGGER.log(Level.INFO, "TF sum:" + tfSum);
+		LOGGER.log(Level.INFO, "Global TF sum:" + globalTfSum);
+		for (ExperimentQuery query : queries) {
+			try (Analyzer analyzer = new StandardAnalyzer()) {
+				TokenStream tokenStream = analyzer.tokenStream(field,
+						new StringReader(query.getText().replaceAll("'", "`")));
+				CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+				double p = 1.0;
+				try {
+					tokenStream.reset();
+					while (tokenStream.incrementToken()) {
+						String term = termAtt.toString();
+						Term currentTokenTerm = new Term(field, term);
+						long tf = reader.totalTermFreq(currentTokenTerm);
+						long gtf = globalIndexReader.totalTermFreq(currentTokenTerm);
+						if (gtf == 0) {
+							LOGGER.log(Level.WARNING, "zero gtf for: " + term);
+						}
+						double probabilityOfTermGivenSubset = tf / Math.max(tfSum, 1.0);
+						double probabilityOfTermGivenDatabase = gtf / Math.max(globalTfSum, 1.0);
+						p *= 0.5 * probabilityOfTermGivenSubset + 0.5 * probabilityOfTermGivenDatabase;
+						LOGGER.log(Level.INFO, "tf = {0} global tf = {1}", new Object[] { tf, gtf });
+					}
+					tokenStream.end();
+				} finally {
+					tokenStream.close();
+				}
+				difficulties.put(query.getText(), p);
+			}
+		}
+		return difficulties;
+	}
 
 }
