@@ -51,8 +51,6 @@ public class WikiQueryDifficultyExperiments {
 		options.addOption(difficultyOption);
 		Option useMsnQueryLogOption = new Option("msn", false, "specifies the query log (msn/inex)");
 		options.addOption(useMsnQueryLogOption);
-		Option indexFolderOption = new Option("index", true, "specifies the index folder name");
-		options.addOption(indexFolderOption);
 		CommandLineParser clp = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cl;
@@ -61,7 +59,7 @@ public class WikiQueryDifficultyExperiments {
 			cl = clp.parse(options, args);
 			int expNo = Integer.parseInt(cl.getOptionValue("exp"));
 			int totalExp = Integer.parseInt(cl.getOptionValue("total"));
-			String indexFolder = cl.getOptionValue("index", "wiki13_p50_w13/");
+			String indexFolder = "wiki13_p50_w13/";
 			String indexPath = PATHS.getIndexBase() + indexFolder + expNo;
 			List<ExperimentQuery> queries;
 			if (cl.hasOption("msn")) {
@@ -123,7 +121,7 @@ public class WikiQueryDifficultyExperiments {
 			qdc = new QueryDifficultyComputer(new SimpleCacheScore());
 		} else if (difficultyMetric.equals("jms")) {
 			IndexReader globalReader = DirectoryReader
-					.open(FSDirectory.open(Paths.get(PATHS.getIndexBase() + "/part_" + totalExp)));
+					.open(FSDirectory.open(Paths.get(PATHS.getIndexBase() + totalExp)));
 			qdc = new QueryDifficultyComputer(new JelinekMercerScore(globalReader));
 		} else {
 			throw new org.apache.commons.cli.ParseException("Difficulty metric needs to be specified");

@@ -5,7 +5,7 @@ public class WikiFilesPaths {
 	public static WikiFilesPaths getHpcPaths() {
 		if (hpcPaths == null) {
 			String dataPath = "/scratch/cluster-share/ghadakcv/data/";
-			String indexBase = dataPath + "index/";
+			String indexBase = dataPath + "index/wiki13_p50_w13/";
 			String accessCountsPath = dataPath + "path_counts/wiki13_count13_text.csv";
 			String accessCounts09Path = dataPath + "path_counts/wiki13_count09_text.csv";
 			hpcPaths = new WikiFilesPaths(indexBase, accessCountsPath, accessCounts09Path);

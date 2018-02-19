@@ -39,8 +39,6 @@ public class WikiSubsetQueryingExperiment {
 		options.addOption(boostOption);
 		Option server = new Option("server", true, "Specifies maple/hpc");
 		options.addOption(server);
-		Option indexFolderOption = new Option("index", true, "Specifies the index folder");
-		options.addOption(indexFolderOption);
 		CommandLineParser clp = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cl;
@@ -49,7 +47,7 @@ public class WikiSubsetQueryingExperiment {
 			final int currentPartition = Integer.parseInt(cl.getOptionValue("exp"));
 			final int totalPartitionCount = Integer.parseInt(cl.getOptionValue("total"));
 			final float gamma = Float.parseFloat(cl.getOptionValue("gamma", "0.15"));
-			String indexFolder = cl.getOptionValue("index", "wiki13_p50_w13/");
+			String indexFolder = "wiki13_p50_w13/";
 			WikiFilesPaths paths = null;
 			if (cl.getOptionValue("server").equals("maple")) {
 				paths = WikiFilesPaths.getMaplePaths();
