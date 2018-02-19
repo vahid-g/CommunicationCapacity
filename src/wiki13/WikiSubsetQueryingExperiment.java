@@ -57,7 +57,7 @@ public class WikiSubsetQueryingExperiment {
 			final boolean docBoost = cl.hasOption("boost");
 			String indexPath = paths.getIndexBase() + indexFolder + currentPartition;
 			List<ExperimentQuery> queries;
-			if (cl.hasOption("msn")) {
+			if (cl.getOptionValue("queryset").equals("msn")) {
 				queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
 			} else {
 				queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath(),
