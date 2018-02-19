@@ -32,9 +32,9 @@ import wiki13.cache_selection.SimpleCacheScore;
 import wiki13.cache_selection.VarianceScore;
 import wiki13.cache_selection.VarianceScore.VarianceScoreMode;
 
-public class WikiHpcExperiments {
+public class WikiQueryDifficultyExperiments {
 
-	public static final Logger LOGGER = Logger.getLogger(WikiHpcExperiments.class.getName());
+	public static final Logger LOGGER = Logger.getLogger(WikiQueryDifficultyExperiments.class.getName());
 	private static WikiFilesPaths PATHS = WikiFilesPaths.getHpcPaths();
 
 	public static void main(String[] args) throws IOException {
@@ -51,6 +51,8 @@ public class WikiHpcExperiments {
 		options.addOption(difficultyOption);
 		Option useMsnQueryLogOption = new Option("msn", false, "specifies the query log (msn/inex)");
 		options.addOption(useMsnQueryLogOption);
+		Option indexFolderOption = new Option("index", true, "specifies the index folder name");
+		options.addOption(indexFolderOption);
 		CommandLineParser clp = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cl;
@@ -59,7 +61,8 @@ public class WikiHpcExperiments {
 			cl = clp.parse(options, args);
 			int expNo = Integer.parseInt(cl.getOptionValue("exp"));
 			int totalExp = Integer.parseInt(cl.getOptionValue("total"));
-			String indexPath = PATHS.getIndexBase() + "/part_" + expNo;
+			String indexFolder = cl.getOptionValue("index", "wiki13_p50_w13/");
+			String indexPath = PATHS.getIndexBase() + indexFolder + expNo;
 			List<ExperimentQuery> queries;
 			if (cl.hasOption("msn")) {
 				queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(), PATHS.getMsnQrelFilePath());
