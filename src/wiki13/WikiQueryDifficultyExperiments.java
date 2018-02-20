@@ -24,8 +24,8 @@ import popularity.PopularityUtils;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
+import wiki13.cache_selection.BigramJelinekMercerScore;
 import wiki13.cache_selection.ClarityScore;
-import wiki13.cache_selection.JelinekMercerScore;
 import wiki13.cache_selection.LanguageModelScore;
 import wiki13.cache_selection.QueryDifficultyComputer;
 import wiki13.cache_selection.SimpleCacheScore;
@@ -121,7 +121,7 @@ public class WikiQueryDifficultyExperiments {
 			qdc = new QueryDifficultyComputer(new SimpleCacheScore());
 		} else if (difficultyMetric.equals("jms")) {
 			globalReader = DirectoryReader.open(FSDirectory.open(Paths.get(PATHS.getIndexBase() + totalExp)));
-			qdc = new QueryDifficultyComputer(new JelinekMercerScore(globalReader));
+			qdc = new QueryDifficultyComputer(new BigramJelinekMercerScore(globalReader));
 		} else {
 			throw new org.apache.commons.cli.ParseException("Difficulty metric needs to be specified");
 		}
