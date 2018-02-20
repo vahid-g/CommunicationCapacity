@@ -47,20 +47,23 @@ public class JelinekMercerScore implements QueryDifficultyScoreInterface {
 					while (tokenStream.incrementToken()) {
 						String term = termAtt.toString();
 						Term currentTokenTerm = new Term(field, term);
-						long tf = reader.totalTermFreq(currentTokenTerm);
-						long gtf = globalIndexReader.totalTermFreq(currentTokenTerm);
+						double tf = reader.totalTermFreq(currentTokenTerm);
+						double gtf = globalIndexReader.totalTermFreq(currentTokenTerm);
 						if (gtf == 0) {
 							LOGGER.log(Level.WARNING, "zero gtf for: " + term);
 						}
 						double probabilityOfTermGivenSubset = tf / Math.max(tfSum, 1.0);
 						double probabilityOfTermGivenDatabase = gtf / Math.max(globalTfSum, 1.0);
-						p *= 0.5 * probabilityOfTermGivenSubset + 0.5 * probabilityOfTermGivenDatabase;
+						p *= (0.5 * probabilityOfTermGivenSubset + 0.5 * probabilityOfTermGivenDatabase);
 						LOGGER.log(Level.INFO, "tf = {0} global tf = {1}", new Object[] { tf, gtf });
+						LOGGER.log(Level.INFO, "Pr(term|subset) = " + probabilityOfTermGivenSubset + " Pr(term|db) = "
+								+ probabilityOfTermGivenDatabase);
 					}
 					tokenStream.end();
 				} finally {
 					tokenStream.close();
 				}
+				LOGGER.log(Level.INFO, "p = " + p);
 				difficulties.put(query.getText(), p);
 			}
 		}

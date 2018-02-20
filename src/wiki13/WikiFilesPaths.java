@@ -8,7 +8,7 @@ public class WikiFilesPaths {
 			String indexBase = dataPath + "index/wiki13_p50_w13/";
 			String accessCountsPath = dataPath + "path_counts/wiki13_count13_text.csv";
 			String accessCounts09Path = dataPath + "path_counts/wiki13_count09_text.csv";
-			hpcPaths = new WikiFilesPaths(indexBase, accessCountsPath, accessCounts09Path);
+			hpcPaths = new WikiFilesPaths(dataPath, indexBase, accessCountsPath, accessCounts09Path);
 		}
 		return hpcPaths;
 	}
@@ -19,7 +19,7 @@ public class WikiFilesPaths {
 			String indexBase = dataPath + "wiki_index/";
 			String accessCountsPath = dataPath + "wiki13_count13_text.csv";
 			String accessCounts09Path = dataPath + "wiki13_count09_text.csv";
-			maplePaths = new WikiFilesPaths(indexBase, accessCountsPath, accessCounts09Path);
+			maplePaths = new WikiFilesPaths(dataPath, indexBase, accessCountsPath, accessCounts09Path);
 		}
 		return maplePaths;
 	}
@@ -27,6 +27,10 @@ public class WikiFilesPaths {
 	private static WikiFilesPaths maplePaths = null;
 
 	private static WikiFilesPaths hpcPaths = null;
+
+	public String getDataFolder() {
+		return dataFolder;
+	}
 
 	public String getIndexBase() {
 		return indexBase;
@@ -56,6 +60,7 @@ public class WikiFilesPaths {
 		return msnQrelFilePath;
 	}
 
+	private final String dataFolder;
 	private final String indexBase;
 	private final String accessCountsPath;
 	private final String accessCounts09Path;
@@ -64,7 +69,8 @@ public class WikiFilesPaths {
 	private final String msnQueryFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/msn_query_qid.csv";
 	private final String msnQrelFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/msn.qrels";
 
-	private WikiFilesPaths(String indexBase, String accessCountsPath, String accessCounts09Path) {
+	private WikiFilesPaths(String dataFolder, String indexBase, String accessCountsPath, String accessCounts09Path) {
+		this.dataFolder = dataFolder;
 		this.indexBase = indexBase;
 		this.accessCountsPath = accessCountsPath;
 		this.accessCounts09Path = accessCounts09Path;

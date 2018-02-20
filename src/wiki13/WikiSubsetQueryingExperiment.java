@@ -29,7 +29,7 @@ public class WikiSubsetQueryingExperiment {
 		Option currentPartitionCountOption = new Option("exp", true, "Number of experiment");
 		currentPartitionCountOption.setRequired(true);
 		options.addOption(currentPartitionCountOption);
-		Option useMsnQueryLogOption = new Option("queryset", false, "specifies the query log (msn/inex)");
+		Option useMsnQueryLogOption = new Option("queryset", true, "specifies the query log (msn/inex)");
 		options.addOption(useMsnQueryLogOption);
 		Option gammaOption = new Option("gamma", true, "Weight of title field in scoring");
 		options.addOption(gammaOption);
@@ -47,7 +47,7 @@ public class WikiSubsetQueryingExperiment {
 			final int currentPartition = Integer.parseInt(cl.getOptionValue("exp"));
 			final int totalPartitionCount = Integer.parseInt(cl.getOptionValue("total"));
 			final float gamma = Float.parseFloat(cl.getOptionValue("gamma", "0.15"));
-			String indexFolder = "wiki13_p50_w13/";
+			String indexFolder = "index/wiki13_p50_w09/";
 			WikiFilesPaths paths = null;
 			if (cl.getOptionValue("server").equals("maple")) {
 				paths = WikiFilesPaths.getMaplePaths();
@@ -55,7 +55,7 @@ public class WikiSubsetQueryingExperiment {
 				paths = WikiFilesPaths.getHpcPaths();
 			}
 			final boolean docBoost = cl.hasOption("boost");
-			String indexPath = paths.getIndexBase() + indexFolder + currentPartition;
+			String indexPath = paths.getDataFolder() + indexFolder + currentPartition;
 			List<ExperimentQuery> queries;
 			if (cl.getOptionValue("queryset").equals("msn")) {
 				queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
