@@ -104,6 +104,7 @@ public class WikiQueryDifficultyExperiments {
 			List<ExperimentQuery> queries, String difficultyMetric) throws ParseException, IOException {
 		LOGGER.log(Level.INFO, "querylog size " + queries.size());
 		QueryDifficultyComputer qdc;
+		IndexReader globalReader = null;
 		if (difficultyMetric.equals("scs")) {
 			qdc = new QueryDifficultyComputer(new ClarityScore());
 		} else if (difficultyMetric.equals("maxvar")) {
@@ -119,8 +120,7 @@ public class WikiQueryDifficultyExperiments {
 		} else if (difficultyMetric.equals("simple")) {
 			qdc = new QueryDifficultyComputer(new SimpleCacheScore());
 		} else if (difficultyMetric.equals("jms")) {
-			IndexReader globalReader = DirectoryReader
-					.open(FSDirectory.open(Paths.get(PATHS.getIndexBase() + totalExp)));
+			globalReader = DirectoryReader.open(FSDirectory.open(Paths.get(PATHS.getIndexBase() + totalExp)));
 			qdc = new QueryDifficultyComputer(new JelinekMercerScore(globalReader));
 		} else {
 			throw new org.apache.commons.cli.ParseException("Difficulty metric needs to be specified");
@@ -129,6 +129,13 @@ public class WikiQueryDifficultyExperiments {
 				WikiFileIndexer.TITLE_ATTRIB);
 		Map<String, Double> contentDifficulties = qdc.computeQueryDifficulty(indexPath, queries,
 				WikiFileIndexer.CONTENT_ATTRIB);
+		if (globalReader != null) {
+			try {
+				globalReader.close();
+			} catch (IOException e) {
+				LOGGER.log(Level.SEVERE, e.getMessage(), e);
+			}
+		}
 		WikiExperimentHelper.writeMapToFile(titleDifficulties, "title_diff_" + expNo + ".csv");
 		WikiExperimentHelper.writeMapToFile(contentDifficulties, "content_diff_" + expNo + ".csv");
 	}
