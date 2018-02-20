@@ -25,9 +25,11 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queries.CustomScoreQuery;
 import org.apache.lucene.queries.function.FunctionQuery;
 import org.apache.lucene.queries.function.valuesource.DoubleFieldSource;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.BM25Similarity;
@@ -40,6 +42,28 @@ import query.BoostedScoreQuery;
 public class LuceneBasics {
 
 	public static void main(String[] args) throws Exception {
+		try6();
+	}
+
+	// testing phrase queries
+	static void try6() throws IOException, ParseException {
+		Directory directory = new RAMDirectory();
+		generateIndex(directory);
+		PhraseQuery.Builder builder = new PhraseQuery.Builder();
+		builder.add(new Term("f", "new"), 0);
+		builder.add(new Term("f", "shekh"), 1);
+		PhraseQuery query = builder.build();
+		// QueryParser parser = new QueryParser("f", new StandardAnalyzer());
+		// Query query = parser.parse("\"new Shekh\"");
+		IndexSearcher isearcher = new IndexSearcher(DirectoryReader.open(directory));
+		isearcher.setSimilarity(new BM25Similarity()); // Parse a simple
+		ScoreDoc[] hits = isearcher.search(query, 1000).scoreDocs;
+		System.out.println("#hits:" + hits.length);
+		for (int i = 0; i < hits.length; i++) {
+			Document hitDoc = isearcher.doc(hits[i].doc);
+			System.out.println(hits[i].score + "\t" + hitDoc.get("f"));
+		}
+		directory.close();
 
 	}
 
@@ -185,10 +209,10 @@ public class LuceneBasics {
 		doc1.add(new Field("f", "this is the new Shekh", TextField.TYPE_STORED));
 		doc1.add(new DoubleDocValuesField("weight", 1));
 		doc2.add(new StoredField("i", "d-2"));
-		doc2.add(new Field("f", "this is the new Shekh", TextField.TYPE_STORED));
+		doc2.add(new Field("f", " new this is the Shekh", TextField.TYPE_STORED));
 		doc2.add(new DoubleDocValuesField("weight", 20));
 		doc3.add(new StoredField("i", "d-3"));
-		doc3.add(new Field("f", "this is the new", TextField.TYPE_STORED));
+		doc3.add(new Field("f", "this is the new Shit", TextField.TYPE_STORED));
 		doc3.add(new DoubleDocValuesField("weight", 65));
 		iwriter.addDocument(doc1);
 		iwriter.addDocument(doc2);
