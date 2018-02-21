@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -27,7 +28,14 @@ public class WikiMapleRelationalEfficiencyExperiment {
 
 	public static void main(String[] args) throws SQLException {
 		LOGGER.setLevel(Level.INFO);
-		queryEfficiencyExperiment(args[0]);
+		// List<ExperimentQuery> queries =
+		// QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(),
+		// PATHS.getMsnQrelFilePath());
+		List<ExperimentQuery> queries = QueryServices.loadInexQueries(PATHS.getInexQueryFilePath(),
+				PATHS.getInexQrelFilePath());
+		Collections.shuffle(queries);
+		queries = queries.subList(0, 100);
+		queryEfficiencyExperiment("memory", "16", queries);
 	}
 
 	static void debug() {
@@ -47,8 +55,8 @@ public class WikiMapleRelationalEfficiencyExperiment {
 		}
 	}
 
-	static void queryEfficiencyExperiment(String mode) {
-		String subsetIndexPath = PATHS.getIndexBase() + "1";
+	static void queryEfficiencyExperiment(String mode, String subset, List<ExperimentQuery> queries) {
+		String subsetIndexPath = PATHS.getIndexBase() + subset;
 		String indexPath = PATHS.getIndexBase() + "100";
 		Properties config = new Properties();
 		try (InputStream in = WikiMapleRelationalEfficiencyExperiment.class
@@ -56,25 +64,23 @@ public class WikiMapleRelationalEfficiencyExperiment {
 			config.load(in);
 			try (Connection con = getDatabaseConnection(config.get("username"), config.get("password"),
 					config.get("db-url"))) {
-				List<ExperimentQuery> queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(),
-						PATHS.getMsnQrelFilePath());
-				queries = queries.subList(0, 500);
+
 				String subsetPrefix = "";
 				switch (mode) {
-				case "subset":
-					subsetPrefix = "SELECT a.id FROM tmp_article a left join "
-							+ "tmp_image i on a.id = i.article_id left join "
-							+ " tmp_link l on a.id = l.article_id WHERE a.id in %s;";
-					break;
 				case "denorm":
 					subsetPrefix = "SELECT a.id FROM tmp_article_denorm WHERE a.id in %s;";
 					break;
 				case "memory":
-					subsetPrefix = "SELECT a.id FROM mem_article a left join "
-							+ "mem_image i on a.id = i.article_id left join "
-							+ "mem_image_image ii on i.image_id = ii.id left join "
-							+ "mem_link l on a.id = l.article_id left join "
-							+ "mem_link_link ll on l.article_id = ll.id WHERE a.id in %s;";
+					String articleTable = "mem_article_" + subset;
+					String imageRelTable = "mem_image_" + subset;
+					String linkRelTable = "mem_link_" + subset;
+					String imageTable = "mem_image_image_" + subset;
+					String linkTable = "mem_link_link_" + subset;
+					subsetPrefix = "SELECT a.id FROM " + articleTable + " a left join " + imageRelTable
+							+ " i on a.id = i.article_id left join " + imageTable
+							+ " ii on i.image_id = ii.id left join " + linkRelTable
+							+ " l on a.id = l.article_id left join " + linkTable
+							+ " ll on l.article_id = ll.id WHERE a.id in %s;";
 					break;
 				default:
 					LOGGER.log(Level.SEVERE, "Mode is not correct");
