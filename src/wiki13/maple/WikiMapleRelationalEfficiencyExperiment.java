@@ -20,9 +20,9 @@ import query.QueryServices;
 import wiki13.WikiExperimentHelper;
 import wiki13.WikiFilesPaths;
 
-public class WikiMapleRelationalExperiment {
+public class WikiMapleRelationalEfficiencyExperiment {
 
-	private static Logger LOGGER = Logger.getLogger(WikiMapleRelationalExperiment.class.getName());
+	private static Logger LOGGER = Logger.getLogger(WikiMapleRelationalEfficiencyExperiment.class.getName());
 	private static WikiFilesPaths PATHS = WikiFilesPaths.getMaplePaths();
 
 	public static void main(String[] args) throws SQLException {
@@ -51,13 +51,14 @@ public class WikiMapleRelationalExperiment {
 		String subsetIndexPath = PATHS.getIndexBase() + "1";
 		String indexPath = PATHS.getIndexBase() + "100";
 		Properties config = new Properties();
-		try (InputStream in = WikiMapleRelationalExperiment.class.getResourceAsStream("/config/config.properties")) {
+		try (InputStream in = WikiMapleRelationalEfficiencyExperiment.class
+				.getResourceAsStream("/config/config.properties")) {
 			config.load(in);
 			try (Connection con = getDatabaseConnection(config.get("username"), config.get("password"),
 					config.get("db-url"))) {
 				List<ExperimentQuery> queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(),
 						PATHS.getMsnQrelFilePath());
-				queries = queries.subList(0, 100);
+				queries = queries.subList(0, 500);
 				String subsetPrefix = "";
 				switch (mode) {
 				case "subset":
@@ -71,7 +72,9 @@ public class WikiMapleRelationalExperiment {
 				case "memory":
 					subsetPrefix = "SELECT a.id FROM mem_article a left join "
 							+ "mem_image i on a.id = i.article_id left join "
-							+ " mem_link l on a.id = l.article_id WHERE a.id in %s;";
+							+ "mem_image_image ii on i.image_id = ii.id left join "
+							+ "mem_link l on a.id = l.article_id left join "
+							+ "mem_link_link ll on l.article_id = ll.id WHERE a.id in %s;";
 					break;
 				default:
 					LOGGER.log(Level.SEVERE, "Mode is not correct");
@@ -79,7 +82,9 @@ public class WikiMapleRelationalExperiment {
 				}
 				String dbPrefix = "SELECT a.id FROM tbl_article_wiki13 a left join "
 						+ "tbl_article_image_09 i on a.id = i.article_id left join "
-						+ " tbl_article_link_09 l on a.id = l.article_id WHERE a.id in %s;";
+						+ "tbl_image_09 ii on i.image_id = ii.id left join "
+						+ "tbl_article_link_09 l on a.id = l.article_id left join "
+						+ "tbl_link_09 ll on l.link_id = ll.id WHERE a.id in %s;";
 				double[] time = new double[4];
 				int iterCount = 3;
 				for (int i = 0; i < iterCount; i++) {
