@@ -27,15 +27,13 @@ public class WikiMapleRelationalEfficiencyExperiment {
 	private static WikiFilesPaths PATHS = WikiFilesPaths.getMaplePaths();
 
 	public static void main(String[] args) throws SQLException {
-		LOGGER.setLevel(Level.INFO);
-		// List<ExperimentQuery> queries =
-		// QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(),
-		// PATHS.getMsnQrelFilePath());
-		List<ExperimentQuery> queries = QueryServices.loadInexQueries(PATHS.getInexQueryFilePath(),
-				PATHS.getInexQrelFilePath());
+		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(),
+				PATHS.getMsnQrelFilePath());
+//		List<ExperimentQuery> queries = QueryServices.loadInexQueries(PATHS.getInexQueryFilePath(),
+//				PATHS.getInexQrelFilePath());
 		Collections.shuffle(queries);
-		queries = queries.subList(0, 100);
-		queryEfficiencyExperiment("memory", "16", queries);
+		queries = queries.subList(0, 50);
+		queryEfficiencyExperiment("memory", "1", queries);
 	}
 
 	static void debug() {
@@ -72,10 +70,10 @@ public class WikiMapleRelationalEfficiencyExperiment {
 					break;
 				case "memory":
 					String articleTable = "mem_article_" + subset;
-					String imageRelTable = "mem_image_" + subset;
-					String linkRelTable = "mem_link_" + subset;
-					String imageTable = "mem_image_image_" + subset;
-					String linkTable = "mem_link_link_" + subset;
+					String imageRelTable = "mem_article_image_" + subset;
+					String linkRelTable = "mem_article_link_" + subset;
+					String imageTable = "mem_image_" + subset;
+					String linkTable = "mem_link_" + subset;
 					subsetPrefix = "SELECT a.id FROM " + articleTable + " a left join " + imageRelTable
 							+ " i on a.id = i.article_id left join " + imageTable
 							+ " ii on i.image_id = ii.id left join " + linkRelTable
@@ -86,11 +84,15 @@ public class WikiMapleRelationalEfficiencyExperiment {
 					LOGGER.log(Level.SEVERE, "Mode is not correct");
 					return;
 				}
-				String dbPrefix = "SELECT a.id FROM tbl_article_wiki13 a left join "
-						+ "tbl_article_image_09 i on a.id = i.article_id left join "
-						+ "tbl_image_09 ii on i.image_id = ii.id left join "
-						+ "tbl_article_link_09 l on a.id = l.article_id left join "
-						+ "tbl_link_09 ll on l.link_id = ll.id WHERE a.id in %s;";
+				String articleTable = "tbl_article_wiki13";
+				String imageRelTable = "tbl_article_image_09";
+				String linkRelTable = "tbl_article_link_09";
+				String imageTable = "tbl_image_09";
+				String linkTable = "tbl_link_09";
+				String dbPrefix = "SELECT a.id FROM " + articleTable + " a left join " + imageRelTable
+						+ " i on a.id = i.article_id left join " + imageTable + " ii on i.image_id = ii.id left join "
+						+ linkRelTable + " l on a.id = l.article_id left join " + linkTable
+						+ " ll on l.article_id = ll.id WHERE a.id in %s;";
 				double[] time = new double[4];
 				int iterCount = 3;
 				for (int i = 0; i < iterCount; i++) {
@@ -124,6 +126,7 @@ public class WikiMapleRelationalEfficiencyExperiment {
 			List<String> ids = result.getTopDocuments().subList(0, Math.min(result.getTopDocuments().size(), 20))
 					.stream().map(t -> t.id).collect(Collectors.toList());
 			String query = String.format(queryPrefix, ids.toString().replace('[', '(').replace(']', ')'));
+			LOGGER.log(Level.FINE, query);
 			long tmp = System.currentTimeMillis();
 			long queryTime = submitSqlQuery(con, query);
 			LOGGER.log(Level.FINE, counter++ + ": " + ids.size() + ": " + (System.currentTimeMillis() - tmp) + ": "

@@ -3,10 +3,22 @@ package tryout;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class General {
-	public static void main(String[] args) throws IOException {
 
+	static final Logger LOGGER = LogManager.getLogManager().getLogger("");
+
+	public static void main(String[] args) throws IOException {
+		LOGGER.setLevel(Level.FINE);
+		for (Handler h : LOGGER.getHandlers()) {
+			h.setLevel(Level.FINE);
+		}
+		LOGGER.log(Level.INFO, "hanhan");
+		LOGGER.log(Level.FINE, "olde?");
 	}
 
 	public static void createConfig() throws IOException {
