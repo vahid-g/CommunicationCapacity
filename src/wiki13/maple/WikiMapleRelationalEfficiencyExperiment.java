@@ -66,7 +66,7 @@ public class WikiMapleRelationalEfficiencyExperiment {
 				String subsetPrefix = "";
 				switch (mode) {
 				case "denorm":
-					subsetPrefix = "SELECT a.id FROM tmp_article_denorm WHERE a.id in %s;";
+					subsetPrefix = "SELECT a.id FROM den_article_link_1 WHERE a.id in %s;";
 					break;
 				case "memory":
 					String articleTable = "mem_article_" + subset;
