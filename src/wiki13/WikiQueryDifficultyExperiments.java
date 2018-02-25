@@ -24,8 +24,8 @@ import popularity.PopularityUtils;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import wiki13.cache_selection.BigramJelinekMercerScore;
 import wiki13.cache_selection.ClarityScore;
+import wiki13.cache_selection.JelinekMercerScore;
 import wiki13.cache_selection.LanguageModelScore;
 import wiki13.cache_selection.QueryDifficultyComputer;
 import wiki13.cache_selection.SimpleCacheScore;
@@ -35,7 +35,6 @@ import wiki13.cache_selection.VarianceScore.VarianceScoreMode;
 public class WikiQueryDifficultyExperiments {
 
 	public static final Logger LOGGER = Logger.getLogger(WikiQueryDifficultyExperiments.class.getName());
-	private static WikiFilesPaths PATHS = WikiFilesPaths.getHpcPaths();
 
 	public static void main(String[] args) throws IOException {
 
@@ -49,28 +48,39 @@ public class WikiQueryDifficultyExperiments {
 		Option difficultyOption = new Option("diff", true, "Flag to run difficulty experiment");
 		difficultyOption.setRequired(true);
 		options.addOption(difficultyOption);
-		Option useMsnQueryLogOption = new Option("msn", false, "specifies the query log (msn/inex)");
-		options.addOption(useMsnQueryLogOption);
+		Option querysetOption = new Option("queryset", true, "specifies the query log (msn/inex)");
+		querysetOption.setRequired(true);
+		options.addOption(querysetOption);
+		Option server = new Option("server", true, "Specifies maple/hpc");
+		options.addOption(server);
 		CommandLineParser clp = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cl;
 
 		try {
 			cl = clp.parse(options, args);
+			WikiFilesPaths paths = null;
+			if (cl.getOptionValue("server").equals("maple")) {
+				paths = WikiFilesPaths.getMaplePaths();
+			} else if (cl.getOptionValue("server").equals("hpc")) {
+				paths = WikiFilesPaths.getHpcPaths();
+			}
 			int expNo = Integer.parseInt(cl.getOptionValue("exp"));
 			int totalExp = Integer.parseInt(cl.getOptionValue("total"));
-			String indexPath = PATHS.getIndexBase() + expNo;
+			String indexPath = paths.getIndexBase() + expNo;
 			List<ExperimentQuery> queries;
-			if (cl.hasOption("msn")) {
-				queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(), PATHS.getMsnQrelFilePath());
-			} else {
-				queries = QueryServices.loadInexQueries(PATHS.getInexQueryFilePath(), PATHS.getInexQrelFilePath(),
+			if (cl.getOptionValue("queryset").equals("msn")) {
+				queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
+			} else if (cl.getOptionValue("queryset").equals("msn")) {
+				queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath(),
 						"title");
+			} else {
+				throw new org.apache.commons.cli.ParseException("Queryset is not recognized");
 			}
 			String difficultyMetric = cl.getOptionValue("diff");
 			if (difficultyMetric.equals("pop")) {
 				List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
-				Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(PATHS.getAccessCountsPath());
+				Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(paths.getAccessCountsPath());
 				List<String> metric = new ArrayList<String>();
 				for (QueryResult result : results) {
 					double popSum = 0;
@@ -91,7 +101,7 @@ public class WikiQueryDifficultyExperiments {
 					LOGGER.log(Level.SEVERE, e.getMessage(), e);
 				}
 			} else {
-				runCacheSelectionExperiment(expNo, totalExp, indexPath, queries, difficultyMetric);
+				runCacheSelectionExperiment(expNo, totalExp, indexPath, queries, difficultyMetric, paths);
 			}
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.INFO, e.getMessage());
@@ -101,7 +111,8 @@ public class WikiQueryDifficultyExperiments {
 	}
 
 	public static void runCacheSelectionExperiment(int expNo, int totalExp, String indexPath,
-			List<ExperimentQuery> queries, String difficultyMetric) throws ParseException, IOException {
+			List<ExperimentQuery> queries, String difficultyMetric, WikiFilesPaths paths)
+			throws ParseException, IOException {
 		LOGGER.log(Level.INFO, "querylog size " + queries.size());
 		QueryDifficultyComputer qdc;
 		IndexReader globalReader = null;
@@ -120,15 +131,20 @@ public class WikiQueryDifficultyExperiments {
 		} else if (difficultyMetric.equals("simple")) {
 			qdc = new QueryDifficultyComputer(new SimpleCacheScore());
 		} else if (difficultyMetric.equals("jms")) {
-			globalReader = DirectoryReader.open(FSDirectory.open(Paths.get(PATHS.getIndexBase() + totalExp)));
-			qdc = new QueryDifficultyComputer(new BigramJelinekMercerScore(globalReader));
+			globalReader = DirectoryReader.open(FSDirectory.open(Paths.get(paths.getIndexBase() + totalExp)));
+			qdc = new QueryDifficultyComputer(new JelinekMercerScore(globalReader));
 		} else {
 			throw new org.apache.commons.cli.ParseException("Difficulty metric needs to be specified");
 		}
-		Map<String, Double> titleDifficulties = qdc.computeQueryDifficulty(indexPath, queries,
-				WikiFileIndexer.TITLE_ATTRIB);
+		// Map<String, Double> titleDifficulties = qdc.computeQueryDifficulty(indexPath,
+		// queries,
+		// WikiFileIndexer.TITLE_ATTRIB);
+		queries = queries.subList(0, 100);
+		long startTime = System.currentTimeMillis();
 		Map<String, Double> contentDifficulties = qdc.computeQueryDifficulty(indexPath, queries,
 				WikiFileIndexer.CONTENT_ATTRIB);
+		long endTime = System.currentTimeMillis();
+		LOGGER.log(Level.INFO, "Time spent for RS per query = " + (endTime - startTime) / queries.size() + " (ms)");
 		if (globalReader != null) {
 			try {
 				globalReader.close();
@@ -136,7 +152,8 @@ public class WikiQueryDifficultyExperiments {
 				LOGGER.log(Level.SEVERE, e.getMessage(), e);
 			}
 		}
-		WikiExperimentHelper.writeMapToFile(titleDifficulties, "title_diff_" + expNo + ".csv");
+		// WikiExperimentHelper.writeMapToFile(titleDifficulties, "title_diff_" + expNo
+		// + ".csv");
 		WikiExperimentHelper.writeMapToFile(contentDifficulties, "content_diff_" + expNo + ".csv");
 	}
 }
