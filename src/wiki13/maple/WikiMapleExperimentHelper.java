@@ -10,9 +10,9 @@ import java.util.logging.Logger;
 import query.ExperimentQuery;
 import query.QueryResult;
 
-public class WikiMapleExperiment {
+public class WikiMapleExperimentHelper {
 
-	private static final Logger LOGGER = Logger.getLogger(WikiMapleExperiment.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(WikiMapleExperimentHelper.class.getName());
 
 	protected static void writeResultsListToFile(List<List<QueryResult>> resultsList, String resultDirectoryPath) {
 		File resultsDir = new File(resultDirectoryPath);

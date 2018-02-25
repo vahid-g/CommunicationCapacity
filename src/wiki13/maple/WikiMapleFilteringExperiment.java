@@ -72,11 +72,11 @@ public class WikiMapleFilteringExperiment {
 				}
 				LOGGER.log(Level.INFO, "Caching thresholds: {0}", thresholds);
 				List<List<QueryResult>> resultsList = filterResultsWithSingleThreshold(results, idPopMap, thresholds);
-				WikiMapleExperiment.writeResultsListToFile(resultsList, "cache/");
+				WikiMapleExperimentHelper.writeResultsListToFile(resultsList, "cache/");
 			}
 			if (cl.hasOption("filter")) {
 				List<List<QueryResult>> resultsList = filterResultsWithQueryThreshold(results, idPopMap);
-				WikiMapleExperiment.writeResultsListToFile(resultsList, "filter/");
+				WikiMapleExperimentHelper.writeResultsListToFile(resultsList, "filter/");
 			}
 		} catch (Exception e) {
 			LOGGER.log(Level.INFO, e.getMessage());
