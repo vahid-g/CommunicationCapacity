@@ -71,7 +71,7 @@ public class WikiQueryDifficultyExperiments {
 			List<ExperimentQuery> queries;
 			if (cl.getOptionValue("queryset").equals("msn")) {
 				queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
-			} else if (cl.getOptionValue("queryset").equals("msn")) {
+			} else if (cl.getOptionValue("queryset").equals("inex")) {
 				queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath(),
 						"title");
 			} else {
