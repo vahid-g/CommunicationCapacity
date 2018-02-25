@@ -24,6 +24,7 @@ import popularity.PopularityUtils;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
+import wiki13.cache_selection.BigramJelinekMercerScore;
 import wiki13.cache_selection.ClarityScore;
 import wiki13.cache_selection.JelinekMercerScore;
 import wiki13.cache_selection.LanguageModelScore;
@@ -41,10 +42,10 @@ public class WikiQueryDifficultyExperiments {
 		Options options = new Options();
 		Option expNumberOption = new Option("exp", true, "Number of experiment");
 		expNumberOption.setRequired(true);
+		options.addOption(expNumberOption);
 		Option totalExpNumberOption = new Option("total", true, "Total number of experiments");
 		totalExpNumberOption.setRequired(true);
 		options.addOption(totalExpNumberOption);
-		options.addOption(expNumberOption);
 		Option difficultyOption = new Option("diff", true, "Flag to run difficulty experiment");
 		difficultyOption.setRequired(true);
 		options.addOption(difficultyOption);
@@ -133,13 +134,16 @@ public class WikiQueryDifficultyExperiments {
 		} else if (difficultyMetric.equals("jms")) {
 			globalReader = DirectoryReader.open(FSDirectory.open(Paths.get(paths.getIndexBase() + totalExp)));
 			qdc = new QueryDifficultyComputer(new JelinekMercerScore(globalReader));
+		} else if (difficultyMetric.equals("bjms")) {
+			globalReader = DirectoryReader.open(FSDirectory.open(Paths.get(paths.getIndexBase() + totalExp)));
+			qdc = new QueryDifficultyComputer(new BigramJelinekMercerScore(globalReader));
 		} else {
 			throw new org.apache.commons.cli.ParseException("Difficulty metric needs to be specified");
 		}
 		// Map<String, Double> titleDifficulties = qdc.computeQueryDifficulty(indexPath,
 		// queries,
 		// WikiFileIndexer.TITLE_ATTRIB);
-		queries = queries.subList(0, 100);
+		// queries = queries.subList(0, 100);
 		long startTime = System.currentTimeMillis();
 		Map<String, Double> contentDifficulties = qdc.computeQueryDifficulty(indexPath, queries,
 				WikiFileIndexer.CONTENT_ATTRIB);

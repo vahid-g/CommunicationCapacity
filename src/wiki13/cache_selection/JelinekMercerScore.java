@@ -52,9 +52,9 @@ public class JelinekMercerScore implements QueryDifficultyScoreInterface {
 						if (gtf == 0) {
 							LOGGER.log(Level.WARNING, "zero gtf for: " + term);
 						}
-						double probabilityOfTermGivenSubset = tf / Math.max(tfSum, 1.0);
-						double probabilityOfTermGivenDatabase = gtf / Math.max(globalTfSum, 1.0);
-						p *= (0.5 * probabilityOfTermGivenSubset + 0.5 * probabilityOfTermGivenDatabase);
+						double probabilityOfTermGivenSubset = tf / tfSum;
+						double probabilityOfTermGivenDatabase = gtf / globalTfSum;
+						p *= (0.9 * probabilityOfTermGivenSubset + 0.1 * probabilityOfTermGivenDatabase);
 						LOGGER.log(Level.INFO, "tf = {0} global tf = {1}", new Object[] { tf, gtf });
 						LOGGER.log(Level.INFO, "Pr(term|subset) = " + probabilityOfTermGivenSubset + " Pr(term|db) = "
 								+ probabilityOfTermGivenDatabase);
