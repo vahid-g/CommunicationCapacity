@@ -60,19 +60,21 @@ public class BigramJelinekMercerScore implements QueryDifficultyScoreInterface {
 						}
 						double prTermGivenSubset = tf / tfSum;
 						double prTermGivenDatabase = gtf / globalTfSum;
-						LOGGER.log(Level.INFO,
-								"Pr(term|subset) = " + prTermGivenSubset + " Pr(term|db) = " + prTermGivenDatabase);
-						double prCurrent = (0.5 * prTermGivenSubset + 0.5 * prTermGivenDatabase);
+						LOGGER.log(Level.INFO, "Pr(" + term + "|subset) = " + prTermGivenSubset + " Pr(term|db) = "
+								+ prTermGivenDatabase);
+						double prCurrentTerm = (0.5 * prTermGivenSubset + 0.5 * prTermGivenDatabase);
 						if (prevTerm != null) {
 							PhraseQuery.Builder builder = new PhraseQuery.Builder();
 							builder.add(new Term(field, prevTerm), 0);
 							builder.add(new Term(field, term), 1);
 							PhraseQuery pq = builder.build();
-							ScoreDoc[] hits = subsetSearcher.search(pq, 100).scoreDocs;
-							double prTermGivenPrev = hits.length / prevTf;
-							double prBigram = 0.9 * prTermGivenPrev + 0.1 * prCurrent;
+							ScoreDoc[] hits = subsetSearcher.search(pq, 10000).scoreDocs;
+							double prBigramGivenPrev = hits.length / prevTf;
+							double prBigram = 0.9 * prBigramGivenPrev + 0.1 * prCurrentTerm;
 							p *= prBigram;
-							LOGGER.log(Level.INFO, "Pr(bigram|term) = " + prBigram);
+							LOGGER.log(Level.INFO, "bigram freq = " + hits.length + " prev-tf = " + prevTf);
+							LOGGER.log(Level.INFO,
+									"Pr(" + prevTerm + " " + term + " | " + prevTerm + " ) = " + prBigram);
 						}
 						// p *= prCurrent;
 						prevTerm = term;
