@@ -58,8 +58,8 @@ public class BigramJelinekMercerScore implements QueryDifficultyScoreInterface {
 						if (gtf == 0) {
 							LOGGER.log(Level.WARNING, "zero gtf for: " + term);
 						}
-						double prTermGivenSubset = tf / Math.max(tfSum, 1.0);
-						double prTermGivenDatabase = gtf / Math.max(globalTfSum, 1.0);
+						double prTermGivenSubset = tf / tfSum;
+						double prTermGivenDatabase = gtf / globalTfSum;
 						LOGGER.log(Level.INFO,
 								"Pr(term|subset) = " + prTermGivenSubset + " Pr(term|db) = " + prTermGivenDatabase);
 						double prCurrent = (0.5 * prTermGivenSubset + 0.5 * prTermGivenDatabase);
@@ -74,7 +74,7 @@ public class BigramJelinekMercerScore implements QueryDifficultyScoreInterface {
 							p *= prBigram;
 							LOGGER.log(Level.INFO, "Pr(bigram|term) = " + prBigram);
 						}
-						p *= prCurrent;
+						// p *= prCurrent;
 						prevTerm = term;
 						prevTf = tf;
 					}
