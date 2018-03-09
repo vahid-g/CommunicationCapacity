@@ -25,14 +25,17 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queries.CustomScoreQuery;
 import org.apache.lucene.queries.function.FunctionQuery;
 import org.apache.lucene.queries.function.valuesource.DoubleFieldSource;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.BooleanSimilarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.BytesRef;
@@ -42,7 +45,65 @@ import query.BoostedScoreQuery;
 public class LuceneBasics {
 
 	public static void main(String[] args) throws Exception {
-		try6();
+		try7();
+	}
+
+	// testing multifield boolean query
+	static void try7() throws Exception {
+		Directory directory = new RAMDirectory();
+		Analyzer analyzer = new StandardAnalyzer();
+		IndexWriterConfig config = new IndexWriterConfig(analyzer);
+		config.setSimilarity(new BM25Similarity());
+		IndexWriter iwriter = new IndexWriter(directory, config);
+		Document doc1 = new Document();
+		Document doc2 = new Document();
+		Document doc3 = new Document();
+		doc1.add(new StoredField("i", "d-1"));
+		doc1.add(new Field("f", "this is the new", TextField.TYPE_STORED));
+		doc1.add(new Field("f2", "Shekh", TextField.TYPE_STORED));
+		doc1.add(new DoubleDocValuesField("weight", 1));
+		doc2.add(new StoredField("i", "d-2"));
+		doc2.add(new Field("f", " this is the", TextField.TYPE_STORED));
+		doc2.add(new Field("f2", " Shekh", TextField.TYPE_STORED));
+		doc2.add(new DoubleDocValuesField("weight", 20));
+		doc3.add(new StoredField("i", "d-3"));
+		doc3.add(new Field("f", "this is the new", TextField.TYPE_STORED));
+		doc3.add(new Field("f2", "Shit", TextField.TYPE_STORED));
+		doc3.add(new DoubleDocValuesField("weight", 65));
+		iwriter.addDocument(doc1);
+		iwriter.addDocument(doc2);
+		iwriter.addDocument(doc3);
+		iwriter.close();
+
+		// search the index:
+		IndexReader ireader = DirectoryReader.open(directory);
+		IndexSearcher isearcher = new IndexSearcher(ireader);
+		isearcher.setSimilarity(new BooleanSimilarity()); // Parse a simple
+		// Builder bqb = new BooleanQuery.Builder();
+		// bqb = bqb.add(new BooleanClause(new TermQuery(new Term("f", "shekh")),
+		// Occur.MUST));
+		// bqb = bqb.add(new BooleanClause(new TermQuery(new Term("f", "new")),
+		// Occur.MUST));
+		// Query query = bqb.build();
+		String[] fields = { "f", "f2" };
+		MultiFieldQueryParser multiFieldParser = new MultiFieldQueryParser(fields, new StandardAnalyzer());
+		multiFieldParser.setDefaultOperator(Operator.AND);
+		Query query = null;
+		try {
+			query = multiFieldParser.parse(QueryParser.escape("new shekh"));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		ScoreDoc[] hits = isearcher.search(query, 10).scoreDocs;
+		System.out.println("#hits:" + hits.length);
+		for (int i = 0; i < hits.length; i++) {
+			Document hitDoc = isearcher.doc(hits[i].doc);
+			System.out.println(hits[i].score + "\t" + hitDoc.get("f"));
+			System.out.println(isearcher.explain(query, hits[i].doc));
+		}
+
+		ireader.close();
+		directory.close();
 	}
 
 	// testing phrase queries
@@ -183,17 +244,17 @@ public class LuceneBasics {
 			System.out.println(isearcher.explain(query, hits[i].doc));
 			System.out.println(isearcher.explain(query, //
 					hits[i].doc).getDetails()[0].getDetails()[0].getDetails()[0]); //
-			printExp(isearcher.explain(query, hits[i].doc), "-");
+			printExplanation(isearcher.explain(query, hits[i].doc), "-");
 		}
 
 		ireader.close();
 		directory.close();
 	}
 
-	private static void printExp(Explanation exp, String prefix) {
+	private static void printExplanation(Explanation exp, String prefix) {
 		System.out.println(prefix + exp.getDescription() + " ==> " + exp.getValue());
 		for (Explanation childExp : exp.getDetails()) {
-			printExp(childExp, prefix + "  ");
+			printExplanation(childExp, prefix + "  ");
 		}
 	}
 
@@ -209,7 +270,7 @@ public class LuceneBasics {
 		doc1.add(new Field("f", "this is the new Shekh", TextField.TYPE_STORED));
 		doc1.add(new DoubleDocValuesField("weight", 1));
 		doc2.add(new StoredField("i", "d-2"));
-		doc2.add(new Field("f", " new this is the Shekh", TextField.TYPE_STORED));
+		doc2.add(new Field("f", " this is the Shekh", TextField.TYPE_STORED));
 		doc2.add(new DoubleDocValuesField("weight", 20));
 		doc3.add(new StoredField("i", "d-3"));
 		doc3.add(new Field("f", "this is the new Shit", TextField.TYPE_STORED));
