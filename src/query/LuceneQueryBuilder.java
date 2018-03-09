@@ -25,9 +25,13 @@ public class LuceneQueryBuilder {
 	}
 
 	public Query buildQuery(String queryText) {
+		return buildQuery(queryText, Operator.OR);
+	}
+	
+	public Query buildQuery(String queryText, Operator operator) {
 		MultiFieldQueryParser multiFieldParser = new MultiFieldQueryParser(
 				fieldBoostMap.keySet().toArray(new String[0]), new StandardAnalyzer(), fieldBoostMap);
-		multiFieldParser.setDefaultOperator(Operator.OR);
+		multiFieldParser.setDefaultOperator(operator);
 		Query query = null;
 		try {
 			query = multiFieldParser.parse(QueryParser.escape(queryText));
