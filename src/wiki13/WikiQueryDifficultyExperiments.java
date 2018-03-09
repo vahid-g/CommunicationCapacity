@@ -4,10 +4,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -18,10 +21,17 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.queryparser.classic.QueryParser.Operator;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
 import popularity.PopularityUtils;
 import query.ExperimentQuery;
+import query.LuceneQueryBuilder;
 import query.QueryResult;
 import query.QueryServices;
 import wiki13.cache_selection.BigramJelinekMercerScore;
@@ -79,44 +89,35 @@ public class WikiQueryDifficultyExperiments {
 				throw new org.apache.commons.cli.ParseException("Queryset is not recognized");
 			}
 			String difficultyMetric = cl.getOptionValue("diff");
+			List<String> scores = null;
+			WikiQueryDifficultyExperiments wqde = new WikiQueryDifficultyExperiments();
 			if (difficultyMetric.equals("pop")) {
 				List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
-				Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(paths.getAccessCountsPath());
-				List<String> metric = new ArrayList<String>();
-				for (QueryResult result : results) {
-					double popSum = 0;
-					double popSquaredSum = 0;
-					for (int i = 0; i < Math.min(20, result.getTopDocuments().size()); i++) {
-						double popularity = idPopMap.get(result.getTopDocuments().get(i).id);
-						popSum += popularity;
-						popSquaredSum += Math.pow(popularity, 2);
-					}
-					double ex = popSum / 20;
-					metric.add(ex + ", " + ((popSquaredSum / 20) - Math.pow(ex, 2)));
-				}
-				try (FileWriter fw = new FileWriter(expNo + ".csv")) {
-					for (int i = 0; i < results.size(); i++) {
-						fw.write(results.get(i).query.getText() + ", " + metric.get(i) + "\n");
-					}
-				} catch (IOException e) {
-					LOGGER.log(Level.SEVERE, e.getMessage(), e);
-				}
+				scores = wqde.runQueryPopularityScoreComputer(paths, results);
+			} else if (difficultyMetric.equals("???")) {
+
 			} else {
-				runCacheSelectionExperiment(expNo, totalExp, indexPath, queries, difficultyMetric, paths);
+				String globalIndexPath = paths.getIndexBase() + totalExp;
+				scores = wqde.runQueryScoreComputer(indexPath, globalIndexPath, queries, difficultyMetric);
+			}
+			try (FileWriter fw = new FileWriter(expNo + ".csv")) {
+				for (int i = 0; i < queries.size(); i++) {
+					fw.write(queries.get(i).getText() + ", " + scores.get(i) + "\n");
+				}
+			} catch (IOException e) {
+				LOGGER.log(Level.SEVERE, e.getMessage(), e);
 			}
 		} catch (org.apache.commons.cli.ParseException e) {
-			LOGGER.log(Level.INFO, e.getMessage());
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 			formatter.printHelp("", options);
 			return;
 		}
 	}
 
-	public static void runCacheSelectionExperiment(int expNo, int totalExp, String indexPath,
-			List<ExperimentQuery> queries, String difficultyMetric, WikiFilesPaths paths)
-			throws ParseException, IOException {
+	List<String> runQueryScoreComputer(String indexPath, String globalIndexPath, List<ExperimentQuery> queries,
+			String difficultyMetric) throws ParseException, IOException {
 		LOGGER.log(Level.INFO, "querylog size " + queries.size());
 		QueryDifficultyComputer qdc;
-		IndexReader globalReader = null;
 		if (difficultyMetric.equals("scs")) {
 			qdc = new QueryDifficultyComputer(new ClarityScore());
 		} else if (difficultyMetric.equals("maxvar")) {
@@ -132,32 +133,185 @@ public class WikiQueryDifficultyExperiments {
 		} else if (difficultyMetric.equals("simple")) {
 			qdc = new QueryDifficultyComputer(new SimpleCacheScore());
 		} else if (difficultyMetric.equals("jms")) {
-			globalReader = DirectoryReader.open(FSDirectory.open(Paths.get(paths.getIndexBase() + totalExp)));
-			qdc = new QueryDifficultyComputer(new JelinekMercerScore(globalReader));
+			try (IndexReader globalReader = DirectoryReader.open(FSDirectory.open(Paths.get(globalIndexPath)))) {
+				qdc = new QueryDifficultyComputer(new JelinekMercerScore(globalReader));
+			}
 		} else if (difficultyMetric.equals("bjms")) {
-			globalReader = DirectoryReader.open(FSDirectory.open(Paths.get(paths.getIndexBase() + totalExp)));
-			qdc = new QueryDifficultyComputer(new BigramJelinekMercerScore(globalReader));
+			try (IndexReader globalReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
+				qdc = new QueryDifficultyComputer(new BigramJelinekMercerScore(globalReader));
+			}
 		} else {
 			throw new org.apache.commons.cli.ParseException("Difficulty metric needs to be specified");
 		}
-		// Map<String, Double> titleDifficulties = qdc.computeQueryDifficulty(indexPath,
-		// queries,
-		// WikiFileIndexer.TITLE_ATTRIB);
-		// queries = queries.subList(0, 100);
 		long startTime = System.currentTimeMillis();
 		Map<String, Double> contentDifficulties = qdc.computeQueryDifficulty(indexPath, queries,
 				WikiFileIndexer.CONTENT_ATTRIB);
 		long endTime = System.currentTimeMillis();
 		LOGGER.log(Level.INFO, "Time spent for RS per query = " + (endTime - startTime) / queries.size() + " (ms)");
-		if (globalReader != null) {
-			try {
-				globalReader.close();
-			} catch (IOException e) {
-				LOGGER.log(Level.SEVERE, e.getMessage(), e);
-			}
+		List<String> scores = new ArrayList<String>();
+		for (ExperimentQuery query : queries) {
+			scores.add(Double.toString(contentDifficulties.get(query.getText())));
 		}
-		// WikiExperimentHelper.writeMapToFile(titleDifficulties, "title_diff_" + expNo
-		// + ".csv");
-		WikiExperimentHelper.writeMapToFile(contentDifficulties, "content_diff_" + expNo + ".csv");
+		return scores;
+	}
+
+	List<String> runQueryPopularityScoreComputer(WikiFilesPaths paths, List<QueryResult> results) {
+		Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(paths.getAccessCountsPath());
+		List<String> metric = new ArrayList<String>();
+		for (QueryResult result : results) {
+			double popSum = 0;
+			double popSquaredSum = 0;
+			for (int i = 0; i < Math.min(20, result.getTopDocuments().size()); i++) {
+				double popularity = idPopMap.get(result.getTopDocuments().get(i).id);
+				popSum += popularity;
+				popSquaredSum += Math.pow(popularity, 2);
+			}
+			double ex = popSum / 20;
+			metric.add(ex + ", " + ((popSquaredSum / 20) - Math.pow(ex, 2)));
+		}
+		return metric;
+	}
+
+	List<String> runQueryFeatureExtraction(String indexPath, List<ExperimentQuery> queries) {
+		List<String> scores = new ArrayList<String>();
+		try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
+			IndexSearcher searcher = new IndexSearcher(indexReader);
+			searcher.setSimilarity(new BM25Similarity());
+			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
+			fieldToBoost.put(WikiFileIndexer.TITLE_ATTRIB, 0.1f);
+			fieldToBoost.put(WikiFileIndexer.CONTENT_ATTRIB, 0.9f);
+			LuceneQueryBuilder lqb = new LuceneQueryBuilder(fieldToBoost);
+			for (ExperimentQuery query : queries) {
+				String[] terms = query.getText().split(" ");
+				Stream<String> termsStream = Arrays.stream(terms).map(t -> t.toLowerCase());
+				double titleCoveredQueryTermRatio = coveredQueryTermRatio(indexReader, termsStream,
+						WikiFileIndexer.TITLE_ATTRIB);
+				double contentCoveredQueryTermRatio = coveredQueryTermRatio(indexReader, termsStream,
+						WikiFileIndexer.CONTENT_ATTRIB);
+				// IR scores
+				// same metrics for bigrams
+				// popularity scores?
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return scores;
+	}
+
+	private double coveredQueryTermRatio(IndexReader indexReader, Stream<String> tokenStream, String field) {
+		Stream<Term> termsStream = tokenStream.map(t -> new Term(field, t));
+		long coveredTermCount = termsStream.map(t -> {
+			long covered = 0;
+			try {
+				covered = indexReader.totalTermFreq(t);
+			} catch (IOException ioe) {
+				return 0;
+			}
+			return covered > 0 ? 1 : 0;
+		}).mapToInt(Integer::intValue).sum();
+		return coveredTermCount / (double) termsStream.count();
+	}
+
+	private double meanNormalizedDocumentFrequency(IndexReader indexReader, Stream<String> tokenStream, String field) {
+		Stream<Term> termStream = tokenStream.map(t -> new Term(field, t));
+		double dfSum = termStream.map(t -> {
+			long df = 0;
+			int n = 1;
+			try {
+				df = indexReader.docFreq(t);
+				n = indexReader.getDocCount(field);
+			} catch (IOException ioe) {
+				df = 0;
+				n = 1;
+			}
+			return df / (double) n;
+		}).mapToDouble(Double::doubleValue).sum();
+		return dfSum / termStream.count();
+	}
+
+	private double minNormalizedDocumentFrequency(IndexReader indexReader, Stream<String> tokenStream, String field) {
+		Stream<Term> termStream = tokenStream.map(t -> new Term(field, t));
+		double dfMin = termStream.map(t -> {
+			long df = 0;
+			int n = 1;
+			try {
+				df = indexReader.docFreq(t);
+				n = indexReader.getDocCount(field);
+			} catch (IOException ioe) {
+				df = 0;
+				n = 1;
+			}
+			return df / (double) n;
+		}).mapToDouble(Double::doubleValue).min().orElse(0.0);
+		return dfMin;
+	}
+
+	private double docsWithAllBiwords() {
+		// TODO continue here
+		return 0;
+	}
+
+	private double meanBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
+		Query query = lqb.buildQuery(queryText);
+		ScoreDoc[] scoreDocHits = null;
+		int k = 20;
+		try {
+			scoreDocHits = searcher.search(query, k).scoreDocs;
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		if (scoreDocHits != null)
+			return Arrays.stream(scoreDocHits).map(h -> h.score).reduce(Float::sum).orElse(0f)
+					/ (double) Math.max(1, Math.min(scoreDocHits.length, k));
+		else
+			return 0;
+	}
+
+	private double minBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
+		Query query = lqb.buildQuery(queryText);
+		ScoreDoc[] scoreDocHits = null;
+		int k = 20;
+		try {
+			scoreDocHits = searcher.search(query, k).scoreDocs;
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		if (scoreDocHits != null)
+			return Arrays.stream(scoreDocHits).map(h -> h.score).reduce(Float::min).orElse(0f)
+					/ (double) Math.max(1, Math.min(scoreDocHits.length, k));
+		else
+			return 0;
+	}
+
+	private double meanBoolScore(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
+		Query query = lqb.buildQuery(queryText, Operator.AND);
+		ScoreDoc[] scoreDocHits = null;
+		int k = 20;
+		try {
+			scoreDocHits = searcher.search(query, k).scoreDocs;
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		if (scoreDocHits != null)
+			return Arrays.stream(scoreDocHits).map(h -> h.score).reduce(Float::sum).orElse(0f)
+					/ (double) Math.max(1, Math.min(scoreDocHits.length, k));
+		else
+			return 0;
+	}
+
+	private double minBoolScore(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
+		Query query = lqb.buildQuery(queryText, Operator.AND);
+		ScoreDoc[] scoreDocHits = null;
+		int k = 20;
+		try {
+			scoreDocHits = searcher.search(query, k).scoreDocs;
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		if (scoreDocHits != null)
+			return Arrays.stream(scoreDocHits).map(h -> h.score).reduce(Float::min).orElse(0f)
+					/ (double) Math.max(1, Math.min(scoreDocHits.length, k));
+		else
+			return 0;
 	}
 }
