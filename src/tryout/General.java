@@ -13,6 +13,13 @@ public class General {
 	static final Logger LOGGER = LogManager.getLogManager().getLogger("");
 
 	public static void main(String[] args) throws IOException {
+		int a = 1;
+		int b = 2;
+		System.out.println(a / b);
+		System.out.println(a / (double) b);
+	}
+
+	public static void testLogger() {
 		LOGGER.setLevel(Level.FINE);
 		for (Handler h : LOGGER.getHandlers()) {
 			h.setLevel(Level.FINE);
