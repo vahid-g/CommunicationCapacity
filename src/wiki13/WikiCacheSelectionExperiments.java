@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.cli.CommandLine;
@@ -31,7 +32,9 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.BooleanSimilarity;
 import org.apache.lucene.store.FSDirectory;
 
 import popularity.PopularityUtils;
@@ -99,8 +102,8 @@ public class WikiCacheSelectionExperiments {
 			if (difficultyMetric.equals("pop")) {
 				List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
 				scores = wqde.runQueryPopularityScoreComputer(paths, results);
-			} else if (difficultyMetric.equals("???")) {
-
+			} else if (difficultyMetric.equals("feats")) {
+				scores = wqde.runQueryFeatureExtraction(indexPath, queries);
 			} else {
 				String globalIndexPath = paths.getIndexBase() + totalExp;
 				scores = wqde.runQueryScoreComputer(indexPath, globalIndexPath, queries, difficultyMetric);
@@ -182,15 +185,36 @@ public class WikiCacheSelectionExperiments {
 		try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
 			IndexSearcher searcher = new IndexSearcher(indexReader);
 			searcher.setSimilarity(new BM25Similarity());
+			IndexSearcher booleanSearcher = new IndexSearcher(indexReader);
+			booleanSearcher.setSimilarity(new BooleanSimilarity());
 			Map<String, Float> fieldToBoost = new HashMap<String, Float>();
 			fieldToBoost.put(WikiFileIndexer.TITLE_ATTRIB, 0.1f);
 			fieldToBoost.put(WikiFileIndexer.CONTENT_ATTRIB, 0.9f);
 			LuceneQueryBuilder lqb = new LuceneQueryBuilder(fieldToBoost);
 			for (ExperimentQuery query : queries) {
 				String[] terms = query.getText().toLowerCase().split(" ");
-				double titleCoveredQueryTermRatio = coveredQueryTermRatio(indexReader, terms,
-						WikiFileIndexer.TITLE_ATTRIB);
+				List<Double> features = new ArrayList<Double>();
+				features.add(coveredQueryTermRatio(indexReader, terms, WikiFileIndexer.TITLE_ATTRIB));
+				features.add(coveredQueryTermRatio(indexReader, terms, WikiFileIndexer.CONTENT_ATTRIB));
+				features.add(meanNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.TITLE_ATTRIB));
+				features.add(meanNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.CONTENT_ATTRIB));
+				features.add(minNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.TITLE_ATTRIB));
+				features.add(minNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.CONTENT_ATTRIB));
+				features.add(coveredBiwordRatio(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
+				features.add(coveredBiwordRatio(searcher, query.getText(), WikiFileIndexer.CONTENT_ATTRIB));
+				features.add(
+						meanNormalizedDocumentBiwordFrequency(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
+				features.add(meanNormalizedDocumentBiwordFrequency(searcher, query.getText(),
+						WikiFileIndexer.CONTENT_ATTRIB));
+				features.add(meanBM25Score(searcher, query.getText(), lqb));
+				features.add(minBM25Score(searcher, query.getText(), lqb));
+				features.add(meanBoolScore(booleanSearcher, query.getText(), lqb));
+				features.add(minBoolScore(booleanSearcher, query.getText(), lqb));
+				features.add(meanAverageTermDocPopularity(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
+				features.add(meanAverageTermDocPopularity(searcher, query.getText(), WikiFileIndexer.CONTENT_ATTRIB));
+				scores.add(features.stream().map(f -> f + ",").collect(Collectors.joining()));
 			}
+
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
@@ -394,5 +418,79 @@ public class WikiCacheSelectionExperiments {
 			return Arrays.stream(scoreDocHits).map(h -> h.score).reduce(Float::min).orElse(0f);
 		else
 			return 0;
+	}
+
+	protected double meanAverageTermDocPopularity(IndexSearcher searcher, String queryText, String field) {
+		double sum = 0;
+		int tokenCounts = 0;
+		try (StandardAnalyzer analyzer = new StandardAnalyzer();
+				TokenStream tokenStream = analyzer.tokenStream(field,
+						new StringReader(queryText.replaceAll("'", "`")))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			tokenStream.reset();
+			while (tokenStream.incrementToken()) {
+				tokenCounts++;
+				String term = termAtt.toString();
+				TermQuery query = new TermQuery(new Term(field, term));
+				// Query query = lqb.buildQuery(queryText);
+				int k = 200;
+				try {
+					ScoreDoc[] hits = searcher.search(query, k).scoreDocs;
+					sum += Arrays.stream(hits).map(h -> {
+						try {
+							return Double.parseDouble(searcher.doc(h.doc).get(WikiFileIndexer.WEIGHT_ATTRIB));
+						} catch (IOException e) {
+							LOGGER.log(Level.SEVERE, e.getMessage(), e);
+							return 0.0;
+						}
+					}).reduce(Double::sum).orElse(0.0) / Math.max(1, Math.min(k, hits.length));
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE, e.getMessage(), e);
+				}
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		if (tokenCounts > 0)
+			return sum / tokenCounts;
+		else
+			return 0;
+	}
+
+	protected double minAverageTermDocPopularity(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb,
+			String field) {
+		double min = -1;
+		try (StandardAnalyzer analyzer = new StandardAnalyzer();
+				TokenStream tokenStream = analyzer.tokenStream(field,
+						new StringReader(queryText.replaceAll("'", "`")))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			tokenStream.reset();
+			while (tokenStream.incrementToken()) {
+				String term = termAtt.toString();
+				TermQuery query = new TermQuery(new Term(field, term));
+				// Query query = lqb.buildQuery(queryText);
+				int k = 200;
+				try {
+					ScoreDoc[] hits = searcher.search(query, k).scoreDocs;
+					double current = Arrays.stream(hits).map(h -> {
+						try {
+							return Double.parseDouble(searcher.doc(h.doc).get(WikiFileIndexer.WEIGHT_ATTRIB));
+						} catch (IOException e) {
+							LOGGER.log(Level.SEVERE, e.getMessage(), e);
+							return 0.0;
+						}
+					}).reduce(Double::sum).orElse(0.0) / Math.max(1, Math.min(k, hits.length));
+					if (min == -1)
+						min = current;
+					else
+						min = (min < current) ? min : current;
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE, e.getMessage(), e);
+				}
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return min;
 	}
 }
