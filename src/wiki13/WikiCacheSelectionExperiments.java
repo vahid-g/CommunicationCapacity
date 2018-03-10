@@ -2,6 +2,7 @@ package wiki13;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,11 +20,15 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.BM25Similarity;
@@ -43,9 +48,9 @@ import wiki13.cache_selection.SimpleCacheScore;
 import wiki13.cache_selection.VarianceScore;
 import wiki13.cache_selection.VarianceScore.VarianceScoreMode;
 
-public class WikiQueryDifficultyExperiments {
+public class WikiCacheSelectionExperiments {
 
-	public static final Logger LOGGER = Logger.getLogger(WikiQueryDifficultyExperiments.class.getName());
+	public static final Logger LOGGER = Logger.getLogger(WikiCacheSelectionExperiments.class.getName());
 
 	public static void main(String[] args) throws IOException {
 
@@ -90,7 +95,7 @@ public class WikiQueryDifficultyExperiments {
 			}
 			String difficultyMetric = cl.getOptionValue("diff");
 			List<String> scores = null;
-			WikiQueryDifficultyExperiments wqde = new WikiQueryDifficultyExperiments();
+			WikiCacheSelectionExperiments wqde = new WikiCacheSelectionExperiments();
 			if (difficultyMetric.equals("pop")) {
 				List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
 				scores = wqde.runQueryPopularityScoreComputer(paths, results);
@@ -182,15 +187,9 @@ public class WikiQueryDifficultyExperiments {
 			fieldToBoost.put(WikiFileIndexer.CONTENT_ATTRIB, 0.9f);
 			LuceneQueryBuilder lqb = new LuceneQueryBuilder(fieldToBoost);
 			for (ExperimentQuery query : queries) {
-				String[] terms = query.getText().split(" ");
-				Stream<String> termsStream = Arrays.stream(terms).map(t -> t.toLowerCase());
-				double titleCoveredQueryTermRatio = coveredQueryTermRatio(indexReader, termsStream,
+				String[] terms = query.getText().toLowerCase().split(" ");
+				double titleCoveredQueryTermRatio = coveredQueryTermRatio(indexReader, terms,
 						WikiFileIndexer.TITLE_ATTRIB);
-				double contentCoveredQueryTermRatio = coveredQueryTermRatio(indexReader, termsStream,
-						WikiFileIndexer.CONTENT_ATTRIB);
-				// IR scores
-				// same metrics for bigrams
-				// popularity scores?
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
@@ -198,8 +197,8 @@ public class WikiQueryDifficultyExperiments {
 		return scores;
 	}
 
-	private double coveredQueryTermRatio(IndexReader indexReader, Stream<String> tokenStream, String field) {
-		Stream<Term> termsStream = tokenStream.map(t -> new Term(field, t));
+	protected double coveredQueryTermRatio(IndexReader indexReader, String[] queryTerms, String field) {
+		Stream<Term> termsStream = Arrays.stream(queryTerms).map(t -> new Term(field, t));
 		long coveredTermCount = termsStream.map(t -> {
 			long covered = 0;
 			try {
@@ -209,11 +208,11 @@ public class WikiQueryDifficultyExperiments {
 			}
 			return covered > 0 ? 1 : 0;
 		}).mapToInt(Integer::intValue).sum();
-		return coveredTermCount / (double) termsStream.count();
+		return coveredTermCount / (double) queryTerms.length;
 	}
 
-	private double meanNormalizedDocumentFrequency(IndexReader indexReader, Stream<String> tokenStream, String field) {
-		Stream<Term> termStream = tokenStream.map(t -> new Term(field, t));
+	protected double meanNormalizedDocumentFrequency(IndexReader indexReader, String[] queryTerms, String field) {
+		Stream<Term> termStream = Arrays.stream(queryTerms).map(t -> new Term(field, t));
 		double dfSum = termStream.map(t -> {
 			long df = 0;
 			int n = 1;
@@ -226,11 +225,11 @@ public class WikiQueryDifficultyExperiments {
 			}
 			return df / (double) n;
 		}).mapToDouble(Double::doubleValue).sum();
-		return dfSum / termStream.count();
+		return dfSum / queryTerms.length;
 	}
 
-	private double minNormalizedDocumentFrequency(IndexReader indexReader, Stream<String> tokenStream, String field) {
-		Stream<Term> termStream = tokenStream.map(t -> new Term(field, t));
+	protected double minNormalizedDocumentFrequency(IndexReader indexReader, String[] queryTerms, String field) {
+		Stream<Term> termStream = Arrays.stream(queryTerms).map(t -> new Term(field, t));
 		double dfMin = termStream.map(t -> {
 			long df = 0;
 			int n = 1;
@@ -246,12 +245,96 @@ public class WikiQueryDifficultyExperiments {
 		return dfMin;
 	}
 
-	private double docsWithAllBiwords() {
-		// TODO continue here
-		return 0;
+	protected double coveredBiwordRatio(IndexSearcher indexSearcher, String query, String field) {
+		int coveredBiwordCounts = 0;
+		int biwordCount = 0;
+		try (StandardAnalyzer analyzer = new StandardAnalyzer();
+				TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			tokenStream.reset();
+			String prevTerm = null;
+			while (tokenStream.incrementToken()) {
+				String term = termAtt.toString();
+				if (prevTerm != null) {
+					biwordCount++;
+					PhraseQuery.Builder builder = new PhraseQuery.Builder();
+					builder.add(new Term(field, prevTerm), 0);
+					builder.add(new Term(field, term), 1);
+					PhraseQuery pq = builder.build();
+					ScoreDoc[] hits = indexSearcher.search(pq, 10000).scoreDocs;
+					if (hits.length > 0)
+						coveredBiwordCounts++;
+				}
+				prevTerm = term;
+			}
+			tokenStream.end();
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return coveredBiwordCounts / (double) biwordCount;
 	}
 
-	private double meanBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
+	protected double meanNormalizedDocumentBiwordFrequency(IndexSearcher indexSearcher, String query, String field) {
+		double normalizedBiwordDocFrequencySum = 0;
+		int bigramCount = 0;
+		try (StandardAnalyzer analyzer = new StandardAnalyzer();
+				TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			tokenStream.reset();
+			String prevTerm = null;
+			double prevDf = 0;
+			while (tokenStream.incrementToken()) {
+				String term = termAtt.toString();
+				if (prevTerm != null) {
+					bigramCount++;
+					PhraseQuery.Builder builder = new PhraseQuery.Builder();
+					builder.add(new Term(field, prevTerm), 0);
+					builder.add(new Term(field, term), 1);
+					PhraseQuery pq = builder.build();
+					ScoreDoc[] hits = indexSearcher.search(pq, 10000).scoreDocs;
+					normalizedBiwordDocFrequencySum += (hits.length / prevDf);
+				}
+				prevTerm = term;
+				prevDf = indexSearcher.getIndexReader().docFreq(new Term(field, prevTerm));
+			}
+			tokenStream.end();
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return normalizedBiwordDocFrequencySum / (double) bigramCount;
+	}
+
+	protected double minNormalizedDocumentBiwordFrequency(IndexSearcher indexSearcher, String query, String field) {
+		double minNormalizedBiwordDocFrequency = 1;
+		try (StandardAnalyzer analyzer = new StandardAnalyzer();
+				TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			tokenStream.reset();
+			String prevTerm = null;
+			double prevDf = 0;
+			while (tokenStream.incrementToken()) {
+				String term = termAtt.toString();
+				if (prevTerm != null) {
+					PhraseQuery.Builder builder = new PhraseQuery.Builder();
+					builder.add(new Term(field, prevTerm), 0);
+					builder.add(new Term(field, term), 1);
+					PhraseQuery pq = builder.build();
+					ScoreDoc[] hits = indexSearcher.search(pq, 10000).scoreDocs;
+					double currentBiwordDocFrequency = hits.length / prevDf;
+					minNormalizedBiwordDocFrequency = Math.min(currentBiwordDocFrequency,
+							minNormalizedBiwordDocFrequency);
+				}
+				prevTerm = term;
+				prevDf = indexSearcher.getIndexReader().docFreq(new Term(field, prevTerm));
+			}
+			tokenStream.end();
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return minNormalizedBiwordDocFrequency;
+	}
+
+	protected double meanBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
 		Query query = lqb.buildQuery(queryText);
 		ScoreDoc[] scoreDocHits = null;
 		int k = 20;
@@ -267,7 +350,7 @@ public class WikiQueryDifficultyExperiments {
 			return 0;
 	}
 
-	private double minBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
+	protected double minBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
 		Query query = lqb.buildQuery(queryText);
 		ScoreDoc[] scoreDocHits = null;
 		int k = 20;
@@ -277,13 +360,12 @@ public class WikiQueryDifficultyExperiments {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 		if (scoreDocHits != null)
-			return Arrays.stream(scoreDocHits).map(h -> h.score).reduce(Float::min).orElse(0f)
-					/ (double) Math.max(1, Math.min(scoreDocHits.length, k));
+			return Arrays.stream(scoreDocHits).map(h -> h.score).reduce(Float::min).orElse(0f);
 		else
 			return 0;
 	}
 
-	private double meanBoolScore(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
+	protected double meanBoolScore(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
 		Query query = lqb.buildQuery(queryText, Operator.AND);
 		ScoreDoc[] scoreDocHits = null;
 		int k = 20;
@@ -299,7 +381,7 @@ public class WikiQueryDifficultyExperiments {
 			return 0;
 	}
 
-	private double minBoolScore(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
+	protected double minBoolScore(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
 		Query query = lqb.buildQuery(queryText, Operator.AND);
 		ScoreDoc[] scoreDocHits = null;
 		int k = 20;
@@ -309,8 +391,7 @@ public class WikiQueryDifficultyExperiments {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 		if (scoreDocHits != null)
-			return Arrays.stream(scoreDocHits).map(h -> h.score).reduce(Float::min).orElse(0f)
-					/ (double) Math.max(1, Math.min(scoreDocHits.length, k));
+			return Arrays.stream(scoreDocHits).map(h -> h.score).reduce(Float::min).orElse(0f);
 		else
 			return 0;
 	}
