@@ -324,7 +324,8 @@ public class WikiCacheSelectionExperiments {
 					builder.add(new Term(field, term), 1);
 					PhraseQuery pq = builder.build();
 					ScoreDoc[] hits = indexSearcher.search(pq, 10000).scoreDocs;
-					normalizedBiwordDocFrequencySum += (hits.length / prevDf);
+					if (hits.length != 0)
+						normalizedBiwordDocFrequencySum += (hits.length / prevDf);
 				}
 				prevTerm = term;
 				prevDf = indexSearcher.getIndexReader().docFreq(new Term(field, prevTerm));
