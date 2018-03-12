@@ -193,26 +193,32 @@ public class WikiCacheSelectionExperiments {
 			LuceneQueryBuilder lqb = new LuceneQueryBuilder(fieldToBoost);
 			for (ExperimentQuery query : queries) {
 				String[] terms = query.getText().toLowerCase().split(" ");
-				List<Double> features = new ArrayList<Double>();
-				features.add(coveredQueryTermRatio(indexReader, terms, WikiFileIndexer.TITLE_ATTRIB));
-				features.add(coveredQueryTermRatio(indexReader, terms, WikiFileIndexer.CONTENT_ATTRIB));
-				features.add(meanNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.TITLE_ATTRIB));
-				features.add(meanNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.CONTENT_ATTRIB));
-				features.add(minNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.TITLE_ATTRIB));
-				features.add(minNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.CONTENT_ATTRIB));
-				features.add(coveredBiwordRatio(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
-				features.add(coveredBiwordRatio(searcher, query.getText(), WikiFileIndexer.CONTENT_ATTRIB));
-				features.add(
-						meanNormalizedDocumentBiwordFrequency(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
-				features.add(meanNormalizedDocumentBiwordFrequency(searcher, query.getText(),
-						WikiFileIndexer.CONTENT_ATTRIB));
-				features.add(meanBM25Score(searcher, query.getText(), lqb));
-				features.add(minBM25Score(searcher, query.getText(), lqb));
-				features.add(meanBoolScore(booleanSearcher, query.getText(), lqb));
-				features.add(minBoolScore(booleanSearcher, query.getText(), lqb));
-				features.add(meanAverageTermDocPopularity(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
-				features.add(meanAverageTermDocPopularity(searcher, query.getText(), WikiFileIndexer.CONTENT_ATTRIB));
-				scores.add(features.stream().map(f -> f + ",").collect(Collectors.joining()));
+				List<Double> f = new ArrayList<Double>();
+				f.add(coveredQueryTermRatio(indexReader, terms, WikiFileIndexer.TITLE_ATTRIB));
+				f.add(coveredQueryTermRatio(indexReader, terms, WikiFileIndexer.CONTENT_ATTRIB));
+				f.add(meanNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.TITLE_ATTRIB));
+				f.add(meanNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.CONTENT_ATTRIB));
+				f.add(minNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.TITLE_ATTRIB));
+				f.add(minNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.CONTENT_ATTRIB));
+				f.add(coveredBiwordRatio(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
+				f.add(coveredBiwordRatio(searcher, query.getText(), WikiFileIndexer.CONTENT_ATTRIB));
+				f.add(meanNormalizedDocumentBiwordFrequency(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
+				f.add(meanNormalizedDocumentBiwordFrequency(searcher, query.getText(), WikiFileIndexer.CONTENT_ATTRIB));
+				f.add(minNormalizedDocumentBiwordFrequency(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
+				f.add(minNormalizedDocumentBiwordFrequency(searcher, query.getText(), WikiFileIndexer.CONTENT_ATTRIB));
+				f.add(meanBM25Score(searcher, query.getText(), lqb));
+				f.add(minBM25Score(searcher, query.getText(), lqb));
+				f.add(meanBoolScore(booleanSearcher, query.getText(), lqb));
+				f.add(minBoolScore(booleanSearcher, query.getText(), lqb));
+				f.add(meanAverageTermDocPopularity(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
+				f.add(meanAverageTermDocPopularity(searcher, query.getText(), WikiFileIndexer.CONTENT_ATTRIB));
+				f.add(minAverageTermDocPopularity(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
+				f.add(minAverageTermDocPopularity(searcher, query.getText(), WikiFileIndexer.CONTENT_ATTRIB));
+				f.add(meanBiwordPopularity(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
+				f.add(meanBiwordPopularity(searcher, query.getText(), WikiFileIndexer.CONTENT_ATTRIB));
+				f.add(minBiwordPopularity(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
+				f.add(minBiwordPopularity(searcher, query.getText(), WikiFileIndexer.CONTENT_ATTRIB));
+				scores.add(f.stream().map(ft -> ft + ",").collect(Collectors.joining()));
 			}
 
 		} catch (IOException e) {
@@ -295,6 +301,8 @@ public class WikiCacheSelectionExperiments {
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
+		if (biwordCount == 0)
+			return 0;
 		return coveredBiwordCounts / (double) biwordCount;
 	}
 
@@ -325,6 +333,8 @@ public class WikiCacheSelectionExperiments {
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
+		if (bigramCount == 0)
+			return 0;
 		return normalizedBiwordDocFrequencySum / (double) bigramCount;
 	}
 
@@ -344,9 +354,13 @@ public class WikiCacheSelectionExperiments {
 					builder.add(new Term(field, term), 1);
 					PhraseQuery pq = builder.build();
 					ScoreDoc[] hits = indexSearcher.search(pq, 10000).scoreDocs;
-					double currentBiwordDocFrequency = hits.length / prevDf;
-					minNormalizedBiwordDocFrequency = Math.min(currentBiwordDocFrequency,
-							minNormalizedBiwordDocFrequency);
+					if (hits.length == 0) {
+						minNormalizedBiwordDocFrequency = 0;
+					} else {
+						double currentBiwordDocFrequency = hits.length / prevDf;
+						minNormalizedBiwordDocFrequency = Math.min(currentBiwordDocFrequency,
+								minNormalizedBiwordDocFrequency);
+					}
 				}
 				prevTerm = term;
 				prevDf = indexSearcher.getIndexReader().docFreq(new Term(field, prevTerm));
@@ -457,8 +471,7 @@ public class WikiCacheSelectionExperiments {
 			return 0;
 	}
 
-	protected double minAverageTermDocPopularity(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb,
-			String field) {
+	protected double minAverageTermDocPopularity(IndexSearcher searcher, String queryText, String field) {
 		double min = -1;
 		try (StandardAnalyzer analyzer = new StandardAnalyzer();
 				TokenStream tokenStream = analyzer.tokenStream(field,
@@ -488,6 +501,82 @@ public class WikiCacheSelectionExperiments {
 					LOGGER.log(Level.SEVERE, e.getMessage(), e);
 				}
 			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return min;
+	}
+
+	protected double meanBiwordPopularity(IndexSearcher indexSearcher, String query, String field) {
+		int k = 200;
+		int biwordCount = 0;
+		double popularitySum = 0;
+		try (StandardAnalyzer analyzer = new StandardAnalyzer();
+				TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			tokenStream.reset();
+			String prevTerm = null;
+			while (tokenStream.incrementToken()) {
+				String term = termAtt.toString();
+				if (prevTerm != null) {
+					biwordCount++;
+					PhraseQuery.Builder builder = new PhraseQuery.Builder();
+					builder.add(new Term(field, prevTerm), 0);
+					builder.add(new Term(field, term), 1);
+					PhraseQuery pq = builder.build();
+					ScoreDoc[] hits = indexSearcher.search(pq, k).scoreDocs;
+					popularitySum += Arrays.stream(hits).map(h -> {
+						try {
+							return Double.parseDouble(indexSearcher.doc(h.doc).get(WikiFileIndexer.WEIGHT_ATTRIB));
+						} catch (IOException e) {
+							LOGGER.log(Level.SEVERE, e.getMessage(), e);
+							return 0.0;
+						}
+					}).reduce(Double::sum).orElse(0.0) / Math.max(1, Math.min(k, hits.length));
+				}
+				prevTerm = term;
+			}
+			tokenStream.end();
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		if (biwordCount == 0)
+			return 0;
+		return popularitySum / (double) biwordCount;
+	}
+
+	protected double minBiwordPopularity(IndexSearcher indexSearcher, String query, String field) {
+		int k = 200;
+		double min = -1;
+		try (StandardAnalyzer analyzer = new StandardAnalyzer();
+				TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			tokenStream.reset();
+			String prevTerm = null;
+			while (tokenStream.incrementToken()) {
+				String term = termAtt.toString();
+				if (prevTerm != null) {
+					PhraseQuery.Builder builder = new PhraseQuery.Builder();
+					builder.add(new Term(field, prevTerm), 0);
+					builder.add(new Term(field, term), 1);
+					PhraseQuery pq = builder.build();
+					ScoreDoc[] hits = indexSearcher.search(pq, k).scoreDocs;
+					double current = Arrays.stream(hits).map(h -> {
+						try {
+							return Double.parseDouble(indexSearcher.doc(h.doc).get(WikiFileIndexer.WEIGHT_ATTRIB));
+						} catch (IOException e) {
+							LOGGER.log(Level.SEVERE, e.getMessage(), e);
+							return 0.0;
+						}
+					}).reduce(Double::sum).orElse(0.0) / Math.max(1, Math.min(k, hits.length));
+					if (min == -1)
+						min = current;
+					else
+						min = (min < current) ? min : current;
+				}
+				prevTerm = term;
+			}
+			tokenStream.end();
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
