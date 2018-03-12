@@ -16,3 +16,6 @@ bin
 
 #config
 config.properties
+
+#vim
+.swp
