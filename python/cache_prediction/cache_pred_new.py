@@ -9,22 +9,25 @@ from sklearn import linear_model
 from sklearn.metrics import confusion_matrix
 
 df = pd.read_csv('../../data/python_data/cache_pred_new.csv')
+df = df.sample(frac=1) #shuffles rows
 df_size = df.shape[0]
-train = df.sample(frac=0.66, random_state=1)
-test = df.loc[~df.index.isin(train.index)]
-cols = df.columns.tolist()
+split_index = int(df_size/2)
+df_train = df.iloc[:split_index, :]
+df_test = df.iloc[split_index+1:, :]
 
 # learn the model
-X = train[cols[:-1]]
-y = train[cols[-1]]
+df_train = df_train.drop(['query', 'mrr_1', 'mrr_100'], axis = 1)
+X = df_train.iloc[:,:-1]
+y = df_train.iloc[:,-1]
 sc = StandardScaler().fit(X)
 X = sc.transform(X)
 lr = linear_model.LogisticRegression()
 lr.fit(X, y)
 print("training mean accuracy = %f" % lr.score(X, y))
 
-X_test = test[cols[:-1]]
-y_test = test[cols[:1]]
+df_tmp = df_test.drop(['query', 'mrr_1', 'mrr_100'], axis = 1)
+X_test = df_tmp.iloc[:,:-1]
+y_test = df_tmp.iloc[:,-1]
 X_test = sc.transform(X_test)
 print("testing mean accuracy = %f" % lr.score(X_test, y_test))
 
