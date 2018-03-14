@@ -13,7 +13,7 @@ from sklearn.ensemble import RandomForestClassifier
 def print_results(y_test, y_pred):
     tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
     print("precision = %.2f" % (tp / (tp + fp)))
-    #print("negative predictive value= %.2f" % (tn / (tn + fn)))
+    print("negative predictive value= %.2f" % (tn / (tn + fn)))
     #print("recall = %.2f" % (tp / (tp + fn)))
     print("fallout = %.2f" % (tn / (tn + fp)))
     #print("tp = %d" % tp)
