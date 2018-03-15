@@ -21,7 +21,8 @@ def print_results(y_test, y_pred):
 
 df = pd.read_csv('../../data/python_data/cache_pred_new.csv')
 df = df.fillna(0)
-df = df.drop(['Bm_25', 'min_bm25', 'bool_score', 'min_bool_score'], axis=1)
+df = df.drop(['Bm_25', 'min_bm25', 'bool_score', 'min_bool_score', 'Bm_25_sub',
+'min_bm25_sub', 'bool_score_sub', 'min_bool_score_sub'], axis=1)
 df_size = df.shape[0]
 train = df.sample(frac=0.66, random_state=1)
 train = train.drop(['query'], axis=1)
@@ -29,7 +30,7 @@ test = df.loc[~df.index.isin(train.index)]
 test_queries = test['query']
 test = test.drop(['query'], axis=1)
 cols = train.columns.tolist()
-#print(df.corr()['label'])
+print(df.corr()['label'].sort_values())
 
 # learn the model
 X = train[cols[:-1]]
@@ -65,9 +66,9 @@ lr.fit(X, y)
 print("training mean accuracy = %.2f" % lr.score(X, y))
 print("testing mean accuracy = %.2f" % lr.score(X_test, y_test))
 print('coefs:')
-#coef = lr.coef_.flatten()
-#print(np.column_stack((train.columns.values[:-1], coef)))
-#y_pred = lr.predict(X_test)
+coef = np.sort(lr.coef_.flatten())
+print(np.column_stack((train.columns.values[:-1], coef)))
+y_pred = lr.predict(X_test)
 y_prob = lr.predict_proba(X_test)
 y_pred = y_prob[:, 1] > 0.5
 print_results(y_test, y_pred)
