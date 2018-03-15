@@ -24,6 +24,8 @@ public class WikiSubsetIndexer {
 		options.addOption(expNumberOption);
 		Option server = new Option("server", true, "Specifies maple/hpc");
 		options.addOption(server);
+		Option comp = new Option("comp", false, "Builds complement index");
+		options.addOption(comp);
 		CommandLineParser clp = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cl;
@@ -41,13 +43,19 @@ public class WikiSubsetIndexer {
 			} else {
 				throw new org.apache.commons.cli.ParseException("Server name is not valid");
 			}
-			indexPath = paths.getIndexBase() + partitionNumber;
-			accessCountsFilePath = paths.getAccessCounts09Path();
+			accessCountsFilePath = paths.getAccessCountsPath();
 			LOGGER.log(Level.INFO, "Building index for partition {0}/{1}",
 					new Object[] { partitionNumber, totalPartitionCount });
 			long startTime = System.currentTimeMillis();
-			WikiExperimentHelper.buildGlobalIndex(partitionNumber, totalPartitionCount, accessCountsFilePath,
-					indexPath);
+			if (cl.hasOption("comp")) {
+				indexPath = paths.getIndexBase() + "c" + partitionNumber;
+				WikiExperimentHelper.buildComplementIndex(partitionNumber, totalPartitionCount, accessCountsFilePath,
+						indexPath);
+			} else {
+				indexPath = paths.getIndexBase() + partitionNumber;
+				WikiExperimentHelper.buildGlobalIndex(partitionNumber, totalPartitionCount, accessCountsFilePath,
+						indexPath);
+			}
 			long endTime = System.currentTimeMillis();
 			LOGGER.log(Level.INFO, "Indexing time: {0} sec", (endTime - startTime) / 1000);
 		} catch (org.apache.commons.cli.ParseException e) {

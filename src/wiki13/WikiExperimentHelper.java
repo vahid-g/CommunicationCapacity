@@ -40,7 +40,22 @@ public class WikiExperimentHelper {
 		}
 	}
 
-	public static void buildGlobalIndex(List<InexFile> files, String indexPath) {
+	public static void buildComplementIndex(int expNo, int totalExp, String accessCountsFilePath, String indexPath) {
+		try {
+			List<InexFile> pathCountList = InexFile.loadInexFileList(accessCountsFilePath);
+			double total = (double) totalExp;
+			pathCountList = pathCountList.subList((int) (((double) expNo / total) * pathCountList.size()),
+					pathCountList.size());
+			LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
+			LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
+			LOGGER.log(Level.INFO, "Smallest score: " + pathCountList.get(pathCountList.size() - 1).weight);
+			buildGlobalIndex(pathCountList, indexPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	static void buildGlobalIndex(List<InexFile> files, String indexPath) {
 		try {
 			File indexPathFile = new File(indexPath);
 			if (!indexPathFile.exists()) {
