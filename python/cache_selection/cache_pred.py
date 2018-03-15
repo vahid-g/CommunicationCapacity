@@ -30,7 +30,7 @@ test = df.loc[~df.index.isin(train.index)]
 test_queries = test['query']
 test = test.drop(['query'], axis=1)
 cols = train.columns.tolist()
-print(df.corr()['label'].sort_values())
+# print(df.corr()['label'].sort_values())
 
 # learn the model
 X = train[cols[:-1]]
@@ -65,23 +65,19 @@ lr = linear_model.LogisticRegression(class_weight='balanced')
 lr.fit(X, y)
 print("training mean accuracy = %.2f" % lr.score(X, y))
 print("testing mean accuracy = %.2f" % lr.score(X_test, y_test))
-print('coefs:')
-coef = np.sort(lr.coef_.flatten())
-print(np.column_stack((train.columns.values[:-1], coef)))
+# print('coefs:')
+# coef = np.sort(lr.coef_.flatten())
+# print(np.column_stack((train.columns.values[:-1], coef)))
 y_pred = lr.predict(X_test)
 y_prob = lr.predict_proba(X_test)
 y_pred = y_prob[:, 1] > 0.5
+print("threshold learning 0.5")
 print_results(y_test, y_pred)
-
 print("threshold learning 0.7")
-y_prob = lr.predict_proba(X_test)
 y_pred = y_prob[:, 1] > 0.7
 y_pred = y_pred.astype('uint8')
 print_results(y_test, y_pred)
-
-
 print("threshold learning 0.8")
-y_prob = lr.predict_proba(X_test)
 y_pred = y_prob[:, 1] > 0.8
 y_pred = y_pred.astype('uint8')
 print_results(y_test, y_pred)
