@@ -9,15 +9,7 @@ from sklearn import linear_model
 from sklearn.metrics import confusion_matrix
 from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
-
-def print_results(y_test, y_pred):
-    tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
-    print("precision = %.2f" % (tp / (tp + fp)))
-    print("negative predictive value= %.2f" % (tn / (tn + fn)))
-    #print("recall = %.2f" % (tp / (tp + fn)))
-    print("fallout = %.2f" % (tn / (tn + fp)))
-    #print("tp = %d" % tp)
-    print("1s percentage = %.2f \n" % (100 * np.sum(y_pred) / y_pred.shape[0]))
+from cs_helper import print_results
 
 df = pd.read_csv('../../data/python_data/cache_pred_new.csv')
 df = df.fillna(0)
@@ -35,7 +27,7 @@ cols = train.columns.tolist()
 # learn the model
 X = train[cols[:-1]]
 y = train[cols[-1]]
-print("1s percentage in training = %.2f \n" % (100 * np.sum(y) / y.shape[0]))
+print("1s percentage in training = %.2f" % (100 * np.sum(y) / y.shape[0]))
 sc = StandardScaler().fit(X)
 X = sc.transform(X)
 lr = linear_model.LogisticRegression()
