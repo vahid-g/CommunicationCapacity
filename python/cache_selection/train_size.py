@@ -11,7 +11,8 @@ from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
 from cs_helper import print_results
 
-df = pd.read_csv('../../data/python_data/cache_pred_new.csv')
+#df = pd.read_csv('../../data/python_data/cache_pred_new.csv')
+df = pd.read_csv('../../data/python_data/cs_data_1.csv')
 df = df.fillna(0)
 df = df.drop(['Bm_25', 'min_bm25', 'bool_score', 'min_bool_score', 'Bm_25_sub',
 'min_bm25_sub', 'bool_score_sub', 'min_bool_score_sub'], axis=1)
