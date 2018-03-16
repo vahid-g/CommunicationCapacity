@@ -20,6 +20,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
@@ -86,6 +87,7 @@ public class WikiCacheSelectionExperiments {
 			int expNo = Integer.parseInt(cl.getOptionValue("exp"));
 			int totalExp = Integer.parseInt(cl.getOptionValue("total"));
 			String indexPath = paths.getIndexBase() + expNo;
+			String globalIndexPath = paths.getIndexBase() + totalExp;
 			List<ExperimentQuery> queries;
 			if (cl.getOptionValue("queryset").equals("msn")) {
 				queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
@@ -102,9 +104,8 @@ public class WikiCacheSelectionExperiments {
 				List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
 				scores = wqde.runQueryPopularityScoreComputer(paths, results);
 			} else if (difficultyMetric.equals("feats")) {
-				scores = wqde.runQueryFeatureExtraction(indexPath, queries);
+				scores = wqde.runQueryFeatureExtraction(indexPath, queries, globalIndexPath);
 			} else {
-				String globalIndexPath = paths.getIndexBase() + totalExp;
 				scores = wqde.runQueryScoreComputer(indexPath, globalIndexPath, queries, difficultyMetric);
 			}
 			try (FileWriter fw = new FileWriter(expNo + ".csv")) {
@@ -179,9 +180,10 @@ public class WikiCacheSelectionExperiments {
 		return metric;
 	}
 
-	List<String> runQueryFeatureExtraction(String indexPath, List<ExperimentQuery> queries) {
+	List<String> runQueryFeatureExtraction(String indexPath, List<ExperimentQuery> queries, String globalIndexPath) {
 		List<String> scores = new ArrayList<String>();
-		try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
+		try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)));
+				IndexReader globalIndexReader = DirectoryReader.open(FSDirectory.open(Paths.get(globalIndexPath)))) {
 			IndexSearcher searcher = new IndexSearcher(indexReader);
 			searcher.setSimilarity(new BM25Similarity());
 			IndexSearcher booleanSearcher = new IndexSearcher(indexReader);
@@ -213,6 +215,8 @@ public class WikiCacheSelectionExperiments {
 				averageTermDocPopularity = averageBiwordDocPopularity(searcher, query.getText(),
 						WikiFileIndexer.CONTENT_ATTRIB);
 				f.addAll(averageBiwordDocPopularity);
+				f.add(queryLikelihood(indexReader, query.getText(), WikiFileIndexer.TITLE_ATTRIB, globalIndexReader));
+				f.add(queryLikelihood(indexReader, query.getText(), WikiFileIndexer.CONTENT_ATTRIB, globalIndexReader));
 				// post retrieval feats
 				// f.add(meanBM25Score(searcher, query.getText(), luceneQueryBuilder));
 				// f.add(minBM25Score(searcher, query.getText(), luceneQueryBuilder));
@@ -492,6 +496,41 @@ public class WikiCacheSelectionExperiments {
 		result.add(averageMin);
 		result.add(minMin);
 		return result;
+	}
+
+	public double queryLikelihood(IndexReader reader, String query, String field, IndexReader globalIndexReader)
+			throws IOException {
+		long tfSum = reader.getSumTotalTermFreq(field);
+		long globalTfSum = globalIndexReader.getSumTotalTermFreq(field);
+		LOGGER.log(Level.INFO, "TF sum:" + tfSum);
+		LOGGER.log(Level.INFO, "Global TF sum:" + globalTfSum);
+		LOGGER.log(Level.INFO, query);
+		double likelihood = 0;
+		try (Analyzer analyzer = new StandardAnalyzer()) {
+			TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")));
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			double p = 1.0;
+			try {
+				tokenStream.reset();
+				while (tokenStream.incrementToken()) {
+					String term = termAtt.toString();
+					Term currentTokenTerm = new Term(field, term);
+					double tf = reader.totalTermFreq(currentTokenTerm);
+					double gtf = globalIndexReader.totalTermFreq(currentTokenTerm);
+					if (gtf == 0) {
+						LOGGER.log(Level.WARNING, "zero gtf for: " + term);
+					}
+					double probabilityOfTermGivenSubset = tf / tfSum;
+					double probabilityOfTermGivenDatabase = gtf / globalTfSum;
+					p *= (0.9 * probabilityOfTermGivenSubset + 0.1 * probabilityOfTermGivenDatabase);
+				}
+				tokenStream.end();
+				likelihood = p;
+			} finally {
+				tokenStream.close();
+			}
+		}
+		return likelihood;
 	}
 
 	protected double meanBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
