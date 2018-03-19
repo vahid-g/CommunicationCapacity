@@ -89,9 +89,10 @@ public class WikiCacheSelectionFeatureGenerator {
 			String indexPath = paths.getIndexBase() + indexName;
 			String globalIndexPath = paths.getIndexBase() + totalExp;
 			List<ExperimentQuery> queries;
-			if (cl.getOptionValue("queryset").equals("msn")) {
+			String queryset = cl.getOptionValue("queryset", "none");
+			if (queryset.equals("msn")) {
 				queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
-			} else if (cl.getOptionValue("queryset").equals("inex")) {
+			} else if (queryset.equals("inex")) {
 				queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath(),
 						"title");
 			} else {
@@ -108,7 +109,7 @@ public class WikiCacheSelectionFeatureGenerator {
 			} else {
 				scores = wqde.runQueryScoreComputer(indexPath, globalIndexPath, queries, difficultyMetric);
 			}
-			try (FileWriter fw = new FileWriter(indexName + ".csv")) {
+			try (FileWriter fw = new FileWriter(queryset + "_" + indexName + ".csv")) {
 				for (int i = 0; i < queries.size(); i++) {
 					fw.write(queries.get(i).getText() + ", " + scores.get(i) + "\n");
 				}
@@ -380,9 +381,9 @@ public class WikiCacheSelectionFeatureGenerator {
 	}
 
 	protected List<Double> averageTermDocPopularity(IndexSearcher searcher, String queryText, String field) {
-		double averageSum = 0;
-		double averageMin = -1;
-		double minSum = 0;
+		double meanAverage = 0;
+		double minAverage = -1;
+		double meanMin = 0;
 		double minMin = -1;
 		int tokenCounts = 0;
 		int k = 10000;
@@ -408,14 +409,14 @@ public class WikiCacheSelectionFeatureGenerator {
 					}).collect(Collectors.toList());
 					double currentTermAverage = weights.stream().reduce(Double::sum).orElse(0.0)
 							/ Math.max(1, Math.min(k, weights.size()));
-					averageSum += currentTermAverage;
-					if (averageMin == -1) {
-						averageMin = currentTermAverage;
-					} else if (currentTermAverage < averageMin) {
-						averageMin = currentTermAverage;
+					meanAverage += currentTermAverage;
+					if (minAverage == -1) {
+						minAverage = currentTermAverage;
+					} else if (currentTermAverage < minAverage) {
+						minAverage = currentTermAverage;
 					}
 					double currentTermMin = weights.stream().reduce(Double::min).orElse(0.0);
-					minSum += currentTermMin;
+					meanMin += currentTermMin;
 					if (minMin == -1) {
 						minMin = currentTermMin;
 					} else if (currentTermMin < minMin) {
@@ -429,18 +430,20 @@ public class WikiCacheSelectionFeatureGenerator {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 		if (tokenCounts > 0) {
-			result.add(averageSum / tokenCounts);
-			result.add(minSum / tokenCounts);
+			meanAverage = meanAverage / tokenCounts;
+			meanMin = meanMin / tokenCounts;
 		}
-		result.add(averageMin);
+		result.add(meanAverage);
+		result.add(meanMin);
+		result.add(minAverage);
 		result.add(minMin);
 		return result;
 	}
 
 	protected List<Double> averageBiwordDocPopularity(IndexSearcher indexSearcher, String query, String field) {
-		double averageSum = 0;
-		double averageMin = -1;
-		double minSum = 0;
+		double meanAverage = 0;
+		double minAverage = -1;
+		double meanMin = 0;
 		double minMin = -1;
 		int biwordCount = 0;
 		int k = 10000;
@@ -468,14 +471,14 @@ public class WikiCacheSelectionFeatureGenerator {
 					}).collect(Collectors.toList());
 					double currentTermAverage = weights.stream().reduce(Double::sum).orElse(0.0)
 							/ Math.max(1, Math.min(k, weights.size()));
-					averageSum += currentTermAverage;
-					if (averageMin == -1) {
-						averageMin = currentTermAverage;
-					} else if (currentTermAverage < averageMin) {
-						averageMin = currentTermAverage;
+					meanAverage += currentTermAverage;
+					if (minAverage == -1) {
+						minAverage = currentTermAverage;
+					} else if (currentTermAverage < minAverage) {
+						minAverage = currentTermAverage;
 					}
 					double currentTermMin = weights.stream().reduce(Double::min).orElse(0.0);
-					minSum += currentTermMin;
+					meanMin += currentTermMin;
 					if (minMin == -1) {
 						minMin = currentTermMin;
 					} else if (currentTermMin < minMin) {
@@ -490,10 +493,12 @@ public class WikiCacheSelectionFeatureGenerator {
 		}
 		List<Double> result = new ArrayList<Double>();
 		if (biwordCount > 0) {
-			result.add(averageSum / biwordCount);
-			result.add(minSum / biwordCount);
+			meanAverage = meanAverage / biwordCount;
+			meanMin = meanMin / biwordCount;
 		}
-		result.add(averageMin);
+		result.add(meanAverage);
+		result.add(meanMin);
+		result.add(minAverage);
 		result.add(minMin);
 		return result;
 	}
