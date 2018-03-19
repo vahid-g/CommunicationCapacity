@@ -51,9 +51,9 @@ import wiki13.cache_selection.SimpleCacheScore;
 import wiki13.cache_selection.VarianceScore;
 import wiki13.cache_selection.VarianceScore.VarianceScoreMode;
 
-public class WikiCacheSelectionExperiments {
+public class WikiCacheSelectionFeatureGenerator {
 
-	public static final Logger LOGGER = Logger.getLogger(WikiCacheSelectionExperiments.class.getName());
+	public static final Logger LOGGER = Logger.getLogger(WikiCacheSelectionFeatureGenerator.class.getName());
 
 	public static void main(String[] args) throws IOException {
 
@@ -84,9 +84,9 @@ public class WikiCacheSelectionExperiments {
 			} else if (cl.getOptionValue("server").equals("hpc")) {
 				paths = WikiFilesPaths.getHpcPaths();
 			}
-			int expNo = Integer.parseInt(cl.getOptionValue("exp"));
+			String indexName = cl.getOptionValue("exp");
 			int totalExp = Integer.parseInt(cl.getOptionValue("total"));
-			String indexPath = paths.getIndexBase() + expNo;
+			String indexPath = paths.getIndexBase() + indexName;
 			String globalIndexPath = paths.getIndexBase() + totalExp;
 			List<ExperimentQuery> queries;
 			if (cl.getOptionValue("queryset").equals("msn")) {
@@ -99,7 +99,7 @@ public class WikiCacheSelectionExperiments {
 			}
 			String difficultyMetric = cl.getOptionValue("diff");
 			List<String> scores = null;
-			WikiCacheSelectionExperiments wqde = new WikiCacheSelectionExperiments();
+			WikiCacheSelectionFeatureGenerator wqde = new WikiCacheSelectionFeatureGenerator();
 			if (difficultyMetric.equals("pop")) {
 				List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, 0.15f);
 				scores = wqde.runQueryPopularityScoreComputer(paths, results);
@@ -108,7 +108,7 @@ public class WikiCacheSelectionExperiments {
 			} else {
 				scores = wqde.runQueryScoreComputer(indexPath, globalIndexPath, queries, difficultyMetric);
 			}
-			try (FileWriter fw = new FileWriter(expNo + ".csv")) {
+			try (FileWriter fw = new FileWriter(indexName + ".csv")) {
 				for (int i = 0; i < queries.size(); i++) {
 					fw.write(queries.get(i).getText() + ", " + scores.get(i) + "\n");
 				}
@@ -502,9 +502,6 @@ public class WikiCacheSelectionExperiments {
 			throws IOException {
 		long tfSum = reader.getSumTotalTermFreq(field);
 		long globalTfSum = globalIndexReader.getSumTotalTermFreq(field);
-		LOGGER.log(Level.INFO, "TF sum:" + tfSum);
-		LOGGER.log(Level.INFO, "Global TF sum:" + globalTfSum);
-		LOGGER.log(Level.INFO, query);
 		double likelihood = 0;
 		try (Analyzer analyzer = new StandardAnalyzer()) {
 			TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")));

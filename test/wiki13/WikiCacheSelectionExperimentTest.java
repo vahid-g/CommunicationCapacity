@@ -24,7 +24,7 @@ public class WikiCacheSelectionExperimentTest {
 
 	private static RAMDirectory ramDirectory;
 
-	private static WikiCacheSelectionExperiments wcse = new WikiCacheSelectionExperiments();
+	private static WikiCacheSelectionFeatureGenerator wcse = new WikiCacheSelectionFeatureGenerator();
 
 	@BeforeClass
 	public static void beforeClass() throws IOException {
