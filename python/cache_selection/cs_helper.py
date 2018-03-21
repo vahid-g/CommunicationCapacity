@@ -10,5 +10,5 @@ def print_results(y_test, y_pred):
     print("negative predictive value= %.2f" % (tn / (tn + fn)))
     # print("recall = %.2f" % (tp / (tp + fn)))
     print("fallout = %.2f" % (tn / (tn + fp)))
-    print("1s percentage = %.2f \n" % (100 * np.sum(y_pred) / y_pred.shape[0]))
+    print("1s percentage = %.2f" % (100 * np.sum(y_pred) / y_pred.shape[0]))
 
