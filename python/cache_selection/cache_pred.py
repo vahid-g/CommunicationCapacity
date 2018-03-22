@@ -70,6 +70,7 @@ def main(argv):
     # y_pred = y_pred.astype('uint8')
     print_results(y_test, y_8)
 
+    '''
     print("\nbalanced random forest..")
     clf = RandomForestClassifier(n_estimators=10, class_weight='balanced')
     clf.fit(X,y)
@@ -90,7 +91,6 @@ def main(argv):
     print("training mean accuracy = %.2f" % lr.score(X, y))
     y_pred = clf.predict(X_test)
     print_results(y_test, y_pred)
-    '''
     print("svc results..")
     clf = svm.SVC(kernel='linear', class_weight='balanced')
     clf.fit(X, y)
