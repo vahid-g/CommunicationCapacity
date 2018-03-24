@@ -24,35 +24,20 @@ public class DatabaseMediator {
 	public DatabaseMediator() throws IOException, SQLException {
 		dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		conn = dc.getConnection();
+		conn.setAutoCommit(false);
 	}
 
 	public List<QuestionDAO> loadQuestions() throws SQLException {
 		String query = "select ID, Title, AcceptedAnswerId from table questions;";
 		List<QuestionDAO> result = new ArrayList<QuestionDAO>();
 		try (Statement stmt = conn.createStatement()) {
+			stmt.setFetchSize(1024);
 			ResultSet rs = stmt.executeQuery(query);
 			while (rs.next()) {
 				String id = rs.getString("Id");
 				String question = rs.getString("Title");
 				String answer = rs.getString("AcceptedAnswerId");
 				QuestionDAO dao = new QuestionDAO(id, question, answer);
-				result.add(dao);
-			}
-		} catch (SQLException e) {
-			LOGGER.log(Level.SEVERE, e.getMessage(), e);
-		}
-		return result;
-	}
-
-	public List<AnswerDAO> loadAnswers() throws SQLException {
-		List<AnswerDAO> result = new ArrayList<AnswerDAO>();
-		String query = "select Id, Body from table questions;";
-		try (Statement stmt = conn.createStatement()) {
-			ResultSet rs = stmt.executeQuery(query);
-			while (rs.next()) {
-				String id = rs.getString("Id");
-				String answer = rs.getString("Body");
-				AnswerDAO dao = new AnswerDAO(id, answer);
 				result.add(dao);
 			}
 		} catch (SQLException e) {

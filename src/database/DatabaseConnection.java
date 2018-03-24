@@ -19,12 +19,13 @@ public class DatabaseConnection {
 
 	private Connection connection;
 
-	public DatabaseConnection(DatabaseType databseType) throws IOException, SQLException {
+	public DatabaseConnection(DatabaseType databaseType) throws IOException, SQLException {
+		config = new Properties();
 		try (InputStream in = WikiMapleRelationalEfficiencyExperiment.class
 				.getResourceAsStream("/config/config.properties")) {
 			config.load(in);
 		}
-		createDatabaseConnection(config.getProperty(databseType.getType()));
+		createDatabaseConnection(config.getProperty(databaseType.getType()));
 	}
 
 	protected void createDatabaseConnection(String databasename) throws SQLException {
@@ -43,8 +44,7 @@ public class DatabaseConnection {
 		return connection;
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
+	public void closeConnection() throws Throwable {
 		if (connection != null) {
 			LOGGER.log(Level.INFO, "Closing the databse connection..");
 			connection.close();
