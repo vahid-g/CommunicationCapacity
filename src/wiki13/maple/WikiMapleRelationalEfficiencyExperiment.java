@@ -1,7 +1,9 @@
 package wiki13.maple;
 
 import java.io.IOException;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -9,7 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import database.DatabaseMediator;
+import database.DatabaseConnection;
 import database.DatabaseType;
 import query.ExperimentQuery;
 import query.QueryResult;
@@ -30,10 +32,11 @@ public class WikiMapleRelationalEfficiencyExperiment {
 		// PATHS.getInexQrelFilePath());
 		Collections.shuffle(queries);
 		queries = queries.subList(0, 50);
-		queryEfficiencyExperiment("memory", "1", queries);
+		WikiMapleRelationalEfficiencyExperiment wmree = new WikiMapleRelationalEfficiencyExperiment();
+		wmree.queryEfficiencyExperiment("memory", "1", queries);
 	}
 
-	static void debug() {
+	void debug() {
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(),
 				PATHS.getMsnQrelFilePath());
 		queries = queries.subList(0, 10);
@@ -50,11 +53,11 @@ public class WikiMapleRelationalEfficiencyExperiment {
 		}
 	}
 
-	static void queryEfficiencyExperiment(String mode, String subset, List<ExperimentQuery> queries) {
+	void queryEfficiencyExperiment(String mode, String subset, List<ExperimentQuery> queries) {
 		String subsetIndexPath = PATHS.getIndexBase() + subset;
 		String indexPath = PATHS.getIndexBase() + "100";
 		try {
-			DatabaseMediator dm = new DatabaseMediator(DatabaseType.WIKIPEDIA);
+			DatabaseConnection dm = new DatabaseConnection(DatabaseType.WIKIPEDIA);
 			String subsetPrefix = "";
 			switch (mode) {
 			case "denorm":
@@ -106,7 +109,7 @@ public class WikiMapleRelationalEfficiencyExperiment {
 		}
 	}
 
-	static double[] measureQueryEfficiency(String indexPath, DatabaseMediator dm, List<ExperimentQuery> queries,
+	double[] measureQueryEfficiency(String indexPath, DatabaseConnection dm, List<ExperimentQuery> queries,
 			String queryPrefix) throws SQLException {
 		long startTime = System.currentTimeMillis();
 		List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, 1f);
@@ -118,12 +121,30 @@ public class WikiMapleRelationalEfficiencyExperiment {
 			String query = String.format(queryPrefix, ids.toString().replace('[', '(').replace(']', ')'));
 			LOGGER.log(Level.FINE, query);
 			long tmp = System.currentTimeMillis();
-			long queryTime = dm.submitSqlQuery(query);
+			long queryTime = measureQueryTime(dm.getConnection(), query);
 			LOGGER.log(Level.FINE, counter++ + ": " + ids.size() + ": " + (System.currentTimeMillis() - tmp) + ": "
 					+ ": " + queryTime + ": " + query);
 		}
 		long endTime = System.currentTimeMillis();
 		return new double[] { (middleTime - startTime) / queries.size(), (endTime - middleTime) / queries.size() };
+	}
+
+	public long measureQueryTime(java.sql.Connection connection, String query) throws SQLException {
+		try (Statement stmt = connection.createStatement()) {
+			long begin = System.currentTimeMillis();
+			ResultSet rs = stmt.executeQuery(query);
+			long end = System.currentTimeMillis();
+			int counter = 0;
+			while (rs.next()) {
+				counter++;
+				rs.getString("id");
+			}
+			LOGGER.log(Level.FINE, "fetch size: " + counter);
+			return end - begin;
+		} catch (SQLException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return -1;
 	}
 
 }
