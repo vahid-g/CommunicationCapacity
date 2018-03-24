@@ -27,7 +27,7 @@ public class DatabaseMediator {
 	}
 
 	public List<QuestionDAO> loadQuestions() throws SQLException {
-		String query = "select Title from table questions;";
+		String query = "select ID, Title, AcceptedAnswerId from table questions;";
 		List<QuestionDAO> result = new ArrayList<QuestionDAO>();
 		try (Statement stmt = conn.createStatement()) {
 			ResultSet rs = stmt.executeQuery(query);
@@ -44,8 +44,9 @@ public class DatabaseMediator {
 		return result;
 	}
 
-	public List<AnswerDAO> getAnswers(String query, String[] targetField) throws SQLException {
+	public List<AnswerDAO> loadAnswers() throws SQLException {
 		List<AnswerDAO> result = new ArrayList<AnswerDAO>();
+		String query = "select Id, Body from table questions;";
 		try (Statement stmt = conn.createStatement()) {
 			ResultSet rs = stmt.executeQuery(query);
 			while (rs.next()) {
