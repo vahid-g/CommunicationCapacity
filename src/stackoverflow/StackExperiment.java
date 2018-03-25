@@ -41,15 +41,15 @@ public class StackExperiment {
 			parser.setDefaultOperator(Operator.OR);
 			for (QuestionDAO question : questions) {
 				String queryText = question.text.replaceAll("\\(\\)", "");
-				System.out.println(queryText);
-				System.out.println("rel: " + question.answer);
+				// System.out.println(queryText);
+				// System.out.println("rel: " + question.answer);
 				Query query = parser.parse(queryText);
-				ScoreDoc[] hits = searcher.search(query, 10).scoreDocs;
+				ScoreDoc[] hits = searcher.search(query, 100).scoreDocs;
 				for (int i = 0; i < hits.length; i++) {
 					Document doc = searcher.doc(hits[i].doc);
-					System.out.println(doc.get("Id"));
+					// System.out.println(doc.get(StackIndexer.ID_FIELD));
 					if (doc.get(StackIndexer.ID_FIELD).equals(question.answer)) {
-						question.resultRank = i;
+						question.resultRank = i + 1;
 						break;
 					}
 				}
