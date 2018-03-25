@@ -40,8 +40,11 @@ public class StackExperiment {
 			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
 			parser.setDefaultOperator(Operator.OR);
 			for (QuestionDAO question : questions) {
-				String queryText = question.text.replaceAll("\\(\\)", "");
-				// System.out.println(queryText);
+				String queryText = question.text.replace("()", " ");
+				queryText = queryText.replace("&#xA;", " ");
+				queryText = queryText.replaceAll("<[^>]*>", " ");
+				queryText = queryText.replaceAll("[+-=.:*?/;'{}()\\\\]", " ");
+				System.out.println(queryText);
 				// System.out.println("rel: " + question.answer);
 				Query query = parser.parse(queryText);
 				ScoreDoc[] hits = searcher.search(query, 100).scoreDocs;
@@ -56,7 +59,7 @@ public class StackExperiment {
 			}
 		}
 		for (QuestionDAO question : questions) {
-			System.out.println(question.text + ": " + question.resultRank);
+			System.out.println(question.id + ": " + question.resultRank);
 		}
 	}
 
@@ -67,15 +70,16 @@ public class StackExperiment {
 		conn.setAutoCommit(false);
 		List<QuestionDAO> result = new ArrayList<QuestionDAO>();
 		LOGGER.log(Level.INFO, "retrieving queries..");
-		String query = "select Id, Title, AcceptedAnswerId from stack_overflow.questions limit 10;";
+		String query = "select Id, Title, Body, AcceptedAnswerId from stack_overflow.questions limit 10;";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.setFetchSize(Integer.MIN_VALUE);
 			ResultSet rs = stmt.executeQuery(query);
 			while (rs.next()) {
 				String id = rs.getString("Id");
-				String body = rs.getString("Title");
+				String title = rs.getString("Title");
+				String body = rs.getString("Body");
 				String acceptedAnswerId = rs.getString("AcceptedAnswerId");
-				QuestionDAO dao = new QuestionDAO(id, body, acceptedAnswerId);
+				QuestionDAO dao = new QuestionDAO(id, title + body, acceptedAnswerId);
 				result.add(dao);
 			}
 		} catch (SQLException e) {

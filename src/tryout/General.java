@@ -2,7 +2,6 @@ package tryout;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Properties;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -14,8 +13,8 @@ public class General {
 	static final Logger LOGGER = LogManager.getLogManager().getLogger("");
 
 	public static void main(String[] args) throws IOException {
-		Float[] nullArray = null;
-		System.out.println(Arrays.stream(nullArray).reduce(Float::sum));
+		String input = "hanhan &#xA;";
+		System.out.println(input.replace("&#xA;", " "));
 	}
 	
 	public static void testDivision() {
