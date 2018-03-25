@@ -26,6 +26,10 @@ import database.DatabaseType;
 
 public class StackIndexer {
 
+	public static final String ID_FIELD = "id";
+
+	public static final String BODY_FIELD = "Body";
+	
 	static Logger LOGGER = Logger.getLogger(StackIndexer.class.getName());
 
 	public static void main(String[] args) throws Throwable {
@@ -44,7 +48,6 @@ public class StackIndexer {
 			indexFolder.mkdir();
 		}
 		Directory directory = FSDirectory.open(Paths.get(indexFolder.getAbsolutePath()));
-
 		// indexing
 		LOGGER.log(Level.INFO, "indexing..");
 		long start = System.currentTimeMillis();
@@ -57,8 +60,9 @@ public class StackIndexer {
 					String id = rs.getString("Id");
 					String answer = rs.getString("Body");
 					Document doc = new Document();
-					doc.add(new StoredField("id", id));
-					doc.add(new TextField("body", answer, Store.NO));
+					doc.add(new StoredField(ID_FIELD, id));
+					doc.add(new TextField(BODY_FIELD, answer, Store.NO));
+					iwriter.addDocument(doc);
 				}
 			} catch (SQLException e) {
 				LOGGER.log(Level.SEVERE, e.getMessage(), e);
