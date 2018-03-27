@@ -35,7 +35,8 @@ public class StackExperiment {
 
 	public static void main(String[] args) throws IOException, SQLException {
 		StackExperiment se = new StackExperiment();
-		List<QuestionDAO> questions = se.loadQueries();
+		LOGGER.log(Level.INFO, "retrieving queries..");
+		List<QuestionDAO> questions = se.loadQueriesWithBody();
 		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get("/data/ghadakcv/stack_index")))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			Analyzer analyzer = new StandardAnalyzer();
@@ -45,11 +46,6 @@ public class StackExperiment {
 			for (QuestionDAO question : questions) {
 				try {
 					String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
-					// String queryText = question.text.replace("()", " ");
-					// queryText = queryText.replace("&#xA;", " ");
-					// queryText = queryText.replaceAll("<[^>]*>", " ");
-					// queryText = queryText.replaceAll("[%\"\\[\\]+-=.:*?/;'{}()\\\\]", " ");
-
 					// System.out.println("qid: " + question.id + " rel: " + question.answer);
 					// System.out.println(queryText);
 					Query query = parser.parse(queryText);
@@ -71,34 +67,56 @@ public class StackExperiment {
 					LOGGER.log(Level.SEVERE, e.getMessage(), e);
 				}
 			}
-			try (FileWriter fw = new FileWriter(new File("stack_2.csv"))) {
+			LOGGER.log(Level.INFO, "writing results to file..");
+			try (FileWriter fw = new FileWriter(new File("stack_b.csv"))) {
 				for (QuestionDAO question : questions) {
 					if (question.resultRank != -1) {
-						fw.write(question.id + "," + question.resultRank);
+						fw.write(question.id + "," + 1.0 / question.resultRank + "\n");
 					}
 				}
 			}
 		}
 	}
 
-	private List<QuestionDAO> loadQueries() throws IOException, SQLException {
-		// setting up database connections
+	List<QuestionDAO> loadQueries() throws IOException, SQLException {
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();
 		conn.setAutoCommit(false);
 		List<QuestionDAO> result = new ArrayList<QuestionDAO>();
-		LOGGER.log(Level.INFO, "retrieving queries..");
 		String query = "select Id, Title, AcceptedAnswerId from stack_overflow.questions"
-				+ " where AcceptedAnswerId is not null and length(Body) < 5000 limit 20000;";
+				+ " where AcceptedAnswerId is not null limit 20000;";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.setFetchSize(Integer.MIN_VALUE);
 			ResultSet rs = stmt.executeQuery(query);
 			while (rs.next()) {
 				String id = rs.getString("Id");
 				String title = rs.getString("Title");
-				// String body = rs.getString("Body");
 				String acceptedAnswerId = rs.getString("AcceptedAnswerId");
 				QuestionDAO dao = new QuestionDAO(id, title, acceptedAnswerId);
+				result.add(dao);
+			}
+		} catch (SQLException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		dc.closeConnection();
+		return result;
+	}
+
+	List<QuestionDAO> loadQueriesWithBody() throws IOException, SQLException {
+		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
+		Connection conn = dc.getConnection();
+		conn.setAutoCommit(false);
+		List<QuestionDAO> result = new ArrayList<QuestionDAO>();
+		String query = "select Id, Title, Body,AcceptedAnswerId from stack_overflow.questions"
+				+ " where AcceptedAnswerId is not null limit 1000;";
+		try (Statement stmt = conn.createStatement()) {
+			stmt.setFetchSize(Integer.MIN_VALUE);
+			ResultSet rs = stmt.executeQuery(query);
+			while (rs.next()) {
+				String id = rs.getString("Id");
+				String text = rs.getString("Title") + " " + rs.getString("Body");
+				String acceptedAnswerId = rs.getString("AcceptedAnswerId");
+				QuestionDAO dao = new QuestionDAO(id, text, acceptedAnswerId);
 				result.add(dao);
 			}
 		} catch (SQLException e) {
