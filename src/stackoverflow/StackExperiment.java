@@ -24,7 +24,7 @@ import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.NIOFSDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
@@ -36,7 +36,7 @@ public class StackExperiment {
 	public static void main(String[] args) throws IOException, SQLException {
 		StackExperiment se = new StackExperiment();
 		List<QuestionDAO> questions = se.loadQueries();
-		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get("/data/ghadakcv/stack_index")))) {
+		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get("/data/ghadakcv/stack_index")))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			Analyzer analyzer = new StandardAnalyzer();
 			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
@@ -71,7 +71,7 @@ public class StackExperiment {
 					LOGGER.log(Level.SEVERE, e.getMessage(), e);
 				}
 			}
-			try (FileWriter fw = new FileWriter(new File("stack.csv"))) {
+			try (FileWriter fw = new FileWriter(new File("stack_2.csv"))) {
 				for (QuestionDAO question : questions) {
 					if (question.resultRank != -1) {
 						fw.write(question.id + "," + question.resultRank);
@@ -88,17 +88,17 @@ public class StackExperiment {
 		conn.setAutoCommit(false);
 		List<QuestionDAO> result = new ArrayList<QuestionDAO>();
 		LOGGER.log(Level.INFO, "retrieving queries..");
-		String query = "select Id, Title, Body, AcceptedAnswerId from stack_overflow.questions"
-				+ " where AcceptedAnswerId is not null and length(Body) < 5000 limit 15000;";
+		String query = "select Id, Title, AcceptedAnswerId from stack_overflow.questions"
+				+ " where AcceptedAnswerId is not null and length(Body) < 5000 limit 20000;";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.setFetchSize(Integer.MIN_VALUE);
 			ResultSet rs = stmt.executeQuery(query);
 			while (rs.next()) {
 				String id = rs.getString("Id");
 				String title = rs.getString("Title");
-				String body = rs.getString("Body");
+				// String body = rs.getString("Body");
 				String acceptedAnswerId = rs.getString("AcceptedAnswerId");
-				QuestionDAO dao = new QuestionDAO(id, title + body, acceptedAnswerId);
+				QuestionDAO dao = new QuestionDAO(id, title, acceptedAnswerId);
 				result.add(dao);
 			}
 		} catch (SQLException e) {
