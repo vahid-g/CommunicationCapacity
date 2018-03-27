@@ -25,15 +25,17 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queries.CustomScoreQuery;
 import org.apache.lucene.queries.function.FunctionQuery;
 import org.apache.lucene.queries.function.valuesource.DoubleFieldSource;
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.queryparser.classic.QueryParser.Operator;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.BooleanSimilarity;
 import org.apache.lucene.store.Directory;
@@ -59,15 +61,15 @@ public class LuceneBasics {
 		Document doc2 = new Document();
 		Document doc3 = new Document();
 		doc1.add(new StoredField("i", "d-1"));
-		doc1.add(new Field("f", "this is the new", TextField.TYPE_STORED));
+		doc1.add(new Field("f", "this is the new shekh", TextField.TYPE_STORED));
 		doc1.add(new Field("f2", "Shekh", TextField.TYPE_STORED));
 		doc1.add(new DoubleDocValuesField("weight", 1));
 		doc2.add(new StoredField("i", "d-2"));
-		doc2.add(new Field("f", " this is the", TextField.TYPE_STORED));
+		doc2.add(new Field("f", " this is the shekh", TextField.TYPE_STORED));
 		doc2.add(new Field("f2", " Shekh", TextField.TYPE_STORED));
 		doc2.add(new DoubleDocValuesField("weight", 20));
 		doc3.add(new StoredField("i", "d-3"));
-		doc3.add(new Field("f", "this is the new", TextField.TYPE_STORED));
+		doc3.add(new Field("f", "this is the new shit", TextField.TYPE_STORED));
 		doc3.add(new Field("f2", "Shit", TextField.TYPE_STORED));
 		doc3.add(new DoubleDocValuesField("weight", 65));
 		iwriter.addDocument(doc1);
@@ -79,21 +81,20 @@ public class LuceneBasics {
 		IndexReader ireader = DirectoryReader.open(directory);
 		IndexSearcher isearcher = new IndexSearcher(ireader);
 		isearcher.setSimilarity(new BooleanSimilarity()); // Parse a simple
-		// Builder bqb = new BooleanQuery.Builder();
-		// bqb = bqb.add(new BooleanClause(new TermQuery(new Term("f", "shekh")),
-		// Occur.MUST));
-		// bqb = bqb.add(new BooleanClause(new TermQuery(new Term("f", "new")),
-		// Occur.MUST));
-		// Query query = bqb.build();
-		String[] fields = { "f", "f2" };
-		MultiFieldQueryParser multiFieldParser = new MultiFieldQueryParser(fields, new StandardAnalyzer());
-		multiFieldParser.setDefaultOperator(Operator.AND);
-		Query query = null;
-		try {
-			query = multiFieldParser.parse(QueryParser.escape("new shekh"));
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
+		BooleanQuery.Builder bqb = new BooleanQuery.Builder();
+		bqb.add(new BooleanClause(new TermQuery(new Term("f", "new")), Occur.MUST));
+		bqb.add(new BooleanClause(new TermQuery(new Term("f", "shit")), Occur.SHOULD));
+		Query query = bqb.build();
+		// String[] fields = { "f", "f2" };
+		// MultiFieldQueryParser multiFieldParser = new MultiFieldQueryParser(fields,
+		// new StandardAnalyzer());
+		// multiFieldParser.setDefaultOperator(Operator.AND);
+		// Query query = null;
+		// try {
+		// query = multiFieldParser.parse(QueryParser.escape("new shekh"));
+		// } catch (ParseException e) {
+		// e.printStackTrace();
+		// }
 		ScoreDoc[] hits = isearcher.search(query, 10).scoreDocs;
 		System.out.println("#hits:" + hits.length);
 		for (int i = 0; i < hits.length; i++) {
@@ -123,6 +124,7 @@ public class LuceneBasics {
 		for (int i = 0; i < hits.length; i++) {
 			Document hitDoc = isearcher.doc(hits[i].doc);
 			System.out.println(hits[i].score + "\t" + hitDoc.get("f"));
+			System.out.println(isearcher.explain(query, hits[i].doc));
 		}
 		directory.close();
 

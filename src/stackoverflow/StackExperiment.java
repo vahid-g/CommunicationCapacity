@@ -1,5 +1,7 @@
 package stackoverflow;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -31,7 +33,7 @@ public class StackExperiment {
 
 	private static final Logger LOGGER = Logger.getLogger(StackExperiment.class.getName());
 
-	public static void main(String[] args) throws IOException, SQLException, ParseException {
+	public static void main(String[] args) throws IOException, SQLException {
 		StackExperiment se = new StackExperiment();
 		List<QuestionDAO> questions = se.loadQueries();
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get("/data/ghadakcv/stack_index")))) {
@@ -39,27 +41,43 @@ public class StackExperiment {
 			Analyzer analyzer = new StandardAnalyzer();
 			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
 			parser.setDefaultOperator(Operator.OR);
+			LOGGER.log(Level.INFO, "querying..");
 			for (QuestionDAO question : questions) {
-				String queryText = question.text.replace("()", " ");
-				queryText = queryText.replace("&#xA;", " ");
-				queryText = queryText.replaceAll("<[^>]*>", " ");
-				queryText = queryText.replaceAll("[+-=.:*?/;'{}()\\\\]", " ");
-				System.out.println(queryText);
-				// System.out.println("rel: " + question.answer);
-				Query query = parser.parse(queryText);
-				ScoreDoc[] hits = searcher.search(query, 100).scoreDocs;
-				for (int i = 0; i < hits.length; i++) {
-					Document doc = searcher.doc(hits[i].doc);
-					// System.out.println(doc.get(StackIndexer.ID_FIELD));
-					if (doc.get(StackIndexer.ID_FIELD).equals(question.answer)) {
-						question.resultRank = i + 1;
-						break;
+				try {
+					String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
+					// String queryText = question.text.replace("()", " ");
+					// queryText = queryText.replace("&#xA;", " ");
+					// queryText = queryText.replaceAll("<[^>]*>", " ");
+					// queryText = queryText.replaceAll("[%\"\\[\\]+-=.:*?/;'{}()\\\\]", " ");
+
+					// System.out.println("qid: " + question.id + " rel: " + question.answer);
+					// System.out.println(queryText);
+					Query query = parser.parse(queryText);
+					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
+					// int counter = 0;
+					for (int i = 0; i < hits.length; i++) {
+						Document doc = searcher.doc(hits[i].doc);
+						if (doc.get(StackIndexer.ID_FIELD).equals(question.answer)) {
+							question.resultRank = i + 1;
+							break;
+						}
+						// if (counter++ < 3) {
+						// System.out.println("\t" + doc.get(StackIndexer.ID_FIELD));
+						// }
+					}
+					// System.out.println();
+				} catch (ParseException e) {
+					LOGGER.log(Level.SEVERE, "Couldn't parse query " + question.id);
+					LOGGER.log(Level.SEVERE, e.getMessage(), e);
+				}
+			}
+			try (FileWriter fw = new FileWriter(new File("stack.csv"))) {
+				for (QuestionDAO question : questions) {
+					if (question.resultRank != -1) {
+						fw.write(question.id + "," + question.resultRank);
 					}
 				}
 			}
-		}
-		for (QuestionDAO question : questions) {
-			System.out.println(question.id + ": " + question.resultRank);
 		}
 	}
 
@@ -70,7 +88,8 @@ public class StackExperiment {
 		conn.setAutoCommit(false);
 		List<QuestionDAO> result = new ArrayList<QuestionDAO>();
 		LOGGER.log(Level.INFO, "retrieving queries..");
-		String query = "select Id, Title, Body, AcceptedAnswerId from stack_overflow.questions limit 10;";
+		String query = "select Id, Title, Body, AcceptedAnswerId from stack_overflow.questions"
+				+ " where AcceptedAnswerId is not null and length(Body) < 5000 limit 15000;";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.setFetchSize(Integer.MIN_VALUE);
 			ResultSet rs = stmt.executeQuery(query);

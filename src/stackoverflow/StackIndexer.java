@@ -29,7 +29,7 @@ public class StackIndexer {
 	public static final String ID_FIELD = "id";
 
 	public static final String BODY_FIELD = "Body";
-	
+
 	static Logger LOGGER = Logger.getLogger(StackIndexer.class.getName());
 
 	public static void main(String[] args) throws Throwable {
@@ -43,7 +43,7 @@ public class StackIndexer {
 		IndexWriterConfig config = new IndexWriterConfig(analyzer);
 		config.setSimilarity(new BM25Similarity());
 		config.setRAMBufferSizeMB(1024);
-		File indexFolder = new File("/data/ghadakcv/stack_index");
+		File indexFolder = new File("/data/ghadakcv/stack_fullindex");
 		if (!indexFolder.exists()) {
 			indexFolder.mkdir();
 		}
@@ -61,7 +61,7 @@ public class StackIndexer {
 					String answer = rs.getString("Body");
 					Document doc = new Document();
 					doc.add(new StoredField(ID_FIELD, id));
-					doc.add(new TextField(BODY_FIELD, answer, Store.NO));
+					doc.add(new TextField(BODY_FIELD, answer, Store.YES));
 					iwriter.addDocument(doc);
 				}
 			} catch (SQLException e) {
