@@ -61,7 +61,7 @@ public class StackIndexer {
 					String answer = rs.getString("Body");
 					Document doc = new Document();
 					doc.add(new StoredField(ID_FIELD, id));
-					doc.add(new TextField(BODY_FIELD, answer, Store.YES));
+					doc.add(new TextField(BODY_FIELD, answer, Store.NO));
 					iwriter.addDocument(doc);
 				}
 			} catch (SQLException e) {
