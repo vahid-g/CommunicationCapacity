@@ -25,6 +25,7 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.NIOFSDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
@@ -34,28 +35,33 @@ public class StackExperiment {
 	private static final Logger LOGGER = Logger.getLogger(StackExperiment.class.getName());
 
 	public static void main(String[] args) throws IOException, SQLException {
+
+		List<QuestionDAO> questions = new StackExperiment().exp(args[0], args[1]);
+		LOGGER.log(Level.INFO, "writing results to file..");
+		try (FileWriter fw = new FileWriter(new File(args[0] + ".csv"))) {
+			for (QuestionDAO question : questions) {
+				if (question.resultRank != -1) {
+					fw.write(question.id + "," + question.answer + "," + 1.0 / question.resultRank + "\n");
+				}
+			}
+		}
+	}
+
+	List<QuestionDAO> exp(String offset, String limit) throws IOException, SQLException {
 		StackExperiment se = new StackExperiment();
 		LOGGER.log(Level.INFO, "retrieving queries..");
-		List<QuestionDAO> questions = se.loadQueries(args[0], args[1]);
-		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get("/data/ghadakcv/stack_index")))) {
+		List<QuestionDAO> questions = se.loadQueries(offset, limit);
+		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get("/data/ghadakcv/stack_index")))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			Analyzer analyzer = new StandardAnalyzer();
 			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
 			parser.setDefaultOperator(Operator.OR);
 			LOGGER.log(Level.INFO, "querying..");
-			long regexTime = 0;
-			long queryTime = 0;
-			long procTime = 0;
 			for (QuestionDAO question : questions) {
 				try {
-					long start = System.currentTimeMillis();
 					String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
-					regexTime += System.currentTimeMillis() - start;
 					Query query = parser.parse(queryText);
-					start = System.currentTimeMillis();
 					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
-					queryTime += System.currentTimeMillis() - start;
-					start = System.currentTimeMillis();
 					for (int i = 0; i < hits.length; i++) {
 						Document doc = searcher.doc(hits[i].doc);
 						if (doc.get(StackIndexer.ID_FIELD).equals(question.answer)) {
@@ -63,17 +69,49 @@ public class StackExperiment {
 							break;
 						}
 					}
-					procTime += System.currentTimeMillis() - start;
 				} catch (ParseException e) {
 					LOGGER.log(Level.SEVERE, "Couldn't parse query " + question.id);
 					LOGGER.log(Level.SEVERE, e.getMessage(), e);
 				}
 			}
-			LOGGER.log(Level.INFO, "spent time on regex {0}", regexTime / (double) questions.size());
-			LOGGER.log(Level.INFO, "spent time on search {0}", queryTime / (double) questions.size());
-			LOGGER.log(Level.INFO, "spent time on proc {0}", procTime / (double) questions.size());
+		}
+		return questions;
+	}
+
+	List<QuestionDAO> parallelExp(String offset, String limit) throws IOException, SQLException {
+		StackExperiment se = new StackExperiment();
+		LOGGER.log(Level.INFO, "retrieving queries..");
+		List<QuestionDAO> questions = se.loadQueries(offset, limit);
+		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get("/data/ghadakcv/stack_index")))) {
+			final IndexSearcher searcher = new IndexSearcher(reader);
+
+			LOGGER.log(Level.INFO, "querying..");
+			questions.parallelStream().forEach(question -> {
+				try {
+					Analyzer analyzer = new StandardAnalyzer();
+					QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
+					parser.setDefaultOperator(Operator.OR);
+
+					String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
+					Query query = parser.parse(queryText);
+					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
+					for (int i = 0; i < hits.length; i++) {
+						Document doc = searcher.doc(hits[i].doc);
+						if (doc.get(StackIndexer.ID_FIELD).equals(question.answer)) {
+							question.resultRank = i + 1;
+							break;
+						}
+					}
+				} catch (ParseException e) {
+					LOGGER.log(Level.SEVERE, "Couldn't parse query " + question.id);
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE, e.getMessage(), e);
+				} catch (Exception e) {
+					LOGGER.log(Level.SEVERE, e.getMessage(), e);
+				}
+			});
 			LOGGER.log(Level.INFO, "writing results to file..");
-			try (FileWriter fw = new FileWriter(new File(args[0] + "n.csv"))) {
+			try (FileWriter fw = new FileWriter(new File(offset + "n.csv"))) {
 				for (QuestionDAO question : questions) {
 					if (question.resultRank != -1) {
 						fw.write(question.id + "," + question.answer + "," + 1.0 / question.resultRank + "\n");
@@ -81,6 +119,7 @@ public class StackExperiment {
 				}
 			}
 		}
+		return questions;
 	}
 
 	List<QuestionDAO> loadQueries(String offset, String limit) throws IOException, SQLException {
