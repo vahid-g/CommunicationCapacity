@@ -11,16 +11,22 @@ from sklearn import linear_model
 # from sklearn.metrics import precision_score
 # from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
-from cs_helper import print_results
+from sklearn.metrics import confusion_matrix
 
-def main(argv):
-    filename = argv
-    df = pd.read_csv('../../data/python_data/' + filename)
+def print_results(y_test, y_pred):
+    tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+    print("precision = %f" % (tp / (tp + fp)))
+    print("recall = %.2f" % (tp / (tp + fn)))
+    print("negative predictive value= %.2f" % (tn / (tn + fn)))
+    print("fallout = %.2f" % (tn / (tn + fp)))
+    print("1s percentage = %.2f" % (100 * np.sum(y_pred) / y_pred.shape[0]))
+
+def train_lr(df, size=0.3):
     df = df.fillna(0)
     cols = df.columns.tolist()
     labels = df[cols[-1]]
     X, X_test, y, y_test = train_test_split(df[cols[:-1]], labels, stratify=labels,
-                                            test_size=0.3, random_state=1)
+                                            test_size=size, random_state=1)
     X = X.drop(['query'], axis=1)
     test_queries = X_test['query']
     X_test = X_test.drop(['query'], axis=1)
@@ -102,5 +108,3 @@ def main(argv):
     output.to_csv('%s%s_result.csv' % ('../../data/python_data/', filename[:-4]))
     '''
 
-if __name__ == "__main__":
-    main(sys.argv[1])
