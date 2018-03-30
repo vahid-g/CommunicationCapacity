@@ -1,6 +1,7 @@
 package stackoverflow;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -26,13 +27,62 @@ import database.DatabaseType;
 
 public class StackIndexer {
 
-	public static final String ID_FIELD = "id";
+	static final String ID_FIELD = "id";
 
-	public static final String BODY_FIELD = "Body";
+	static final String BODY_FIELD = "Body";
+
+	static final String VIEW_COUNT_FIELD = "ViewCount";
+
+	private static final int ANSWERS_S_SIZE = 1092420;
 
 	static Logger LOGGER = Logger.getLogger(StackIndexer.class.getName());
 
 	public static void main(String[] args) throws Throwable {
+		String experimentNumber = args[0];
+		// setting up database connections
+		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
+		Connection conn = dc.getConnection();
+		conn.setAutoCommit(false);
+		// configuring index writer
+		Analyzer analyzer = new StandardAnalyzer();
+		IndexWriterConfig config = new IndexWriterConfig(analyzer);
+		config.setSimilarity(new BM25Similarity());
+		config.setRAMBufferSizeMB(1024);
+		File indexFolder = new File("/data/ghadakcv/stack_index/" + experimentNumber);
+		if (!indexFolder.exists()) {
+			indexFolder.mkdir();
+		}
+		Directory directory = FSDirectory.open(Paths.get(indexFolder.getAbsolutePath()));
+		int limit = (int) (Double.parseDouble(experimentNumber) * ANSWERS_S_SIZE / 100.0);
+		// indexing
+		LOGGER.log(Level.INFO, "indexing..");
+		long start = System.currentTimeMillis();
+		try (IndexWriter iwriter = new IndexWriter(directory, config)) {
+			String query = "select aid, Body, ViewCount from stack_overflow.answers_s order by ViewCount desc limit "
+					+ limit + ";";
+			try (Statement stmt = conn.createStatement()) {
+				stmt.setFetchSize(Integer.MIN_VALUE);
+				ResultSet rs = stmt.executeQuery(query);
+				while (rs.next()) {
+					String id = rs.getString("aid");
+					String answer = rs.getString("Body");
+					String viewCount = rs.getString("ViewCount");
+					Document doc = new Document();
+					doc.add(new StoredField(ID_FIELD, id));
+					doc.add(new StoredField(VIEW_COUNT_FIELD, viewCount));
+					doc.add(new TextField(BODY_FIELD, answer, Store.NO));
+					iwriter.addDocument(doc);
+				}
+			} catch (SQLException e) {
+				LOGGER.log(Level.SEVERE, e.getMessage(), e);
+			}
+		}
+		long end = System.currentTimeMillis();
+		LOGGER.log(Level.INFO, "indexing time: {0} mins", (end - start) / 60000);
+		dc.closeConnection();
+	}
+
+	void indexAllDataset() throws IOException, SQLException {
 		// setting up database connections
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();

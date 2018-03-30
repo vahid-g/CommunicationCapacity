@@ -30,13 +30,12 @@ import org.apache.lucene.store.NIOFSDirectory;
 import database.DatabaseConnection;
 import database.DatabaseType;
 
-public class StackExperiment {
+public class StackInitialQuery {
 
-	private static final Logger LOGGER = Logger.getLogger(StackExperiment.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(StackInitialQuery.class.getName());
 
 	public static void main(String[] args) throws IOException, SQLException {
-
-		List<QuestionDAO> questions = new StackExperiment().exp(args[0], args[1]);
+		List<QuestionDAO> questions = new StackInitialQuery().exp(args[0], args[1]);
 		LOGGER.log(Level.INFO, "writing results to file..");
 		try (FileWriter fw = new FileWriter(new File(args[0] + ".csv"))) {
 			for (QuestionDAO question : questions) {
@@ -48,7 +47,7 @@ public class StackExperiment {
 	}
 
 	List<QuestionDAO> exp(String offset, String limit) throws IOException, SQLException {
-		StackExperiment se = new StackExperiment();
+		StackInitialQuery se = new StackInitialQuery();
 		LOGGER.log(Level.INFO, "retrieving queries..");
 		List<QuestionDAO> questions = se.loadQueries(offset, limit);
 		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get("/data/ghadakcv/stack_index")))) {
@@ -79,7 +78,7 @@ public class StackExperiment {
 	}
 
 	List<QuestionDAO> parallelExp(String offset, String limit) throws IOException, SQLException {
-		StackExperiment se = new StackExperiment();
+		StackInitialQuery se = new StackInitialQuery();
 		LOGGER.log(Level.INFO, "retrieving queries..");
 		List<QuestionDAO> questions = se.loadQueries(offset, limit);
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get("/data/ghadakcv/stack_index")))) {
