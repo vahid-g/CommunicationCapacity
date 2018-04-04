@@ -127,39 +127,37 @@ public class WikiCacheSelectionFeatureGenerator {
 			String difficultyMetric) throws ParseException, IOException {
 		LOGGER.log(Level.INFO, "querylog size " + queries.size());
 		QueryDifficultyComputer qdc;
-		if (difficultyMetric.equals("scs")) {
-			qdc = new QueryDifficultyComputer(new ClarityScore());
-		} else if (difficultyMetric.equals("maxvar")) {
-			qdc = new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.MAX_VARIANCE));
-		} else if (difficultyMetric.equals("avgvar")) {
-			qdc = new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.AVERAGE_VARIANCE));
-		} else if (difficultyMetric.equals("maxex")) {
-			qdc = new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.MAX_EX));
-		} else if (difficultyMetric.equals("avgex")) {
-			qdc = new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.AVERAGE_EX));
-		} else if (difficultyMetric.equals("lm")) {
-			qdc = new QueryDifficultyComputer(new LanguageModelScore());
-		} else if (difficultyMetric.equals("simple")) {
-			qdc = new QueryDifficultyComputer(new SimpleCacheScore());
-		} else if (difficultyMetric.equals("jms")) {
-			try (IndexReader globalReader = DirectoryReader.open(FSDirectory.open(Paths.get(globalIndexPath)))) {
-				qdc = new QueryDifficultyComputer(new JelinekMercerScore(globalReader));
-			}
-		} else if (difficultyMetric.equals("bjms")) {
-			try (IndexReader globalReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
-				qdc = new QueryDifficultyComputer(new BigramJelinekMercerScore(globalReader));
-			}
-		} else {
-			throw new org.apache.commons.cli.ParseException("Difficulty metric needs to be specified");
-		}
-		long startTime = System.currentTimeMillis();
-		Map<String, Double> contentDifficulties = qdc.computeQueryDifficulty(indexPath, queries,
-				WikiFileIndexer.CONTENT_ATTRIB);
-		long endTime = System.currentTimeMillis();
-		LOGGER.log(Level.INFO, "Time spent for RS per query = " + (endTime - startTime) / queries.size() + " (ms)");
 		List<String> scores = new ArrayList<String>();
-		for (ExperimentQuery query : queries) {
-			scores.add(Double.toString(contentDifficulties.get(query.getText())));
+		try (IndexReader globalReader = DirectoryReader.open(FSDirectory.open(Paths.get(globalIndexPath)))) {
+			if (difficultyMetric.equals("scs")) {
+				qdc = new QueryDifficultyComputer(new ClarityScore());
+			} else if (difficultyMetric.equals("maxvar")) {
+				qdc = new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.MAX_VARIANCE));
+			} else if (difficultyMetric.equals("avgvar")) {
+				qdc = new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.AVERAGE_VARIANCE));
+			} else if (difficultyMetric.equals("maxex")) {
+				qdc = new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.MAX_EX));
+			} else if (difficultyMetric.equals("avgex")) {
+				qdc = new QueryDifficultyComputer(new VarianceScore(VarianceScoreMode.AVERAGE_EX));
+			} else if (difficultyMetric.equals("lm")) {
+				qdc = new QueryDifficultyComputer(new LanguageModelScore());
+			} else if (difficultyMetric.equals("simple")) {
+				qdc = new QueryDifficultyComputer(new SimpleCacheScore());
+			} else if (difficultyMetric.equals("jms")) {
+				qdc = new QueryDifficultyComputer(new JelinekMercerScore(globalReader));
+			} else if (difficultyMetric.equals("bjms")) {
+				qdc = new QueryDifficultyComputer(new BigramJelinekMercerScore(globalReader));
+			} else {
+				throw new org.apache.commons.cli.ParseException("Difficulty metric needs to be specified");
+			}
+			long startTime = System.currentTimeMillis();
+			Map<String, Double> contentDifficulties = qdc.computeQueryDifficulty(indexPath, queries,
+					WikiFileIndexer.CONTENT_ATTRIB);
+			long endTime = System.currentTimeMillis();
+			LOGGER.log(Level.INFO, "Time spent for RS per query = " + (endTime - startTime) / queries.size() + " (ms)");
+			for (ExperimentQuery query : queries) {
+				scores.add(Double.toString(contentDifficulties.get(query.getText())));
+			}
 		}
 		return scores;
 	}
