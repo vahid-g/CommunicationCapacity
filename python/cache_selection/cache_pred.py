@@ -18,7 +18,7 @@ def print_results(y_test, y_pred):
     print("precision = %f" % (tp / (tp + fp)))
     print("recall = %.2f" % (tp / (tp + fn)))
     print("negative predictive value= %.2f" % (tn / (tn + fn)))
-    print("fallout = %.2f" % (tn / (tn + fp)))
+    print("true negative rate= %.2f" % (tn / (tn + fp)))
     print("1s percentage = %.2f" % (100 * np.sum(y_pred) / y_pred.shape[0]))
 
 def train_lr(df, size=0.3):
@@ -63,18 +63,26 @@ def train_lr(df, size=0.3):
     lr.fit(X, y)
     print("training mean accuracy = %.2f" % lr.score(X, y))
     print("testing mean accuracy = %.2f" % lr.score(X_test, y_test))
-    print('coefs:')
-    coef = np.sort(lr.coef_.flatten())
+    #print('coefs:')
+    #coef = np.sort(lr.coef_.flatten())
     #print(np.column_stack((df.columns.values[1:-1], coef)))
     y_pred = lr.predict(X_test)
     y_prob = lr.predict_proba(X_test)
-    y_5 = y_prob[:, 1] > 0.5
-    print("\nLR with threshold 0.5")
-    print_results(y_test, y_5)
-    print("\nLR with threshold 0.8")
-    y_8 = y_prob[:, 1] > 0.8
-    # y_pred = y_pred.astype('uint8')
-    print_results(y_test, y_8)
+    # grid search for logistic regression threshold
+    for t in np.arange(0.5, 1, 0.1):
+        print("threshold = %.2f" % t)
+        y_pred = y_prob[:, 1] > t
+        tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+        print_results(y_test, y_pred)
+        print
+
+   #y_5 = y_prob[:, 1] > 0.5
+   #print("\nLR with threshold 0.5")
+   #print_results(y_test, y_5)
+   #print("\nLR with threshold 0.8")
+   #y_8 = y_prob[:, 1] > 0.8
+   ## y_pred = y_pred.astype('uint8')
+   #print_results(y_test, y_8)
 
     '''
     print("\nbalanced random forest..")
