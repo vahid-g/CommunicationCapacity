@@ -21,7 +21,7 @@ def print_results(y_test, y_pred):
     print("true negative rate= %.2f" % (tn / (tn + fp)))
     print("1s percentage = %.2f" % (100 * np.sum(y_pred) / y_pred.shape[0]))
 
-def train_lr(df, size=0.3):
+def train_lr(df, size=0.33):
     df = df.fillna(0)
     cols = df.columns.tolist()
     labels = df[cols[-1]]
@@ -37,53 +37,50 @@ def train_lr(df, size=0.3):
     print("onez ratio in trian set =  %.2f" % (100 * np.sum(y) / y.shape[0]))
     print("onez ratio in test set =  %.2f" % (100 * np.sum(y_test) / y_test.shape[0]))
     # learn the model
-    print("\nlearning logistic regression..")
+    # print("logistic regression..")
     sc = StandardScaler().fit(X)
     X = sc.transform(X)
     lr = linear_model.LogisticRegression()
     lr.fit(X, y)
-    print("training mean accuracy = %.2f" % lr.score(X, y))
+    #print("training mean accuracy = %.2f" % lr.score(X, y))
     ''' parameter tuning
     tuned_parameters = [{'C': [0.01, 0.1, 1, 10, 100, 1000]}]
     scores = ['precision', 'recall']
     for score in scores:
-        clf = GridSearchCV(linear_model.LogisticRegression(), tuned_parameters, cv=5,
-        scoring='%s_macro' % score)
-        clf.fit(X, y)
-        print('best params:')
-        print(clf.best_params_)
+    clf = GridSearchCV(linear_model.LogisticRegression(), tuned_parameters, cv=5,
+    scoring='%s_macro' % score)
+    clf.fit(X, y)
+    print('best params:')
+    print(clf.best_params_)
     '''
     X_test = sc.transform(X_test)
-    print("testing mean accuracy = %.2f" % lr.score(X_test, y_test))
-    y_pred = lr.predict(X_test)
-    print_results(y_test, y_pred)
-
-    print("\nbalanced learning")
+    #print("testing mean accuracy = %.2f" % lr.score(X_test, y_test))
+    #y_pred = lr.predict(X_test)
+    #print_results(y_test, y_pred)
+    print("balanced logistic regression..")
     lr = linear_model.LogisticRegression(class_weight='balanced')
     lr.fit(X, y)
     print("training mean accuracy = %.2f" % lr.score(X, y))
     print("testing mean accuracy = %.2f" % lr.score(X_test, y_test))
-    #print('coefs:')
-    #coef = np.sort(lr.coef_.flatten())
-    #print(np.column_stack((df.columns.values[1:-1], coef)))
-    y_pred = lr.predict(X_test)
+    '''
+    print('coefs:')
+    coef = np.sort(lr.coef_.flatten())
+    print(np.column_stack((df.columns.values[1:-1], coef)))
+    '''
     y_prob = lr.predict_proba(X_test)
-    # grid search for logistic regression threshold
+    #y_pred = lr.predict(X_test)
+    y_pred = y_prob[:, 1] > 0.8
+    y_pred = y_pred.astype('uint8')
+    print_results(y_test, y_pred)
+    #grid search for logistic regression threshold
+    '''
     for t in np.arange(0.5, 1, 0.1):
         print("threshold = %.2f" % t)
         y_pred = y_prob[:, 1] > t
         tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
         print_results(y_test, y_pred)
-        print
 
-   #y_5 = y_prob[:, 1] > 0.5
-   #print("\nLR with threshold 0.5")
-   #print_results(y_test, y_5)
-   #print("\nLR with threshold 0.8")
-   #y_8 = y_prob[:, 1] > 0.8
-   ## y_pred = y_pred.astype('uint8')
-   #print_results(y_test, y_8)
-
+    '''
     '''
     print("\nbalanced random forest..")
     clf = RandomForestClassifier(n_estimators=10, class_weight='balanced')
@@ -91,14 +88,12 @@ def train_lr(df, size=0.3):
     print("training mean accuracy = %.2f" % lr.score(X, y))
     y_pred = clf.predict(X_test)
     print_results(y_test, y_pred)
-
     print("\nbalanced random forest with n = 50 ")
     clf = RandomForestClassifier(n_estimators=50, class_weight='balanced')
     clf.fit(X,y)
     print("training mean accuracy = %.2f" % lr.score(X, y))
     y_pred = clf.predict(X_test)
     print_results(y_test, y_pred)
-
     print("\nunbalanced random forest..")
     clf = RandomForestClassifier(n_estimators=50)
     clf.fit(X,y)
@@ -110,9 +105,9 @@ def train_lr(df, size=0.3):
     clf.fit(X, y)
     y_pred = clf.predict(X_test)
     print_results(y_test, y_pred)
+    '''
     output = pd.DataFrame()
     output['query'] = test_queries
+    output['label'] = y_test
     output['pred'] = pd.Series(y_pred, index=output.index)
-    output.to_csv('%s%s_result.csv' % ('../../data/python_data/', filename[:-4]))
-    '''
-
+    return output

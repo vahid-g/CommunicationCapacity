@@ -16,7 +16,8 @@ from cache_pred import train_lr
 def main(argv):
     filename = argv
     df = pd.read_csv('../../data/python_data/' + filename)
-    train_lr(df)
+    df = train_lr(df)
+    df.to_csv('%s%s_result.csv' % ('../../data/python_data/', filename[:-4]))
 
 if __name__ == "__main__":
     main(sys.argv[1])
