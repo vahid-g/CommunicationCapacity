@@ -47,7 +47,7 @@ import query.BoostedScoreQuery;
 public class LuceneBasics {
 
 	public static void main(String[] args) throws Exception {
-		try7();
+		try6();
 	}
 
 	// testing multifield boolean query
@@ -114,6 +114,7 @@ public class LuceneBasics {
 		PhraseQuery.Builder builder = new PhraseQuery.Builder();
 		builder.add(new Term("f", "new"), 0);
 		builder.add(new Term("f", "shekh"), 1);
+		builder.setSlop(3);
 		PhraseQuery query = builder.build();
 		// QueryParser parser = new QueryParser("f", new StandardAnalyzer());
 		// Query query = parser.parse("\"new Shekh\"");
@@ -272,7 +273,7 @@ public class LuceneBasics {
 		doc1.add(new Field("f", "this is the new Shekh", TextField.TYPE_STORED));
 		doc1.add(new DoubleDocValuesField("weight", 1));
 		doc2.add(new StoredField("i", "d-2"));
-		doc2.add(new Field("f", " this is the Shekh", TextField.TYPE_STORED));
+		doc2.add(new Field("f", " this is new the Shekh", TextField.TYPE_STORED));
 		doc2.add(new DoubleDocValuesField("weight", 20));
 		doc3.add(new StoredField("i", "d-3"));
 		doc3.add(new Field("f", "this is the new Shit", TextField.TYPE_STORED));
