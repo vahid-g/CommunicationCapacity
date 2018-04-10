@@ -17,7 +17,7 @@ def main(argv):
     filename = argv
     df = pd.read_csv('../../data/python_data/' + filename)
     df = train_lr(df)
-    df.to_csv('%s%s_result.csv' % ('../../data/python_data/', filename[:-4]))
+    #df.to_csv('%s%s_result2.csv' % ('../../data/python_data/', filename[:-4]))
 
 if __name__ == "__main__":
     main(sys.argv[1])
