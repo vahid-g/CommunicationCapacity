@@ -3,10 +3,12 @@ package wiki13;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -18,7 +20,7 @@ import org.apache.lucene.store.RAMDirectory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class WikiCacheSelectionExperimentTest {
+public class WikiCacheSelectionFeatureGeneratorTest {
 
 	private static final double epsilon = 0.01;
 
@@ -35,6 +37,7 @@ public class WikiCacheSelectionExperimentTest {
 			Document doc = new Document();
 			doc.add(new TextField("f1", "this is the new shit", Store.NO));
 			doc.add(new TextField("f2", "six feet down, in six weeks time", Store.NO));
+			doc.add(new StoredField(WikiFileIndexer.WEIGHT_ATTRIB, 10));
 			writer.addDocument(doc);
 		}
 	}
@@ -89,6 +92,17 @@ public class WikiCacheSelectionExperimentTest {
 		try (IndexReader reader = DirectoryReader.open(ramDirectory)) {
 			double result = wcse.minNormalizedDocumentBiwordFrequency(new IndexSearcher(reader), "weeks time", "f2");
 			assertEquals(1, result, epsilon);
+		}
+	}
+
+	@Test
+	public void testTermPopularityFeaturesAll() throws IOException {
+		try (IndexReader reader = DirectoryReader.open(ramDirectory)) {
+			List<Double> result = wcse.termPopularityFeaturesAll(reader, "weeks", "f2");
+			assertEquals(10, result.get(0), epsilon);
+			assertEquals(10, result.get(1), epsilon);
+			assertEquals(10, result.get(2), epsilon);
+			assertEquals(10, result.get(3), epsilon);
 		}
 	}
 

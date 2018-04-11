@@ -24,8 +24,12 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.LeafReader;
+import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.IndexSearcher;
@@ -202,10 +206,10 @@ public class WikiCacheSelectionFeatureGenerator {
 				f.add(meanNormalizedDocumentBiwordFrequency(searcher, query.getText(), WikiFileIndexer.CONTENT_ATTRIB));
 				f.add(minNormalizedDocumentBiwordFrequency(searcher, query.getText(), WikiFileIndexer.TITLE_ATTRIB));
 				f.add(minNormalizedDocumentBiwordFrequency(searcher, query.getText(), WikiFileIndexer.CONTENT_ATTRIB));
-				List<Double> averageTermDocPopularity = averageTermDocPopularity(searcher, query.getText(),
+				List<Double> averageTermDocPopularity = termPopularityFeatures(searcher, query.getText(),
 						WikiFileIndexer.TITLE_ATTRIB);
 				f.addAll(averageTermDocPopularity);
-				averageTermDocPopularity = averageTermDocPopularity(searcher, query.getText(),
+				averageTermDocPopularity = termPopularityFeatures(searcher, query.getText(),
 						WikiFileIndexer.CONTENT_ATTRIB);
 				f.addAll(averageTermDocPopularity);
 				List<Double> averageBiwordDocPopularity = averageBiwordDocPopularity(searcher, query.getText(),
@@ -378,7 +382,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return minNormalizedBiwordDocFrequency;
 	}
 
-	protected List<Double> averageTermDocPopularity(IndexSearcher searcher, String queryText, String field) {
+	protected List<Double> termPopularityFeatures(IndexSearcher searcher, String queryText, String field) {
 		double meanAverage = 0;
 		double minAverage = -1;
 		double meanMin = 0;
@@ -430,6 +434,64 @@ public class WikiCacheSelectionFeatureGenerator {
 		if (tokenCounts > 0) {
 			meanAverage = meanAverage / tokenCounts;
 			meanMin = meanMin / tokenCounts;
+		}
+		result.add(meanAverage);
+		result.add(meanMin);
+		result.add(minAverage);
+		result.add(minMin);
+		return result;
+	}
+
+	protected List<Double> termPopularityFeaturesAll(IndexReader reader, String queryText, String field) {
+		double averagePopularitySum = 0;
+		double minAverage = Double.MAX_VALUE;
+		double minPopularitySum = 0;
+		double minMin = Double.MAX_VALUE;
+		int tokenCounts = 0;
+		List<Double> result = new ArrayList<Double>();
+		try (StandardAnalyzer analyzer = new StandardAnalyzer();
+				TokenStream tokenStream = analyzer.tokenStream(field,
+						new StringReader(queryText.replaceAll("'", "`")))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			tokenStream.reset();
+			while (tokenStream.incrementToken()) {
+				tokenCounts++;
+				double termPopularitySum = 0;
+				double termMinPopularity = Double.MAX_VALUE;
+				double postingSize = 0;
+				for (LeafReaderContext lrc : reader.leaves()) {
+					LeafReader lr = lrc.reader();
+					PostingsEnum pe = lr.postings(new Term(field, termAtt.toString()));
+					int docId = pe.nextDoc();
+					while (docId != PostingsEnum.NO_MORE_DOCS) {
+						Document doc = lr.document(docId);
+						double termDocPopularity = Double.parseDouble(doc.get(WikiFileIndexer.WEIGHT_ATTRIB));
+						termPopularitySum += termDocPopularity;
+						postingSize++;
+						termMinPopularity = Math.min(termMinPopularity, termDocPopularity);
+						docId = pe.nextDoc();
+					}
+				}
+				double termPopularityAverage = termPopularitySum / Math.max(postingSize, 1);
+				averagePopularitySum += termPopularityAverage;
+				minAverage = Math.min(minAverage, termPopularityAverage);
+				minPopularitySum += termMinPopularity;
+				minMin = Math.min(minMin, termMinPopularity);
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		double meanAverage = 0;
+		double meanMin = 0;
+		if (tokenCounts > 0) {
+			meanAverage = averagePopularitySum / tokenCounts;
+			meanMin = minPopularitySum / tokenCounts;
+		}
+		if (minAverage == Double.MAX_VALUE) {
+			minAverage = 0;
+		}
+		if (minMin == Double.MAX_VALUE) {
+			minMin = 0;
 		}
 		result.add(meanAverage);
 		result.add(meanMin);
@@ -501,7 +563,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return result;
 	}
 
-	public double queryLikelihood(IndexReader reader, String query, String field, IndexReader globalIndexReader)
+	protected double queryLikelihood(IndexReader reader, String query, String field, IndexReader globalIndexReader)
 			throws IOException {
 		long tfSum = reader.getSumTotalTermFreq(field);
 		long globalTfSum = globalIndexReader.getSumTotalTermFreq(field);
