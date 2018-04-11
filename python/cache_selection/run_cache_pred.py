@@ -20,4 +20,6 @@ def main(argv):
     #df.to_csv('%s%s_result2.csv' % ('../../data/python_data/', filename[:-4]))
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    #main(sys.argv[1])
+    main('msn_all.csv')
+    #main('msn_2_c2.csv')
