@@ -6,6 +6,8 @@ import java.util.Iterator;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.analysis.shingle.ShingleFilter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
@@ -47,7 +49,22 @@ import query.BoostedScoreQuery;
 public class LuceneBasics {
 
 	public static void main(String[] args) throws Exception {
-		try6();
+		try8();
+	}
+
+	// bi-word index
+	static void try8() throws IOException {
+		Analyzer analyzer = new WhitespaceAnalyzer();
+		TokenStream ts = analyzer.tokenStream("f1", new StringReader("hanhan olde? XXX"));
+		ShingleFilter sf = new ShingleFilter(ts);
+		CharTermAttribute termAtt = sf.addAttribute(CharTermAttribute.class);
+		sf.setOutputUnigrams(false);
+		sf.reset();
+		while (sf.incrementToken()) {
+			System.out.println(termAtt.toString());
+		}
+		sf.close();
+		analyzer.close();
 	}
 
 	// testing multifield boolean query
