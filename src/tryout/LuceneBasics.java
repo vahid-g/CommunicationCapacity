@@ -51,6 +51,11 @@ public class LuceneBasics {
 	public static void main(String[] args) throws Exception {
 		try8();
 	}
+	// final StandardTokenizer src = new StandardTokenizer();
+	// src.setMaxTokenLength(maxTokenLength);
+	// TokenStream tok = new StandardFilter(src);
+	// tok = new LowerCaseFilter(tok);
+	// tok = new StopFilter(tok, stopwords);
 
 	// bi-word index
 	static void try8() throws IOException {
