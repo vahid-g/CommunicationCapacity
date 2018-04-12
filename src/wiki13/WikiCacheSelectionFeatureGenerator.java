@@ -382,67 +382,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return minNormalizedBiwordDocFrequency;
 	}
 
-	protected List<Double> termPopularityFeatures(IndexSearcher searcher, String queryText, String field) {
-		double meanAverage = 0;
-		double minAverage = -1;
-		double meanMin = 0;
-		double minMin = -1;
-		int tokenCounts = 0;
-		int k = 10000;
-		List<Double> result = new ArrayList<Double>();
-		try (StandardAnalyzer analyzer = new StandardAnalyzer();
-				TokenStream tokenStream = analyzer.tokenStream(field,
-						new StringReader(queryText.replaceAll("'", "`")))) {
-			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
-			tokenStream.reset();
-			while (tokenStream.incrementToken()) {
-				tokenCounts++;
-				String term = termAtt.toString();
-				TermQuery query = new TermQuery(new Term(field, term));
-				try {
-					ScoreDoc[] hits = searcher.search(query, k).scoreDocs;
-					List<Double> weights = Arrays.stream(hits).map(h -> {
-						try {
-							return Double.parseDouble(searcher.doc(h.doc).get(WikiFileIndexer.WEIGHT_ATTRIB));
-						} catch (IOException e) {
-							LOGGER.log(Level.SEVERE, e.getMessage(), e);
-							return 0.0;
-						}
-					}).collect(Collectors.toList());
-					double currentTermAverage = weights.stream().reduce(Double::sum).orElse(0.0)
-							/ Math.max(1, Math.min(k, weights.size()));
-					meanAverage += currentTermAverage;
-					if (minAverage == -1) {
-						minAverage = currentTermAverage;
-					} else if (currentTermAverage < minAverage) {
-						minAverage = currentTermAverage;
-					}
-					double currentTermMin = weights.stream().reduce(Double::min).orElse(0.0);
-					meanMin += currentTermMin;
-					if (minMin == -1) {
-						minMin = currentTermMin;
-					} else if (currentTermMin < minMin) {
-						minMin = currentTermMin;
-					}
-				} catch (IOException e) {
-					LOGGER.log(Level.SEVERE, e.getMessage(), e);
-				}
-			}
-		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, e.getMessage(), e);
-		}
-		if (tokenCounts > 0) {
-			meanAverage = meanAverage / tokenCounts;
-			meanMin = meanMin / tokenCounts;
-		}
-		result.add(meanAverage);
-		result.add(meanMin);
-		result.add(minAverage);
-		result.add(minMin);
-		return result;
-	}
-
-	protected List<Double> termPopularityFeaturesAll(IndexReader reader, String queryText, String field) {
+	protected List<Double> termPopularityFeatures(IndexReader reader, String queryText, String field) {
 		double averagePopularitySum = 0;
 		double minAverage = Double.MAX_VALUE;
 		double minPopularitySum = 0;
@@ -593,6 +533,67 @@ public class WikiCacheSelectionFeatureGenerator {
 			}
 		}
 		return likelihood;
+	}
+
+	@Deprecated
+	protected List<Double> termPopularityFeatures(IndexSearcher searcher, String queryText, String field) {
+		double meanAverage = 0;
+		double minAverage = -1;
+		double meanMin = 0;
+		double minMin = -1;
+		int tokenCounts = 0;
+		int k = 10000;
+		List<Double> result = new ArrayList<Double>();
+		try (StandardAnalyzer analyzer = new StandardAnalyzer();
+				TokenStream tokenStream = analyzer.tokenStream(field,
+						new StringReader(queryText.replaceAll("'", "`")))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			tokenStream.reset();
+			while (tokenStream.incrementToken()) {
+				tokenCounts++;
+				String term = termAtt.toString();
+				TermQuery query = new TermQuery(new Term(field, term));
+				try {
+					ScoreDoc[] hits = searcher.search(query, k).scoreDocs;
+					List<Double> weights = Arrays.stream(hits).map(h -> {
+						try {
+							return Double.parseDouble(searcher.doc(h.doc).get(WikiFileIndexer.WEIGHT_ATTRIB));
+						} catch (IOException e) {
+							LOGGER.log(Level.SEVERE, e.getMessage(), e);
+							return 0.0;
+						}
+					}).collect(Collectors.toList());
+					double currentTermAverage = weights.stream().reduce(Double::sum).orElse(0.0)
+							/ Math.max(1, Math.min(k, weights.size()));
+					meanAverage += currentTermAverage;
+					if (minAverage == -1) {
+						minAverage = currentTermAverage;
+					} else if (currentTermAverage < minAverage) {
+						minAverage = currentTermAverage;
+					}
+					double currentTermMin = weights.stream().reduce(Double::min).orElse(0.0);
+					meanMin += currentTermMin;
+					if (minMin == -1) {
+						minMin = currentTermMin;
+					} else if (currentTermMin < minMin) {
+						minMin = currentTermMin;
+					}
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE, e.getMessage(), e);
+				}
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		if (tokenCounts > 0) {
+			meanAverage = meanAverage / tokenCounts;
+			meanMin = meanMin / tokenCounts;
+		}
+		result.add(meanAverage);
+		result.add(meanMin);
+		result.add(minAverage);
+		result.add(minMin);
+		return result;
 	}
 
 	protected double meanBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {

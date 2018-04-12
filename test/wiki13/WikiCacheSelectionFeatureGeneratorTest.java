@@ -98,7 +98,7 @@ public class WikiCacheSelectionFeatureGeneratorTest {
 	@Test
 	public void testTermPopularityFeaturesAll() throws IOException {
 		try (IndexReader reader = DirectoryReader.open(ramDirectory)) {
-			List<Double> result = wcse.termPopularityFeaturesAll(reader, "weeks", "f2");
+			List<Double> result = wcse.termPopularityFeatures(reader, "weeks", "f2");
 			assertEquals(10, result.get(0), epsilon);
 			assertEquals(10, result.get(1), epsilon);
 			assertEquals(10, result.get(2), epsilon);
