@@ -10,6 +10,7 @@ import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -41,7 +42,7 @@ public class StackIndexer {
 
 	public static void main(String[] args) throws SQLException, IOException {
 //		new StackIndexer().indexSubsets(args[0], "stack_index/", ANSWERS_S_SIZE, "answers_s");
-		new StackIndexer().indexSubsets(args[0], "stack_index_accepted/", ANSWERS_ACCEPTED_SIZE, "answers_accepted");
+		new StackIndexer().indexSubsets(args[0], "stack_index_accepted/", ANSWERS_ACCEPTED_SIZE, "answers_a");
 	}
 
 	void indexSubsets(String experimentNumber, String indexFolderName, int tableSize, String tableName)
@@ -77,6 +78,9 @@ public class StackIndexer {
 					Document doc = new Document();
 					doc.add(new StoredField(ID_FIELD, id));
 					doc.add(new StoredField(VIEW_COUNT_FIELD, viewCount));
+					answer = answer.replaceAll("<[^>]+>", " "); //remove xml tags
+					answer = StringEscapeUtils.unescapeHtml4(answer); //convert html encoded characters to unicode
+					// answer = answer.replaceAll("[^a-zA-Z0-9'. ]", " ").replaceAll("\\s+", " ");
 					doc.add(new TextField(BODY_FIELD, answer, Store.NO));
 					iwriter.addDocument(doc);
 				}
