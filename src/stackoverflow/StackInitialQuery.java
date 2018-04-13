@@ -90,7 +90,6 @@ public class StackInitialQuery {
 					Analyzer analyzer = new StandardAnalyzer();
 					QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
 					parser.setDefaultOperator(Operator.OR);
-
 					String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
 					Query query = parser.parse(queryText);
 					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
