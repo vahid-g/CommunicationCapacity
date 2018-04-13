@@ -33,12 +33,18 @@ public class StackIndexer {
 
 	static final String VIEW_COUNT_FIELD = "ViewCount";
 
-	private static final int ANSWERS_S_SIZE = 1092420;
+	static final int ANSWERS_S_SIZE = 1092420;
 
-	static Logger LOGGER = Logger.getLogger(StackIndexer.class.getName());
+	static final int ANSWERS_ACCEPTED_SIZE = 8033996;
 
-	public static void main(String[] args) throws Throwable {
-		String experimentNumber = args[0];
+	private static final Logger LOGGER = Logger.getLogger(StackIndexer.class.getName());
+
+	public static void main(String[] args) throws SQLException, IOException {
+		new StackIndexer().indexSubsets(args[0], "stack_index/", ANSWERS_S_SIZE, "answers_s");
+	}
+
+	void indexSubsets(String experimentNumber, String indexFolderName, int tableSize, String tableName)
+			throws SQLException, IOException {
 		// setting up database connections
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();
@@ -48,23 +54,23 @@ public class StackIndexer {
 		IndexWriterConfig config = new IndexWriterConfig(analyzer);
 		config.setSimilarity(new BM25Similarity());
 		config.setRAMBufferSizeMB(1024);
-		File indexFolder = new File("/data/ghadakcv/stack_index/" + experimentNumber);
-		if (!indexFolder.exists()) {
-			indexFolder.mkdir();
+		File indexFile = new File("/data/ghadakcv/" + indexFolderName + experimentNumber);
+		if (!indexFile.exists()) {
+			indexFile.mkdir();
 		}
-		Directory directory = FSDirectory.open(Paths.get(indexFolder.getAbsolutePath()));
-		int limit = (int) (Double.parseDouble(experimentNumber) * ANSWERS_S_SIZE / 100.0);
+		Directory directory = FSDirectory.open(Paths.get(indexFile.getAbsolutePath()));
+		int limit = (int) (Double.parseDouble(experimentNumber) * tableSize / 100.0);
 		// indexing
 		LOGGER.log(Level.INFO, "indexing..");
 		long start = System.currentTimeMillis();
 		try (IndexWriter iwriter = new IndexWriter(directory, config)) {
-			String query = "select aid, Body, ViewCount from stack_overflow.answers_s order by ViewCount desc limit "
-					+ limit + ";";
+			String query = "select Id, Body, ViewCount from stack_overflow." + tableName
+					+ " order by ViewCount desc limit " + limit + ";";
 			try (Statement stmt = conn.createStatement()) {
 				stmt.setFetchSize(Integer.MIN_VALUE);
 				ResultSet rs = stmt.executeQuery(query);
 				while (rs.next()) {
-					String id = rs.getString("aid");
+					String id = rs.getString("Id");
 					String answer = rs.getString("Body");
 					String viewCount = rs.getString("ViewCount");
 					Document doc = new Document();
