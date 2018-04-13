@@ -35,7 +35,8 @@ public class StackInitialQuery {
 	private static final Logger LOGGER = Logger.getLogger(StackInitialQuery.class.getName());
 
 	public static void main(String[] args) throws IOException, SQLException {
-		List<QuestionDAO> questions = new StackInitialQuery().exp(args[0], args[1]);
+		StackInitialQuery se = new StackInitialQuery();
+		List<QuestionDAO> questions = se.exp(args[0], args[1]);
 		LOGGER.log(Level.INFO, "writing results to file..");
 		try (FileWriter fw = new FileWriter(new File(args[0] + ".csv"))) {
 			for (QuestionDAO question : questions) {
@@ -47,10 +48,9 @@ public class StackInitialQuery {
 	}
 
 	List<QuestionDAO> exp(String offset, String limit) throws IOException, SQLException {
-		StackInitialQuery se = new StackInitialQuery();
 		LOGGER.log(Level.INFO, "retrieving queries..");
-		List<QuestionDAO> questions = se.loadQueries(offset, limit);
-		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get("/data/ghadakcv/stack_index")))) {
+		List<QuestionDAO> questions = loadQueries(offset, limit);
+		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get("/data/ghadakcv/stack_index_all")))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			Analyzer analyzer = new StandardAnalyzer();
 			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);

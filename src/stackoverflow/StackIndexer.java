@@ -40,7 +40,8 @@ public class StackIndexer {
 	private static final Logger LOGGER = Logger.getLogger(StackIndexer.class.getName());
 
 	public static void main(String[] args) throws SQLException, IOException {
-		new StackIndexer().indexSubsets(args[0], "stack_index/", ANSWERS_S_SIZE, "answers_s");
+//		new StackIndexer().indexSubsets(args[0], "stack_index/", ANSWERS_S_SIZE, "answers_s");
+		new StackIndexer().indexSubsets(args[0], "stack_index_accepted/", ANSWERS_ACCEPTED_SIZE, "answers_accepted");
 	}
 
 	void indexSubsets(String experimentNumber, String indexFolderName, int tableSize, String tableName)
@@ -88,7 +89,7 @@ public class StackIndexer {
 		dc.closeConnection();
 	}
 
-	void indexAllDataset() throws IOException, SQLException {
+	void indexAllAnswers() throws IOException, SQLException {
 		// setting up database connections
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();
