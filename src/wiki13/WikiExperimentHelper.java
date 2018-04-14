@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.search.similarities.BM25Similarity;
 
 import indexing.InexDatasetIndexer;
@@ -27,35 +29,41 @@ public class WikiExperimentHelper {
 	}
 
 	public static void buildGlobalIndex(int expNo, int totalExp, String accessCountsFilePath, String indexPath) {
-		try {
-			List<InexFile> pathCountList = InexFile.loadInexFileList(accessCountsFilePath);
-			double total = (double) totalExp;
-			pathCountList = pathCountList.subList(0, (int) (((double) expNo / total) * pathCountList.size()));
-			LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
-			LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
-			LOGGER.log(Level.INFO, "Smallest score: " + pathCountList.get(pathCountList.size() - 1).weight);
-			buildGlobalIndex(pathCountList, indexPath);
-		} catch (Exception e) {
-			e.printStackTrace();
+		try (Analyzer analyzer = new StandardAnalyzer()) {
+			buildGlobalIndex(expNo, totalExp, accessCountsFilePath, indexPath, analyzer);
 		}
+	}
+
+	public static void buildGlobalIndex(int expNo, int totalExp, String accessCountsFilePath, String indexPath,
+			Analyzer analyzer) {
+		List<InexFile> pathCountList = InexFile.loadInexFileList(accessCountsFilePath);
+		double total = (double) totalExp;
+		pathCountList = pathCountList.subList(0, (int) (((double) expNo / total) * pathCountList.size()));
+		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
+		LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
+		LOGGER.log(Level.INFO, "Smallest score: " + pathCountList.get(pathCountList.size() - 1).weight);
+		buildIndex(pathCountList, indexPath, analyzer);
 	}
 
 	public static void buildComplementIndex(int expNo, int totalExp, String accessCountsFilePath, String indexPath) {
-		try {
-			List<InexFile> pathCountList = InexFile.loadInexFileList(accessCountsFilePath);
-			double total = (double) totalExp;
-			pathCountList = pathCountList.subList((int) (((double) expNo / total) * pathCountList.size()),
-					pathCountList.size());
-			LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
-			LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
-			LOGGER.log(Level.INFO, "Smallest score: " + pathCountList.get(pathCountList.size() - 1).weight);
-			buildGlobalIndex(pathCountList, indexPath);
-		} catch (Exception e) {
-			e.printStackTrace();
+		try (Analyzer analyzer = new StandardAnalyzer()) {
+			buildComplementIndex(expNo, totalExp, accessCountsFilePath, indexPath, analyzer);
 		}
 	}
 
-	static void buildGlobalIndex(List<InexFile> files, String indexPath) {
+	public static void buildComplementIndex(int expNo, int totalExp, String accessCountsFilePath, String indexPath,
+			Analyzer analyzer) {
+		List<InexFile> pathCountList = InexFile.loadInexFileList(accessCountsFilePath);
+		double total = (double) totalExp;
+		pathCountList = pathCountList.subList((int) (((double) expNo / total) * pathCountList.size()),
+				pathCountList.size());
+		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
+		LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
+		LOGGER.log(Level.INFO, "Smallest score: " + pathCountList.get(pathCountList.size() - 1).weight);
+		buildIndex(pathCountList, indexPath, analyzer);
+	}
+
+	private static void buildIndex(List<InexFile> files, String indexPath, Analyzer analyzer) {
 		try {
 			File indexPathFile = new File(indexPath);
 			if (!indexPathFile.exists()) {
