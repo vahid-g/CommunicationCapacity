@@ -1,4 +1,4 @@
-package wiki13;
+package wiki13.cache_selection;
 
 import static org.junit.Assert.assertEquals;
 
@@ -19,6 +19,9 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import wiki13.WikiFileIndexer;
+import wiki13.cache_selection.WikiCacheSelectionFeatureGenerator;
 
 public class WikiCacheSelectionFeatureGeneratorTest {
 

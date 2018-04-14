@@ -1,4 +1,4 @@
-package wiki13;
+package wiki13.cache_selection;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -46,14 +46,17 @@ import query.ExperimentQuery;
 import query.LuceneQueryBuilder;
 import query.QueryResult;
 import query.QueryServices;
-import wiki13.cache_selection.BigramJelinekMercerScore;
-import wiki13.cache_selection.ClarityScore;
-import wiki13.cache_selection.JelinekMercerScore;
-import wiki13.cache_selection.LanguageModelScore;
-import wiki13.cache_selection.QueryDifficultyComputer;
-import wiki13.cache_selection.SimpleCacheScore;
-import wiki13.cache_selection.VarianceScore;
-import wiki13.cache_selection.VarianceScore.VarianceScoreMode;
+import wiki13.WikiExperimentHelper;
+import wiki13.WikiFileIndexer;
+import wiki13.WikiFilesPaths;
+import wiki13.querydifficulty.BigramJelinekMercerScore;
+import wiki13.querydifficulty.ClarityScore;
+import wiki13.querydifficulty.JelinekMercerScore;
+import wiki13.querydifficulty.LanguageModelScore;
+import wiki13.querydifficulty.QueryDifficultyComputer;
+import wiki13.querydifficulty.SimpleCacheScore;
+import wiki13.querydifficulty.VarianceScore;
+import wiki13.querydifficulty.VarianceScore.VarianceScoreMode;
 
 public class WikiCacheSelectionFeatureGenerator {
 
