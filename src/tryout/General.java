@@ -8,23 +8,26 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 public class General {
 
 	static final Logger LOGGER = LogManager.getLogManager().getLogger("");
 
 	public static void main(String[] args) throws IOException {
-		String input = "hanhan &#xA;";
-		System.out.println(input.replace("&#xA;", " "));
+		String input = "hanhan&apos;s";
+		String output = StringEscapeUtils.unescapeXml(input);
+		System.out.println(output);
 	}
-	
-	public static void testDivision() {
+
+	static void testDivision() {
 		int a = 1;
 		int b = 2;
 		System.out.println(a / b);
 		System.out.println(a / (double) b);
 	}
 
-	public static void testLogger() {
+	static void testLogger() {
 		LOGGER.setLevel(Level.FINE);
 		for (Handler h : LOGGER.getHandlers()) {
 			h.setLevel(Level.FINE);
@@ -33,7 +36,7 @@ public class General {
 		LOGGER.log(Level.FINE, "olde?");
 	}
 
-	public static void createConfig() throws IOException {
+	static void createConfig() throws IOException {
 		FileOutputStream out = new FileOutputStream("example-config.properties");
 		Properties defaultProps = new Properties();
 		defaultProps.setProperty("db-url", "jdbc:mysql://engr-db.engr.oregonstate.edu:port/db-name");
