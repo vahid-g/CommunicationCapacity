@@ -10,7 +10,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.search.similarities.BM25Similarity;
 
 import indexing.InexDatasetIndexer;
@@ -28,12 +27,6 @@ public class WikiExperimentHelper {
 
 	}
 
-	public static void buildGlobalIndex(int expNo, int totalExp, String accessCountsFilePath, String indexPath) {
-		try (Analyzer analyzer = new StandardAnalyzer()) {
-			buildGlobalIndex(expNo, totalExp, accessCountsFilePath, indexPath, analyzer);
-		}
-	}
-
 	public static void buildGlobalIndex(int expNo, int totalExp, String accessCountsFilePath, String indexPath,
 			Analyzer analyzer) {
 		List<InexFile> pathCountList = InexFile.loadInexFileList(accessCountsFilePath);
@@ -43,12 +36,6 @@ public class WikiExperimentHelper {
 		LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
 		LOGGER.log(Level.INFO, "Smallest score: " + pathCountList.get(pathCountList.size() - 1).weight);
 		buildIndex(pathCountList, indexPath, analyzer);
-	}
-
-	public static void buildComplementIndex(int expNo, int totalExp, String accessCountsFilePath, String indexPath) {
-		try (Analyzer analyzer = new StandardAnalyzer()) {
-			buildComplementIndex(expNo, totalExp, accessCountsFilePath, indexPath, analyzer);
-		}
 	}
 
 	public static void buildComplementIndex(int expNo, int totalExp, String accessCountsFilePath, String indexPath,

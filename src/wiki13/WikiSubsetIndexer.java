@@ -9,6 +9,8 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
 public class WikiSubsetIndexer {
 
@@ -26,6 +28,8 @@ public class WikiSubsetIndexer {
 		options.addOption(server);
 		Option comp = new Option("comp", false, "Builds complement index");
 		options.addOption(comp);
+		Option biword = new Option("bi", false, "Builds biword index");
+		options.addOption(biword);
 		CommandLineParser clp = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cl;
@@ -46,18 +50,25 @@ public class WikiSubsetIndexer {
 			accessCountsFilePath = paths.getAccessCountsPath();
 			LOGGER.log(Level.INFO, "Building index for partition {0}/{1}",
 					new Object[] { partitionNumber, totalPartitionCount });
+			Analyzer analyzer = null;
+			if (cl.hasOption("bi")) {
+				analyzer = new BiwordAnalyzer();
+			} else {
+				analyzer = new StandardAnalyzer();
+			}
 			long startTime = System.currentTimeMillis();
 			if (cl.hasOption("comp")) {
 				indexPath = paths.getIndexBase() + "c" + partitionNumber;
 				WikiExperimentHelper.buildComplementIndex(partitionNumber, totalPartitionCount, accessCountsFilePath,
-						indexPath);
+						indexPath, analyzer);
 			} else {
 				indexPath = paths.getIndexBase() + partitionNumber;
 				WikiExperimentHelper.buildGlobalIndex(partitionNumber, totalPartitionCount, accessCountsFilePath,
-						indexPath);
+						indexPath, analyzer);
 			}
 			long endTime = System.currentTimeMillis();
 			LOGGER.log(Level.INFO, "Indexing time: {0} sec", (endTime - startTime) / 1000);
+			analyzer.close();
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.INFO, e.getMessage());
 			formatter.printHelp("", options);
