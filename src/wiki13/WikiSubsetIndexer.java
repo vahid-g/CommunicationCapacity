@@ -28,6 +28,9 @@ public class WikiSubsetIndexer {
 		options.addOption(expNumberOption);
 		Option server = new Option("server", true, "Specifies maple/hpc");
 		options.addOption(server);
+		Option indexPathOption = new Option("path", true, "Specifies output folder");
+		indexPathOption.setRequired(true);
+		options.addOption(indexPathOption);
 		Option comp = new Option("comp", false, "Builds complement index");
 		options.addOption(comp);
 		Option biword = new Option("bi", false, "Builds biword index");
@@ -39,8 +42,6 @@ public class WikiSubsetIndexer {
 			cl = clp.parse(options, args);
 			int totalPartitionCount = Integer.parseInt(cl.getOptionValue("total"));
 			int partitionNumber = Integer.parseInt(cl.getOptionValue("exp"));
-			String indexPath = "";
-			String accessCountsFilePath = "";
 			WikiFilesPaths paths;
 			if (cl.getOptionValue("server").equals("hpc")) {
 				paths = WikiFilesPaths.getHpcPaths();
@@ -49,7 +50,7 @@ public class WikiSubsetIndexer {
 			} else {
 				throw new org.apache.commons.cli.ParseException("Server name is not valid");
 			}
-			accessCountsFilePath = paths.getAccessCountsPath();
+			String accessCountsFilePath = paths.getAccessCountsPath();
 			LOGGER.log(Level.INFO, "Building index for partition {0}/{1}",
 					new Object[] { partitionNumber, totalPartitionCount });
 			Analyzer analyzer = null;
@@ -58,13 +59,12 @@ public class WikiSubsetIndexer {
 			} else {
 				analyzer = new StandardAnalyzer();
 			}
+			String indexPath = cl.getOptionValue("path") + partitionNumber;
 			long startTime = System.currentTimeMillis();
 			if (cl.hasOption("comp")) {
-				indexPath = paths.getIndexBase() + "c" + partitionNumber;
 				WikiExperimentHelper.buildComplementIndex(partitionNumber, totalPartitionCount, accessCountsFilePath,
 						indexPath, analyzer);
 			} else {
-				indexPath = paths.getIndexBase() + partitionNumber;
 				WikiExperimentHelper.buildGlobalIndex(partitionNumber, totalPartitionCount, accessCountsFilePath,
 						indexPath, analyzer);
 			}
