@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StoredField;
@@ -38,7 +39,7 @@ public class WikiFileIndexer implements InexFileIndexer {
 		try (InputStream fis = Files.newInputStream(file.toPath())) {
 			byte[] data = new byte[(int) file.length()];
 			fis.read(data);
-			String fileContent = new String(data, "UTF-8");
+			String fileContent = StringEscapeUtils.unescapeXml(new String(data, "UTF-8"));
 			Document doc = new Document();
 			doc.add(new StringField(DOCNAME_ATTRIB, FilenameUtils.removeExtension(file.getName()), Field.Store.YES));
 			doc.add(new StoredField(WEIGHT_ATTRIB, pct.weight));
