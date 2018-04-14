@@ -12,6 +12,8 @@ import org.apache.commons.cli.Options;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
+import indexing.BiwordAnalyzer;
+
 public class WikiSubsetIndexer {
 
 	public static final Logger LOGGER = Logger.getLogger(WikiSubsetIndexer.class.getName());

@@ -1,4 +1,4 @@
-package wiki13;
+package indexing;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.LowerCaseFilter;
