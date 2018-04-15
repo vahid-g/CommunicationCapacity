@@ -59,14 +59,14 @@ public class WikiSubsetIndexer {
 			} else {
 				analyzer = new StandardAnalyzer();
 			}
-			String indexPath = cl.getOptionValue("path") + partitionNumber;
+			String indexBase = cl.getOptionValue("path");
 			long startTime = System.currentTimeMillis();
 			if (cl.hasOption("comp")) {
 				WikiExperimentHelper.buildComplementIndex(partitionNumber, totalPartitionCount, accessCountsFilePath,
-						indexPath, analyzer);
+						indexBase + "c" + +partitionNumber, analyzer);
 			} else {
 				WikiExperimentHelper.buildGlobalIndex(partitionNumber, totalPartitionCount, accessCountsFilePath,
-						indexPath, analyzer);
+						indexBase + partitionNumber, analyzer);
 			}
 			long endTime = System.currentTimeMillis();
 			LOGGER.log(Level.INFO, "Indexing time: {0} sec", (endTime - startTime) / 1000);
