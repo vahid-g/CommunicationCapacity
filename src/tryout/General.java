@@ -8,7 +8,6 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.lucene.index.IndexWriterConfig;
 
 public class General {
