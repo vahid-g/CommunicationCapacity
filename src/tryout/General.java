@@ -9,15 +9,17 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.lucene.index.IndexWriterConfig;
 
 public class General {
 
 	static final Logger LOGGER = LogManager.getLogManager().getLogger("");
 
 	public static void main(String[] args) throws IOException {
-		String input = "hanhan&apos;s";
-		String output = StringEscapeUtils.unescapeXml(input);
-		System.out.println(output);
+		IndexWriterConfig iwc = new IndexWriterConfig();
+		System.out.println(iwc.getMaxBufferedDocs());
+		System.out.println(IndexWriterConfig.DEFAULT_RAM_BUFFER_SIZE_MB);
+		System.out.println(IndexWriterConfig.DEFAULT_MAX_BUFFERED_DOCS);
 	}
 
 	static void testDivision() {

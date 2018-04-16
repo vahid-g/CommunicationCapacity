@@ -63,10 +63,10 @@ public class WikiSubsetIndexer {
 			long startTime = System.currentTimeMillis();
 			if (cl.hasOption("comp")) {
 				WikiExperimentHelper.buildComplementIndex(partitionNumber, totalPartitionCount, accessCountsFilePath,
-						indexBase + "c" + +partitionNumber, analyzer);
+						indexBase + "c" + +partitionNumber, analyzer, true);
 			} else {
 				WikiExperimentHelper.buildGlobalIndex(partitionNumber, totalPartitionCount, accessCountsFilePath,
-						indexBase + partitionNumber, analyzer);
+						indexBase + partitionNumber, analyzer, true);
 			}
 			long endTime = System.currentTimeMillis();
 			LOGGER.log(Level.INFO, "Indexing time: {0} sec", (endTime - startTime) / 1000);

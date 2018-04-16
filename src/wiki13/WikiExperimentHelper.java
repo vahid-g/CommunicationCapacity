@@ -29,17 +29,22 @@ public class WikiExperimentHelper {
 
 	public static void buildGlobalIndex(int expNo, int totalExp, String accessCountsFilePath, String indexPath,
 			Analyzer analyzer) {
+		buildGlobalIndex(expNo, totalExp, accessCountsFilePath, indexPath, analyzer, false);
+	}
+
+	public static void buildGlobalIndex(int expNo, int totalExp, String accessCountsFilePath, String indexPath,
+			Analyzer analyzer, boolean parallel) {
 		List<InexFile> pathCountList = InexFile.loadInexFileList(accessCountsFilePath);
 		double total = (double) totalExp;
 		pathCountList = pathCountList.subList(0, (int) (((double) expNo / total) * pathCountList.size()));
 		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
 		LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
 		LOGGER.log(Level.INFO, "Smallest score: " + pathCountList.get(pathCountList.size() - 1).weight);
-		buildIndex(pathCountList, indexPath, analyzer);
+		buildIndex(pathCountList, indexPath, analyzer, parallel);
 	}
 
 	public static void buildComplementIndex(int expNo, int totalExp, String accessCountsFilePath, String indexPath,
-			Analyzer analyzer) {
+			Analyzer analyzer, boolean parallel) {
 		List<InexFile> pathCountList = InexFile.loadInexFileList(accessCountsFilePath);
 		double total = (double) totalExp;
 		pathCountList = pathCountList.subList((int) (((double) expNo / total) * pathCountList.size()),
@@ -47,10 +52,10 @@ public class WikiExperimentHelper {
 		LOGGER.log(Level.INFO, "Number of loaded path_counts: " + pathCountList.size());
 		LOGGER.log(Level.INFO, "Best score: " + pathCountList.get(0).weight);
 		LOGGER.log(Level.INFO, "Smallest score: " + pathCountList.get(pathCountList.size() - 1).weight);
-		buildIndex(pathCountList, indexPath, analyzer);
+		buildIndex(pathCountList, indexPath, analyzer, parallel);
 	}
 
-	private static void buildIndex(List<InexFile> files, String indexPath, Analyzer analyzer) {
+	private static void buildIndex(List<InexFile> inexFileList, String indexPath, Analyzer analyzer, boolean parallel) {
 		try {
 			File indexPathFile = new File(indexPath);
 			if (!indexPathFile.exists()) {
@@ -59,7 +64,11 @@ public class WikiExperimentHelper {
 			LOGGER.log(Level.INFO, "Building index at: " + indexPath);
 			WikiFileIndexer fileIndexer = new WikiFileIndexer();
 			InexDatasetIndexer idi = new InexDatasetIndexer(fileIndexer);
-			idi.buildIndex(files, indexPath);
+			if (parallel) {
+				idi.parallelBuilIndex(inexFileList, indexPath, new BM25Similarity(), analyzer);
+			} else {
+				idi.buildIndex(inexFileList, indexPath, new BM25Similarity(), analyzer);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
