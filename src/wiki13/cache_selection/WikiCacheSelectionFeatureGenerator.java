@@ -93,42 +93,46 @@ public class WikiCacheSelectionFeatureGenerator {
 					Analyzer biwordAnalyzer = new BiwordAnalyzer();
 					Analyzer analyzer = new StandardAnalyzer()) {
 				for (ExperimentQuery query : queries) {
-					String[] terms = query.getText().toLowerCase().split(" ");
+					String queryText = query.getText();
 					List<Double> f = new ArrayList<Double>();
-					f.add(wqde.coveredQueryTermRatio(indexReader, terms, WikiFileIndexer.TITLE_ATTRIB));
-					f.add(wqde.coveredQueryTermRatio(indexReader, terms, WikiFileIndexer.CONTENT_ATTRIB));
-					f.add(wqde.meanNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.TITLE_ATTRIB));
-					f.add(wqde.meanNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.CONTENT_ATTRIB));
-					f.add(wqde.minNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.TITLE_ATTRIB));
-					f.add(wqde.minNormalizedDocumentFrequency(indexReader, terms, WikiFileIndexer.CONTENT_ATTRIB));
-					List<Double> averageTermDocPopularity = wqde.termPopularityFeatures(indexReader, query.getText(),
-							WikiFileIndexer.TITLE_ATTRIB);
-					f.addAll(averageTermDocPopularity);
-					averageTermDocPopularity = wqde.termPopularityFeatures(indexReader, query.getText(),
-							WikiFileIndexer.CONTENT_ATTRIB);
-					f.addAll(averageTermDocPopularity);
-					f.add(wqde.queryLikelihood(indexReader, query.getText(), WikiFileIndexer.TITLE_ATTRIB,
-							globalIndexReader));
-					f.add(wqde.queryLikelihood(indexReader, query.getText(), WikiFileIndexer.CONTENT_ATTRIB,
-							globalIndexReader));
-					f.add(wqde.coveredTokenRatio(biwordIndexReader, query.getText(), WikiFileIndexer.TITLE_ATTRIB, analyzer));
-					f.add(wqde.coveredTokenRatio(biwordIndexReader, query.getText(), WikiFileIndexer.CONTENT_ATTRIB, analyzer));
-					f.add(wqde.meanNormalizedDocumentBiwordFrequency(biwordIndexReader, query.getText(),
-							WikiFileIndexer.TITLE_ATTRIB));
-					f.add(wqde.meanNormalizedDocumentBiwordFrequency(biwordIndexReader, query.getText(),
-							WikiFileIndexer.CONTENT_ATTRIB));
-					f.add(wqde.minNormalizedDocumentBiwordFrequency(biwordIndexReader, query.getText(),
-							WikiFileIndexer.TITLE_ATTRIB));
-					f.add(wqde.minNormalizedDocumentBiwordFrequency(biwordIndexReader, query.getText(),
-							WikiFileIndexer.CONTENT_ATTRIB));
-					List<Double> averageBiwordDocPopularity = wqde.biwordPopularityFeatures(biwordIndexReader,
-							query.getText(), WikiFileIndexer.TITLE_ATTRIB);
-					f.addAll(averageBiwordDocPopularity);
-					averageTermDocPopularity = wqde.biwordPopularityFeatures(biwordIndexReader, query.getText(),
-							WikiFileIndexer.CONTENT_ATTRIB);
-					f.addAll(averageBiwordDocPopularity);
-					f.add(wqde.biwordQueryLikelihood(biwordIndexReader, query.getText(), WikiFileIndexer.TITLE_ATTRIB,
-							globalBiwordIndexReader));
+					f.add(wqde.coveredTokenRatio(indexReader, queryText, WikiFileIndexer.TITLE_ATTRIB, analyzer));
+					f.add(wqde.coveredTokenRatio(indexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB, analyzer));
+					f.add(wqde.meanNormalizedDocumentTokenFrequency(indexReader, queryText,
+							WikiFileIndexer.TITLE_ATTRIB, analyzer));
+					f.add(wqde.meanNormalizedDocumentTokenFrequency(indexReader, queryText,
+							WikiFileIndexer.CONTENT_ATTRIB, analyzer));
+					f.add(wqde.minNormalizedDocumentTokenFrequency(indexReader, queryText, WikiFileIndexer.TITLE_ATTRIB,
+							analyzer));
+					f.add(wqde.minNormalizedDocumentTokenFrequency(indexReader, queryText,
+							WikiFileIndexer.CONTENT_ATTRIB, analyzer));
+					List<Double> averageTokenDocPopularity = wqde.tokenPopularityFeatures(indexReader, queryText,
+							WikiFileIndexer.TITLE_ATTRIB, analyzer);
+					f.addAll(averageTokenDocPopularity);
+					averageTokenDocPopularity = wqde.tokenPopularityFeatures(indexReader, queryText,
+							WikiFileIndexer.CONTENT_ATTRIB, analyzer);
+					f.addAll(averageTokenDocPopularity);
+					f.add(wqde.queryLikelihood(indexReader, queryText, WikiFileIndexer.TITLE_ATTRIB, globalIndexReader,
+							analyzer));
+					f.add(wqde.coveredTokenRatio(biwordIndexReader, queryText, WikiFileIndexer.TITLE_ATTRIB,
+							biwordAnalyzer));
+					f.add(wqde.coveredTokenRatio(biwordIndexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB,
+							biwordAnalyzer));
+					f.add(wqde.meanNormalizedDocumentTokenFrequency(biwordIndexReader, queryText,
+							WikiFileIndexer.TITLE_ATTRIB, biwordAnalyzer));
+					f.add(wqde.meanNormalizedDocumentTokenFrequency(biwordIndexReader, queryText,
+							WikiFileIndexer.CONTENT_ATTRIB, biwordAnalyzer));
+					f.add(wqde.minNormalizedDocumentTokenFrequency(biwordIndexReader, queryText,
+							WikiFileIndexer.TITLE_ATTRIB, biwordAnalyzer));
+					f.add(wqde.minNormalizedDocumentTokenFrequency(biwordIndexReader, queryText,
+							WikiFileIndexer.CONTENT_ATTRIB, biwordAnalyzer));
+					averageTokenDocPopularity = wqde.tokenPopularityFeatures(biwordIndexReader, queryText,
+							WikiFileIndexer.TITLE_ATTRIB, biwordAnalyzer);
+					f.addAll(averageTokenDocPopularity);
+					averageTokenDocPopularity = wqde.tokenPopularityFeatures(biwordIndexReader, queryText,
+							WikiFileIndexer.CONTENT_ATTRIB, biwordAnalyzer);
+					f.addAll(averageTokenDocPopularity);
+					f.add(wqde.queryLikelihood(biwordIndexReader, queryText, WikiFileIndexer.TITLE_ATTRIB,
+							globalBiwordIndexReader, biwordAnalyzer));
 					scores.add(f.stream().map(ft -> ft + ",").collect(Collectors.joining()));
 				}
 			} catch (IOException e) {
@@ -170,11 +174,11 @@ public class WikiCacheSelectionFeatureGenerator {
 		return coveredBiwordCounts / (double) biwordCount;
 	}
 
-	protected double meanNormalizedDocumentBiwordFrequency(IndexReader indexReader, String query, String field) {
+	protected double meanNormalizedDocumentTokenFrequency(IndexReader indexReader, String query, String field,
+			Analyzer analyzer) {
 		double normalizedBiwordDocFrequencySum = 0;
 		int biwordCount = 0;
-		try (BiwordAnalyzer analyzer = new BiwordAnalyzer();
-				TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
+		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
 			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 			tokenStream.reset();
 			while (tokenStream.incrementToken()) {
@@ -191,10 +195,10 @@ public class WikiCacheSelectionFeatureGenerator {
 		return normalizedBiwordDocFrequencySum / (double) biwordCount;
 	}
 
-	protected double minNormalizedDocumentBiwordFrequency(IndexReader indexReader, String query, String field) {
+	protected double minNormalizedDocumentTokenFrequency(IndexReader indexReader, String query, String field,
+			Analyzer analyzer) {
 		double minNormalizedBiwordDocFrequency = 1;
-		try (BiwordAnalyzer analyzer = new BiwordAnalyzer();
-				TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
+		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
 			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 			tokenStream.reset();
 			while (tokenStream.incrementToken()) {
@@ -209,14 +213,14 @@ public class WikiCacheSelectionFeatureGenerator {
 		return minNormalizedBiwordDocFrequency;
 	}
 
-	protected List<Double> biwordPopularityFeatures(IndexReader indexReader, String query, String field) {
+	protected List<Double> tokenPopularityFeatures(IndexReader indexReader, String query, String field,
+			Analyzer analyzer) {
 		double averagePopularitySum = 0;
 		double minAverage = Double.MAX_VALUE;
 		double minPopularitySum = 0;
 		double minMin = Double.MAX_VALUE;
 		int biwordCount = 0;
-		try (BiwordAnalyzer analyzer = new BiwordAnalyzer();
-				TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
+		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
 			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 			tokenStream.reset();
 			while (tokenStream.incrementToken()) {
@@ -266,38 +270,37 @@ public class WikiCacheSelectionFeatureGenerator {
 		return result;
 	}
 
-	protected double biwordQueryLikelihood(IndexReader reader, String query, String field,
-			IndexReader globalIndexReader) throws IOException {
+	protected double queryLikelihood(IndexReader reader, String query, String field, IndexReader globalIndexReader,
+			Analyzer analyzer) throws IOException {
 		long tfSum = reader.getSumTotalTermFreq(field);
 		long globalTfSum = globalIndexReader.getSumTotalTermFreq(field);
 		double likelihood = 0;
-		try (Analyzer analyzer = new BiwordAnalyzer()) {
-			TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")));
-			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
-			double p = 1.0;
-			try {
-				tokenStream.reset();
-				while (tokenStream.incrementToken()) {
-					String term = termAtt.toString();
-					Term currentTokenTerm = new Term(field, term);
-					double tf = reader.totalTermFreq(currentTokenTerm);
-					double gtf = globalIndexReader.totalTermFreq(currentTokenTerm);
-					if (gtf == 0) {
-						LOGGER.log(Level.WARNING, "zero gtf for: " + term);
-					}
-					double probabilityOfTermGivenSubset = tf / tfSum;
-					double probabilityOfTermGivenDatabase = gtf / globalTfSum;
-					p *= (0.9 * probabilityOfTermGivenSubset + 0.1 * probabilityOfTermGivenDatabase);
+		TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")));
+		CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+		double p = 1.0;
+		try {
+			tokenStream.reset();
+			while (tokenStream.incrementToken()) {
+				String term = termAtt.toString();
+				Term currentTokenTerm = new Term(field, term);
+				double tf = reader.totalTermFreq(currentTokenTerm);
+				double gtf = globalIndexReader.totalTermFreq(currentTokenTerm);
+				if (gtf == 0) {
+					LOGGER.log(Level.WARNING, "zero gtf for: " + term);
 				}
-				tokenStream.end();
-				likelihood = p;
-			} finally {
-				tokenStream.close();
+				double probabilityOfTermGivenSubset = tf / tfSum;
+				double probabilityOfTermGivenDatabase = gtf / globalTfSum;
+				p *= (0.9 * probabilityOfTermGivenSubset + 0.1 * probabilityOfTermGivenDatabase);
 			}
+			tokenStream.end();
+			likelihood = p;
+		} finally {
+			tokenStream.close();
 		}
 		return likelihood;
 	}
 
+	@Deprecated
 	protected double meanBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
 		Query query = lqb.buildQuery(queryText);
 		ScoreDoc[] scoreDocHits = null;
@@ -314,6 +317,7 @@ public class WikiCacheSelectionFeatureGenerator {
 			return 0;
 	}
 
+	@Deprecated
 	protected double minBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
 		Query query = lqb.buildQuery(queryText);
 		ScoreDoc[] scoreDocHits = null;
@@ -329,6 +333,7 @@ public class WikiCacheSelectionFeatureGenerator {
 			return 0;
 	}
 
+	@Deprecated
 	protected double meanBoolScore(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
 		Query query = lqb.buildQuery(queryText, Operator.AND);
 		ScoreDoc[] scoreDocHits = null;
@@ -345,6 +350,7 @@ public class WikiCacheSelectionFeatureGenerator {
 			return 0;
 	}
 
+	@Deprecated
 	protected double minBoolScore(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
 		Query query = lqb.buildQuery(queryText, Operator.AND);
 		ScoreDoc[] scoreDocHits = null;
@@ -360,6 +366,7 @@ public class WikiCacheSelectionFeatureGenerator {
 			return 0;
 	}
 
+	@Deprecated
 	protected double coveredQueryTermRatio(IndexReader indexReader, String[] queryTerms, String field) {
 		Stream<Term> termsStream = Arrays.stream(queryTerms).map(t -> new Term(field, t));
 		long coveredTermCount = termsStream.map(t -> {
@@ -374,6 +381,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return coveredTermCount / (double) queryTerms.length;
 	}
 
+	@Deprecated
 	protected double meanNormalizedDocumentFrequency(IndexReader indexReader, String[] queryTerms, String field) {
 		Stream<Term> termStream = Arrays.stream(queryTerms).map(t -> new Term(field, t));
 		double dfSum = termStream.map(t -> {
@@ -391,6 +399,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return dfSum / queryTerms.length;
 	}
 
+	@Deprecated
 	protected double minNormalizedDocumentFrequency(IndexReader indexReader, String[] queryTerms, String field) {
 		Stream<Term> termStream = Arrays.stream(queryTerms).map(t -> new Term(field, t));
 		double dfMin = termStream.map(t -> {
@@ -408,6 +417,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return dfMin;
 	}
 
+	@Deprecated
 	protected List<Double> termPopularityFeatures(IndexReader reader, String queryText, String field) {
 		double averagePopularitySum = 0;
 		double minAverage = Double.MAX_VALUE;
@@ -466,6 +476,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return result;
 	}
 
+	@Deprecated
 	protected double queryLikelihood(IndexReader reader, String query, String field, IndexReader globalIndexReader)
 			throws IOException {
 		long tfSum = reader.getSumTotalTermFreq(field);
@@ -498,6 +509,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return likelihood;
 	}
 
+	@Deprecated
 	protected double coveredBiwordRatio(IndexSearcher indexSearcher, String query, String field) {
 		int coveredBiwordCounts = 0;
 		int biwordCount = 0;
@@ -530,6 +542,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return coveredBiwordCounts / (double) biwordCount;
 	}
 
+	@Deprecated
 	protected double meanNormalizedDocumentBiwordFrequency(IndexSearcher indexSearcher, String query, String field) {
 		double normalizedBiwordDocFrequencySum = 0;
 		int bigramCount = 0;
@@ -564,6 +577,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return normalizedBiwordDocFrequencySum / (double) bigramCount;
 	}
 
+	@Deprecated
 	protected double minNormalizedDocumentBiwordFrequency(IndexSearcher indexSearcher, String query, String field) {
 		double minNormalizedBiwordDocFrequency = 1;
 		int k = 10000;
@@ -599,6 +613,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return minNormalizedBiwordDocFrequency;
 	}
 
+	@Deprecated
 	protected List<Double> termPopularityFeatures(IndexSearcher searcher, String queryText, String field) {
 		double meanAverage = 0;
 		double minAverage = -1;
@@ -659,6 +674,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return result;
 	}
 
+	@Deprecated
 	protected List<Double> biwordPopularityFeatures(IndexSearcher indexSearcher, String query, String field) {
 		double meanAverage = 0;
 		double minAverage = -1;
