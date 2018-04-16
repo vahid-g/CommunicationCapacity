@@ -12,6 +12,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.search.similarities.BM25Similarity;
 
 import amazon.datatools.AmazonDeweyConverter;
@@ -45,7 +46,7 @@ public class AmazonMapleExperiment {
 		AmazonFileIndexer fileIndexer = new AmazonFileIndexer(fields,
 				AmazonIsbnConverter.loadIsbnToLtidMap(ISBN_DICT_PATH), AmazonDeweyConverter.getInstance(DEWEY_DICT));
 		InexDatasetIndexer datasetIndexer = new InexDatasetIndexer(fileIndexer);
-		datasetIndexer.buildIndex(fileList, INDEX_PATH);
+		datasetIndexer.buildIndex(fileList, INDEX_PATH, new BM25Similarity(), new StandardAnalyzer());
 	}
 
 	public static void main(String[] args) throws IOException {

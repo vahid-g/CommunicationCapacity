@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.similarities.BM25Similarity;
@@ -81,7 +82,7 @@ public class AmazonExperiment {
 				AmazonIsbnConverter.loadIsbnToLtidMap(AmazonDirectoryInfo.ISBN_DICT),
 				AmazonDeweyConverter.getInstance(AmazonDirectoryInfo.DEWEY_DICT));
 		InexDatasetIndexer datasetIndexer = new InexDatasetIndexer(fileIndexer);
-		datasetIndexer.buildIndex(fileList, indexPath);
+		datasetIndexer.buildIndex(fileList, indexPath, new BM25Similarity(), new StandardAnalyzer());
 	}
 
 	Map<String, Float> gridSearchOnGlobalIndex(String queryFile, String qrelFile, String[] queryFields) {
