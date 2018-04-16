@@ -55,15 +55,19 @@ public class WikiSubsetIndexer {
 					new Object[] { partitionNumber, totalPartitionCount });
 			Analyzer analyzer = null;
 			if (cl.hasOption("bi")) {
+				LOGGER.log(Level.INFO, "Using biword analzer..");
 				analyzer = new BiwordAnalyzer();
 			} else {
 				analyzer = new StandardAnalyzer();
 			}
 			String indexBase = cl.getOptionValue("path");
+			if (indexBase.charAt(indexBase.length() - 1) != '/') {
+				indexBase = indexBase + "/";
+			}
 			long startTime = System.currentTimeMillis();
 			if (cl.hasOption("comp")) {
 				WikiExperimentHelper.buildComplementIndex(partitionNumber, totalPartitionCount, accessCountsFilePath,
-						indexBase + "c" + +partitionNumber, analyzer, true);
+						indexBase + "c" + partitionNumber, analyzer, true);
 			} else {
 				WikiExperimentHelper.buildGlobalIndex(partitionNumber, totalPartitionCount, accessCountsFilePath,
 						indexBase + partitionNumber, analyzer, true);
