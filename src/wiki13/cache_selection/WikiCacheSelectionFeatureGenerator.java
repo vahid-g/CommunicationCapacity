@@ -121,8 +121,8 @@ public class WikiCacheSelectionFeatureGenerator {
 					f.addAll(averageTokenDocPopularity);
 					f.add(wqde.queryLikelihood(indexReader, queryText, WikiFileIndexer.TITLE_ATTRIB, globalIndexReader,
 							analyzer));
-					f.add(wqde.queryLikelihood(indexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB, globalIndexReader,
-							analyzer));
+					f.add(wqde.queryLikelihood(indexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB,
+							globalIndexReader, analyzer));
 					f.add(wqde.coveredTokenRatio(biwordIndexReader, queryText, WikiFileIndexer.TITLE_ATTRIB,
 							biwordAnalyzer));
 					f.add(wqde.coveredTokenRatio(biwordIndexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB,
@@ -244,6 +244,9 @@ public class WikiCacheSelectionFeatureGenerator {
 				for (LeafReaderContext lrc : indexReader.leaves()) {
 					LeafReader lr = lrc.reader();
 					PostingsEnum pe = lr.postings(new Term(field, termAtt.toString()));
+					if (pe == null) {
+						continue;
+					}
 					int docId = pe.nextDoc();
 					while (docId != PostingsEnum.NO_MORE_DOCS) {
 						Document doc = lr.document(docId);
