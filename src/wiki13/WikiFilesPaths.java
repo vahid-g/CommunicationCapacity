@@ -8,7 +8,8 @@ public class WikiFilesPaths {
 			String indexBase = dataPath + "index/wiki13_p50_w13/";
 			String accessCountsPath = dataPath + "path_counts/wiki13_count13_text.csv";
 			String accessCounts09Path = dataPath + "path_counts/wiki13_count09_text.csv";
-			hpcPaths = new WikiFilesPaths(dataPath, indexBase, accessCountsPath, accessCounts09Path);
+			String biwordIndexPath = dataPath + "index/wiki13_p50_w13_bi";
+			hpcPaths = new WikiFilesPaths(dataPath, indexBase, accessCountsPath, accessCounts09Path, biwordIndexPath);
 		}
 		return hpcPaths;
 	}
@@ -19,7 +20,8 @@ public class WikiFilesPaths {
 			String indexBase = dataPath + "wiki_index/";
 			String accessCountsPath = dataPath + "wiki13_count13_text.csv";
 			String accessCounts09Path = dataPath + "wiki13_count09_text.csv";
-			maplePaths = new WikiFilesPaths(dataPath, indexBase, accessCountsPath, accessCounts09Path);
+			String biwordIndexBase = dataPath + "wiki_index_bi";
+			maplePaths = new WikiFilesPaths(dataPath, indexBase, accessCountsPath, accessCounts09Path, biwordIndexBase);
 		}
 		return maplePaths;
 	}
@@ -60,6 +62,10 @@ public class WikiFilesPaths {
 		return msnQrelFilePath;
 	}
 
+	public String getBiwordIndexBase() {
+		return biwordIndexBase;
+	}
+
 	private final String dataFolder;
 	private final String indexBase;
 	private final String accessCountsPath;
@@ -68,12 +74,15 @@ public class WikiFilesPaths {
 	private final String inexQrelFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/2013-adhoc.qrels";
 	private final String msnQueryFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/msn_query_qid.csv";
 	private final String msnQrelFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/msn.qrels";
+	private final String biwordIndexBase;
 
-	private WikiFilesPaths(String dataFolder, String indexBase, String accessCountsPath, String accessCounts09Path) {
+	private WikiFilesPaths(String dataFolder, String indexBase, String accessCountsPath, String accessCounts09Path,
+			String biwordIndexBase) {
 		this.dataFolder = dataFolder;
 		this.indexBase = indexBase;
 		this.accessCountsPath = accessCountsPath;
 		this.accessCounts09Path = accessCounts09Path;
+		this.biwordIndexBase = biwordIndexBase;
 	}
 
 }
