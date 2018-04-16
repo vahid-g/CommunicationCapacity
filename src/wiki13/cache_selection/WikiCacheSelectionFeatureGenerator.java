@@ -41,6 +41,7 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.BooleanSimilarity;
 import org.apache.lucene.store.FSDirectory;
 
+import indexing.BiwordAnalyzer;
 import popularity.PopularityUtils;
 import query.ExperimentQuery;
 import query.LuceneQueryBuilder;
@@ -284,28 +285,19 @@ public class WikiCacheSelectionFeatureGenerator {
 		return dfMin;
 	}
 
-	protected double coveredBiwordRatio(IndexSearcher indexSearcher, String query, String field) {
+	protected double coveredBiwordRatio(IndexReader indexReader, String query, String field) {
 		int coveredBiwordCounts = 0;
 		int biwordCount = 0;
-		int k = 20;
-		try (StandardAnalyzer analyzer = new StandardAnalyzer();
+		try (BiwordAnalyzer analyzer = new BiwordAnalyzer();
 				TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
 			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 			tokenStream.reset();
-			String prevTerm = null;
 			while (tokenStream.incrementToken()) {
-				String term = termAtt.toString();
-				if (prevTerm != null) {
-					biwordCount++;
-					PhraseQuery.Builder builder = new PhraseQuery.Builder();
-					builder.add(new Term(field, prevTerm), 0);
-					builder.add(new Term(field, term), 1);
-					PhraseQuery pq = builder.build();
-					ScoreDoc[] hits = indexSearcher.search(pq, k).scoreDocs;
-					if (hits.length > 0)
-						coveredBiwordCounts++;
+				biwordCount++;
+				String biword = termAtt.toString();
+				if (indexReader.docFreq(new Term(field, biword)) > 0) {
+					coveredBiwordCounts++;
 				}
-				prevTerm = term;
 			}
 			tokenStream.end();
 		} catch (IOException e) {
@@ -316,40 +308,28 @@ public class WikiCacheSelectionFeatureGenerator {
 		return coveredBiwordCounts / (double) biwordCount;
 	}
 
-	protected double meanNormalizedDocumentBiwordFrequency(IndexSearcher indexSearcher, String query, String field) {
+	protected double meanNormalizedDocumentBiwordFrequency(IndexReader indexReader, String query, String field) {
 		double normalizedBiwordDocFrequencySum = 0;
-		int bigramCount = 0;
-		int k = 10000;
-		try (StandardAnalyzer analyzer = new StandardAnalyzer();
+		int biwordCount = 0;
+		try (BiwordAnalyzer analyzer = new BiwordAnalyzer();
 				TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
 			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 			tokenStream.reset();
-			String prevTerm = null;
-			double prevDf = 0;
 			while (tokenStream.incrementToken()) {
 				String term = termAtt.toString();
-				if (prevTerm != null) {
-					bigramCount++;
-					PhraseQuery.Builder builder = new PhraseQuery.Builder();
-					builder.add(new Term(field, prevTerm), 0);
-					builder.add(new Term(field, term), 1);
-					PhraseQuery pq = builder.build();
-					ScoreDoc[] hits = indexSearcher.search(pq, k).scoreDocs;
-					if (hits.length != 0)
-						normalizedBiwordDocFrequencySum += (hits.length / prevDf);
-				}
-				prevTerm = term;
-				prevDf = indexSearcher.getIndexReader().docFreq(new Term(field, prevTerm));
+				normalizedBiwordDocFrequencySum += indexReader.docFreq(new Term(field, term));
+				biwordCount++;
 			}
 			tokenStream.end();
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
-		if (bigramCount == 0)
+		if (biwordCount == 0)
 			return 0;
-		return normalizedBiwordDocFrequencySum / (double) bigramCount;
+		return normalizedBiwordDocFrequencySum / (double) biwordCount;
 	}
-
+	
+	
 	protected double minNormalizedDocumentBiwordFrequency(IndexSearcher indexSearcher, String query, String field) {
 		double minNormalizedBiwordDocFrequency = 1;
 		int k = 10000;
@@ -659,5 +639,73 @@ public class WikiCacheSelectionFeatureGenerator {
 			return Arrays.stream(scoreDocHits).map(h -> h.score).reduce(Float::min).orElse(0f);
 		else
 			return 0;
+	}
+
+	@Deprecated 
+	protected double coveredBiwordRatio(IndexSearcher indexSearcher, String query, String field) {
+		int coveredBiwordCounts = 0;
+		int biwordCount = 0;
+		int k = 20;
+		try (StandardAnalyzer analyzer = new StandardAnalyzer();
+				TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			tokenStream.reset();
+			String prevTerm = null;
+			while (tokenStream.incrementToken()) {
+				String term = termAtt.toString();
+				if (prevTerm != null) {
+					biwordCount++;
+					PhraseQuery.Builder builder = new PhraseQuery.Builder();
+					builder.add(new Term(field, prevTerm), 0);
+					builder.add(new Term(field, term), 1);
+					PhraseQuery pq = builder.build();
+					ScoreDoc[] hits = indexSearcher.search(pq, k).scoreDocs;
+					if (hits.length > 0)
+						coveredBiwordCounts++;
+				}
+				prevTerm = term;
+			}
+			tokenStream.end();
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		if (biwordCount == 0)
+			return 0;
+		return coveredBiwordCounts / (double) biwordCount;
+	}
+
+	@Deprecated 
+	protected double meanNormalizedDocumentBiwordFrequency(IndexSearcher indexSearcher, String query, String field) {
+		double normalizedBiwordDocFrequencySum = 0;
+		int bigramCount = 0;
+		int k = 10000;
+		try (StandardAnalyzer analyzer = new StandardAnalyzer();
+				TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			tokenStream.reset();
+			String prevTerm = null;
+			double prevDf = 0;
+			while (tokenStream.incrementToken()) {
+				String term = termAtt.toString();
+				if (prevTerm != null) {
+					bigramCount++;
+					PhraseQuery.Builder builder = new PhraseQuery.Builder();
+					builder.add(new Term(field, prevTerm), 0);
+					builder.add(new Term(field, term), 1);
+					PhraseQuery pq = builder.build();
+					ScoreDoc[] hits = indexSearcher.search(pq, k).scoreDocs;
+					if (hits.length != 0)
+						normalizedBiwordDocFrequencySum += (hits.length / prevDf);
+				}
+				prevTerm = term;
+				prevDf = indexSearcher.getIndexReader().docFreq(new Term(field, prevTerm));
+			}
+			tokenStream.end();
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		if (bigramCount == 0)
+			return 0;
+		return normalizedBiwordDocFrequencySum / (double) bigramCount;
 	}
 }

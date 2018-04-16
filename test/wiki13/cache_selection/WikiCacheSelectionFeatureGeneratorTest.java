@@ -20,6 +20,7 @@ import org.apache.lucene.store.RAMDirectory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import indexing.BiwordAnalyzer;
 import wiki13.WikiFileIndexer;
 import wiki13.cache_selection.WikiCacheSelectionFeatureGenerator;
 
@@ -29,6 +30,8 @@ public class WikiCacheSelectionFeatureGeneratorTest {
 
 	private static RAMDirectory ramDirectory;
 
+	private static RAMDirectory biwordRamDirectory;
+
 	private static WikiCacheSelectionFeatureGenerator wcse = new WikiCacheSelectionFeatureGenerator();
 
 	@BeforeClass
@@ -37,6 +40,15 @@ public class WikiCacheSelectionFeatureGeneratorTest {
 		indexWriterConfig.setOpenMode(OpenMode.CREATE);
 		ramDirectory = new RAMDirectory();
 		try (IndexWriter writer = new IndexWriter(ramDirectory, indexWriterConfig)) {
+			Document doc = new Document();
+			doc.add(new TextField("f1", "this is the new shit", Store.NO));
+			doc.add(new TextField("f2", "six feet down, in six weeks time", Store.NO));
+			doc.add(new StoredField(WikiFileIndexer.WEIGHT_ATTRIB, 10));
+			writer.addDocument(doc);
+		}
+		indexWriterConfig = new IndexWriterConfig(new BiwordAnalyzer());
+		biwordRamDirectory = new RAMDirectory();
+		try (IndexWriter writer = new IndexWriter(biwordRamDirectory, indexWriterConfig)) {
 			Document doc = new Document();
 			doc.add(new TextField("f1", "this is the new shit", Store.NO));
 			doc.add(new TextField("f2", "six feet down, in six weeks time", Store.NO));
@@ -77,8 +89,16 @@ public class WikiCacheSelectionFeatureGeneratorTest {
 	@Test
 	public void testCoveredBiwordRatio() throws IOException {
 		try (IndexReader reader = DirectoryReader.open(ramDirectory)) {
-			double result = wcse.coveredBiwordRatio(new IndexSearcher(reader), "six weeks time the mess you", "f2");
+			double result = wcse.coveredBiwordRatio(new IndexSearcher(reader), "six weeks time the mess in you", "f2");
 			assertEquals(0.5, result, epsilon);
+		}
+	}
+
+	@Test
+	public void testCoveredBiwordRatio2() throws IOException {
+		try (IndexReader reader = DirectoryReader.open(biwordRamDirectory)) {
+			double result = wcse.coveredBiwordRatio(reader, "six weeks time the mess in you", "f2");
+			assertEquals(0.33, result, epsilon);
 		}
 	}
 
