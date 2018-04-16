@@ -97,7 +97,7 @@ public class WikiCacheSelectionFeatureGeneratorTest {
 	@Test
 	public void testCoveredBiwordRatio2() throws IOException {
 		try (IndexReader reader = DirectoryReader.open(biwordRamDirectory)) {
-			double result = wcse.coveredBiwordRatio(reader, "six weeks time the mess in you", "f2");
+			double result = wcse.coveredTokenRatio(reader, "six weeks time the mess in you", "f2", new BiwordAnalyzer());
 			assertEquals(0.33, result, epsilon);
 		}
 	}
