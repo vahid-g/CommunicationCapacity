@@ -20,7 +20,7 @@ public class WikiFilesPaths {
 			String indexBase = dataPath + "wiki_index/";
 			String accessCountsPath = dataPath + "wiki13_count13_text.csv";
 			String accessCounts09Path = dataPath + "wiki13_count09_text.csv";
-			String biwordIndexBase = dataPath + "wiki_index_bi";
+			String biwordIndexBase = dataPath + "wiki_index_bi/";
 			maplePaths = new WikiFilesPaths(dataPath, indexBase, accessCountsPath, accessCounts09Path, biwordIndexBase);
 		}
 		return maplePaths;
