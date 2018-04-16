@@ -97,13 +97,13 @@ public class WikiCacheSelectionFeatureGenerator {
 					List<Double> f = new ArrayList<Double>();
 					f.add(wqde.coveredTokenRatio(indexReader, queryText, WikiFileIndexer.TITLE_ATTRIB, analyzer));
 					f.add(wqde.coveredTokenRatio(indexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB, analyzer));
-					f.add(wqde.meanNormalizedDocumentTokenFrequency(indexReader, queryText,
+					f.add(wqde.meanNormalizedTokenDocumentFrequency(indexReader, queryText,
 							WikiFileIndexer.TITLE_ATTRIB, analyzer));
-					f.add(wqde.meanNormalizedDocumentTokenFrequency(indexReader, queryText,
+					f.add(wqde.meanNormalizedTokenDocumentFrequency(indexReader, queryText,
 							WikiFileIndexer.CONTENT_ATTRIB, analyzer));
-					f.add(wqde.minNormalizedDocumentTokenFrequency(indexReader, queryText, WikiFileIndexer.TITLE_ATTRIB,
+					f.add(wqde.minNormalizedTokenDocumentFrequency(indexReader, queryText, WikiFileIndexer.TITLE_ATTRIB,
 							analyzer));
-					f.add(wqde.minNormalizedDocumentTokenFrequency(indexReader, queryText,
+					f.add(wqde.minNormalizedTokenDocumentFrequency(indexReader, queryText,
 							WikiFileIndexer.CONTENT_ATTRIB, analyzer));
 					List<Double> averageTokenDocPopularity = wqde.tokenPopularityFeatures(indexReader, queryText,
 							WikiFileIndexer.TITLE_ATTRIB, analyzer);
@@ -117,13 +117,13 @@ public class WikiCacheSelectionFeatureGenerator {
 							biwordAnalyzer));
 					f.add(wqde.coveredTokenRatio(biwordIndexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB,
 							biwordAnalyzer));
-					f.add(wqde.meanNormalizedDocumentTokenFrequency(biwordIndexReader, queryText,
+					f.add(wqde.meanNormalizedTokenDocumentFrequency(biwordIndexReader, queryText,
 							WikiFileIndexer.TITLE_ATTRIB, biwordAnalyzer));
-					f.add(wqde.meanNormalizedDocumentTokenFrequency(biwordIndexReader, queryText,
+					f.add(wqde.meanNormalizedTokenDocumentFrequency(biwordIndexReader, queryText,
 							WikiFileIndexer.CONTENT_ATTRIB, biwordAnalyzer));
-					f.add(wqde.minNormalizedDocumentTokenFrequency(biwordIndexReader, queryText,
+					f.add(wqde.minNormalizedTokenDocumentFrequency(biwordIndexReader, queryText,
 							WikiFileIndexer.TITLE_ATTRIB, biwordAnalyzer));
-					f.add(wqde.minNormalizedDocumentTokenFrequency(biwordIndexReader, queryText,
+					f.add(wqde.minNormalizedTokenDocumentFrequency(biwordIndexReader, queryText,
 							WikiFileIndexer.CONTENT_ATTRIB, biwordAnalyzer));
 					averageTokenDocPopularity = wqde.tokenPopularityFeatures(biwordIndexReader, queryText,
 							WikiFileIndexer.TITLE_ATTRIB, biwordAnalyzer);
@@ -174,7 +174,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return coveredBiwordCounts / (double) biwordCount;
 	}
 
-	protected double meanNormalizedDocumentTokenFrequency(IndexReader indexReader, String query, String field,
+	protected double meanNormalizedTokenDocumentFrequency(IndexReader indexReader, String query, String field,
 			Analyzer analyzer) {
 		double normalizedBiwordDocFrequencySum = 0;
 		int biwordCount = 0;
@@ -195,7 +195,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		return normalizedBiwordDocFrequencySum / (double) biwordCount;
 	}
 
-	protected double minNormalizedDocumentTokenFrequency(IndexReader indexReader, String query, String field,
+	protected double minNormalizedTokenDocumentFrequency(IndexReader indexReader, String query, String field,
 			Analyzer analyzer) {
 		double minNormalizedBiwordDocFrequency = 1;
 		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
