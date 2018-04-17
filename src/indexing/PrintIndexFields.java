@@ -1,4 +1,4 @@
-package wiki13;
+package indexing;
 
 import java.io.IOException;
 import java.nio.file.Paths;
