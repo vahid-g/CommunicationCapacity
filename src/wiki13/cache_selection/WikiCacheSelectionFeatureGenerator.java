@@ -1,5 +1,7 @@
 package wiki13.cache_selection;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
@@ -7,7 +9,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -85,14 +89,24 @@ public class WikiCacheSelectionFeatureGenerator {
 				throw new org.apache.commons.cli.ParseException("Queryset is not recognized");
 			}
 			WikiCacheSelectionFeatureGenerator wqde = new WikiCacheSelectionFeatureGenerator();
+			LOGGER.log(Level.INFO, "loading popularity indices..");
+			Map<String, TokenPopularity> termTitlePopularity = TokenPopularity
+					.loadTokenPopularities(indexPath + "_title_pop" + ".csv");
+			Map<String, TokenPopularity> termContentPopularity = TokenPopularity
+					.loadTokenPopularities(indexPath + "_content_pop" + ".csv");
+			Map<String, TokenPopularity> biwordTitlePopularity = TokenPopularity
+					.loadTokenPopularities(biwordIndexPath + "_title_pop" + ".csv");
+			Map<String, TokenPopularity> biwordContentPopularity = TokenPopularity
+					.loadTokenPopularities(biwordIndexPath + "_content_pop" + ".csv");
+			LOGGER.log(Level.INFO, "loading done!");
 			List<String> data = new ArrayList<String>();
 			String[] featureNames = { "query", "covered_t", "covered_c", "mean_df_t", "mean_df_c", "min_df_t",
 					"min_df_c", "mean_mean_pop_t", "mean_min_pop_t", "min_mean_pop_t", "min_min_pop_t",
-					"mean_mean_pop_c", "mean_min_pop_c", "min_mean_pop_c", "min_min_pop_c", "ql_t", "ql_c",
-					"covered_t_bi", "covered_c_bi", "mean_df_t_bi", "mean_df_c_bi", "min_df_t_bi", "min_df_c_bi",
-					"mean_mean_pop_t_bi", "mean_min_pop_t_bi", "min_mean_pop_t_bi", "min_min_pop_t_bi",
+					"mean_mean_pop_c", "mean_min_pop_c", "min_mean_pop_c", "min_min_pop_c", "ql_t", "ql_c", "qll_t",
+					"qll_c", "covered_t_bi", "covered_c_bi", "mean_df_t_bi", "mean_df_c_bi", "min_df_t_bi",
+					"min_df_c_bi", "mean_mean_pop_t_bi", "mean_min_pop_t_bi", "min_mean_pop_t_bi", "min_min_pop_t_bi",
 					"mean_mean_pop_c_bi", "mean_min_pop_c_bi", "min_mean_pop_c_bi", "min_min_pop_c_bi", "ql_t_bi",
-					"ql_c_bi" };
+					"ql_c_bi", "qll_t_bi", "qll_c_bi" };
 			data.add(Arrays.asList(featureNames).stream().map(ft -> ft + ",").collect(Collectors.joining()));
 			try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(indexPath));
 					IndexReader globalIndexReader = DirectoryReader.open(FSDirectory.open(globalIndexPath));
@@ -113,15 +127,21 @@ public class WikiCacheSelectionFeatureGenerator {
 							analyzer));
 					f.add(wqde.minNormalizedTokenDocumentFrequency(indexReader, queryText,
 							WikiFileIndexer.CONTENT_ATTRIB, analyzer));
-					List<Double> averageTokenDocPopularity = wqde.tokenPopularityFeatures(indexReader, queryText,
-							WikiFileIndexer.TITLE_ATTRIB, analyzer);
+					List<Double> averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(termTitlePopularity,
+							queryText, WikiFileIndexer.TITLE_ATTRIB, analyzer);
+					// wqde.tokenPopularityFeatures(indexReader, queryText,
+					// WikiFileIndexer.TITLE_ATTRIB, analyzer);
 					f.addAll(averageTokenDocPopularity);
-					averageTokenDocPopularity = wqde.tokenPopularityFeatures(indexReader, queryText,
+					averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(termContentPopularity, queryText,
 							WikiFileIndexer.CONTENT_ATTRIB, analyzer);
 					f.addAll(averageTokenDocPopularity);
 					f.add(wqde.queryLikelihood(indexReader, queryText, WikiFileIndexer.TITLE_ATTRIB, globalIndexReader,
 							analyzer));
 					f.add(wqde.queryLikelihood(indexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB,
+							globalIndexReader, analyzer));
+					f.add(wqde.queryLogLikelihood(indexReader, queryText, WikiFileIndexer.TITLE_ATTRIB,
+							globalIndexReader, analyzer));
+					f.add(wqde.queryLogLikelihood(indexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB,
 							globalIndexReader, analyzer));
 					f.add(wqde.coveredTokenRatio(biwordIndexReader, queryText, WikiFileIndexer.TITLE_ATTRIB,
 							biwordAnalyzer));
@@ -135,15 +155,19 @@ public class WikiCacheSelectionFeatureGenerator {
 							WikiFileIndexer.TITLE_ATTRIB, biwordAnalyzer));
 					f.add(wqde.minNormalizedTokenDocumentFrequency(biwordIndexReader, queryText,
 							WikiFileIndexer.CONTENT_ATTRIB, biwordAnalyzer));
-					averageTokenDocPopularity = wqde.tokenPopularityFeatures(biwordIndexReader, queryText,
+					averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(biwordTitlePopularity, queryText,
 							WikiFileIndexer.TITLE_ATTRIB, biwordAnalyzer);
 					f.addAll(averageTokenDocPopularity);
-					averageTokenDocPopularity = wqde.tokenPopularityFeatures(biwordIndexReader, queryText,
+					averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(biwordContentPopularity, queryText,
 							WikiFileIndexer.CONTENT_ATTRIB, biwordAnalyzer);
 					f.addAll(averageTokenDocPopularity);
 					f.add(wqde.queryLikelihood(biwordIndexReader, queryText, WikiFileIndexer.TITLE_ATTRIB,
 							globalBiwordIndexReader, biwordAnalyzer));
 					f.add(wqde.queryLikelihood(biwordIndexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB,
+							globalBiwordIndexReader, biwordAnalyzer));
+					f.add(wqde.queryLogLikelihood(biwordIndexReader, queryText, WikiFileIndexer.TITLE_ATTRIB,
+							globalBiwordIndexReader, biwordAnalyzer));
+					f.add(wqde.queryLogLikelihood(biwordIndexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB,
 							globalBiwordIndexReader, biwordAnalyzer));
 					data.add(queryText + "," + f.stream().map(ft -> ft + ",").collect(Collectors.joining()));
 				}
@@ -233,7 +257,7 @@ public class WikiCacheSelectionFeatureGenerator {
 		double minPopularitySum = 0;
 		double minMin = Double.MAX_VALUE;
 		int biwordCount = 0;
-		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
+		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query))) {
 			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 			tokenStream.reset();
 			while (tokenStream.incrementToken()) {
@@ -286,34 +310,119 @@ public class WikiCacheSelectionFeatureGenerator {
 		return result;
 	}
 
+	protected List<Double> fastTokenPopularityFeatures(Map<String, TokenPopularity> popularityMap, String query,
+			String field, Analyzer analyzer) {
+		double averagePopularitySum = 0;
+		double minAverage = Double.MAX_VALUE;
+		double minPopularitySum = 0;
+		double minMin = Double.MAX_VALUE;
+		int tokenCount = 0;
+		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			tokenStream.reset();
+			while (tokenStream.incrementToken()) {
+				String token = termAtt.toString();
+				tokenCount++;
+				double tokenMinPopularity = popularityMap.get(token).min;
+				double tokenPopularityAverage = popularityMap.get(token).mean;
+				averagePopularitySum += tokenPopularityAverage;
+				minAverage = Math.min(minAverage, tokenPopularityAverage);
+				minPopularitySum += tokenMinPopularity;
+				minMin = Math.min(minMin, tokenMinPopularity);
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		double meanAverage = 0;
+		double meanMin = 0;
+		if (tokenCount > 0) {
+			meanAverage = averagePopularitySum / tokenCount;
+			meanMin = minPopularitySum / tokenCount;
+		}
+		if (minAverage == Double.MAX_VALUE) {
+			minAverage = 0;
+		}
+		if (minMin == Double.MAX_VALUE) {
+			minMin = 0;
+		}
+		List<Double> result = new ArrayList<Double>();
+		result.add(meanAverage);
+		result.add(meanMin);
+		result.add(minAverage);
+		result.add(minMin);
+		return result;
+	}
+
 	protected double queryLikelihood(IndexReader reader, String query, String field, IndexReader globalIndexReader,
 			Analyzer analyzer) throws IOException {
 		long tfSum = reader.getSumTotalTermFreq(field);
 		long globalTfSum = globalIndexReader.getSumTotalTermFreq(field);
 		double likelihood = 0;
-		TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")));
-		CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 		double p = 1.0;
-		try {
+		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 			tokenStream.reset();
 			while (tokenStream.incrementToken()) {
 				String term = termAtt.toString();
 				Term currentTokenTerm = new Term(field, term);
 				double tf = reader.totalTermFreq(currentTokenTerm);
 				double gtf = globalIndexReader.totalTermFreq(currentTokenTerm);
-				if (gtf == 0) {
-					LOGGER.log(Level.WARNING, "zero gtf for: " + term);
-				}
 				double probabilityOfTermGivenSubset = tf / tfSum;
 				double probabilityOfTermGivenDatabase = gtf / globalTfSum;
 				p *= (0.9 * probabilityOfTermGivenSubset + 0.1 * probabilityOfTermGivenDatabase);
 			}
 			tokenStream.end();
 			likelihood = p;
-		} finally {
-			tokenStream.close();
 		}
 		return likelihood;
+	}
+
+	protected double queryLogLikelihood(IndexReader reader, String query, String field, IndexReader globalIndexReader,
+			Analyzer analyzer) throws IOException {
+		long tfSum = reader.getSumTotalTermFreq(field);
+		long globalTfSum = globalIndexReader.getSumTotalTermFreq(field);
+		double likelihood = 0;
+		double p = 0;
+		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
+			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+			tokenStream.reset();
+			while (tokenStream.incrementToken()) {
+				String term = termAtt.toString();
+				Term currentTokenTerm = new Term(field, term);
+				double tf = reader.totalTermFreq(currentTokenTerm);
+				double gtf = globalIndexReader.totalTermFreq(currentTokenTerm);
+				double probabilityOfTermGivenSubset = tf / tfSum;
+				double probabilityOfTermGivenDatabase = gtf / globalTfSum;
+				p += Math.log(0.9 * probabilityOfTermGivenSubset + 0.1 * probabilityOfTermGivenDatabase);
+			}
+			tokenStream.end();
+			likelihood = p;
+		}
+		return likelihood;
+	}
+
+	static class TokenPopularity {
+
+		double mean;
+
+		double min;
+
+		public TokenPopularity(double mean, double min) {
+			this.mean = mean;
+			this.min = min;
+		}
+
+		static Map<String, TokenPopularity> loadTokenPopularities(String indexFile) throws IOException {
+			Map<String, TokenPopularity> map = new HashMap<String, TokenPopularity>();
+			try (BufferedReader br = new BufferedReader(new FileReader(indexFile))) {
+				String[] field = br.readLine().split(",");
+				if (field.length > 3) {
+					throw new IOException();
+				}
+				map.put(field[0], new TokenPopularity(Double.parseDouble(field[1]), Double.parseDouble(field[2])));
+			}
+			return map;
+		}
 	}
 
 	@Deprecated
