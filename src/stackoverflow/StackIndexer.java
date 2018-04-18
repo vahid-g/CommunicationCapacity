@@ -36,13 +36,13 @@ public class StackIndexer {
 
 	static final int ANSWERS_S_SIZE = 1092420;
 
-	static final int ANSWERS_ACCEPTED_SIZE = 8033996;
+	static final int ANSWERS_AA_SIZE = 8033979;
 
 	private static final Logger LOGGER = Logger.getLogger(StackIndexer.class.getName());
 
 	public static void main(String[] args) throws SQLException, IOException {
 //		new StackIndexer().indexSubsets(args[0], "stack_index/", ANSWERS_S_SIZE, "answers_s");
-		new StackIndexer().indexSubsets(args[0], "stack_index_accepted/", ANSWERS_ACCEPTED_SIZE, "answers_a");
+		new StackIndexer().indexSubsets(args[0], "stack_index_aa/", ANSWERS_AA_SIZE, "answers_aa");
 	}
 
 	void indexSubsets(String experimentNumber, String indexFolderName, int tableSize, String tableName)
