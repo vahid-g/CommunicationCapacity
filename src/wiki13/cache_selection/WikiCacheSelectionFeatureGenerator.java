@@ -1,7 +1,5 @@
 package wiki13.cache_selection;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
@@ -9,7 +7,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -399,30 +396,6 @@ public class WikiCacheSelectionFeatureGenerator {
 			likelihood = p;
 		}
 		return likelihood;
-	}
-
-	static class TokenPopularity {
-
-		double mean;
-
-		double min;
-
-		public TokenPopularity(double mean, double min) {
-			this.mean = mean;
-			this.min = min;
-		}
-
-		static Map<String, TokenPopularity> loadTokenPopularities(String indexFile) throws IOException {
-			Map<String, TokenPopularity> map = new HashMap<String, TokenPopularity>();
-			try (BufferedReader br = new BufferedReader(new FileReader(indexFile))) {
-				String[] field = br.readLine().split(",");
-				if (field.length > 3) {
-					throw new IOException();
-				}
-				map.put(field[0], new TokenPopularity(Double.parseDouble(field[1]), Double.parseDouble(field[2])));
-			}
-			return map;
-		}
 	}
 
 	@Deprecated
