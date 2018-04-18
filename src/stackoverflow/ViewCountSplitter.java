@@ -6,12 +6,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
 import java.util.Random;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
 
+// This class splits the view counts into train/test set by doing sampling without replacement
 public class ViewCountSplitter {
 
 	final static int QUESTIONS_A_SIZE = 8034000;
@@ -35,30 +35,35 @@ public class ViewCountSplitter {
 			}
 		}
 		dc.closeConnection();
-		
-		// build cdf
-		int[] cumulative = new int[QUESTIONS_A_SIZE];
-		cumulative[0] = viewcounts[0];
-		for (int i = 1; i < QUESTIONS_A_SIZE; i++) {
-			cumulative[i] = cumulative[i - 1] + viewcounts[i];
+
+		int sum = 0;
+		for (int i = 1; i < viewcounts.length; i++) {
+			sum += viewcounts[i];
 		}
 
 		// sample
-		int sampleSize = QUESTIONS_A_SIZE / 2;
-		int max = cumulative[QUESTIONS_A_SIZE - 1];
+		int sampleSize = viewcounts.length / 2;
 		int[] train = new int[QUESTIONS_A_SIZE];
 		Random random = new Random();
 		for (int i = 0; i < sampleSize; i++) {
-			int k = Arrays.binarySearch(cumulative, random.nextInt(max));
-			k = k >= 0 ? k : (-k - 1);
-			train[k]++;
+			int r = random.nextInt(sum);
+			for (int j = 0; j < viewcounts.length; j++) {
+				if (r < viewcounts[j]) {
+					train[j]++;
+					viewcounts[j]--;
+					sum--;
+					break;
+				}
+				r = r - viewcounts[j];
+			}
 		}
+		
 		int[] test = new int[QUESTIONS_A_SIZE];
-		for (int i = 0; i < sampleSize; i++) {
+		for (int i = 0; i < train.length; i++) {
 			test[i] = viewcounts[i] - train[i];
 		}
 
-		try (FileWriter fwTrain = new FileWriter("id_viewcount_trian");
+		try (FileWriter fwTrain = new FileWriter("id_viewcount_train");
 				FileWriter fwTest = new FileWriter("id_viewcount_test")) {
 			for (int i = 0; i < QUESTIONS_A_SIZE; i++) {
 				fwTrain.write(ids[i] + "," + train[i] + "\n");
