@@ -34,6 +34,7 @@ public class StackInitialQuery {
 
 	private static final Logger LOGGER = Logger.getLogger(StackInitialQuery.class.getName());
 
+	// this code is used to find the queries with MRR > 0 on full database and save them to a file
 	public static void main(String[] args) throws IOException, SQLException {
 		StackInitialQuery se = new StackInitialQuery();
 		List<QuestionDAO> questions = se.exp(args[0], args[1]);
@@ -49,7 +50,7 @@ public class StackInitialQuery {
 
 	List<QuestionDAO> exp(String offset, String limit) throws IOException, SQLException {
 		LOGGER.log(Level.INFO, "retrieving queries..");
-		List<QuestionDAO> questions = loadQueries(offset, limit);
+		List<QuestionDAO> questions = loadQuestionTitless(offset, limit);
 		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get("/data/ghadakcv/stack_index_all")))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			Analyzer analyzer = new StandardAnalyzer();
@@ -80,7 +81,7 @@ public class StackInitialQuery {
 	List<QuestionDAO> parallelExp(String offset, String limit) throws IOException, SQLException {
 		StackInitialQuery se = new StackInitialQuery();
 		LOGGER.log(Level.INFO, "retrieving queries..");
-		List<QuestionDAO> questions = se.loadQueries(offset, limit);
+		List<QuestionDAO> questions = se.loadQuestionTitless(offset, limit);
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get("/data/ghadakcv/stack_index")))) {
 			final IndexSearcher searcher = new IndexSearcher(reader);
 
@@ -120,7 +121,7 @@ public class StackInitialQuery {
 		return questions;
 	}
 
-	List<QuestionDAO> loadQueries(String offset, String limit) throws IOException, SQLException {
+	List<QuestionDAO> loadQuestionTitless(String offset, String limit) throws IOException, SQLException {
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();
 		conn.setAutoCommit(false);
@@ -144,7 +145,7 @@ public class StackInitialQuery {
 		return result;
 	}
 
-	List<QuestionDAO> loadQueriesWithBody() throws IOException, SQLException {
+	List<QuestionDAO> loadQuestionBodies() throws IOException, SQLException {
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();
 		conn.setAutoCommit(false);
