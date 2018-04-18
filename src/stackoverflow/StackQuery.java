@@ -40,7 +40,7 @@ public class StackQuery {
 
 	void runExperiment(String experimentNumber) throws IOException, SQLException {
 		List<QuestionDAO> questions = loadQueries();
-		runQueries(questions, experimentNumber);
+		submitQueries(questions, experimentNumber);
 		try (FileWriter fw = new FileWriter(new File("/data/ghadakcv/stack_results/" + experimentNumber + ".csv"))) {
 			for (QuestionDAO question : questions) {
 				fw.write(question.id + "," + question.text.replace(',', ' ') + "," + question.viewCount + ","
@@ -49,10 +49,10 @@ public class StackQuery {
 		}
 	}
 
-	void runQueries(List<QuestionDAO> questions, String experimentNumber) {
+	void submitQueries(List<QuestionDAO> questions, String experimentNumber) {
 		LOGGER.log(Level.INFO, "retrieving queries..");
 		try (IndexReader reader = DirectoryReader
-				.open(NIOFSDirectory.open(Paths.get("/data/ghadakcv/stack_index/" + experimentNumber)))) {
+				.open(NIOFSDirectory.open(Paths.get("/data/ghadakcv/stack_index_accepted/" + experimentNumber)))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			Analyzer analyzer = new StandardAnalyzer();
 			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
@@ -86,7 +86,7 @@ public class StackQuery {
 		Connection conn = dc.getConnection();
 		conn.setAutoCommit(false);
 		List<QuestionDAO> result = new ArrayList<QuestionDAO>();
-		String query = "select qid, Title, AcceptedAnswerId, ViewCount from stack_overflow.questions_s;";
+		String query = "select Id, Title, AcceptedAnswerId, ViewCount from stack_overflow.questions_a;";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.setFetchSize(Integer.MIN_VALUE);
 			ResultSet rs = stmt.executeQuery(query);
