@@ -5,13 +5,13 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.LeafReader;
-import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Terms;
@@ -23,27 +23,30 @@ import wiki13.WikiFileIndexer;
 
 public class BuildPopIndexFast {
 
+	public static final Logger LOGGER = Logger.getLogger(BuildPopIndex.class.getName());
+
 	// Note that this code just works with flat index structures! (Indexes with
 	// height = 2)
 	public static void main(String[] args) {
 		String indexPath = args[0]; // "/data/ghadakcv/wiki_index/1";
 		String field = args[1]; // WikiFileIndexer.TITLE_ATTRIB;
-		parallelBuildPopIndex(indexPath, field);
+		buildPopIndex(indexPath, field);
+		// parallelBuildPopIndex(indexPath, field);
 	}
 
 	public static void buildPopIndex(String indexPath, String field) {
 		try (FSDirectory directory = FSDirectory.open(Paths.get(indexPath));
 				IndexReader reader = DirectoryReader.open(directory);
 				FileWriter fw = new FileWriter(indexPath + "_" + field + "_pop_fast" + ".csv")) {
-			if (reader.leaves().size() > 1) {
-				System.err.println("Non flat index detected. Terminating..");
-				return;
-			}
-			LeafReaderContext lrc = reader.leaves().get(0);
-			LeafReader lr = lrc.reader();
 			Terms terms = MultiFields.getTerms(reader, field);
+			long size = terms.size();
+			LOGGER.log(Level.INFO, "vocabulary size: " + size);
 			final TermsEnum it = terms.iterator();
+			int counter = 0;
 			while (it.next() != null) {
+				if (counter++ > size / 10) {
+					LOGGER.log(Level.INFO, "10% done!");
+				}
 				BytesRef term = it.term();
 				String termString = term.utf8ToString();
 				double termPopularitySum = 0;
@@ -53,7 +56,7 @@ public class BuildPopIndexFast {
 				int docId = 0;
 				while ((docId = pe.nextDoc()) != PostingsEnum.NO_MORE_DOCS) {
 					postingSize++;
-					Document doc = lr.document(docId);
+					Document doc = reader.document(docId);
 					double termDocPopularity = Double.parseDouble(doc.get(WikiFileIndexer.WEIGHT_ATTRIB));
 					termPopularitySum += termDocPopularity;
 					termPopularityMin = Math.min(termDocPopularity, termPopularityMin);
@@ -66,10 +69,8 @@ public class BuildPopIndexFast {
 				fw.write(termString + "," + termPopularityMean + "," + termPopularityMin + "\n");
 				term = it.next();
 			}
-		} catch (
-
-		IOException e) {
-			e.printStackTrace();
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	}
 
