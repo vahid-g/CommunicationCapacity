@@ -21,14 +21,14 @@ public class TokenPopularity {
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] field = line.split(",");
-				if (field.length > 3) {
-					throw new IOException();
-				}
+				int minFieldIndex = field.length - 1;
+				int meanFieldIndex = field.length - 2;
 				if (map.containsKey(field[0])) {
-					double min = Math.min(Double.parseDouble(field[2]), map.get(field[0]).min);
-					map.put(field[0], new TokenPopularity(Double.parseDouble(field[1]), min));
+					double min = Math.min(Double.parseDouble(field[minFieldIndex]), map.get(field[0]).min);
+					map.put(field[0], new TokenPopularity(Double.parseDouble(field[meanFieldIndex]), min));
 				} else {
-					map.put(field[0], new TokenPopularity(Double.parseDouble(field[1]), Double.parseDouble(field[2])));
+					map.put(field[0], new TokenPopularity(Double.parseDouble(field[meanFieldIndex]),
+							Double.parseDouble(field[minFieldIndex])));
 				}
 			}
 			return map;
