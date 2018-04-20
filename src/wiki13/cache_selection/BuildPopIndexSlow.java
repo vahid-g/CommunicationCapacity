@@ -19,7 +19,7 @@ import org.apache.lucene.util.BytesRef;
 
 import wiki13.WikiFileIndexer;
 
-public class BuildPopIndex {
+public class BuildPopIndexSlow {
 
 	// Note that this code just works with flat index structures! (Indexes with
 	// height = 2)

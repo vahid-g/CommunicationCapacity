@@ -23,7 +23,7 @@ import wiki13.WikiFileIndexer;
 
 public class BuildPopIndexFast {
 
-	public static final Logger LOGGER = Logger.getLogger(BuildPopIndex.class.getName());
+	public static final Logger LOGGER = Logger.getLogger(BuildPopIndexSlow.class.getName());
 
 	// Note that this code just works with flat index structures! (Indexes with
 	// height = 2)
