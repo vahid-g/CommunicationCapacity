@@ -320,6 +320,9 @@ public class WikiCacheSelectionFeatureGenerator {
 			while (tokenStream.incrementToken()) {
 				String token = termAtt.toString();
 				tokenCount++;
+				if (!popularityMap.containsKey(token)) {
+					continue;
+				}
 				double tokenMinPopularity = popularityMap.get(token).min;
 				double tokenPopularityAverage = popularityMap.get(token).mean;
 				averagePopularitySum += tokenPopularityAverage;
