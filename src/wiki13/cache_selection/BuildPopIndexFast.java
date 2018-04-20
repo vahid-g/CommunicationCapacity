@@ -39,16 +39,15 @@ public class BuildPopIndexFast {
 				IndexReader reader = DirectoryReader.open(directory);
 				FileWriter fw = new FileWriter(indexPath + "_" + field + "_pop_fast" + ".csv")) {
 			Terms terms = MultiFields.getTerms(reader, field);
-			long size = terms.size();
-			LOGGER.log(Level.INFO, "vocabulary size: " + size);
 			final TermsEnum it = terms.iterator();
 			int counter = 0;
 			while (it.next() != null) {
-				if (counter++ > size / 10) {
-					LOGGER.log(Level.INFO, "10% done!");
-				}
 				BytesRef term = it.term();
 				String termString = term.utf8ToString();
+				if (++counter % 10000 == 0) {
+					LOGGER.log(Level.INFO, "counter = " + counter);
+					LOGGER.log(Level.INFO, termString);
+				}
 				double termPopularitySum = 0;
 				double termPopularityMin = Double.MAX_VALUE;
 				PostingsEnum pe = it.postings(null);
