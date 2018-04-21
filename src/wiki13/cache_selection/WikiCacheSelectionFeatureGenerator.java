@@ -88,13 +88,13 @@ public class WikiCacheSelectionFeatureGenerator {
 			WikiCacheSelectionFeatureGenerator wqde = new WikiCacheSelectionFeatureGenerator();
 			LOGGER.log(Level.INFO, "loading popularity indices..");
 			Map<String, TokenPopularity> termTitlePopularity = TokenPopularity
-					.loadTokenPopularities(indexPath + "_title_pop" + ".csv");
+					.loadTokenPopularities(indexPath + "_title_pop_fast" + ".csv");
 			Map<String, TokenPopularity> termContentPopularity = TokenPopularity
-					.loadTokenPopularities(indexPath + "_content_pop" + ".csv");
+					.loadTokenPopularities(indexPath + "_content_pop_fast" + ".csv");
 			Map<String, TokenPopularity> biwordTitlePopularity = TokenPopularity
-					.loadTokenPopularities(biwordIndexPath + "_title_pop" + ".csv");
+					.loadTokenPopularities(biwordIndexPath + "_title_pop_fast" + ".csv");
 			Map<String, TokenPopularity> biwordContentPopularity = TokenPopularity
-					.loadTokenPopularities(biwordIndexPath + "_content_pop" + ".csv");
+					.loadTokenPopularities(biwordIndexPath + "_content_pop_fast" + ".csv");
 			LOGGER.log(Level.INFO, "loading done!");
 			List<String> data = new ArrayList<String>();
 			String[] featureNames = { "query", "covered_t", "covered_c", "mean_df_t", "mean_df_c", "min_df_t",
