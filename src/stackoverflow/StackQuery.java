@@ -39,8 +39,8 @@ public class StackQuery {
 	}
 
 	void runExperiment(String experimentNumber) throws IOException, SQLException {
-		List<QuestionDAO> questions = loadQueries();
-		submitQueries(questions, experimentNumber);
+		List<QuestionDAO> questions = loadQueries("questions_aa");
+		submitQueries(questions, "/data/ghadakcv/stack_index_aa/" + experimentNumber);
 		try (FileWriter fw = new FileWriter(new File("/data/ghadakcv/stack_results/" + experimentNumber + ".csv"))) {
 			for (QuestionDAO question : questions) {
 				fw.write(question.id + "," + question.text.replace(',', ' ') + "," + question.viewCount + ","
@@ -49,10 +49,10 @@ public class StackQuery {
 		}
 	}
 
-	void submitQueries(List<QuestionDAO> questions, String experimentNumber) {
+	void submitQueries(List<QuestionDAO> questions, String indexPath) {
 		LOGGER.log(Level.INFO, "retrieving queries..");
 		try (IndexReader reader = DirectoryReader
-				.open(NIOFSDirectory.open(Paths.get("/data/ghadakcv/stack_index_accepted/" + experimentNumber)))) {
+				.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			Analyzer analyzer = new StandardAnalyzer();
 			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
@@ -81,17 +81,17 @@ public class StackQuery {
 		}
 	}
 
-	List<QuestionDAO> loadQueries() throws IOException, SQLException {
+	List<QuestionDAO> loadQueries(String questionsTable) throws IOException, SQLException {
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();
 		conn.setAutoCommit(false);
 		List<QuestionDAO> result = new ArrayList<QuestionDAO>();
-		String query = "select Id, Title, AcceptedAnswerId, ViewCount from stack_overflow.questions_a;";
+		String query = "select Id, Title, AcceptedAnswerId, ViewCount from stack_overflow." + questionsTable + ";";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.setFetchSize(Integer.MIN_VALUE);
 			ResultSet rs = stmt.executeQuery(query);
 			while (rs.next()) {
-				String id = rs.getString("qid");
+				String id = rs.getString("Id");
 				String title = rs.getString("Title");
 				String acceptedAnswerId = rs.getString("AcceptedAnswerId");
 				String viewCount = rs.getString("ViewCount");
