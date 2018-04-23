@@ -14,12 +14,11 @@ from sklearn.ensemble import RandomForestClassifier
 from cache_pred import train_lr
 
 def main(argv):
-    filename = argv
+    filename = argv[0]
     df = pd.read_csv('../../data/python_data/' + filename)
     df = train_lr(df)
-    #df.to_csv('%s%s_result2.csv' % ('../../data/python_data/', filename[:-4]))
+    if (argv[1]):
+        df.to_csv('%s%s_result.csv' % ('../../data/python_data/', filename[:-4]))
 
 if __name__ == "__main__":
-    main(sys.argv[1])
-    #main('msn_all.csv')
-    #main('msn_2_c2.csv')
+    main(sys.argv[1:])
