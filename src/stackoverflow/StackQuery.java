@@ -40,13 +40,16 @@ public class StackQuery {
 
 	void runExperiment(String experimentNumber) throws IOException, SQLException {
 		List<QuestionDAO> questions = loadQueries("questions_aa");
+		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
 		submitQueries(questions, "/data/ghadakcv/stack_index_aa/" + experimentNumber);
+		LOGGER.log(Level.INFO, "querying done!");
 		try (FileWriter fw = new FileWriter(new File("/data/ghadakcv/stack_results/" + experimentNumber + ".csv"))) {
 			for (QuestionDAO question : questions) {
 				fw.write(question.id + "," + question.text.replace(',', ' ') + "," + question.viewCount + ","
 						+ question.mrr + "\n");
 			}
 		}
+		LOGGER.log(Level.INFO, "experiment done!");
 	}
 
 	void submitQueries(List<QuestionDAO> questions, String indexPath) {
@@ -56,11 +59,13 @@ public class StackQuery {
 			Analyzer analyzer = new StandardAnalyzer();
 			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
 			parser.setDefaultOperator(Operator.OR);
+			LOGGER.log(Level.INFO, "number of tuples in index: {0}", reader.getDocCount(StackIndexer.BODY_FIELD));
 			LOGGER.log(Level.INFO, "querying..");
 			for (QuestionDAO question : questions) {
 				try {
 					String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
-					// in the next line, to lower case is necessary to change AND to and, otherwise lucene would
+					// in the next line, to lower case is necessary to change AND to and, otherwise
+					// lucene would
 					// consider it as an operator
 					Query query = parser.parse(queryText.toLowerCase());
 					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
