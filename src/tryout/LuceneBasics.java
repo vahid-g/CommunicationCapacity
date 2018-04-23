@@ -27,6 +27,7 @@ import org.apache.lucene.queries.function.FunctionQuery;
 import org.apache.lucene.queries.function.valuesource.DoubleFieldSource;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
@@ -47,8 +48,10 @@ import query.BoostedScoreQuery;
 public class LuceneBasics {
 
 	public static void main(String[] args) throws Exception {
-		try7();
-
+		Analyzer analyzer = new StandardAnalyzer();
+		QueryParser parser = new QueryParser("f", analyzer);
+		parser.setDefaultOperator(Operator.OR);
+		parser.parse(QueryParser.escape(" and and OR in IF statements"));
 	}
 
 	// testing multifield boolean query
