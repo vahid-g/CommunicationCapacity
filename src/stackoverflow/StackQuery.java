@@ -51,8 +51,7 @@ public class StackQuery {
 
 	void submitQueries(List<QuestionDAO> questions, String indexPath) {
 		LOGGER.log(Level.INFO, "retrieving queries..");
-		try (IndexReader reader = DirectoryReader
-				.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
+		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			Analyzer analyzer = new StandardAnalyzer();
 			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
@@ -61,7 +60,9 @@ public class StackQuery {
 			for (QuestionDAO question : questions) {
 				try {
 					String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
-					Query query = parser.parse(queryText);
+					// in the next line, to lower case is necessary to change AND to and, otherwise lucene would
+					// consider it as an operator
+					Query query = parser.parse(queryText.toLowerCase());
 					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
 					for (int i = 0; i < hits.length; i++) {
 						Document doc = searcher.doc(hits[i].doc);
