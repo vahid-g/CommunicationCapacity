@@ -393,10 +393,12 @@ public class WikiCacheSelectionFeatureGenerator {
 				double gtf = globalIndexReader.totalTermFreq(currentTokenTerm);
 				double probabilityOfTermGivenSubset = tf / tfSum;
 				double probabilityOfTermGivenDatabase = gtf / globalTfSum;
-				p += Math.log(0.9 * probabilityOfTermGivenSubset + 0.1 * probabilityOfTermGivenDatabase);
+				p = 0.9 * probabilityOfTermGivenSubset + 0.1 * probabilityOfTermGivenDatabase;
+				if (p > 0) {
+					likelihood += Math.log(p);
+				}
 			}
 			tokenStream.end();
-			likelihood = p;
 		}
 		return likelihood;
 	}
