@@ -42,7 +42,7 @@ public class ViewCountSplitter {
 		}
 
 		// sample
-		int sampleSize = viewcounts.length / 2;
+		int sampleSize = sum / 2;
 		int[] train = new int[QUESTIONS_A_SIZE];
 		Random random = new Random();
 		for (int i = 0; i < sampleSize; i++) {
