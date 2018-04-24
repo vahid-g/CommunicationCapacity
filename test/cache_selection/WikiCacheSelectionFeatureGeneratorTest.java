@@ -1,4 +1,4 @@
-package wiki13.cache_selection;
+package cache_selection;
 
 import static org.junit.Assert.assertEquals;
 
@@ -20,6 +20,7 @@ import org.apache.lucene.store.RAMDirectory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import cache_selection.RunFeatureExtraction;
 import indexing.BiwordAnalyzer;
 import wiki13.WikiFileIndexer;
 
