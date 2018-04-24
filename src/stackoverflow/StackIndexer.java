@@ -35,11 +35,11 @@ import indexing.BiwordAnalyzer;
 
 public class StackIndexer {
 
-	static final String ID_FIELD = "id";
+	public static final String ID_FIELD = "id";
 
-	static final String BODY_FIELD = "Body";
+	public static final String BODY_FIELD = "Body";
 
-	static final String VIEW_COUNT_FIELD = "ViewCount";
+	public static final String VIEW_COUNT_FIELD = "ViewCount";
 
 	static final int ANSWERS_S_SIZE = 1092420;
 

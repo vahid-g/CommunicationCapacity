@@ -87,7 +87,7 @@ public class StackQuery {
 		}
 	}
 
-	List<QuestionDAO> loadQueries(String questionsTable) throws IOException, SQLException {
+	public List<QuestionDAO> loadQueries(String questionsTable) throws IOException, SQLException {
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();
 		conn.setAutoCommit(false);

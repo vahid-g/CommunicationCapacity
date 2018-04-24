@@ -2,17 +2,12 @@ package stackoverflow;
 
 public class QuestionDAO {
 
-	String id;
-
-	String text;
-
-	String answer;
-	
-	int resultRank = -1;
-	
-	int viewCount = 0;
-	
-	double mrr = 0;
+	public String id;
+	public String text;
+	public String answer;
+	public int resultRank = -1;
+	public int viewCount = 0;
+	public double mrr = 0;
 
 	public QuestionDAO(String id, String question, String answer) {
 		this.id = id;
