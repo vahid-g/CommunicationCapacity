@@ -42,8 +42,8 @@ public class FeatureExtraction {
 	}
 
 	protected double coveredTokenRatio(IndexReader indexReader, String query, String field, Analyzer analyzer) {
-		int coveredBiwordCounts = 0;
-		int biwordCount = 0;
+		double coveredBiwordCounts = 0;
+		double biwordCount = 0;
 		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
 			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 			tokenStream.reset();
@@ -60,7 +60,7 @@ public class FeatureExtraction {
 		}
 		if (biwordCount == 0)
 			return 0;
-		return coveredBiwordCounts / (double) biwordCount;
+		return coveredBiwordCounts / biwordCount;
 	}
 
 	protected double meanNormalizedTokenDocumentFrequency(IndexReader indexReader, String query, String field,
