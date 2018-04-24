@@ -30,8 +30,8 @@ public class BuildPopIndexFast {
 	public static void main(String[] args) {
 		String indexPath = args[0]; // "/data/ghadakcv/wiki_index/1";
 		String field = args[1]; // WikiFileIndexer.TITLE_ATTRIB;
-		// buildPopIndex(indexPath, field);
-		parallelBuildPopIndex(indexPath, field);
+		buildPopIndex(indexPath, field);
+		// parallelBuildPopIndex(indexPath, field);
 	}
 
 	public static void buildPopIndex(String indexPath, String field) {
