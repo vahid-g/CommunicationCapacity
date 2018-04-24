@@ -211,40 +211,42 @@ public class WikiCacheSelectionFeatureGenerator {
 	protected double meanNormalizedTokenDocumentFrequency(IndexReader indexReader, String query, String field,
 			Analyzer analyzer) {
 		double normalizedBiwordDocFrequencySum = 0;
-		int biwordCount = 0;
+		int tokenCount = 0;
+		double N = 1.0;
 		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
 			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 			tokenStream.reset();
 			while (tokenStream.incrementToken()) {
 				String term = termAtt.toString();
 				normalizedBiwordDocFrequencySum += indexReader.docFreq(new Term(field, term));
-				biwordCount++;
+				tokenCount++;
 			}
 			tokenStream.end();
+			N = indexReader.getDocCount(field);
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
-		if (biwordCount == 0)
+		if (tokenCount == 0)
 			return 0;
-		return normalizedBiwordDocFrequencySum / (double) biwordCount;
+		return normalizedBiwordDocFrequencySum / (N * tokenCount);
 	}
 
 	protected double minNormalizedTokenDocumentFrequency(IndexReader indexReader, String query, String field,
 			Analyzer analyzer) {
-		double minNormalizedBiwordDocFrequency = 1;
+		double minNormalizedTokenDocFrequency = 1;
 		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
 			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 			tokenStream.reset();
 			while (tokenStream.incrementToken()) {
 				String term = termAtt.toString();
-				minNormalizedBiwordDocFrequency = Math.min(minNormalizedBiwordDocFrequency,
+				minNormalizedTokenDocFrequency = Math.min(minNormalizedTokenDocFrequency,
 						indexReader.docFreq(new Term(field, term)));
 			}
 			tokenStream.end();
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
-		return minNormalizedBiwordDocFrequency;
+		return minNormalizedTokenDocFrequency;
 	}
 
 	protected List<Double> tokenPopularityFeatures(IndexReader indexReader, String query, String field,
