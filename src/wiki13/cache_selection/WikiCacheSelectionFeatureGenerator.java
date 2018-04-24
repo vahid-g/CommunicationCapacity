@@ -233,7 +233,8 @@ public class WikiCacheSelectionFeatureGenerator {
 
 	protected double minNormalizedTokenDocumentFrequency(IndexReader indexReader, String query, String field,
 			Analyzer analyzer) {
-		double minNormalizedTokenDocFrequency = 1;
+		double minNormalizedTokenDocFrequency = Double.MAX_VALUE;
+		double N = 1.0;
 		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
 			CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 			tokenStream.reset();
@@ -243,10 +244,11 @@ public class WikiCacheSelectionFeatureGenerator {
 						indexReader.docFreq(new Term(field, term)));
 			}
 			tokenStream.end();
+			N = indexReader.getDocCount(field);
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
-		return minNormalizedTokenDocFrequency;
+		return minNormalizedTokenDocFrequency / N;
 	}
 
 	protected List<Double> tokenPopularityFeatures(IndexReader indexReader, String query, String field,
