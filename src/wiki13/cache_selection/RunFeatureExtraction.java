@@ -46,9 +46,9 @@ import query.QueryServices;
 import wiki13.WikiFileIndexer;
 import wiki13.WikiFilesPaths;
 
-public class WikiCacheSelectionFeatureGenerator {
+public class RunFeatureExtraction {
 
-	public static final Logger LOGGER = Logger.getLogger(WikiCacheSelectionFeatureGenerator.class.getName());
+	public static final Logger LOGGER = Logger.getLogger(RunFeatureExtraction.class.getName());
 
 	public static void main(String[] args) throws IOException {
 
@@ -85,7 +85,7 @@ public class WikiCacheSelectionFeatureGenerator {
 			} else {
 				throw new org.apache.commons.cli.ParseException("Queryset is not recognized");
 			}
-			WikiCacheSelectionFeatureGenerator wqde = new WikiCacheSelectionFeatureGenerator();
+			RunFeatureExtraction wqde = new RunFeatureExtraction();
 			LOGGER.log(Level.INFO, "loading popularity indices..");
 			Map<String, TokenPopularity> termTitlePopularity = TokenPopularity
 					.loadTokenPopularities(indexPath + "_title_pop_fast" + ".csv");

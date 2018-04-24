@@ -31,7 +31,7 @@ public class WikiCacheSelectionFeatureGeneratorTest {
 
 	private static RAMDirectory biwordRamDirectory;
 
-	private static WikiCacheSelectionFeatureGenerator wcse = new WikiCacheSelectionFeatureGenerator();
+	private static RunFeatureExtraction wcse = new RunFeatureExtraction();
 
 	private static Analyzer analyzer = new StandardAnalyzer();
 
