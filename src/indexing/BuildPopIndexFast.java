@@ -1,9 +1,10 @@
-package wiki13.cache_selection;
+package indexing;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,22 +20,24 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 
-import wiki13.WikiFileIndexer;
+import wiki13.cache_selection.TokenPopularity;
 
 public class BuildPopIndexFast {
 
 	public static final Logger LOGGER = Logger.getLogger(BuildPopIndexSlow.class.getName());
 
-	// Note that this code just works with flat index structures! (Indexes with
-	// height = 2)
 	public static void main(String[] args) {
 		String indexPath = args[0]; // "/data/ghadakcv/wiki_index/1";
 		String field = args[1]; // WikiFileIndexer.TITLE_ATTRIB;
-		buildPopIndex(indexPath, field);
-		// parallelBuildPopIndex(indexPath, field);
+		String weightFieldName = args[2]; // WikiFileIndexer.WEIGHT_ATTRIB
+		if (Arrays.asList(args).contains("-parallel")) {
+			parallelBuildPopIndex(indexPath, field, weightFieldName);
+		} else {
+			buildPopIndex(indexPath, field, weightFieldName);
+		}
 	}
 
-	public static void buildPopIndex(String indexPath, String field) {
+	public static void buildPopIndex(String indexPath, String field, String weightFieldName) {
 		try (FSDirectory directory = FSDirectory.open(Paths.get(indexPath));
 				IndexReader reader = DirectoryReader.open(directory);
 				FileWriter fw = new FileWriter(indexPath + "_" + field + "_pop_fast" + ".csv")) {
@@ -56,7 +59,7 @@ public class BuildPopIndexFast {
 				while ((docId = pe.nextDoc()) != PostingsEnum.NO_MORE_DOCS) {
 					postingSize++;
 					Document doc = reader.document(docId);
-					double termDocPopularity = Double.parseDouble(doc.get(WikiFileIndexer.WEIGHT_ATTRIB));
+					double termDocPopularity = Double.parseDouble(doc.get(weightFieldName));
 					termPopularitySum += termDocPopularity;
 					termPopularityMin = Math.min(termDocPopularity, termPopularityMin);
 					docId = pe.nextDoc();
@@ -72,7 +75,7 @@ public class BuildPopIndexFast {
 		}
 	}
 
-	public static void parallelBuildPopIndex(String indexPath, String field) {
+	public static void parallelBuildPopIndex(String indexPath, String field, String weightFieldName) {
 		try (FSDirectory directory = FSDirectory.open(Paths.get(indexPath));
 				IndexReader reader = DirectoryReader.open(directory);
 				FileWriter fw = new FileWriter(indexPath + "_" + field + "_pop_veryfast" + ".csv")) {
@@ -94,7 +97,7 @@ public class BuildPopIndexFast {
 					while ((docId = pe.nextDoc()) != PostingsEnum.NO_MORE_DOCS) {
 						postingSize++;
 						Document doc = reader.document(docId);
-						double termDocPopularity = Double.parseDouble(doc.get(WikiFileIndexer.WEIGHT_ATTRIB));
+						double termDocPopularity = Double.parseDouble(doc.get(weightFieldName));
 						termPopularitySum += termDocPopularity;
 						termPopularityMin = Math.min(termDocPopularity, termPopularityMin);
 						docId = pe.nextDoc();

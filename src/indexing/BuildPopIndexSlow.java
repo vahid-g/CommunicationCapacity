@@ -1,4 +1,4 @@
-package wiki13.cache_selection;
+package indexing;
 
 import java.io.FileWriter;
 import java.io.IOException;
