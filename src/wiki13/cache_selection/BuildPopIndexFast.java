@@ -66,7 +66,6 @@ public class BuildPopIndexFast {
 					termPopularityMean = termPopularitySum / postingSize;
 				}
 				fw.write(termString + "," + termPopularityMean + "," + termPopularityMin + "\n");
-				term = it.next();
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
