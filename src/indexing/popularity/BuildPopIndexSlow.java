@@ -1,4 +1,4 @@
-package indexing;
+package indexing.popularity;
 
 import java.io.FileWriter;
 import java.io.IOException;

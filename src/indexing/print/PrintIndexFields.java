@@ -1,4 +1,4 @@
-package indexing;
+package indexing.print;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -10,7 +10,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.store.FSDirectory;
 
-public class PrintIndexTerms {
+public class PrintIndexFields {
 
 	public static void main(String[] args) {
 		String indexPath = args[0];
@@ -20,13 +20,11 @@ public class PrintIndexTerms {
 			final Iterator<String> iterator = fields.iterator();
 			while (iterator.hasNext()) {
 				final String field = iterator.next();
-				System.out.println("filed " + field);
-				PrintFieldTerms.printFieldTerms(field, reader);
+				System.out.println(field);
 			}
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 }

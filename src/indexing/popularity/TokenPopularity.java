@@ -1,4 +1,4 @@
-package wiki13.cache_selection;
+package indexing.popularity;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -15,7 +15,7 @@ public class TokenPopularity {
 		this.min = min;
 	}
 
-	static Map<String, TokenPopularity> loadTokenPopularities(String indexFile) throws IOException {
+	public static Map<String, TokenPopularity> loadTokenPopularities(String indexFile) throws IOException {
 		Map<String, TokenPopularity> map = new HashMap<String, TokenPopularity>();
 		try (BufferedReader br = new BufferedReader(new FileReader(indexFile))) {
 			String line;

@@ -1,4 +1,4 @@
-package indexing;
+package indexing.popularity;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -19,8 +19,6 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
-
-import wiki13.cache_selection.TokenPopularity;
 
 public class BuildPopIndexFast {
 
