@@ -3,7 +3,6 @@ package cache_selection;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -20,11 +19,9 @@ import org.apache.lucene.store.RAMDirectory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import cache_selection.RunFeatureExtraction;
 import indexing.BiwordAnalyzer;
-import wiki13.WikiFileIndexer;
 
-public class WikiCacheSelectionFeatureGeneratorTest {
+public class FeatureExtractionTest {
 
 	private static final double epsilon = 0.01;
 
@@ -32,7 +29,7 @@ public class WikiCacheSelectionFeatureGeneratorTest {
 
 	private static RAMDirectory biwordRamDirectory;
 
-	private static RunFeatureExtraction wcse = new RunFeatureExtraction();
+	private static FeatureExtraction wcse = new FeatureExtraction("weight");
 
 	private static Analyzer analyzer = new StandardAnalyzer();
 
@@ -47,7 +44,7 @@ public class WikiCacheSelectionFeatureGeneratorTest {
 			Document doc = new Document();
 			doc.add(new TextField("f1", "this is the new shit", Store.NO));
 			doc.add(new TextField("f2", "six feet down, in six weeks time", Store.NO));
-			doc.add(new StoredField(WikiFileIndexer.WEIGHT_ATTRIB, 10));
+			doc.add(new StoredField("weight", 10));
 			writer.addDocument(doc);
 		}
 		indexWriterConfig = new IndexWriterConfig(new BiwordAnalyzer());
@@ -56,7 +53,7 @@ public class WikiCacheSelectionFeatureGeneratorTest {
 			Document doc = new Document();
 			doc.add(new TextField("f1", "this is the new shit", Store.NO));
 			doc.add(new TextField("f2", "six feet down, in six weeks time", Store.NO));
-			doc.add(new StoredField(WikiFileIndexer.WEIGHT_ATTRIB, 10));
+			doc.add(new StoredField("weight", 10));
 			writer.addDocument(doc);
 		}
 	}
@@ -106,17 +103,6 @@ public class WikiCacheSelectionFeatureGeneratorTest {
 		try (IndexReader reader = DirectoryReader.open(biwordRamDirectory)) {
 			double result = wcse.minNormalizedTokenDocumentFrequency(reader, "weeks time", "f2", biwordAnalyzer);
 			assertEquals(1, result, epsilon);
-		}
-	}
-
-	@Test
-	public void testTokenPopularityFeatures() throws IOException {
-		try (IndexReader reader = DirectoryReader.open(ramDirectory)) {
-			List<Double> result = wcse.tokenPopularityFeatures(reader, "weeks", "f2", analyzer);
-			assertEquals(10, result.get(0), epsilon);
-			assertEquals(10, result.get(1), epsilon);
-			assertEquals(10, result.get(2), epsilon);
-			assertEquals(10, result.get(3), epsilon);
 		}
 	}
 
