@@ -10,6 +10,12 @@ import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -25,6 +31,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
+import indexing.BiwordAnalyzer;
 
 public class StackIndexer {
 
@@ -41,33 +48,85 @@ public class StackIndexer {
 	private static final Logger LOGGER = Logger.getLogger(StackIndexer.class.getName());
 
 	public static void main(String[] args) throws SQLException, IOException {
-//		new StackIndexer().indexSubsets(args[0], "stack_index/", ANSWERS_S_SIZE, "answers_s");
-		new StackIndexer().indexSubsets(args[0], "stack_index_aa/", ANSWERS_AA_SIZE, "answers_aa");
+		Options options = new Options();
+		Option indexOption = new Option("index", true, "index number");
+		indexOption.setRequired(true);
+		options.addOption(indexOption);
+		options.addOption(new Option("bi", false, "biword index"));
+		options.addOption(new Option("rest", false, "rest index"));
+		CommandLineParser clp = new DefaultParser();
+		HelpFormatter formatter = new HelpFormatter();
+		CommandLine cl;
+		try {
+			cl = clp.parse(options, args);
+			StackIndexer si = null;
+			String indexBasePath = "";
+			if (cl.hasOption("bi")) {
+				si = new StackIndexer(new BiwordAnalyzer());
+				indexBasePath = "/data/ghadakcv/stack_index_bi/";
+			} else {
+				si = new StackIndexer(new StandardAnalyzer());
+				indexBasePath = "/data/ghadakcv/stack_index/";
+			}
+			String indexNumber = cl.getOptionValue("index");
+			if (cl.hasOption("rest")) {
+				String indexPath = indexBasePath + "c" + indexNumber;
+				si.indexRest(indexNumber, indexPath, ANSWERS_S_SIZE, "answers_s");
+			} else {
+				String indexPath = indexBasePath + indexNumber;
+				si.indexSubsets(indexNumber, indexPath, ANSWERS_S_SIZE, "answers_s");
+			}
+			// si.indexSubsets(index, "stack_index_aa/", ANSWERS_AA_SIZE, "answers_aa");
+		} catch (org.apache.commons.cli.ParseException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+			formatter.printHelp("", options);
+			return;
+		}
 	}
 
-	void indexSubsets(String experimentNumber, String indexFolderName, int tableSize, String tableName)
+	private IndexWriterConfig config;
+
+	public StackIndexer(Analyzer analyzer) {
+		config = new IndexWriterConfig(analyzer);
+		config.setSimilarity(new BM25Similarity());
+		config.setRAMBufferSizeMB(1024);
+	}
+
+	void indexSubsets(String experimentNumber, String indexPath, int tableSize, String tableName)
 			throws SQLException, IOException {
+		int limit = (int) (Double.parseDouble(experimentNumber) * tableSize / 100.0);
+		// indexing
+		LOGGER.log(Level.INFO, "indexing subset..");
+		String query = "select Id, Body, ViewCount from stack_overflow." + tableName + " order by ViewCount desc limit "
+				+ limit + ";";
+		indexTable(indexPath, query);
+	}
+
+	void indexRest(String experimentNumber, String indexPath, int tableSize, String tableName)
+			throws SQLException, IOException {
+		int limit = (int) (tableSize - Double.parseDouble(experimentNumber) * tableSize / 100.0);
+		// indexing
+		LOGGER.log(Level.INFO, "indexing rest..");
+		String query = "select Id, Body, ViewCount from stack_overflow." + tableName + " order by ViewCount asc limit "
+				+ limit + ";";
+		indexTable(indexPath, query);
+	}
+
+	private void indexTable(String indexPath, String query) throws IOException, SQLException {
+		LOGGER.log(Level.INFO, "query: {0}", query);
 		// setting up database connections
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();
 		conn.setAutoCommit(false);
-		// configuring index writer
-		Analyzer analyzer = new StandardAnalyzer();
-		IndexWriterConfig config = new IndexWriterConfig(analyzer);
-		config.setSimilarity(new BM25Similarity());
-		config.setRAMBufferSizeMB(1024);
-		File indexFile = new File("/data/ghadakcv/" + indexFolderName + experimentNumber);
+		File indexFile = new File(indexPath);
 		if (!indexFile.exists()) {
-			indexFile.mkdir();
+			indexFile.mkdirs();
 		}
 		Directory directory = FSDirectory.open(Paths.get(indexFile.getAbsolutePath()));
-		int limit = (int) (Double.parseDouble(experimentNumber) * tableSize / 100.0);
 		// indexing
 		LOGGER.log(Level.INFO, "indexing..");
 		long start = System.currentTimeMillis();
 		try (IndexWriter iwriter = new IndexWriter(directory, config)) {
-			String query = "select Id, Body, ViewCount from stack_overflow." + tableName
-					+ " order by ViewCount desc limit " + limit + ";";
 			try (Statement stmt = conn.createStatement()) {
 				stmt.setFetchSize(Integer.MIN_VALUE);
 				ResultSet rs = stmt.executeQuery(query);
@@ -78,8 +137,8 @@ public class StackIndexer {
 					Document doc = new Document();
 					doc.add(new StoredField(ID_FIELD, id));
 					doc.add(new StoredField(VIEW_COUNT_FIELD, viewCount));
-					answer = answer.replaceAll("<[^>]+>", " "); //remove xml tags
-					answer = StringEscapeUtils.unescapeHtml4(answer); //convert html encoded characters to unicode
+					answer = answer.replaceAll("<[^>]+>", " "); // remove xml tags
+					answer = StringEscapeUtils.unescapeHtml4(answer); // convert html encoded characters to unicode
 					// answer = answer.replaceAll("[^a-zA-Z0-9'. ]", " ").replaceAll("\\s+", " ");
 					doc.add(new TextField(BODY_FIELD, answer, Store.NO));
 					iwriter.addDocument(doc);
@@ -98,12 +157,7 @@ public class StackIndexer {
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();
 		conn.setAutoCommit(false);
-
 		// configuring index writer
-		Analyzer analyzer = new StandardAnalyzer();
-		IndexWriterConfig config = new IndexWriterConfig(analyzer);
-		config.setSimilarity(new BM25Similarity());
-		config.setRAMBufferSizeMB(1024);
 		File indexFolder = new File("/data/ghadakcv/stack_fullindex");
 		if (!indexFolder.exists()) {
 			indexFolder.mkdir();
