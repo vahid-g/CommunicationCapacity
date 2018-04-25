@@ -71,13 +71,10 @@ public class RunFeatureExtractionForStack {
 			LOGGER.log(Level.INFO, "loading done!");
 			LOGGER.log(Level.INFO, "extracting features..");
 			List<String> data = new ArrayList<String>();
-			String[] featureNames = { "query", "covered_t", "covered_c", "mean_df_t", "mean_df_c", "min_df_t",
-					"min_df_c", "mean_mean_pop_t", "mean_min_pop_t", "min_mean_pop_t", "min_min_pop_t",
-					"mean_mean_pop_c", "mean_min_pop_c", "min_mean_pop_c", "min_min_pop_c", "ql_t", "ql_c", "qll_t",
-					"qll_c", "covered_t_bi", "covered_c_bi", "mean_df_t_bi", "mean_df_c_bi", "min_df_t_bi",
-					"min_df_c_bi", "mean_mean_pop_t_bi", "mean_min_pop_t_bi", "min_mean_pop_t_bi", "min_min_pop_t_bi",
-					"mean_mean_pop_c_bi", "mean_min_pop_c_bi", "min_mean_pop_c_bi", "min_min_pop_c_bi", "ql_t_bi",
-					"ql_c_bi", "qll_t_bi", "qll_c_bi" };
+			String[] featureNames = { "query", "covered_t", "mean_df_t", "min_df_t", "mean_mean_pop_t",
+					"mean_min_pop_t", "min_mean_pop_t", "min_min_pop_t", "qll_t", "covered_t_bi", "mean_df_t_bi",
+					"min_df_t_bi", "mean_mean_pop_t_bi", "mean_min_pop_t_bi", "min_mean_pop_t_bi", "min_min_pop_t_bi",
+					"ql_t_bi", "qll_t_bi"};
 			data.add(Arrays.asList(featureNames).stream().map(ft -> ft + ",").collect(Collectors.joining()));
 			try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(indexPath));
 					IndexReader globalIndexReader = DirectoryReader.open(FSDirectory.open(globalIndexPath));
