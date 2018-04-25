@@ -111,8 +111,6 @@ public class RunFeatureExtractionForWiki {
 							WikiFileIndexer.CONTENT_ATTRIB, analyzer));
 					List<Double> averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(termTitlePopularity,
 							queryText, WikiFileIndexer.TITLE_ATTRIB, analyzer);
-					// wqde.tokenPopularityFeatures(indexReader, queryText,
-					// WikiFileIndexer.TITLE_ATTRIB, analyzer);
 					f.addAll(averageTokenDocPopularity);
 					averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(termContentPopularity, queryText,
 							WikiFileIndexer.CONTENT_ATTRIB, analyzer);
