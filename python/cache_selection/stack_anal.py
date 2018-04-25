@@ -1,6 +1,8 @@
 import pandas as pd
+import sys
 
-c = pd.read_csv('../../data/python_data/stack_final.csv')
+f = sys.argv[1]
+c = pd.read_csv('../../data/python_data/' + f)
 zero_count = c['pred'].value_counts()[0]
 query_count = c.shape[0]
 print('distinct query count: %d' % query_count)
