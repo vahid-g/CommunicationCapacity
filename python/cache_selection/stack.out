@@ -1,0 +1,69 @@
+covered_t_bi           -0.112875
+covered_t              -0.110921
+mean_mean_pop_t.1      -0.087763
+min_mean_pop_t.1       -0.084064
+mean_mean_pop_t_bi.1   -0.083307
+mean_mean_pop_t_bi     -0.076126
+qll_t                  -0.064076
+min_mean_pop_t_bi.1    -0.059096
+mean_mean_pop_t        -0.057609
+covered_t_bi.1         -0.054935
+qll_t.1                -0.051852
+min_df_t               -0.051852
+min_mean_pop_t         -0.046163
+min_df_t.1             -0.041658
+mean_min_pop_t_bi      -0.034444
+qll_t_bi               -0.018499
+mean_df_t              -0.017181
+mean_df_t_bi           -0.014785
+mean_df_t.1            -0.013649
+mean_df_t_bi.1         -0.010683
+covered_t.1            -0.009369
+mean_min_pop_t_bi.1    -0.008505
+qll_t_bi.1             -0.007649
+min_mean_pop_t_bi      -0.007319
+ql_t_bi                -0.002521
+ql_t_bi.1              -0.002521
+mean_min_pop_t         -0.002373
+min_min_pop_t_bi       -0.000106
+min_df_t_bi            -0.000000
+min_df_t_bi.1          -0.000000
+ql_t                    0.000581
+ql_t.1                  0.000634
+min_min_pop_t           0.001313
+min_min_pop_t.1         0.001417
+min_min_pop_t_bi.1      0.001660
+mean_min_pop_t.1        0.022376
+label                   1.000000
+Name: label, dtype: float64
+train set size and ones: 731921, 622501
+test set size and ones: 360499, 306606
+onez ratio in trian set =  85.05
+onez ratio in test set =  85.05
+training LR..
+train/test mean accuracy = 0.85, 0.85
+  precision = 0.851735
+  recall = 1.00
+  negative predictive value= 0.60
+  true negative rate= 0.01
+  1s percentage = 99.73
+training balanced LR..
+train/test mean accuracy = 0.61, 0.60
+--- t = 0.5 results:
+  precision = 0.919438
+  recall = 0.59
+  negative predictive value= 0.23
+  true negative rate= 0.71
+  1s percentage = 54.28
+--- t = 0.75 results:
+  precision = 0.976711
+  recall = 0.15
+  negative predictive value= 0.17
+  true negative rate= 0.98
+  1s percentage = 12.89
+--- t = 0.8 results:
+  precision = 0.981321
+  recall = 0.12
+  negative predictive value= 0.16
+  true negative rate= 0.99
+  1s percentage = 10.17
