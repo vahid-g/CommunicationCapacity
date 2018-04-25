@@ -98,7 +98,7 @@ public class StackQuery {
 			ResultSet rs = stmt.executeQuery(query);
 			while (rs.next()) {
 				String id = rs.getString("Id");
-				String title = rs.getString("Title");
+				String title = rs.getString("Title").replace(',', ' ');
 				String acceptedAnswerId = rs.getString("AcceptedAnswerId");
 				String viewCount = rs.getString("ViewCount");
 				QuestionDAO dao = new QuestionDAO(id, title, acceptedAnswerId);
