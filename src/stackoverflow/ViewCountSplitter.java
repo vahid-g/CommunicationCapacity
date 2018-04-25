@@ -6,7 +6,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
@@ -15,16 +15,19 @@ import database.DatabaseType;
 public class ViewCountSplitter {
 
 	final static int QUESTIONS_A_SIZE = 8034000;
+	final static int QUESTIONS_S_SIZE = 1092420;
 
 	public static void main(String[] args) throws IOException, SQLException {
+		String tableName = "questions_s";
+		int tableSize = QUESTIONS_S_SIZE;
 		// read the ids and viewcounts
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();
-		int[] ids = new int[QUESTIONS_A_SIZE];
-		int[] viewcounts = new int[QUESTIONS_A_SIZE];
+		int[] ids = new int[tableSize];
+		int[] viewcounts = new int[tableSize];
 		try (Statement stmt = conn.createStatement()) {
 			stmt.setFetchSize(Integer.MIN_VALUE);
-			ResultSet rs = stmt.executeQuery("select Id, ViewCount from questions_a order by ViewCount desc");
+			ResultSet rs = stmt.executeQuery("select Id, ViewCount from " + tableName + " order by ViewCount desc");
 			int i = 0;
 			while (rs.next()) {
 				int id = Integer.parseInt(rs.getString("Id"));
@@ -36,17 +39,16 @@ public class ViewCountSplitter {
 		}
 		dc.closeConnection();
 
-		int sum = 0;
+		long sum = 0;
 		for (int i = 1; i < viewcounts.length; i++) {
 			sum += viewcounts[i];
 		}
-
+		System.out.println("sum = " + sum);
 		// sample
-		int sampleSize = sum / 2;
-		int[] train = new int[QUESTIONS_A_SIZE];
-		Random random = new Random();
+		long sampleSize = sum / 2;
+		int[] train = new int[tableSize];
 		for (int i = 0; i < sampleSize; i++) {
-			int r = random.nextInt(sum);
+			long r = ThreadLocalRandom.current().nextLong(sum);
 			for (int j = 0; j < viewcounts.length; j++) {
 				if (r < viewcounts[j]) {
 					train[j]++;
@@ -57,17 +59,12 @@ public class ViewCountSplitter {
 				r = r - viewcounts[j];
 			}
 		}
-		
-		int[] test = new int[QUESTIONS_A_SIZE];
-		for (int i = 0; i < train.length; i++) {
-			test[i] = viewcounts[i] - train[i];
-		}
 
 		try (FileWriter fwTrain = new FileWriter("id_viewcount_train");
 				FileWriter fwTest = new FileWriter("id_viewcount_test")) {
-			for (int i = 0; i < QUESTIONS_A_SIZE; i++) {
+			for (int i = 0; i < tableSize; i++) {
 				fwTrain.write(ids[i] + "," + train[i] + "\n");
-				fwTest.write(ids[i] + "," + test[i] + "\n");
+				fwTest.write(ids[i] + "," + viewcounts[i] + "\n");
 			}
 		}
 	}
