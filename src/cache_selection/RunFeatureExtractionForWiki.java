@@ -79,7 +79,7 @@ public class RunFeatureExtractionForWiki {
 			Map<String, TokenPopularity> biwordTitlePopularity = TokenPopularity
 					.loadTokenPopularities(biwordIndexPath + "_title_pop_fast" + ".csv");
 			Map<String, TokenPopularity> biwordContentPopularity = TokenPopularity
-					.loadTokenPopularities(biwordIndexPath + "_content_pop_fast" + ".csv");
+					.loadTokenPopularities(biwordIndexPath + "_content_pop_fast_tokens" + ".csv");
 			LOGGER.log(Level.INFO, "loading done!");
 			List<String> data = new ArrayList<String>();
 			String[] featureNames = { "query", "covered_t", "covered_c", "mean_df_t", "mean_df_c", "min_df_t",
