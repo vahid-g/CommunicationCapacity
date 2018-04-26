@@ -5,8 +5,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TokenPopularity {
+	
+	public static final Logger LOGGER = Logger.getLogger(TokenPopularity.class.getName());
 	public double mean;
 	public double min;
 
@@ -18,6 +22,7 @@ public class TokenPopularity {
 	public static Map<String, TokenPopularity> loadTokenPopularities(String indexFile) throws IOException {
 		Map<String, TokenPopularity> map = new HashMap<String, TokenPopularity>();
 		try (BufferedReader br = new BufferedReader(new FileReader(indexFile))) {
+			LOGGER.log(Level.INFO, "loading pop index " + indexFile);
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] field = line.split(",");
@@ -31,6 +36,7 @@ public class TokenPopularity {
 							Double.parseDouble(field[minFieldIndex])));
 				}
 			}
+			LOGGER.log(Level.INFO, "loading pop index done!");
 			return map;
 		}
 	}
