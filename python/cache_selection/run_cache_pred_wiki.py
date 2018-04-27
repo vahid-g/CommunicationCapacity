@@ -11,7 +11,7 @@ from sklearn import linear_model
 # from sklearn.metrics import precision_score
 # from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
-from cache_pred import train_lr
+from cache_pred import train_wiki 
 
 def main(argv):
     filename = argv[0]

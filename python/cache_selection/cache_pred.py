@@ -104,6 +104,7 @@ def train_wiki(df, size=0.33):
     y_prob = lr.predict_proba(X_test)
     y_pred = y_prob[:, 1] > 0.5
     y_pred = y_pred.astype('uint8')
+    y_pred5 = y_pred
     print('--- t = 0.5 results:')
     print_results(y_test, y_pred)
     y_pred = y_prob[:, 1] > 0.75
