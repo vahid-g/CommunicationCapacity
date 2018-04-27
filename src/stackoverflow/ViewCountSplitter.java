@@ -24,8 +24,8 @@ public class ViewCountSplitter {
 	private static Logger LOGGER = Logger.getLogger(ViewCountSplitter.class.getName());
 
 	public static void main(String[] args) throws IOException, SQLException {
-		String tableName = "questions_s";
-		int tableSize = QUESTIONS_S_SIZE;
+		String tableName = args[0]; //"questions_a"
+		int tableSize = Integer.parseInt(args[1]); //QUESTIONS_A_SIZE
 		sampleWithReplacecment(tableName, tableSize);
 	}
 
@@ -71,8 +71,8 @@ public class ViewCountSplitter {
 			train[k]++;
 		}
 		LOGGER.log(Level.INFO, "sampling done!");
-		try (FileWriter fwTrain = new FileWriter("id_viewcount_train_s1");
-				FileWriter fwTest = new FileWriter("id_viewcount_test_s1")) {
+		try (FileWriter fwTrain = new FileWriter(tableName + "_train");
+				FileWriter fwTest = new FileWriter(tableName + "_test")) {
 			for (int i = 0; i < tableSize; i++) {
 				fwTrain.write(ids[i] + "," + train[i] + "\n");
 				fwTest.write(ids[i] + "," + Math.max(viewcounts[i] - train[i], 0) + "\n");
