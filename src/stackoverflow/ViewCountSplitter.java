@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
@@ -47,33 +48,34 @@ public class ViewCountSplitter {
 			}
 		}
 		dc.closeConnection();
-		long sum = 0;
-		for (int i = 1; i < viewcounts.length; i++) {
+		double sum = 0.0;
+		for (int i = 0; i < tableSize; i++) {
 			sum += viewcounts[i];
 		}
 		LOGGER.log(Level.INFO, "sum = " + sum);
-		long[] cdf = new long[tableSize];
+		double[] cdf = new double[tableSize];
 		cdf[0] = viewcounts[0] / sum;
-		LOGGER.log(Level.INFO, "cdf is built");
-		// sample
-		long sampleSize = sum / 2;
+		for (int i = 1; i < tableSize; i++) {
+			cdf[i] = cdf[i - 1] + (viewcounts[i] / sum);
+		}
+		LOGGER.log(Level.INFO, "cdf is built. last element: " + cdf[tableSize - 1]);
+		double sampleSize = sum / 2;
 		int[] train = new int[tableSize];
 		Random rand = new Random();
 		for (int i = 0; i < sampleSize; i++) {
-			double r = rand.nextDouble();
-			for (int j = 0; j < tableSize; j++) {
-				if (r > cdf[j]) {
-					train[j]++;
-					break;
-				}
+			if (i % 100000000 == 0) {
+				LOGGER.log(Level.INFO, i + "");
 			}
+			int k = Arrays.binarySearch(cdf, rand.nextDouble());
+			k = k >= 0 ? k : (-k - 1);
+			train[k]++;
 		}
-
+		LOGGER.log(Level.INFO, "sampling done!");
 		try (FileWriter fwTrain = new FileWriter("id_viewcount_train_s1");
 				FileWriter fwTest = new FileWriter("id_viewcount_test_s1")) {
 			for (int i = 0; i < tableSize; i++) {
 				fwTrain.write(ids[i] + "," + train[i] + "\n");
-				fwTest.write(ids[i] + "," + viewcounts[i] + "\n");
+				fwTest.write(ids[i] + "," + Math.max(viewcounts[i] - train[i], 0) + "\n");
 			}
 		}
 
