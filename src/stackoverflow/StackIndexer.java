@@ -43,7 +43,7 @@ public class StackIndexer {
 
 	static final int ANSWERS_S_SIZE = 1092420;
 
-	static final int ANSWERS_AA_SIZE = 8033979;
+	static final int ANSWERS_A_SIZE = 8033979;
 
 	private static final Logger LOGGER = Logger.getLogger(StackIndexer.class.getName());
 
@@ -66,17 +66,16 @@ public class StackIndexer {
 				indexBasePath = "/data/ghadakcv/stack_index_bi/";
 			} else {
 				si = new StackIndexer(new StandardAnalyzer());
-				indexBasePath = "/data/ghadakcv/stack_index/";
+				indexBasePath = "/data/ghadakcv/stack_index_a/";
 			}
 			String indexNumber = cl.getOptionValue("index");
 			if (cl.hasOption("rest")) {
 				String indexPath = indexBasePath + "c" + indexNumber;
-				si.indexRest(indexNumber, indexPath, ANSWERS_S_SIZE, "answers_s");
+				si.indexRest(indexNumber, indexPath, ANSWERS_A_SIZE, "answers_a_train");
 			} else {
 				String indexPath = indexBasePath + indexNumber;
-				si.indexSubsets(indexNumber, indexPath, ANSWERS_S_SIZE, "answers_s");
+				si.indexSubsets(indexNumber, indexPath, ANSWERS_A_SIZE, "answers_a_train");
 			}
-			// si.indexSubsets(index, "stack_index_aa/", ANSWERS_AA_SIZE, "answers_aa");
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 			formatter.printHelp("", options);
@@ -95,9 +94,8 @@ public class StackIndexer {
 	void indexSubsets(String experimentNumber, String indexPath, int tableSize, String tableName)
 			throws SQLException, IOException {
 		int limit = (int) (Double.parseDouble(experimentNumber) * tableSize / 100.0);
-		// indexing
 		LOGGER.log(Level.INFO, "indexing subset..");
-		String query = "select Id, Body, ViewCount from stack_overflow." + tableName + " order by ViewCount desc limit "
+		String query = "select Id, Body, ViewCount from stack_overflow." + tableName + " order by TrainViewCount desc limit "
 				+ limit + ";";
 		indexTable(indexPath, query);
 	}
@@ -105,9 +103,8 @@ public class StackIndexer {
 	void indexRest(String experimentNumber, String indexPath, int tableSize, String tableName)
 			throws SQLException, IOException {
 		int limit = (int) (tableSize - Double.parseDouble(experimentNumber) * tableSize / 100.0);
-		// indexing
 		LOGGER.log(Level.INFO, "indexing rest..");
-		String query = "select Id, Body, ViewCount from stack_overflow." + tableName + " order by ViewCount asc limit "
+		String query = "select Id, Body, ViewCount from stack_overflow." + tableName + " order by TrainViewCount asc limit "
 				+ limit + ";";
 		indexTable(indexPath, query);
 	}
