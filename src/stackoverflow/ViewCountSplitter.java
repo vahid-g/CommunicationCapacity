@@ -62,7 +62,7 @@ public class ViewCountSplitter {
 		double sampleSize = sum / 2;
 		int[] train = new int[tableSize];
 		Random rand = new Random();
-		for (int i = 0; i < sampleSize; i++) {
+		for (long i = 0; i < sampleSize; i++) {
 			if (i % 100000000 == 0) {
 				LOGGER.log(Level.INFO, i + "");
 			}
