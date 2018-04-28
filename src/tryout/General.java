@@ -8,17 +8,16 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import org.apache.lucene.index.IndexWriterConfig;
-
 public class General {
 
 	static final Logger LOGGER = LogManager.getLogManager().getLogger("");
 
 	public static void main(String[] args) throws IOException {
-		IndexWriterConfig iwc = new IndexWriterConfig();
-		System.out.println(iwc.getMaxBufferedDocs());
-		System.out.println(IndexWriterConfig.DEFAULT_RAM_BUFFER_SIZE_MB);
-		System.out.println(IndexWriterConfig.DEFAULT_MAX_BUFFERED_DOCS);
+		double d = 2E10;
+		System.out.println(2 / d);
+		System.out.println(Double.MAX_VALUE);
+		System.out.println(Integer.MAX_VALUE);
+		System.out.println(Long.MAX_VALUE);
 	}
 
 	static void testDivision() {
