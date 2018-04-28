@@ -39,9 +39,9 @@ public class StackQuery {
 	}
 
 	void runExperiment(String experimentNumber) throws IOException, SQLException {
-		List<QuestionDAO> questions = loadQueries("questions_aa");
+		List<QuestionDAO> questions = loadQueries("questions_a");
 		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-		submitQueries(questions, "/data/ghadakcv/stack_index_aa/" + experimentNumber);
+		submitQueries(questions, "/data/ghadakcv/stack_index_a/" + experimentNumber);
 		LOGGER.log(Level.INFO, "querying done!");
 		try (FileWriter fw = new FileWriter(new File("/data/ghadakcv/stack_results/" + experimentNumber + ".csv"))) {
 			for (QuestionDAO question : questions) {
@@ -92,7 +92,7 @@ public class StackQuery {
 		Connection conn = dc.getConnection();
 		conn.setAutoCommit(false);
 		List<QuestionDAO> result = new ArrayList<QuestionDAO>();
-		String query = "select Id, Title, AcceptedAnswerId, ViewCount from stack_overflow." + questionsTable + ";";
+		String query = "select Id, Title, AcceptedAnswerId, TestViewCount from stack_overflow." + questionsTable + ";";
 		try (Statement stmt = conn.createStatement()) {
 			stmt.setFetchSize(Integer.MIN_VALUE);
 			ResultSet rs = stmt.executeQuery(query);
@@ -100,7 +100,7 @@ public class StackQuery {
 				String id = rs.getString("Id");
 				String title = rs.getString("Title").replace(',', ' ');
 				String acceptedAnswerId = rs.getString("AcceptedAnswerId");
-				String viewCount = rs.getString("ViewCount");
+				String viewCount = rs.getString("TestViewCount");
 				QuestionDAO dao = new QuestionDAO(id, title, acceptedAnswerId);
 				if (viewCount != null) {
 					dao.viewCount = Integer.parseInt(viewCount);
