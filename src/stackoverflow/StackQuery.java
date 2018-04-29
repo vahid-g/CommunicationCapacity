@@ -39,7 +39,7 @@ public class StackQuery {
 	}
 
 	void runExperiment(String experimentNumber) throws IOException, SQLException {
-		List<QuestionDAO> questions = loadQueries("questions_a");
+		List<QuestionDAO> questions = loadQueries("questions_a_test");
 		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
 		submitQueries(questions, "/data/ghadakcv/stack_index_a/" + experimentNumber);
 		LOGGER.log(Level.INFO, "querying done!");
