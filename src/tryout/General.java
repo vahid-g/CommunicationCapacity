@@ -13,11 +13,9 @@ public class General {
 	static final Logger LOGGER = LogManager.getLogManager().getLogger("");
 
 	public static void main(String[] args) throws IOException {
-		double d = 2E10;
-		System.out.println(2 / d);
-		System.out.println(Double.MAX_VALUE);
-		System.out.println(Integer.MAX_VALUE);
-		System.out.println(Long.MAX_VALUE);
+		int[] a = {1, 2};
+		if (a.length > 3 && a[3] == 0)
+			System.out.println("hanhan olde?");
 	}
 
 	static void testDivision() {

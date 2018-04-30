@@ -35,13 +35,22 @@ public class StackQuery {
 
 	public static void main(String[] args) throws IOException, SQLException {
 		StackQuery sqsr = new StackQuery();
-		sqsr.runExperiment(args[0]);
+		String experiment = args[0];
+		if (args.length > 1 && args[1].equals("-parallel")) {
+			sqsr.runExperiment(experiment, true);
+		} else {
+			sqsr.runExperiment(experiment, false);
+		}
 	}
 
-	void runExperiment(String experimentNumber) throws IOException, SQLException {
+	private void runExperiment(String experimentNumber, boolean parallel) throws IOException, SQLException {
 		List<QuestionDAO> questions = loadQueries("questions_a_test");
 		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-		submitQueries(questions, "/data/ghadakcv/stack_index_a/" + experimentNumber);
+		if (parallel) {
+			submitParallelQueries(questions, "/data/ghadakcv/stack_index_a/" + experimentNumber);
+		} else {
+			submitQueries(questions, "/data/ghadakcv/stack_index_a/" + experimentNumber);
+		}
 		LOGGER.log(Level.INFO, "querying done!");
 		try (FileWriter fw = new FileWriter(new File("/data/ghadakcv/stack_results/" + experimentNumber + ".csv"))) {
 			for (QuestionDAO question : questions) {
@@ -52,7 +61,7 @@ public class StackQuery {
 		LOGGER.log(Level.INFO, "experiment done!");
 	}
 
-	void submitQueries(List<QuestionDAO> questions, String indexPath) {
+	private void submitQueries(List<QuestionDAO> questions, String indexPath) {
 		LOGGER.log(Level.INFO, "retrieving queries..");
 		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
@@ -65,8 +74,7 @@ public class StackQuery {
 				try {
 					String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
 					// in the next line, to lower case is necessary to change AND to and, otherwise
-					// lucene would
-					// consider it as an operator
+					// lucene would consider it as an operator
 					Query query = parser.parse(queryText.toLowerCase());
 					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
 					for (int i = 0; i < hits.length; i++) {
@@ -82,6 +90,42 @@ public class StackQuery {
 					LOGGER.log(Level.SEVERE, e.getMessage(), e);
 				}
 			}
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+	}
+
+	private void submitParallelQueries(List<QuestionDAO> questions, String indexPath) {
+		LOGGER.log(Level.INFO, "retrieving queries..");
+		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
+			IndexSearcher searcher = new IndexSearcher(reader);
+			Analyzer analyzer = new StandardAnalyzer();
+			LOGGER.log(Level.INFO, "number of tuples in index: {0}", reader.getDocCount(StackIndexer.BODY_FIELD));
+			LOGGER.log(Level.INFO, "querying..");
+			questions.parallelStream().forEach(question -> {
+				try {
+					String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
+					// in the next line, to lower case is necessary to change AND to and, otherwise
+					// lucene would consider it as an operator
+					QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
+					parser.setDefaultOperator(Operator.OR);
+					Query query = parser.parse(queryText.toLowerCase());
+					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
+					for (int i = 0; i < hits.length; i++) {
+						Document doc = searcher.doc(hits[i].doc);
+						if (doc.get(StackIndexer.ID_FIELD).equals(question.answer)) {
+							question.resultRank = i + 1;
+							question.mrr = 1.0 / question.resultRank;
+							break;
+						}
+					}
+				} catch (ParseException e) {
+					LOGGER.log(Level.SEVERE, "Couldn't parse query " + question.id);
+					LOGGER.log(Level.SEVERE, e.getMessage(), e);
+				} catch (IOException e) {
+					LOGGER.log(Level.SEVERE, e.getMessage(), e);
+				}
+			});
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
