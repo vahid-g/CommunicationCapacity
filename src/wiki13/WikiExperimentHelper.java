@@ -55,7 +55,7 @@ public class WikiExperimentHelper {
 		buildIndex(pathCountList, indexPath, analyzer, parallel);
 	}
 
-	private static void buildIndex(List<InexFile> inexFileList, String indexPath, Analyzer analyzer, boolean parallel) {
+	public static void buildIndex(List<InexFile> inexFileList, String indexPath, Analyzer analyzer, boolean parallel) {
 		try {
 			File indexPathFile = new File(indexPath);
 			if (!indexPathFile.exists()) {
