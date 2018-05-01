@@ -63,18 +63,18 @@ public class StackIndexer {
 			String indexBasePath = "";
 			if (cl.hasOption("bi")) {
 				si = new StackIndexer(new BiwordAnalyzer());
-				indexBasePath = "/data/ghadakcv/stack_index_bi/";
+				indexBasePath = "/data/ghadakcv/stack_index_s_bi/";
 			} else {
 				si = new StackIndexer(new StandardAnalyzer());
-				indexBasePath = "/data/ghadakcv/stack_index_a/";
+				indexBasePath = "/data/ghadakcv/stack_index_s/";
 			}
 			String indexNumber = cl.getOptionValue("index");
 			if (cl.hasOption("rest")) {
 				String indexPath = indexBasePath + "c" + indexNumber;
-				si.indexRest(indexNumber, indexPath, ANSWERS_A_SIZE, "answers_a_train");
+				si.indexRest(indexNumber, indexPath, ANSWERS_S_SIZE, "answers_s_train");
 			} else {
 				String indexPath = indexBasePath + indexNumber;
-				si.indexSubsets(indexNumber, indexPath, ANSWERS_A_SIZE, "answers_a_train");
+				si.indexSubsets(indexNumber, indexPath, ANSWERS_S_SIZE, "answers_s_train");
 			}
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
@@ -95,7 +95,7 @@ public class StackIndexer {
 			throws SQLException, IOException {
 		int limit = (int) (Double.parseDouble(experimentNumber) * tableSize / 100.0);
 		LOGGER.log(Level.INFO, "indexing subset..");
-		String query = "select Id, Body, ViewCount from stack_overflow." + tableName + " order by TrainViewCount desc limit "
+		String query = "select Id, Body, TrainViewCount from stack_overflow." + tableName + " order by TrainViewCount desc limit "
 				+ limit + ";";
 		indexTable(indexPath, query);
 	}
@@ -130,7 +130,7 @@ public class StackIndexer {
 				while (rs.next()) {
 					String id = rs.getString("Id");
 					String answer = rs.getString("Body");
-					String viewCount = rs.getString("ViewCount");
+					String viewCount = rs.getString("TrainViewCount");
 					Document doc = new Document();
 					doc.add(new StoredField(ID_FIELD, id));
 					doc.add(new StoredField(VIEW_COUNT_FIELD, viewCount));
