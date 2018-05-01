@@ -11,6 +11,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,18 +47,18 @@ public class StackQuery {
 
 	private void runExperiment(String experimentNumber, boolean parallel, double samplePercentage)
 			throws IOException, SQLException {
-		List<QuestionDAO> questions = loadQueries("questions_a_test_train");
+		List<QuestionDAO> questions = loadQueries("questions_s_test_train");
 		String outputFile = "/data/ghadakcv/stack_results/" + experimentNumber + ".csv";
 		if (samplePercentage < 1.0) {
-			Collections.shuffle(questions);
+			Collections.shuffle(questions, new Random(100));
 			questions = questions.subList(0, (int) (samplePercentage * questions.size()));
-			outputFile = "/data/ghadakcv/stack_results/" + experimentNumber + "_sample.csv";
+			outputFile = "/data/ghadakcv/stack_results/train_" + experimentNumber + ".csv";
 		}
 		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
 		if (parallel) {
-			submitParallelQueries(questions, "/data/ghadakcv/stack_index_a/" + experimentNumber);
+			submitParallelQueries(questions, "/data/ghadakcv/stack_index_s/" + experimentNumber);
 		} else {
-			submitQueries(questions, "/data/ghadakcv/stack_index_a/" + experimentNumber);
+			submitQueries(questions, "/data/ghadakcv/stack_index_s/" + experimentNumber);
 		}
 		LOGGER.log(Level.INFO, "querying done!");
 		try (FileWriter fw = new FileWriter(new File(outputFile))) {
