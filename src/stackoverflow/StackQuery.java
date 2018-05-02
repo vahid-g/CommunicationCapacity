@@ -38,10 +38,11 @@ public class StackQuery {
 	public static void main(String[] args) throws IOException, SQLException {
 		StackQuery sqsr = new StackQuery();
 		String experiment = args[0];
-		if (args.length > 1 && args[1].equals("-parallel")) {
-			sqsr.runExperiment(experiment, true, 0.1);
+		Double trainSize = Double.parseDouble(args[1]);
+		if (args.length > 2 && args[2].equals("-parallel")) {
+			sqsr.runExperiment(experiment, true, trainSize);
 		} else {
-			sqsr.runExperiment(experiment, false, 0.1);
+			sqsr.runExperiment(experiment, false, trainSize);
 		}
 	}
 

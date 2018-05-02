@@ -111,7 +111,7 @@ public class RunFeatureExtractionForStack {
 				LOGGER.log(Level.SEVERE, e.getMessage(), e);
 			}
 
-			try (FileWriter fw = new FileWriter("/data/ghadakcv/stack_feat/" + exp + ".csv")) {
+			try (FileWriter fw = new FileWriter("/data/ghadakcv/stack_results/stack_feat/" + exp + ".csv")) {
 				for (String line : data) {
 					fw.write(line + "\n");
 				}
