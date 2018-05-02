@@ -10,7 +10,8 @@
 *.ear
 
 # folders
-data
+out/
+data/
 bin
 /jars/
 
