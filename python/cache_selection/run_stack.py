@@ -11,7 +11,7 @@ from sklearn import linear_model
 # from sklearn.metrics import precision_score
 # from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
-from cache_pred import train_stack_
+from cache_pred import train_stack
 
 def f(row):
     if row['Pred'] == 1:
@@ -23,7 +23,7 @@ def g(row):
     if row['Label'] == 1:
         val = row['100']
     else:
-        val = row['15']
+        val = row['18']
     return val
 
 

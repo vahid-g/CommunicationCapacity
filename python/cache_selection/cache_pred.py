@@ -16,10 +16,11 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
 
 def train_stack(df, size=0.33):
-    df = df.fillna(0)
-    df = df.drop(['Id'], axis=1)
+    #df = df.fillna(0)
     labels = df['Label']
-    X, X_test, y, y_test = train_test_split(df.drop(['Label'], axis=1), labels, stratify=labels,
+    df = df.drop(['Id', 'Label'], axis=1)
+    #print(df.corr()['Label'].sort_values())
+    X, X_test, y, y_test = train_test_split(df, labels, stratify=labels,
                                             test_size=size, random_state=1)
     X = X.drop(['TestViewCount', 'Query', '18', '100'], axis=1)
     vc = X_test['TestViewCount']
@@ -27,7 +28,6 @@ def train_stack(df, size=0.33):
     q18 = X_test['18']
     q100 = X_test['100']
     X_test = X_test.drop(['TestViewCount', 'Query', '18', '100'], axis=1)
-    print(df.corr()['Label'].sort_values())
     print("train set size and ones: %d, %d" % (y.shape[0], np.sum(y)))
     print("test set size and ones: %d, %d" % (y_test.shape[0], np.sum(y_test)))
     print("onez ratio in trian set =  %.2f" % (100 * np.sum(y) / y.shape[0]))
@@ -56,7 +56,6 @@ def train_stack(df, size=0.33):
     y_prob = lr.predict_proba(X_test)
     y_pred = y_prob[:, 1] > 0.5
     y_pred = y_pred.astype('uint8')
-    '''
     print('--- t = 0.5 results:')
     print_results(y_test, y_pred)
     y_pred = y_prob[:, 1] > 0.75
@@ -67,12 +66,13 @@ def train_stack(df, size=0.33):
     y_pred = y_pred.astype('uint8')
     print('--- t = 0.8 results:')
     print_results(y_test, y_pred)
-    '''
     output = pd.DataFrame()
     output['Query'] = test_queries
     output['TestViewCount'] = vc
     output['Label'] = y_test
     output['Pred'] = pd.Series(y_pred, index=output.index)
+    output['18'] = q18
+    output['100'] = q100
     return output
 
 def train_wiki(df, size=0.33):
@@ -124,8 +124,6 @@ def train_wiki(df, size=0.33):
     '''
     output = pd.DataFrame()
     output['Query'] = test_queries
-    output['18'] = q18
-    output['100'] = q100
     output['Label'] = y_test
     output['Pred'] = pd.Series(y_pred, index=output.index)
     return output
