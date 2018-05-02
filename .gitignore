@@ -27,3 +27,6 @@ config.properties
 #IntellijIdea
 .idea/
 *.iml
+
+#Mac
+.DS_Store
