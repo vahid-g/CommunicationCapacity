@@ -104,7 +104,7 @@ public class StackIndexer {
 			throws SQLException, IOException {
 		int limit = (int) (tableSize - Double.parseDouble(experimentNumber) * tableSize / 100.0);
 		LOGGER.log(Level.INFO, "indexing rest..");
-		String query = "select Id, Body, ViewCount from stack_overflow." + tableName + " order by TrainViewCount asc limit "
+		String query = "select Id, Body, TrainViewCount from stack_overflow." + tableName + " order by TrainViewCount asc limit "
 				+ limit + ";";
 		indexTable(indexPath, query);
 	}
