@@ -15,20 +15,19 @@ from sklearn import linear_model
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
 
-def train_lr(df, size=0.33):
+def train_stack(df, size=0.33):
     df = df.fillna(0)
-    labels = df['label']
-    X, X_test, y, y_test = train_test_split(df.drop(['label'], axis=1), labels, stratify=labels,
+    df = df.drop(['Id'], axis=1)
+    labels = df['Label']
+    X, X_test, y, y_test = train_test_split(df.drop(['Label'], axis=1), labels, stratify=labels,
                                             test_size=size, random_state=1)
-    # df = df.drop(['viewcount'], axis=1)
-    # vcx = X['viewcount']
-    # X = X.drop(['viewcount'], axis=1)
-    X = X.drop(['query'], axis=1)
-    test_queries = X_test['query']
-    #vcy = X_test['viewcount']
-    #X_test = X_test.drop(['viewcount'], axis=1)
-    X_test = X_test.drop(['query'], axis=1)
-    print(df.corr()['label'].sort_values())
+    X = X.drop(['TestViewCount', 'Query', '18', '100'], axis=1)
+    vc = X_test['TestViewCount']
+    test_queries = X_test['Query']
+    q18 = X_test['18']
+    q100 = X_test['100']
+    X_test = X_test.drop(['TestViewCount', 'Query', '18', '100'], axis=1)
+    print(df.corr()['Label'].sort_values())
     print("train set size and ones: %d, %d" % (y.shape[0], np.sum(y)))
     print("test set size and ones: %d, %d" % (y_test.shape[0], np.sum(y_test)))
     print("onez ratio in trian set =  %.2f" % (100 * np.sum(y) / y.shape[0]))
@@ -70,20 +69,21 @@ def train_lr(df, size=0.33):
     print_results(y_test, y_pred)
     '''
     output = pd.DataFrame()
-    output['query'] = test_queries
-    output['label'] = y_test
-    output['pred'] = pd.Series(y_pred, index=output.index)
+    output['Query'] = test_queries
+    output['TestViewCount'] = vc
+    output['Label'] = y_test
+    output['Pred'] = pd.Series(y_pred, index=output.index)
     return output
 
 def train_wiki(df, size=0.33):
     df = df.fillna(0)
-    labels = df['label']
-    X, X_test, y, y_test = train_test_split(df.drop(['label'], axis=1), labels, stratify=labels,
+    labels = df['Label']
+    X, X_test, y, y_test = train_test_split(df.drop(['Label'], axis=1), labels, stratify=labels,
                                             test_size=size, random_state=1)
-    X = X.drop(['query'], axis=1)
-    test_queries = X_test['query']
-    X_test = X_test.drop(['query'], axis=1)
-    print(df.corr()['label'].sort_values())
+    X = X.drop(['Query'], axis=1)
+    test_queries = X_test['Query']
+    X_test = X_test.drop(['Query'], axis=1)
+    print(df.corr()['Label'].sort_values())
     print("train set size and ones: %d, %d" % (y.shape[0], np.sum(y)))
     print("test set size and ones: %d, %d" % (y_test.shape[0], np.sum(y_test)))
     print("onez ratio in trian set =  %.2f" % (100 * np.sum(y) / y.shape[0]))
@@ -123,9 +123,11 @@ def train_wiki(df, size=0.33):
     print(x[x[:,3].argsort()])
     '''
     output = pd.DataFrame()
-    output['query'] = test_queries
-    output['label'] = y_test
-    output['pred'] = pd.Series(y_pred, index=output.index)
+    output['Query'] = test_queries
+    output['18'] = q18
+    output['100'] = q100
+    output['Label'] = y_test
+    output['Pred'] = pd.Series(y_pred, index=output.index)
     return output
 
 

@@ -11,16 +11,16 @@ from sklearn import linear_model
 # from sklearn.metrics import precision_score
 # from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
-from cache_pred import train_lr
+from cache_pred import train_stack_
 
 def f(row):
-    if row['pred'] == 1:
+    if row['Pred'] == 1:
         val = row['100']
     else:
-        val = row['15']
+        val = row['18']
     return val
 def g(row):
-    if row['label'] == 1:
+    if row['Label'] == 1:
         val = row['100']
     else:
         val = row['15']
@@ -30,11 +30,8 @@ def g(row):
 def main(argv):
     filename = argv[0]
     df = pd.read_csv('../../data/python_data/' + filename)
-    df = train_lr(df)
+    df = train_stack(df)
     if (argv[1]):
-        df = df.drop('label', axis=1)
-        b = pd.read_csv('../../data/python_data/labels.csv')
-        df = df.merge(b, on='query')
         df['ml'] = df.apply(f, axis=1)
         df['best'] = df.apply(g, axis=1)
         df.to_csv('../../data/python_data/%s_result.csv' %

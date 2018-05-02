@@ -52,8 +52,8 @@ public class RunFeatureExtractionForStack {
 			cl = clp.parse(options, args);
 			String exp = cl.getOptionValue("exp");
 			String totalExp = cl.getOptionValue("total");
-			String indexBase = "/data/ghadakcv/stack_index/";
-			String biwordIndexBase = "/data/ghadakcv/stack_index_bi/";
+			String indexBase = "/data/ghadakcv/stack_index_s/";
+			String biwordIndexBase = "/data/ghadakcv/stack_index_s_bi/";
 			Path indexPath = Paths.get(indexBase + exp);
 			Path globalIndexPath = Paths.get(indexBase + totalExp);
 			Path biwordIndexPath = Paths.get(biwordIndexBase + exp);
@@ -61,7 +61,7 @@ public class RunFeatureExtractionForStack {
 			String weightField = StackIndexer.VIEW_COUNT_FIELD;
 			String bodyField = StackIndexer.BODY_FIELD;
 			StackQuery sqsr = new StackQuery();
-			List<QuestionDAO> queries = sqsr.loadQueries("questions_s");
+			List<QuestionDAO> queries = sqsr.loadQueries("questions_s_test_train");
 			FeatureExtraction wqde = new FeatureExtraction(weightField);
 			LOGGER.log(Level.INFO, "loading popularity indices..");
 			Map<String, TokenPopularity> termTitlePopularity = TokenPopularity
@@ -74,7 +74,7 @@ public class RunFeatureExtractionForStack {
 			String[] featureNames = { "query", "covered_t", "mean_df_t", "min_df_t", "mean_mean_pop_t",
 					"mean_min_pop_t", "min_mean_pop_t", "min_min_pop_t", "qll_t", "covered_t_bi", "mean_df_t_bi",
 					"min_df_t_bi", "mean_mean_pop_t_bi", "mean_min_pop_t_bi", "min_mean_pop_t_bi", "min_min_pop_t_bi",
-					"ql_t_bi", "qll_t_bi"};
+					"ql_t_bi", "qll_t_bi" };
 			data.add(Arrays.asList(featureNames).stream().map(ft -> ft + ",").collect(Collectors.joining()));
 			try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(indexPath));
 					IndexReader globalIndexReader = DirectoryReader.open(FSDirectory.open(globalIndexPath));
@@ -111,7 +111,7 @@ public class RunFeatureExtractionForStack {
 				LOGGER.log(Level.SEVERE, e.getMessage(), e);
 			}
 
-			try (FileWriter fw = new FileWriter("stack_" + exp + ".csv")) {
+			try (FileWriter fw = new FileWriter("/data/ghadakcv/stack_results/stack_feat/" + exp + ".csv")) {
 				for (String line : data) {
 					fw.write(line + "\n");
 				}
