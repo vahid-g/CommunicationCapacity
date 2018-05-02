@@ -99,7 +99,7 @@ public class RunQueryDifficultyComputer {
 		}
 	}
 
-	List<String> runQueryScoreComputer(String indexPath, String globalIndexPath, List<ExperimentQuery> queries,
+	public List<String> runQueryScoreComputer(String indexPath, String globalIndexPath, List<ExperimentQuery> queries,
 			String difficultyMetric) throws ParseException, IOException {
 		LOGGER.log(Level.INFO, "querylog size " + queries.size());
 		QueryDifficultyComputer qdc;
@@ -138,7 +138,7 @@ public class RunQueryDifficultyComputer {
 		return scores;
 	}
 
-	List<String> runQueryPopularityScoreComputer(WikiFilesPaths paths, List<QueryResult> results) {
+	public List<String> runQueryPopularityScoreComputer(WikiFilesPaths paths, List<QueryResult> results) {
 		Map<String, Double> idPopMap = PopularityUtils.loadIdPopularityMap(paths.getAccessCountsPath());
 		List<String> metric = new ArrayList<String>();
 		for (QueryResult result : results) {
