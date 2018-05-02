@@ -72,7 +72,7 @@ public class RunFeatureExtractionForStack {
 			LOGGER.log(Level.INFO, "extracting features..");
 			List<String> data = new ArrayList<String>();
 			String[] featureNames = { "query", "covered_t", "mean_df_t", "min_df_t", "mean_mean_pop_t",
-					"mean_min_pop_t", "min_mean_pop_t", "min_min_pop_t", "qll_t", "covered_t_bi", "mean_df_t_bi",
+					"mean_min_pop_t", "min_mean_pop_t", "min_min_pop_t", "ql_t", "qll_t", "covered_t_bi", "mean_df_t_bi",
 					"min_df_t_bi", "mean_mean_pop_t_bi", "mean_min_pop_t_bi", "min_mean_pop_t_bi", "min_min_pop_t_bi",
 					"ql_t_bi", "qll_t_bi" };
 			data.add(Arrays.asList(featureNames).stream().map(ft -> ft + ",").collect(Collectors.joining()));
