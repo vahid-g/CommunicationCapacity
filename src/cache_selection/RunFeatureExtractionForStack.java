@@ -61,7 +61,7 @@ public class RunFeatureExtractionForStack {
 			String weightField = StackIndexer.VIEW_COUNT_FIELD;
 			String bodyField = StackIndexer.BODY_FIELD;
 			StackQuery sqsr = new StackQuery();
-			List<QuestionDAO> queries = sqsr.loadQueries("questions_s_train");
+			List<QuestionDAO> queries = sqsr.loadQueries("questions_s_test_train");
 			FeatureExtraction wqde = new FeatureExtraction(weightField);
 			LOGGER.log(Level.INFO, "loading popularity indices..");
 			Map<String, TokenPopularity> termTitlePopularity = TokenPopularity
