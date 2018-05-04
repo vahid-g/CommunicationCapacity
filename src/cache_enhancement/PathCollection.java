@@ -3,10 +3,17 @@ package cache_enhancement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class Paths {
+public class PathCollection {
     private final String timestamp = new SimpleDateFormat("MMddHHmm").format(new Date());
+    private static PathCollection myinstance = null;
 
-    public Paths(String group) {
+    static public PathCollection get(String group) {
+        if (myinstance == null)
+            myinstance = new PathCollection(group);
+        return myinstance;
+    }
+
+    private PathCollection(String group) {
         String relativePath = "";
         switch (group) {
             case "maple":
@@ -32,4 +39,3 @@ public class Paths {
     public final String msnQrelPath;
     public final String defaultSavePath;
 }
-

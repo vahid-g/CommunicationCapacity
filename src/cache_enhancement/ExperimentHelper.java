@@ -17,34 +17,39 @@ import java.util.logging.Logger;
 public class ExperimentHelper {
 
     public static final Logger LOGGER = Logger.getLogger(ExperimentHelper.class.getName());
-    public static Paths paths = new Paths("maple");
+    public static PathCollection myPaths = PathCollection.get("maple");
 
     public static void main(String[] args) throws IOException{
-        paths = new Paths(args[0]);
+        myPaths = PathCollection.get("maple");
+        System.out.println(myPaths.allWiki13IndexPath);
 
-        buildIndex(paths.allWiki13IndexPath);
-//        buildIndex(paths.sub2Wiki13IndexPath);
-//        buildIndex(paths.com2Wiki13IndexPath);
-        getMSNQueryLikelihoods(paths.sub2Wiki13IndexPath, paths.allWiki13IndexPath,
-                paths.defaultSavePath+"_sub2.txt", "jms");
-        getMSNQueryLikelihoods(paths.sub2Wiki13IndexPath, paths.allWiki13IndexPath,
-                paths.defaultSavePath+"_com2.txt", "jms");
+        buildIndex(myPaths.allWiki13IndexPath);
+//        buildIndex(myPaths.sub2Wiki13IndexPath);
+//        buildIndex(myPaths.com2Wiki13IndexPath);
+        getMSNQueryLikelihoods(myPaths.sub2Wiki13IndexPath, myPaths.allWiki13IndexPath,
+                myPaths.defaultSavePath+"_sub2.txt", "jms");
+        getMSNQueryLikelihoods(myPaths.sub2Wiki13IndexPath, myPaths.allWiki13IndexPath,
+                myPaths.defaultSavePath+"_com2.txt", "jms");
 
     }
 
     public static void buildIndex(String indexPath) {
         long startTime = System.currentTimeMillis();
-        List<InexFile> pathCountList = InexFile.loadInexFileList(paths.wiki13Count13Path);
+        List<InexFile> pathCountList = InexFile.loadInexFileList(myPaths.wiki13Count13Path);
         Analyzer analyzer = new StandardAnalyzer();
         WikiExperimentHelper.buildIndex(pathCountList, indexPath, analyzer, false);
         long endTime = System.currentTimeMillis();
         System.out.println((endTime-startTime)/1000);
     }
 
+    public static void updateIndex(String indexPath, String file) {
+
+    }
+
     public static void getMSNQueryLikelihoods(String indexPath, String globalIndexPath, String savePath,
                                               String difficultyMetric) throws IOException{
-        List<ExperimentQuery> experimentQueries = QueryServices.loadMsnQueries(paths.msnQueryPath,
-                paths.msnQrelPath);
+        List<ExperimentQuery> experimentQueries = QueryServices.loadMsnQueries(myPaths.msnQueryPath,
+                myPaths.msnQrelPath);
         RunQueryDifficultyComputer qdc = new RunQueryDifficultyComputer();
         List<String> scores;
         try {
