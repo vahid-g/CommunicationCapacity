@@ -44,6 +44,7 @@ public class MsnQueryLogMiner {
 				} else if (wikiMatcher.find()) {
 					query.wikiId = wikiMatcher.group(1);
 				} else if (freqMatcher.find()) {
+					//TODO: some tuples have multiple freqs and should be added
 					query.freq = Integer.parseInt(freqMatcher.group(1).trim());
 				} else if (entityMatcher.find()) {
 					query.text = br.readLine();
