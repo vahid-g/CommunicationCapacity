@@ -10,6 +10,8 @@ import wiki13.querydifficulty.RunQueryDifficultyComputer;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,5 +69,12 @@ public class ExperimentHelper {
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
         }
+    }
+
+    public static List<CsvParsable> loadCsvFile(String csvFilePath, Class<CsvParsable> typeKey) throws Exception {
+        List<CsvParsable> csv = null;
+        List<String> text = null;
+        typeKey.getConstructor().newInstance().parse(text);
+        return csv;
     }
 }
