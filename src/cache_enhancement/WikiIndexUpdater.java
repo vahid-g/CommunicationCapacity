@@ -12,36 +12,41 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class WikiIndexUpdater {
+public class WikiIndexUpdater extends IndexManipulator{
 
     public static final Logger LOGGER = Logger.getLogger(WikiIndexUpdater.class.getName());
 
-    private final IndexReader indexReader;
-    private final IndexWriter indexWriter;
+    public WikiIndexUpdater(String indexPath, String wikiCountPathFilePath) {
+        super(indexPath);
+    }
 
-
-    public WikiIndexUpdater(String indexPath) throws IOException{
-        FSDirectory directory = FSDirectory.open(Paths.get(indexPath));
-        indexReader = DirectoryReader.open(directory);
-        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(new StandardAnalyzer());
-        indexWriter = new IndexWriter(directory, indexWriterConfig);
+    @Override
+    public void addDoc(String docPath) {
 
     }
 
-    public void add(List<InexFile> inexFiles){
+    @Override
+    public void addDoc(List<String> docPaths) {
 
     }
 
-    public void add(InexFile inexFile) {
+    @Override
+    public void removeDoc(String docPath) {
 
     }
 
-    public void remove(List<InexFile> inexFiles) {
+    @Override
+    public void removeDoc(int docId) {
 
     }
 
-    public void remove(InexFile inexFile) {
+    @Override
+    public void removeDoc(List<String> docPaths) {
 
     }
 
+    @Override
+    public void removeDoc(int[] docIds) {
+
+    }
 }

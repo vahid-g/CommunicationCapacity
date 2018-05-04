@@ -1,6 +1,8 @@
 package cache_enhancement;
 
 import indexing.InexFile;
+import jdk.jshell.spi.ExecutionControl;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import query.ExperimentQuery;
@@ -10,8 +12,7 @@ import wiki13.querydifficulty.RunQueryDifficultyComputer;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,19 +20,30 @@ import java.util.logging.Logger;
 public class ExperimentHelper {
 
     public static final Logger LOGGER = Logger.getLogger(ExperimentHelper.class.getName());
-    public static PathCollection myPaths = PathCollection.get("maple");
+    public static PathCollection myPaths;
 
     public static void main(String[] args) throws IOException{
-        myPaths = PathCollection.get("maple");
-        System.out.println(myPaths.allWiki13IndexPath);
+        final String pathGroup = args[0];
+        final String cacheUpdateLogPath = args[1];
+        final String restUpdateLogPath = args[2];
 
-        buildIndex(myPaths.allWiki13IndexPath);
-//        buildIndex(myPaths.sub2Wiki13IndexPath);
-//        buildIndex(myPaths.com2Wiki13IndexPath);
+        myPaths = PathCollection.get(pathGroup);
+
+        duplicateIndex(myPaths.sub2Wiki13IndexPath);
+        updateIndex(myPaths.sub2Wiki13IndexPath, cacheUpdateLogPath);
+        duplicateIndex(myPaths.com2Wiki13IndexPath);
+        updateIndex(myPaths.com2Wiki13IndexPath, restUpdateLogPath);
+
+        String sub2QueryLikelihoodPath = myPaths.defaultSavePath+"_sub2.txt";
+        String com2QueryLikelihoodPath = myPaths.defaultSavePath+"_com2.txt";
+
         getMSNQueryLikelihoods(myPaths.sub2Wiki13IndexPath, myPaths.allWiki13IndexPath,
-                myPaths.defaultSavePath+"_sub2.txt", "jms");
-        getMSNQueryLikelihoods(myPaths.sub2Wiki13IndexPath, myPaths.allWiki13IndexPath,
-                myPaths.defaultSavePath+"_com2.txt", "jms");
+                sub2QueryLikelihoodPath, "jms");
+        getMSNQueryLikelihoods(myPaths.com2Wiki13IndexPath, myPaths.allWiki13IndexPath,
+                com2QueryLikelihoodPath, "jms");
+
+
+
 
     }
 
@@ -44,8 +56,24 @@ public class ExperimentHelper {
         System.out.println((endTime-startTime)/1000);
     }
 
-    public static void updateIndex(String indexPath, String file) {
+    public static void updateIndex(String indexPath, String updateLogFile) {
+        WikiIndexUpdater wikiIndexUpdater = new WikiIndexUpdater(indexPath, myPaths.wiki13Count13Path);
+        List<UpdateDocument> updateDocuments = UpdateDocument.build(updateLogFile);
+        List<String> addLog = new ArrayList<String>();
+        List<String> removeLog = new ArrayList<String>();
+        List<Integer> removeIdLog = new ArrayList<Integer>();
+        for (UpdateDocument doc: updateDocuments) {
+            if (doc.flag == 'a') {
+                addLog.add(doc.path);
+            }
 
+            else if (doc.flag == 'r') {
+                removeLog.add(doc.path);
+                removeIdLog.add(doc.articleId);
+            }
+        }
+        wikiIndexUpdater.addDoc(addLog);
+        wikiIndexUpdater.removeDoc(removeLog);
     }
 
     public static void getMSNQueryLikelihoods(String indexPath, String globalIndexPath, String savePath,
@@ -71,10 +99,8 @@ public class ExperimentHelper {
         }
     }
 
-    public static List<CsvParsable> loadCsvFile(String csvFilePath, Class<CsvParsable> typeKey) throws Exception {
-        List<CsvParsable> csv = null;
-        List<String> text = null;
-        typeKey.getConstructor().newInstance().parse(text);
-        return csv;
+    public static void duplicateIndex(String indexPath) {
+        throw new NotImplementedException("");
     }
+
 }

@@ -4,13 +4,16 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class PathCollection {
-    private final String timestamp = new SimpleDateFormat("MMddHHmm").format(new Date());
-    private static PathCollection myinstance = null;
+    public final String timestamp = new SimpleDateFormat("MMddHHmm").format(new Date());
+    private static PathCollection myInstance = null;
+    private static String pathGroup = "";
 
     static public PathCollection get(String group) {
-        if (myinstance == null)
-            myinstance = new PathCollection(group);
-        return myinstance;
+        if (!pathGroup.equals(group)) {
+            pathGroup = group;
+            myInstance = new PathCollection(group);
+        }
+        return myInstance;
     }
 
     private PathCollection(String group) {
@@ -21,7 +24,18 @@ public class PathCollection {
                 break;
             case "local":
                 relativePath = "data/";
+                break;
+            case "distributed":
+                allWiki13IndexPath = "some custom path";
+                com2Wiki13IndexPath = "some custom path";
+                sub2Wiki13IndexPath = "some custom path";
+                wiki13Count13Path = "some custom path";
+                msnQueryPath = "some custom path";
+                msnQrelPath = "some custom path";
+                defaultSavePath = "some custom path";
+                return;
         }
+
         allWiki13IndexPath = relativePath + "100";
         com2Wiki13IndexPath = relativePath + "c2";
         sub2Wiki13IndexPath = relativePath + "2";

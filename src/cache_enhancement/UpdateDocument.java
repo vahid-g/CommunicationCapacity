@@ -1,26 +1,32 @@
 package cache_enhancement;
 
+import org.apache.commons.lang3.NotImplementedException;
+
 import java.util.List;
 
 public class UpdateDocument extends CsvParsable {
     public final String path;
-    public final long articleId;
+    public final Integer articleId;
     public final double distance;
-    public final Boolean delFlag;
+    public final char flag;
 
-    private UpdateDocument(String p, long aId, double dist, Boolean dFg) {
+    private UpdateDocument(String p, Integer aId, double dist, char flg) {
         path = p;
         articleId = aId;
         distance = dist;
-        delFlag = dFg;
+        flag = flg;
     }
 
     public static UpdateDocument get(String csvLine) {
         List<String> fields = UpdateDocument.parse(csvLine);
         String path = fields.get(0);
-        long articleId = Integer.getInteger(fields.get(1));
+        Integer articleId = Integer.getInteger(fields.get(1));
         double distance = Double.parseDouble(fields.get(1));
-        Boolean delFlag = Boolean.parseBoolean(fields.get(1));
-        return new UpdateDocument(path, articleId, distance, delFlag);
+        char flg = fields.get(1).charAt(0);
+        return new UpdateDocument(path, articleId, distance, flg);
+    }
+
+    public static List<UpdateDocument> build(String csvFilePath) {
+        throw new NotImplementedException("build");
     }
 }
