@@ -6,13 +6,13 @@ import java.util.List;
 
 public class UpdateDocument extends CsvParsable {
     public final String path;
-    public final Integer articleId;
+    public final String docNumber;
     public final double distance;
     public final char flag;
 
-    private UpdateDocument(String p, Integer aId, double dist, char flg) {
+    private UpdateDocument(String p, String aId, double dist, char flg) {
         path = p;
-        articleId = aId;
+        docNumber = aId;
         distance = dist;
         flag = flg;
     }
@@ -20,7 +20,7 @@ public class UpdateDocument extends CsvParsable {
     public static UpdateDocument get(String csvLine) {
         List<String> fields = UpdateDocument.parse(csvLine);
         String path = fields.get(0);
-        Integer articleId = Integer.getInteger(fields.get(1));
+        String articleId = fields.get(1);
         double distance = Double.parseDouble(fields.get(1));
         char flg = fields.get(1).charAt(0);
         return new UpdateDocument(path, articleId, distance, flg);

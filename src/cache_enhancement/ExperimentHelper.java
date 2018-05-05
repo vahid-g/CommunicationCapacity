@@ -1,7 +1,6 @@
 package cache_enhancement;
 
 import indexing.InexFile;
-import jdk.jshell.spi.ExecutionControl;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -44,7 +43,6 @@ public class ExperimentHelper {
 
 
 
-
     }
 
     public static void buildIndex(String indexPath) {
@@ -61,15 +59,13 @@ public class ExperimentHelper {
         List<UpdateDocument> updateDocuments = UpdateDocument.build(updateLogFile);
         List<String> addLog = new ArrayList<String>();
         List<String> removeLog = new ArrayList<String>();
-        List<Integer> removeIdLog = new ArrayList<Integer>();
         for (UpdateDocument doc: updateDocuments) {
             if (doc.flag == 'a') {
-                addLog.add(doc.path);
+                addLog.add(doc.docNumber);
             }
 
             else if (doc.flag == 'r') {
-                removeLog.add(doc.path);
-                removeIdLog.add(doc.articleId);
+                removeLog.add(doc.docNumber);
             }
         }
         wikiIndexUpdater.addDoc(addLog);
