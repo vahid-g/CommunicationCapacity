@@ -28,9 +28,9 @@ public class MsnQueryLogMiner {
 		String qidQueryFreqPath = "data/wiki/msn_gen/qid_query_freq.csv";
 		String qidQrelPath = "data/wiki/msn_origin/msn.qrels";
 		String qidQueryFreqQrelPath = "data/wiki/msn_gen/qid_query_freq_qrel.csv";
-//		mineQueryFrequencies("data/wiki/msn_origin/msn_queries.txt", queryFreqPath);
-//		generateQidQueryFreq(queryFreqPath, queryQidPath, qidQueryFreqPath);
-//		generateQidQueryFreqQrel(qidQrelPath, qidQueryFreqPath, qidQueryFreqQrelPath);
+		mineQueryFrequencies("data/wiki/msn_origin/msn_queries.txt", queryFreqPath);
+		generateQidQueryFreq(queryFreqPath, queryQidPath, qidQueryFreqPath);
+		generateQidQueryFreqQrel(qidQrelPath, qidQueryFreqPath, qidQueryFreqQrelPath);
 		generateQrelCounts("/scratch/data-sets/wikipedia/textpath13_count13_title.csv", qidQueryFreqQrelPath,
 				"data/wiki/msn_gen/qid_query_freq_qrel_count.csv");
 
@@ -67,7 +67,6 @@ public class MsnQueryLogMiner {
 					System.err.println("Couldn't find qrel: " + qrel + " in qrelCountsMap");
 					failureCounts++;
 					countAndTitle = "0, NULL";
-
 				}
 				fw.write(line + "," + countAndTitle + "\n");
 			}
