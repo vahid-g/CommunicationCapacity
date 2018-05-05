@@ -27,10 +27,50 @@ public class MsnQueryLogMiner {
 		String queryQidPath = "data/wiki/msn_origin/query_qid.csv";
 		String qidQueryFreqPath = "data/wiki/msn_cleaned/qid_query_freq.csv";
 		String qidQrelPath = "data/wiki/msn_origin/msn.qrels";
-		mineQueryFrequencies("data/wiki/msn_origin/msn_queries.txt", queryFreqPath);
-		generateQidQueryFreq(queryFreqPath, queryQidPath, qidQueryFreqPath);
-		generateQidQueryFreqQrel(qidQrelPath, qidQueryFreqPath, "data/wiki/msn_cleaned/qid_query_freq_qrel.csv");
+		String qidQueryFreqQrelPath = "data/wiki/msn_cleaned/qid_query_freq_qrel.csv";
+		// mineQueryFrequencies("data/wiki/msn_origin/msn_queries.txt", queryFreqPath);
+		// generateQidQueryFreq(queryFreqPath, queryQidPath, qidQueryFreqPath);
+		// generateQidQueryFreqQrel(qidQrelPath, qidQueryFreqPath,
+		// qidQueryFreqQrelPath);
+		generateQrelCounts("/scratch/data-sets/wikipedia/textpath13_count13_title.csv", qidQueryFreqQrelPath,
+				"data/wiki/msn_cleaned/qid_query_freq_qrel_count.csv");
 
+	}
+
+	static void generateQrelCounts(String idCountsPath, String qidQueryFreqQrel, String output)
+			throws IOException, IOException {
+		Map<String, String> qrelCountMap = new HashMap<String, String>();
+		try (BufferedReader br = new BufferedReader(new FileReader(idCountsPath));
+				FileWriter fw = new FileWriter(output)) {
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				Pattern pattern = Pattern.compile(".*/([^.]+)\\.txt,([^,]+), (.+)");
+				Matcher matcher = pattern.matcher(line);
+				if (matcher.find()) {
+					String id = matcher.group(1);
+					String count = matcher.group(2);
+					String title = matcher.group(3);
+					qrelCountMap.put(id, count + "," + title);
+				} else {
+					System.err.println("can not parse line: " + line);
+				}
+			}
+		}
+
+		try (BufferedReader br = new BufferedReader(new FileReader(qidQueryFreqQrel));
+				FileWriter fw = new FileWriter(output)) {
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				String qrel = line.substring(line.lastIndexOf(',') + 1);
+				String counts = qrelCountMap.get(qrel);
+				if (counts == null) {
+					System.err.println("Couldn't find qrel: " + qrel + " in qrelCountsMap");
+					continue;
+				} else {
+					fw.write(line + "," + qrelCountMap.get(qrel));
+				}
+			}
+		}
 	}
 
 	static void generateQidQueryFreqQrel(String qidQrelPath, String qidQueryFreqPath, String output)
