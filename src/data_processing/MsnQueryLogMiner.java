@@ -52,7 +52,7 @@ public class MsnQueryLogMiner {
 					String title = matcher.group(3);
 					qrelCountMap.put(id, count + "," + title);
 				} else {
-					System.err.println("can not parse line: " + line);
+					System.err.println("Couldn't parse line: " + line);
 				}
 			}
 		}
@@ -60,16 +60,19 @@ public class MsnQueryLogMiner {
 		try (BufferedReader br = new BufferedReader(new FileReader(qidQueryFreqQrel));
 				FileWriter fw = new FileWriter(output)) {
 			String line = null;
+			int count = 0;
 			while ((line = br.readLine()) != null) {
 				String qrel = line.substring(line.lastIndexOf(',') + 1);
 				String counts = qrelCountMap.get(qrel);
 				if (counts == null) {
-					System.err.println("Couldn't find qrel: " + qrel + " in qrelCountsMap");
-					continue;
-				} else {
-					fw.write(line + "," + qrelCountMap.get(qrel));
+					// System.err.println("Couldn't find qrel: " + qrel + " in qrelCountsMap");
+					count++;
+					// TODO
+					
 				}
+					fw.write(line + "," + qrelCountMap.get(qrel));
 			}
+			System.err.println("couldn't find " + count + " qrels in qrelCountsMap");
 		}
 	}
 
