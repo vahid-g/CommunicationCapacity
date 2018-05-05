@@ -23,17 +23,16 @@ public class MsnQueryLogMiner {
 	}
 
 	public static void main(String[] args) throws IOException {
-		String queryFreqPath = "data/wiki/msn_cleaned/query_freq.csv";
+		String queryFreqPath = "data/wiki/msn_gen/query_freq.csv";
 		String queryQidPath = "data/wiki/msn_origin/query_qid.csv";
-		String qidQueryFreqPath = "data/wiki/msn_cleaned/qid_query_freq.csv";
+		String qidQueryFreqPath = "data/wiki/msn_gen/qid_query_freq.csv";
 		String qidQrelPath = "data/wiki/msn_origin/msn.qrels";
-		String qidQueryFreqQrelPath = "data/wiki/msn_cleaned/qid_query_freq_qrel.csv";
-		// mineQueryFrequencies("data/wiki/msn_origin/msn_queries.txt", queryFreqPath);
-		// generateQidQueryFreq(queryFreqPath, queryQidPath, qidQueryFreqPath);
-		// generateQidQueryFreqQrel(qidQrelPath, qidQueryFreqPath,
-		// qidQueryFreqQrelPath);
+		String qidQueryFreqQrelPath = "data/wiki/msn_gen/qid_query_freq_qrel.csv";
+//		mineQueryFrequencies("data/wiki/msn_origin/msn_queries.txt", queryFreqPath);
+//		generateQidQueryFreq(queryFreqPath, queryQidPath, qidQueryFreqPath);
+//		generateQidQueryFreqQrel(qidQrelPath, qidQueryFreqPath, qidQueryFreqQrelPath);
 		generateQrelCounts("/scratch/data-sets/wikipedia/textpath13_count13_title.csv", qidQueryFreqQrelPath,
-				"data/wiki/msn_cleaned/qid_query_freq_qrel_count.csv");
+				"data/wiki/msn_gen/qid_query_freq_qrel_count.csv");
 
 	}
 
@@ -60,19 +59,19 @@ public class MsnQueryLogMiner {
 		try (BufferedReader br = new BufferedReader(new FileReader(qidQueryFreqQrel));
 				FileWriter fw = new FileWriter(output)) {
 			String line = null;
-			int count = 0;
+			int failureCounts = 0;
 			while ((line = br.readLine()) != null) {
 				String qrel = line.substring(line.lastIndexOf(',') + 1);
-				String counts = qrelCountMap.get(qrel);
-				if (counts == null) {
-					// System.err.println("Couldn't find qrel: " + qrel + " in qrelCountsMap");
-					count++;
-					// TODO
-					
+				String countAndTitle = qrelCountMap.get(qrel);
+				if (countAndTitle == null) {
+					System.err.println("Couldn't find qrel: " + qrel + " in qrelCountsMap");
+					failureCounts++;
+					countAndTitle = "0, NULL";
+
 				}
-					fw.write(line + "," + qrelCountMap.get(qrel));
+				fw.write(line + "," + countAndTitle + "\n");
 			}
-			System.err.println("couldn't find " + count + " qrels in qrelCountsMap");
+			System.err.println("couldn't find " + failureCounts + " qrels in qrelCountsMap");
 		}
 	}
 
