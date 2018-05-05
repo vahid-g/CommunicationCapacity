@@ -6,7 +6,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,13 +17,93 @@ public class MsnQueryLogMiner {
 	public static class MsnLogQuery {
 		String text = "";
 		String id = "";
-		String wikiId = "";
+		List<String> relWikiId = new ArrayList<String>();
 		int freq = 0;
 		String type = "";
 	}
 
-	public static void main(String[] args) {
-		String dataset = "/scratch/Dropbox/Research/Database Communication/experiments/queries/msn/raw data/msn_8009.txt";
+	public static void main(String[] args) throws IOException {
+		String queryFreqPath = "data/wiki/msn_cleaned/query_freq.csv";
+		String queryQidPath = "data/wiki/msn_origin/query_qid.csv";
+		String qidQueryFreqPath = "data/wiki/msn_cleaned/qid_query_freq.csv";
+		String qidQrelPath = "data/wiki/msn_origin/msn.qrels";
+		mineQueryFrequencies("data/wiki/msn_origin/msn_queries.txt", queryFreqPath);
+		generateQidQueryFreq(queryFreqPath, queryQidPath, qidQueryFreqPath);
+		generateQidQueryFreqQrel(qidQrelPath, qidQueryFreqPath, "data/wiki/msn_cleaned/qid_query_freq_qrel.csv");
+
+	}
+
+	static void generateQidQueryFreqQrel(String qidQrelPath, String qidQueryFreqPath, String output)
+			throws FileNotFoundException, IOException {
+		Map<String, String> qidQrelMap = new HashMap<String, String>();
+		try (BufferedReader br = new BufferedReader(new FileReader(qidQrelPath))) {
+			String line = "";
+			while ((line = br.readLine()) != null) {
+				String[] fields = line.split(" ");
+				qidQrelMap.put(fields[0], fields[2]);
+			}
+		}
+		try (BufferedReader br = new BufferedReader(new FileReader(qidQueryFreqPath));
+				FileWriter fw = new FileWriter(output)) {
+			String line = "";
+			while ((line = br.readLine()) != null) {
+				String qid = line.substring(0, line.indexOf(','));
+				if (!qidQrelMap.containsKey(qid)) {
+					System.err.println("couldn't find qid: " + qid + " in qrels");
+				} else {
+					fw.write(line + "," + qidQrelMap.get(qid) + "\n");
+				}
+			}
+		}
+	}
+
+	static void generateQidQueryFreq(String queryFreqPath, String queryQidPath, String output) throws IOException {
+		Map<String, String> queryQid = new HashMap<String, String>();
+		try (BufferedReader br = new BufferedReader(new FileReader(queryQidPath))) {
+			String line = "";
+			while ((line = br.readLine()) != null) {
+				int i = line.lastIndexOf(' ');
+				if (i == -1) {
+					System.err.println("error processing line: " + line);
+				} else {
+					String query = line.substring(0, i);
+					String qid = line.substring(i + 1);
+					queryQid.put(query, qid);
+				}
+			}
+		}
+		try (BufferedReader br = new BufferedReader(new FileReader(queryFreqPath));
+				FileWriter fw = new FileWriter(output)) {
+			String line = "";
+			while ((line = br.readLine()) != null) {
+				int i = line.lastIndexOf(',');
+				if (i == -1) {
+					System.err.println("line doesn't contain ',' character: " + line);
+				} else {
+					String query = line.substring(0, i).replaceAll("^\"|\"$", "");
+					// Next lines take care of specific queries
+					if (query.equals(",dookie")) {
+						query = "dookie";
+					} else if (query.equals("rihanna born:")) {
+						query = "rihanna born";
+					}
+					String qid = queryQid.get(query);
+					if (qid == null) {
+						// MSN querylog contains some nonsense slashes. Next line takes care of them
+						qid = queryQid.get(query.replaceAll(" / ", " ").replaceAll(" /", " ").replaceAll("/ ", " ")
+								.replaceAll("/", " ").trim());
+						if (qid == null) {
+							System.err.println("queryQidMap doesn't contain query:" + query);
+							continue;
+						}
+					}
+					fw.write(qid + "," + line + "\n");
+				}
+			}
+		}
+	}
+
+	static void mineQueryFrequencies(String dataset, String output) {
 		try (BufferedReader br = new BufferedReader((new FileReader(dataset)))) {
 			String line = br.readLine();
 			Pattern firstLinePtr = Pattern.compile("# (\\d+) -+");
@@ -42,19 +124,18 @@ public class MsnQueryLogMiner {
 					query = new MsnLogQuery();
 					query.id = firstMatcher.group(1);
 				} else if (wikiMatcher.find()) {
-					query.wikiId = wikiMatcher.group(1);
+					query.relWikiId.add(wikiMatcher.group(1));
 				} else if (freqMatcher.find()) {
-					//TODO: some tuples have multiple freqs and should be added
-					query.freq = Integer.parseInt(freqMatcher.group(1).trim());
+					query.freq += Integer.parseInt(freqMatcher.group(1).trim());
 				} else if (entityMatcher.find()) {
 					query.text = br.readLine();
 				}
 				line = br.readLine();
 			}
 			queries.add(query);
-			try (FileWriter fw = new FileWriter("msn_queries.csv")) {
+			try (FileWriter fw = new FileWriter(output)) {
 				for (MsnLogQuery mlq : queries) {
-					fw.write(mlq.text.replaceAll(",", "") + "," + mlq.freq + "\n");
+					fw.write("\"" + mlq.text + "\"," + mlq.freq + "\n");
 				}
 			}
 
@@ -64,4 +145,5 @@ public class MsnQueryLogMiner {
 			e.printStackTrace();
 		}
 	}
+
 }
