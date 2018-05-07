@@ -40,8 +40,8 @@ abstract public class IndexManipulator {
         }
     }
 
-    abstract public void addDoc(String docId);
-    abstract public void addDoc(List<String> docIds);
-    abstract public void removeDoc(String docId);
-    abstract public void removeDoc(List<String> docIds);
+    abstract public boolean addDoc(String docId);
+    abstract public int addDoc(List<String> docIds);
+    abstract public boolean removeDoc(String docId);
+    abstract public int removeDoc(List<String> docIds);
 }
