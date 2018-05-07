@@ -16,12 +16,12 @@ import database.DatabaseConnection;
 import database.DatabaseType;
 
 // This class splits the view counts into train/test set by doing sampling without replacement
-public class ViewCountSplitter {
+public class TrainTestSampler {
 
 	final static int QUESTIONS_A_SIZE = 8034000;
 	final static int QUESTIONS_S_SIZE = 1092420;
 
-	private static Logger LOGGER = Logger.getLogger(ViewCountSplitter.class.getName());
+	private static Logger LOGGER = Logger.getLogger(TrainTestSampler.class.getName());
 
 	public static void main(String[] args) throws IOException, SQLException {
 		String tableName = args[0]; //"questions_a"
