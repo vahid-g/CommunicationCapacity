@@ -76,14 +76,17 @@ def train_stack(df, size=0.33):
     return output
 
 def train_wiki(df, size=0.33):
+    df = df.drop(['TrainFreq'], axis=1)
+    df = df.loc[df['TestFreq'] > 0]
     df = df.fillna(0)
-    labels = df['Label']
-    X, X_test, y, y_test = train_test_split(df.drop(['Label'], axis=1), labels, stratify=labels,
+    labels = df['label']
+    X, X_test, y, y_test = train_test_split(df.drop(['label'], axis=1), labels, stratify=labels,
                                             test_size=size, random_state=1)
-    X = X.drop(['Query'], axis=1)
-    test_queries = X_test['Query']
-    X_test = X_test.drop(['Query'], axis=1)
-    print(df.corr()['Label'].sort_values())
+    X = X.drop(['query', 'TestFreq'], axis=1)
+    test_queries = X_test['query']
+    test_freq = X_test['TestFreq']
+    X_test = X_test.drop(['query', 'TestFreq'], axis=1)
+    print(df.corr()['label'].sort_values())
     print("train set size and ones: %d, %d" % (y.shape[0], np.sum(y)))
     print("test set size and ones: %d, %d" % (y_test.shape[0], np.sum(y_test)))
     print("onez ratio in trian set =  %.2f" % (100 * np.sum(y) / y.shape[0]))
@@ -98,8 +101,7 @@ def train_wiki(df, size=0.33):
     lr.fit(X, y)
     print("training mean accuracy = %.2f" % lr.score(X, y))
     print("testing mean accuracy = %.2f" % lr.score(X_test, y_test))
-    c = np.column_stack((df.columns.values[1:-1], np.round(lr.coef_.flatten(),
-                                                          2)))
+    c = np.column_stack((df.columns.values[2:-1], np.round(lr.coef_.flatten(),2)))
     print(c[c[:,1].argsort()])
     y_prob = lr.predict_proba(X_test)
     y_pred = y_prob[:, 1] > 0.5
@@ -126,6 +128,7 @@ def train_wiki(df, size=0.33):
     output['Query'] = test_queries
     output['Label'] = y_test
     output['Pred'] = pd.Series(y_pred, index=output.index)
+    output['TestFreq'] = test_freq
     return output
 
 
