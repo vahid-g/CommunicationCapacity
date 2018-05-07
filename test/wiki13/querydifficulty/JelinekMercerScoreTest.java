@@ -35,7 +35,7 @@ public class JelinekMercerScoreTest {
    	    }
    	    IndexReader reader = DirectoryReader.open(rd);
    	    List<ExperimentQuery> queries = new ArrayList<ExperimentQuery>();
-   	    ExperimentQuery query1 = new ExperimentQuery(1, "hanhan");
+   	    ExperimentQuery query1 = new ExperimentQuery(1, "hanhan", 1);
    	    queries.add(query1);
    	    JelinekMercerScore jms = new JelinekMercerScore(DirectoryReader.open(rd2));
    	    Map<String, Double> results = jms.computeScore(reader, queries,

@@ -15,7 +15,7 @@ public class WikiMapleFilteringExperimentTest {
     @Test
     public void testFilterQueryResult() {
 	QueryResult result1 = new QueryResult(new ExperimentQuery(1,
-		"query text"));
+		"query text", 1));
 	result1.addResult("doc1", "good doc");
 	result1.addResult("doc2", "fairDoc");
 	result1.addResult("doc3", "bad doc");
