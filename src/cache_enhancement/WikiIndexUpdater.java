@@ -1,10 +1,14 @@
 package cache_enhancement;
 
 import indexing.InexFile;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
@@ -23,7 +27,7 @@ import java.util.logging.Logger;
 public class WikiIndexUpdater extends IndexManipulator{
 
     public static final Logger LOGGER = Logger.getLogger(WikiIndexUpdater.class.getName());
-    public Map<String, String> docNumberInfo;
+    final public Map<String, String> docNumberInfo;
 
     public WikiIndexUpdater(String indexPath, String wikiCountPathFilePath) {
         super(indexPath);
@@ -39,9 +43,8 @@ public class WikiIndexUpdater extends IndexManipulator{
                     continue;
 
                 String path = line.split(",", 1)[0];
-                String[] subPaths = path.split("/", 0);
-                String docName = subPaths[subPaths.length-1];
-                String docNum = docName.replaceAll("[^0-9]", "");
+                File file =  new File(path);
+                String docNum = FilenameUtils.removeExtension(file.getName());
                 docNumberInfo.put(docNum, line);
             }
         }
@@ -51,6 +54,8 @@ public class WikiIndexUpdater extends IndexManipulator{
     }
 
     public void search(String queryStr, int hitsPerPage) throws ParseException, IOException {
+        IndexReader indexReader = DirectoryReader.open(indexWriter.getDirectory());
+        IndexSearcher indexSearcher = new IndexSearcher(indexReader);
         Query q = new QueryParser(WikiFileIndexer.CONTENT_ATTRIB, new StandardAnalyzer()).parse(queryStr);
         TopDocs docs = indexSearcher.search(q, hitsPerPage);
         ScoreDoc[] hits = docs.scoreDocs;
