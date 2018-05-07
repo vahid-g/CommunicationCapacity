@@ -23,11 +23,14 @@ public class MsnTrainTestSampler {
 				"/nfs/stak/users/ghadakcv/workspace/queries/msn.qrels");
 		int sum = 0;
 		int[] freqs = new int[queries.size()];
+		int index = 0;
 		for (ExperimentQuery query : queries) {
-			freqs[0] = query.getFreq();
+			freqs[index++] = query.getFreq();
 			sum += query.getFreq();
 		}
 		int sampleSize = (int) (sum * 0.1);
+		LOGGER.log(Level.INFO, "sampling size: " + sampleSize);
+		LOGGER.log(Level.INFO, "freqs sum: " + sum);
 		int[] train = new int[queries.size()];
 		Random rand = new Random();
 		for (int i = 0; i < sampleSize; i++) {
