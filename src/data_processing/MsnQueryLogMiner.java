@@ -176,6 +176,7 @@ public class MsnQueryLogMiner {
 			queries.add(query);
 			try (FileWriter fw = new FileWriter(output)) {
 				for (MsnLogQuery mlq : queries) {
+					//TODO check for the case that mlq.text already has double quotes
 					fw.write("\"" + mlq.text + "\"," + mlq.freq + "\n");
 				}
 			}
