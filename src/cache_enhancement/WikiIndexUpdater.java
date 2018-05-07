@@ -34,7 +34,6 @@ public class WikiIndexUpdater extends IndexManipulator{
             BufferedReader bufferedReader = new BufferedReader(fileReader);
 
             String line;
-            int i = 1;
             while ((line = bufferedReader.readLine()) != null) {
                 if (!line.contains(","))
                     continue;
@@ -42,11 +41,8 @@ public class WikiIndexUpdater extends IndexManipulator{
                 String path = line.split(",", 1)[0];
                 String[] subPaths = path.split("/", 0);
                 String docName = subPaths[subPaths.length-1];
-                final String docNum = docName.replaceAll("[^0-9]", "");
-                docNumberInfo.put(docName, line);
-                i++;
-                if (i>100)
-                    break;
+                String docNum = docName.replaceAll("[^0-9]", "");
+                docNumberInfo.put(docNum, line);
             }
         }
         catch (Exception e){
@@ -103,12 +99,25 @@ public class WikiIndexUpdater extends IndexManipulator{
 
     @Override
     public boolean removeDoc(String docId) {
-        return false;
+        boolean failed = false;
+        try {
+            Query q = new QueryParser(WikiFileIndexer.DOCNAME_ATTRIB, new StandardAnalyzer()).parse(docId);
+            indexWriter.deleteDocuments(q);
+        } catch (Exception e) {
+            failed = true;
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        }
+        return failed;
     }
 
     @Override
     public int removeDoc(List<String> docIds) {
-        return 0;
+        int failed = 0;
+        for(String docId: docIds) {
+            if(removeDoc(docId))
+                failed += 1;
+        }
+        return failed;
     }
 
 }
