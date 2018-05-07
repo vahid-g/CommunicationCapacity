@@ -197,6 +197,33 @@ public class QueryServices {
 		return queryList;
 	}
 
+	public static List<ExperimentQuery> loadMsnQueriesWithFreqs(String queryPath, String qrelPath) {
+		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
+		try (FileInputStream fis = new FileInputStream(qrelPath);
+				BufferedReader br = new BufferedReader(new FileReader(queryPath))) {
+			Map<Integer, Set<Qrel>> qidQrelMap = Qrel.loadQrelFile(fis);
+			String line;
+			while ((line = br.readLine()) != null) {
+				String fields[] = line.split("\t");
+				int qid = Integer.parseInt(fields[0]);
+				String text = fields[1];
+				int freq = Integer.parseInt(fields[2]);
+				if (qidQrelMap.containsKey(qid)) {
+					Set<Qrel> qrels = qidQrelMap.get(qid);
+					if (qrels == null) {
+						LOGGER.log(Level.SEVERE, "no qrels for query: " + qid + ":" + text + "in file: " + qrelPath);
+					} else {
+						ExperimentQuery iq = new ExperimentQuery(qid, text, freq, qrels);
+						queryList.add(iq);
+					}
+				}
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return queryList;
+	}
+
 	public static List<ExperimentQuery> loadInexQueries(String path, String qrelPath) {
 		return loadInexQueries(path, qrelPath, "title");
 	}
