@@ -56,8 +56,7 @@ public class WikiMapleRelationalEfficiencyExperiment {
 	void queryEfficiencyExperiment(String mode, String subset, List<ExperimentQuery> queries) {
 		String subsetIndexPath = PATHS.getIndexBase() + subset;
 		String indexPath = PATHS.getIndexBase() + "100";
-		try {
-			DatabaseConnection dm = new DatabaseConnection(DatabaseType.WIKIPEDIA);
+		try (DatabaseConnection dm = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			String subsetPrefix = "";
 			switch (mode) {
 			case "denorm":
