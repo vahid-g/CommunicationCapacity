@@ -32,6 +32,7 @@ public class PathCollection {
                 wiki13Count13Path = "some custom path";
                 msnQueryPath = "some custom path";
                 msnQrelPath = "some custom path";
+                allWikiRRanks = "some custom path";
                 defaultSavePath = "some custom path";
                 return;
         }
@@ -42,7 +43,8 @@ public class PathCollection {
         wiki13Count13Path = relativePath + "wiki13_counts13_title.csv";
         msnQueryPath = relativePath + "msn_query_qid.csv";
         msnQrelPath = relativePath + "msn.qrels";
-        defaultSavePath = relativePath + timestamp;
+        allWikiRRanks = relativePath + "rranks.csv";
+        defaultSavePath = relativePath;
     }
 
     public final String allWiki13IndexPath;
@@ -51,5 +53,6 @@ public class PathCollection {
     public final String wiki13Count13Path;
     public final String msnQueryPath;
     public final String msnQrelPath;
+    public final String allWikiRRanks;
     public final String defaultSavePath;
 }

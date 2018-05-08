@@ -2,20 +2,21 @@ package cache_enhancement;
 
 import indexing.InexFile;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryparser.classic.ParseException;
 import query.ExperimentQuery;
+import query.QueryResult;
 import query.QueryServices;
 import wiki13.WikiExperimentHelper;
 import wiki13.querydifficulty.RunQueryDifficultyComputer;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,10 +31,6 @@ public class ExperimentHelper {
         final String restUpdateLogPath = args[2];
 
         myPaths = PathCollection.get(pathGroup);
-//        WikiIndexUpdater wikiIndexUpdater = new WikiIndexUpdater(myPaths.sub2Wiki13IndexPath,
-//                myPaths.wiki13Count13Path);
-//
-//        wikiIndexUpdater.search("link", 10);
 
         System.out.println("Making copies of the Sub2 and Com2 Indexes ...");
         final String tempSub2Wiki13IndexPath = makeTempCopy(myPaths.sub2Wiki13IndexPath);
@@ -52,6 +49,8 @@ public class ExperimentHelper {
         getMSNQueryLikelihoods(tempCom2Wiki13IndexPath, myPaths.allWiki13IndexPath,
                 com2QueryLikelihoodPath, "jms");
 
+        System.out.println("Calculating RRanks for Sub2  index ...");
+        final String subRRankPath = getRRanks(tempSub2Wiki13IndexPath, "sub2_");
 
     }
 
@@ -95,6 +94,7 @@ public class ExperimentHelper {
 
         wikiIndexUpdater.addDoc(addLog);
         wikiIndexUpdater.removeDoc(removeLog);
+        wikiIndexUpdater.commit();
     }
 
     public static void getMSNQueryLikelihoods(String indexPath, String globalIndexPath, String savePath,
@@ -118,6 +118,18 @@ public class ExperimentHelper {
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
         }
+    }
+
+    public static String getRRanks(String indexPath, String prefix) {
+        List<ExperimentQuery> queries = QueryServices.loadMsnQueries(myPaths.msnQueryPath, myPaths.msnQrelPath);
+        List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath,
+                queries, 0.1f,false);
+        WikiExperimentHelper.writeQueryResultsToFile(results,
+                myPaths.defaultSavePath,
+                myPaths.timestamp + "_" +
+                        prefix + FilenameUtils.getName(myPaths.allWikiRRanks));
+        return myPaths.defaultSavePath + myPaths.timestamp + "_" +
+                prefix + FilenameUtils.getName(myPaths.allWikiRRanks);
     }
 
     public static String makeTempCopy(String indexPath) throws IOException {
@@ -146,6 +158,21 @@ public class ExperimentHelper {
         FileUtils.copyDirectory(src, dest, false);
 
         return dest.getPath();
+    }
+
+    public static Map<String, String> splitQueriesToSubAndAll(String likelihoodSubPath,
+                                                              String likelihoodComPath,
+                                                              String msn_query_qid_Path) throws IOException {
+        QueryLikelihood subLikelihoods = new QueryLikelihood(likelihoodSubPath, "Sub");
+        QueryLikelihood comLikelihoods = new QueryLikelihood(likelihoodComPath, "Com");
+        Map<String, String> queryAssignment = QueryLikelihood.compareAndAssign(subLikelihoods, comLikelihoods);
+
+        File msnQFile = new File(msn_query_qid_Path);
+        File msnQSubFile = new File(msnQFile.getPath()+"/temp/sub_"+msnQFile.getName());
+        File msnQAllFile = new File(msnQFile.getPath()+"/temp/all_"+msnQFile.getName());
+
+
+        return  queryAssignment;
     }
 
 }
