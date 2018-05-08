@@ -12,10 +12,7 @@ import query.QueryServices;
 import wiki13.WikiExperimentHelper;
 import wiki13.querydifficulty.RunQueryDifficultyComputer;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,17 +38,26 @@ public class ExperimentHelper {
         System.out.println("Updating Com2 index ...");
         updateIndex(tempCom2Wiki13IndexPath, restUpdateLogPath, myPaths.wiki13Count13Path);
 
+        System.out.println("Calculating RRanks for Sub2  index ...");
+        final String subRRankPath = getRRanks(tempSub2Wiki13IndexPath, "sub2_");
+
         String sub2QueryLikelihoodPath = myPaths.defaultSavePath+"_sub2.txt";
         String com2QueryLikelihoodPath = myPaths.defaultSavePath+"_com2.txt";
 
+        System.out.println("Generating query likelihoods for Sub2 and Com2 ...");
         getMSNQueryLikelihoods(tempSub2Wiki13IndexPath, myPaths.allWiki13IndexPath,
                 sub2QueryLikelihoodPath, "jms");
         getMSNQueryLikelihoods(tempCom2Wiki13IndexPath, myPaths.allWiki13IndexPath,
                 com2QueryLikelihoodPath, "jms");
 
-        System.out.println("Calculating RRanks for Sub2  index ...");
-        final String subRRankPath = getRRanks(tempSub2Wiki13IndexPath, "sub2_");
+        Map<String, String> assignment = assignQueriesBasedonLikelihood(sub2QueryLikelihoodPath, "sub",
+                com2QueryLikelihoodPath, "all");
 
+        HashMap<String, String> fileLablePath = new HashMap<>();
+        fileLablePath.put("sub", subRRankPath);
+        fileLablePath.put("all", myPaths.allWikiRRanks);
+        Double MRR = calculateMRR(assignment, fileLablePath);
+        System.out.println("MRR: " + MRR);
     }
 
     public static void buildWikiIndex(String indexPath, int expNo, boolean isComplement,
@@ -124,12 +130,11 @@ public class ExperimentHelper {
         List<ExperimentQuery> queries = QueryServices.loadMsnQueries(myPaths.msnQueryPath, myPaths.msnQrelPath);
         List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath,
                 queries, 0.1f,false);
-        WikiExperimentHelper.writeQueryResultsToFile(results,
-                myPaths.defaultSavePath,
-                myPaths.timestamp + "_" +
-                        prefix + FilenameUtils.getName(myPaths.allWikiRRanks));
-        return myPaths.defaultSavePath + myPaths.timestamp + "_" +
-                prefix + FilenameUtils.getName(myPaths.allWikiRRanks);
+        final String saveDir = myPaths.defaultSavePath+ "rr/";
+        final String filename = myPaths.timestamp + "_" + prefix +
+                FilenameUtils.getName(myPaths.allWikiRRanks);
+        WikiExperimentHelper.writeQueryResultsToFile(results, saveDir, filename);
+        return saveDir+filename;
     }
 
     public static String makeTempCopy(String indexPath) throws IOException {
@@ -160,19 +165,52 @@ public class ExperimentHelper {
         return dest.getPath();
     }
 
-    public static Map<String, String> splitQueriesToSubAndAll(String likelihoodSubPath,
-                                                              String likelihoodComPath,
-                                                              String msn_query_qid_Path) throws IOException {
-        QueryLikelihood subLikelihoods = new QueryLikelihood(likelihoodSubPath, "Sub");
-        QueryLikelihood comLikelihoods = new QueryLikelihood(likelihoodComPath, "Com");
+    public static Map<String, String> assignQueriesBasedonLikelihood(String likelihoodSubPath, String subLable,
+                                                              String likelihoodComPath, String comLable) throws IOException {
+        QueryLikelihood subLikelihoods = new QueryLikelihood(likelihoodSubPath, subLable);
+        QueryLikelihood comLikelihoods = new QueryLikelihood(likelihoodComPath, comLable);
         Map<String, String> queryAssignment = QueryLikelihood.compareAndAssign(subLikelihoods, comLikelihoods);
 
-        File msnQFile = new File(msn_query_qid_Path);
-        File msnQSubFile = new File(msnQFile.getPath()+"/temp/sub_"+msnQFile.getName());
-        File msnQAllFile = new File(msnQFile.getPath()+"/temp/all_"+msnQFile.getName());
-
+        final String saveAssignmentPath = FilenameUtils.getFullPath(likelihoodComPath) +
+                myPaths.timestamp + "_query_assignment.csv";
+        try (FileWriter fw = new FileWriter(saveAssignmentPath)) {
+            for (String query : queryAssignment.keySet()) {
+                fw.write(query + ", " + queryAssignment.get(query) + "\n");
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        }
 
         return  queryAssignment;
+    }
+
+    public static Double calculateMRR(Map<String, String> queryAssignment, Map<String,
+            String> fileLablePath) throws IOException {
+        final int queryFieldNumber = 0;
+        final int mrrFieldNumber = 3;
+        Double MRR = 0.0;
+        int qCount = 0;
+
+        for(String label: fileLablePath.keySet()) {
+            File file = new File(fileLablePath.get(label));
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+            String line;
+            while((line = bufferedReader.readLine()) != null) {
+                List<String> fields = CsvParsable.parse(line, ",");
+                String query = fields.get(queryFieldNumber);
+                Double rrank = Double.parseDouble(fields.get(mrrFieldNumber));
+                if(queryAssignment.get(query).equals(label)) {
+                    MRR += rrank;
+                    qCount++;
+                }
+            }
+        }
+
+        if (queryAssignment.size() != qCount)
+            LOGGER.log(Level.WARNING, "Not all queries are incorporated in calculating MRR.");
+
+        MRR = MRR/qCount;
+        return MRR;
     }
 
 }

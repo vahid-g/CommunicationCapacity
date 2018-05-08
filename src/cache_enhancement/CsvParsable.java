@@ -7,7 +7,8 @@ import java.util.List;
 
 abstract public class CsvParsable {
     protected static List<String> parse(String csvTextLine, String seperator) {
-        return new ArrayList<String>(Arrays.asList(csvTextLine.split(seperator, 0)));
+        final String regex = "\\s*" + seperator + "\\s*";
+        return new ArrayList<String>(Arrays.asList(csvTextLine.trim().split(regex)));
     }
 
     protected static List<String> parse(String csvTextLine) {
