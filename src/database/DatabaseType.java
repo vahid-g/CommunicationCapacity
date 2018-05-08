@@ -2,7 +2,7 @@ package database;
 
 public enum DatabaseType {
 
-	WIKIPEDIA("wiki-db"), STACKOVERFLOW("stack-db");
+	WIKIPEDIA("wiki-db"), STACKOVERFLOW("stack-db"), ABTIN("abtin-db");
 
 	private String type;
 
