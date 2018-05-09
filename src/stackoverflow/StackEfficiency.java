@@ -55,7 +55,7 @@ public class StackEfficiency {
 			LOGGER.log(Level.INFO, "querying done!");
 			LOGGER.log(Level.INFO, "time per query = " + (time / 1000 / questions.size()) + " seconds");
 		}
-		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {
+		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.ABTIN)) {
 			String queryTemplate = "SELECT a.Id FROM answers_s_train a left join comments_18 c on a.Id = c.PostId "
 					+ "left join posthistory_18 p on a.Id = p.PostId left join postlinks_18 pl on a.Id = pl.PostId "
 					+ "left join votes_18 v on a.Id = v.PostId WHERE a.Id in %s;";
@@ -64,7 +64,6 @@ public class StackEfficiency {
 			LOGGER.log(Level.INFO, "querying done!");
 			LOGGER.log(Level.INFO, "time per query = " + (time / 1000 / questions.size()) + " seconds");
 		}
-		
 	}
 
 	private long submitQueries(List<QuestionDAO> questions, String indexPath, String queryPrefix,
