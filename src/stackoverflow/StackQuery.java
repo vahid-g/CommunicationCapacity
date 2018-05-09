@@ -165,7 +165,7 @@ public class StackQuery {
 		} catch (SQLException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
-		dc.closeConnection();
+		dc.close();
 		return result;
 	}
 }

@@ -146,7 +146,7 @@ public class StackIndexer {
 		}
 		long end = System.currentTimeMillis();
 		LOGGER.log(Level.INFO, "indexing time: {0} mins", (end - start) / 60000);
-		dc.closeConnection();
+		dc.close();
 	}
 
 	void indexAllAnswers() throws IOException, SQLException {
@@ -182,7 +182,7 @@ public class StackIndexer {
 		}
 		long end = System.currentTimeMillis();
 		LOGGER.log(Level.INFO, "indexing time: {0} mins", (end - start) / 60000);
-		dc.closeConnection();
+		dc.close();
 	}
 
 }

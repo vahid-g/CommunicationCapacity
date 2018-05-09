@@ -100,7 +100,6 @@ public class StackEfficiency {
 				}
 			}
 			time = System.currentTimeMillis() - startTime;
-			dc.closeConnection();
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}

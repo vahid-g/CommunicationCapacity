@@ -141,7 +141,7 @@ public class StackInitialQuery {
 		} catch (SQLException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
-		dc.closeConnection();
+		dc.close();
 		return result;
 	}
 
@@ -165,7 +165,7 @@ public class StackInitialQuery {
 		} catch (SQLException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
-		dc.closeConnection();
+		dc.close();
 		return result;
 	}
 }

@@ -45,7 +45,7 @@ public class DatabaseConnection implements Closeable {
 		return connection;
 	}
 
-	public void closeConnection() throws SQLException {
+	private void closeConnection() throws SQLException {
 		if (connection != null) {
 			LOGGER.log(Level.INFO, "Closing the databse connection..");
 			connection.close();

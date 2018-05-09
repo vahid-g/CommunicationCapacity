@@ -47,7 +47,7 @@ public class TrainTestSampler {
 				i++;
 			}
 		}
-		dc.closeConnection();
+		dc.close();
 		double sum = 0.0;
 		for (int i = 0; i < tableSize; i++) {
 			sum += viewcounts[i];
@@ -99,7 +99,7 @@ public class TrainTestSampler {
 				i++;
 			}
 		}
-		dc.closeConnection();
+		dc.close();
 
 		long sum = 0;
 		for (int i = 1; i < viewcounts.length; i++) {
