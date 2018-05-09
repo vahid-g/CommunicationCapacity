@@ -41,8 +41,10 @@ public class ExperimentHelper {
         System.out.println("Calculating RRanks for Sub2  index ...");
         final String subRRankPath = getRRanks(tempSub2Wiki13IndexPath, "sub2_");
 
-        String sub2QueryLikelihoodPath = myPaths.defaultSavePath+"_sub2.txt";
-        String com2QueryLikelihoodPath = myPaths.defaultSavePath+"_com2.txt";
+        String sub2QueryLikelihoodPath = myPaths.defaultSavePath+"query-assignments/"+
+                myPaths.timestamp+"_llk_sub2.csv";
+        String com2QueryLikelihoodPath = myPaths.defaultSavePath+"query-assignments/"+
+                myPaths.timestamp+"_llk_com2.csv";
 
         System.out.println("Generating query likelihoods for Sub2 and Com2 ...");
         getMSNQueryLikelihoods(tempSub2Wiki13IndexPath, myPaths.allWiki13IndexPath,
@@ -171,8 +173,12 @@ public class ExperimentHelper {
         QueryLikelihood comLikelihoods = new QueryLikelihood(likelihoodComPath, comLable);
         Map<String, String> queryAssignment = QueryLikelihood.compareAndAssign(subLikelihoods, comLikelihoods);
 
-        final String saveAssignmentPath = FilenameUtils.getFullPath(likelihoodComPath) +
-                myPaths.timestamp + "_query_assignment.csv";
+        String dir = FilenameUtils.getFullPath(likelihoodComPath) + "query-assignments/";
+        File directory = new File(dir);
+        if (! directory.exists()) {
+            directory.mkdir();
+        }
+        String saveAssignmentPath = dir + myPaths.timestamp + "_query_assignment.csv";
         try (FileWriter fw = new FileWriter(saveAssignmentPath)) {
             for (String query : queryAssignment.keySet()) {
                 fw.write(query + ", " + queryAssignment.get(query) + "\n");

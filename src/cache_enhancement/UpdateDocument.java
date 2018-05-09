@@ -1,6 +1,5 @@
 package cache_enhancement;
 
-import org.apache.commons.lang3.NotImplementedException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,14 +23,20 @@ public class UpdateDocument extends CsvParsable {
 
     public static UpdateDocument get(String csvLine) {
         List<String> fields = UpdateDocument.parse(csvLine);
-        if (fields.size() < 4){
-            throw new NoSuchFieldError("CSV file is in the wrong format.");
-        }
 
-        final char flag = fields.get(0).charAt(0);
-        final String num = fields.get(1);
-        final String path = fields.get(2);
-        final double dist = Double.parseDouble(fields.get(3));
+        char flag = 'n';
+        String num = "00000";
+        String path = "";
+        double dist = 0.0;
+        if (fields.size() > 0)
+            flag = fields.get(0).charAt(0);
+        if (fields.size() > 1)
+            num = fields.get(1);
+        if (fields.size() > 2)
+            path = fields.get(2);
+        if (fields.size() > 3)
+            dist = Double.parseDouble(fields.get(3));
+
         return new UpdateDocument(flag, num, path, dist);
     }
 
