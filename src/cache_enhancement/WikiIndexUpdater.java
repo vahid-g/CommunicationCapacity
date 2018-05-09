@@ -27,10 +27,12 @@ import java.util.logging.Logger;
 public class WikiIndexUpdater extends IndexManipulator{
 
     public static final Logger LOGGER = Logger.getLogger(WikiIndexUpdater.class.getName());
-    final public Map<String, String> docNumberInfo;
+    public final Map<String, String> docNumberInfo;
+    public final String wikiCountPath;
 
     public WikiIndexUpdater(String indexPath, String wikiCountPathFilePath) {
         super(indexPath);
+        wikiCountPath = wikiCountPathFilePath;
         docNumberInfo = new HashMap<>();
         File countPath = new File(wikiCountPathFilePath);
         try {
@@ -42,7 +44,8 @@ public class WikiIndexUpdater extends IndexManipulator{
                 if (!line.contains(","))
                     continue;
 
-                String path = line.split(",", 1)[0];
+                List<String> parts = CsvParsable.parse(line, ",");
+                String path = parts.get(0);
                 File file =  new File(path);
                 String docNum = FilenameUtils.removeExtension(file.getName());
                 docNumberInfo.put(docNum, line);
@@ -86,6 +89,10 @@ public class WikiIndexUpdater extends IndexManipulator{
 
     @Override
     public boolean addDoc(String docId) {
+        if(!docNumberInfo.containsKey(docId)){
+            LOGGER.log(Level.WARNING, docId+" article number is not found in "+wikiCountPath);
+            return true;
+        }
         InexFile inexFile = makeInexFile(docNumberInfo.get(docId));
         WikiFileIndexer wikiFileIndexer = new WikiFileIndexer();
         boolean failed = !wikiFileIndexer.index(inexFile, indexWriter);

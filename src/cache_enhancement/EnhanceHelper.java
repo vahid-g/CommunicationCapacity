@@ -17,9 +17,9 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ExperimentHelper {
+public class EnhanceHelper {
 
-    public static final Logger LOGGER = Logger.getLogger(ExperimentHelper.class.getName());
+    public static final Logger LOGGER = Logger.getLogger(EnhanceHelper.class.getName());
     public static PathCollection myPaths;
 
     public static void main(String[] args) throws IOException, ParseException {
@@ -29,16 +29,12 @@ public class ExperimentHelper {
 
         myPaths = PathCollection.get(pathGroup);
 
-        System.out.println("Making copies of the Sub2 and Com2 Indexes ...");
         final String tempSub2Wiki13IndexPath = makeTempCopy(myPaths.sub2Wiki13IndexPath);
         final String tempCom2Wiki13IndexPath = makeTempCopy(myPaths.com2Wiki13IndexPath);
 
-        System.out.println("Updating Sub2 index ...");
         updateIndex(tempSub2Wiki13IndexPath, cacheUpdateLogPath, myPaths.wiki13Count13Path);
-        System.out.println("Updating Com2 index ...");
         updateIndex(tempCom2Wiki13IndexPath, restUpdateLogPath, myPaths.wiki13Count13Path);
 
-        System.out.println("Calculating RRanks for Sub2  index ...");
         final String subRRankPath = getRRanks(tempSub2Wiki13IndexPath, "sub2_");
 
         String sub2QueryLikelihoodPath = myPaths.defaultSavePath+"query-assignments/"+
@@ -46,7 +42,6 @@ public class ExperimentHelper {
         String com2QueryLikelihoodPath = myPaths.defaultSavePath+"query-assignments/"+
                 myPaths.timestamp+"_llk_com2.csv";
 
-        System.out.println("Generating query likelihoods for Sub2 and Com2 ...");
         getMSNQueryLikelihoods(tempSub2Wiki13IndexPath, myPaths.allWiki13IndexPath,
                 sub2QueryLikelihoodPath, "jms");
         getMSNQueryLikelihoods(tempCom2Wiki13IndexPath, myPaths.allWiki13IndexPath,
@@ -81,10 +76,13 @@ public class ExperimentHelper {
         }
 
         long endTime = System.currentTimeMillis();
-        System.out.println((endTime-startTime)/1000);
+        LOGGER.log(Level.INFO, String.format("[ExpNo: %d%%]-[Complement: %b] index is built in [%s] in [%.2f]sec",
+                expNo, isComplement, indexPath, (endTime-startTime)/1000.0));
     }
 
     public static void updateIndex(String indexPath, String updateLogFile, String wikiCountPath) throws IOException {
+        LOGGER.log(Level.INFO, String.format("Updating [%s] based log file [%s] and WikiCount [%s]",
+                indexPath, updateLogFile, wikiCountPath));
         WikiIndexUpdater wikiIndexUpdater = new WikiIndexUpdater(indexPath, wikiCountPath);
         List<UpdateDocument> updateDocuments = UpdateDocument.buildFromFile(updateLogFile);
 
@@ -119,6 +117,8 @@ public class ExperimentHelper {
             return;
         }
 
+        LOGGER.log(Level.INFO, String.format("Saving [%s] query scores for [%s] in [%s]",
+                difficultyMetric, indexPath, savePath));
         try (FileWriter fw = new FileWriter(savePath)) {
             for (int i = 0; i < experimentQueries.size(); i++) {
                 fw.write(experimentQueries.get(i).getText() + ", " + scores.get(i) + "\n");
@@ -135,6 +135,8 @@ public class ExperimentHelper {
         final String saveDir = myPaths.defaultSavePath+ "rr/";
         final String filename = myPaths.timestamp + "_" + prefix +
                 FilenameUtils.getName(myPaths.allWikiRRanks);
+        LOGGER.log(Level.INFO, String.format("Saving MSN Queries' RRanks on index [] in []",
+                indexPath, saveDir+filename));
         WikiExperimentHelper.writeQueryResultsToFile(results, saveDir, filename);
         return saveDir+filename;
     }
@@ -162,6 +164,7 @@ public class ExperimentHelper {
             FileUtils.deleteDirectory(dest);
         }
 
+        LOGGER.log(Level.INFO, String.format("Copying [%s]  ->  [%s]", src, dest));
         FileUtils.copyDirectory(src, dest, false);
 
         return dest.getPath();
@@ -173,12 +176,14 @@ public class ExperimentHelper {
         QueryLikelihood comLikelihoods = new QueryLikelihood(likelihoodComPath, comLable);
         Map<String, String> queryAssignment = QueryLikelihood.compareAndAssign(subLikelihoods, comLikelihoods);
 
-        String dir = FilenameUtils.getFullPath(likelihoodComPath) + "query-assignments/";
+        String dir = FilenameUtils.getFullPath(likelihoodComPath);
         File directory = new File(dir);
         if (! directory.exists()) {
             directory.mkdir();
         }
+
         String saveAssignmentPath = dir + myPaths.timestamp + "_query_assignment.csv";
+        LOGGER.log(Level.INFO, String.format("Saving query assignment in [%s]", saveAssignmentPath));
         try (FileWriter fw = new FileWriter(saveAssignmentPath)) {
             for (String query : queryAssignment.keySet()) {
                 fw.write(query + ", " + queryAssignment.get(query) + "\n");
