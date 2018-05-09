@@ -46,15 +46,29 @@ public class StackEfficiency {
 			Collections.shuffle(questions, new Random(100));
 			questions = questions.subList(0, (int) (samplePercentage * questions.size()));
 		}
-		String queryTemplate = "SELECT Id FROM answers_s_train_18 a, comments_18 c, posthistory_18 p, postlinks_18 pl, votes_18 v"
-				+ "WHERE a.Id = c.PostId, a.Id = p.PostId, a.Id = pl.PostId, a.Id = v.PostId and a.Id in %s;";
-		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-		long time = submitQueries(questions, "/data/ghadakcv/stack_index_s/" + experimentNumber, queryTemplate);
-		LOGGER.log(Level.INFO, "querying done!");
-		LOGGER.log(Level.INFO, "time per query = " + time / 1000 / questions.size() + " seconds");
+		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {
+			String queryTemplate = "SELECT a.Id FROM answers_s_train_18 a left join comments_18 c on a.Id = c.PostId "
+					+ "left join posthistory_18 p on a.Id = p.PostId left join postlinks_18 pl on a.Id = pl.PostId "
+					+ "left join votes_18 v on a.Id = v.PostId WHERE a.Id in %s;";
+			LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
+			long time = submitQueries(questions, "/data/ghadakcv/stack_index_s/" + experimentNumber, queryTemplate, dc);
+			LOGGER.log(Level.INFO, "querying done!");
+			LOGGER.log(Level.INFO, "time per query = " + (time / 1000 / questions.size()) + " seconds");
+		}
+		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {
+			String queryTemplate = "SELECT a.Id FROM answers_s_train a left join comments_18 c on a.Id = c.PostId "
+					+ "left join posthistory_18 p on a.Id = p.PostId left join postlinks_18 pl on a.Id = pl.PostId "
+					+ "left join votes_18 v on a.Id = v.PostId WHERE a.Id in %s;";
+			LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
+			long time = submitQueries(questions, "/data/ghadakcv/stack_index_s/" + experimentNumber, queryTemplate, dc);
+			LOGGER.log(Level.INFO, "querying done!");
+			LOGGER.log(Level.INFO, "time per query = " + (time / 1000 / questions.size()) + " seconds");
+		}
+		
 	}
 
-	private long submitQueries(List<QuestionDAO> questions, String indexPath, String queryPrefix) {
+	private long submitQueries(List<QuestionDAO> questions, String indexPath, String queryPrefix,
+			DatabaseConnection dc) {
 		LOGGER.log(Level.INFO, "retrieving queries..");
 		long time = 0;
 		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
@@ -63,11 +77,10 @@ public class StackEfficiency {
 			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
 			parser.setDefaultOperator(Operator.OR);
 			LOGGER.log(Level.INFO, "number of tuples in index: {0}", reader.getDocCount(StackIndexer.BODY_FIELD));
-			DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 			Connection conn = dc.getConnection();
 			conn.setAutoCommit(false);
 			LOGGER.log(Level.INFO, "querying..");
-			long startTime = 0;
+			long startTime = System.currentTimeMillis();
 			for (QuestionDAO question : questions) {
 				try {
 					String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
