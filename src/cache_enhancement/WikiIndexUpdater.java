@@ -106,10 +106,14 @@ public class WikiIndexUpdater extends IndexManipulator{
     @Override
     public int addDoc(List<String> docIds) {
         int failed = 0;
+        long startTime = System.currentTimeMillis();
         for(String docId : docIds){
             if(addDoc(docId))
                 failed += 1;
         }
+        long endTime = System.currentTimeMillis();
+        LOGGER.log(Level.INFO, String.format("Rate of adding document to index: %.3f (s/d)",
+                (endTime-startTime)/(1000.*(docIds.size()-failed))));
         return failed;
     }
 
