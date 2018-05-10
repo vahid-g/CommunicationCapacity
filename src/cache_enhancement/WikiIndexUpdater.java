@@ -27,12 +27,16 @@ import java.util.logging.Logger;
 public class WikiIndexUpdater extends IndexManipulator{
 
     public static final Logger LOGGER = Logger.getLogger(WikiIndexUpdater.class.getName());
+    protected WikiFileIndexer wikiFileIndexer;
     public final Map<String, String> docNumberInfo;
     public final String wikiCountPath;
+    public final String inexTextFilesRootDir;
 
-    public WikiIndexUpdater(String indexPath, String wikiCountPathFilePath) {
+    public WikiIndexUpdater(String indexPath, String wikiCountPathFilePath, String inex_text_files_root_dir) {
         super(indexPath);
         wikiCountPath = wikiCountPathFilePath;
+        inexTextFilesRootDir = inex_text_files_root_dir;
+        wikiFileIndexer = new WikiFileIndexer();
         docNumberInfo = new HashMap<>();
         File countPath = new File(wikiCountPathFilePath);
         try {
@@ -75,12 +79,13 @@ public class WikiIndexUpdater extends IndexManipulator{
 
     protected InexFile makeInexFile(String csvTextLine) {
 
-        String[] fields = csvTextLine.split(",");
-        String path = fields[0];
-        Double count = Double.parseDouble(fields[1].trim());
+        List<String> fields = CsvParsable.parse(csvTextLine, ",");
+        String path = fields.get(0);
+        path = path.replace("inex_13_text/", inexTextFilesRootDir);
+        Double count = Double.parseDouble(fields.get(1));
 
-        if (fields.length == 3) {
-            String title = fields[2].trim();
+        if (fields.size() == 3) {
+            String title = fields.get(2);
             return (new InexFile(path, count, title));
         } else {
             return (new InexFile(path, count));
@@ -94,7 +99,6 @@ public class WikiIndexUpdater extends IndexManipulator{
             return true;
         }
         InexFile inexFile = makeInexFile(docNumberInfo.get(docId));
-        WikiFileIndexer wikiFileIndexer = new WikiFileIndexer();
         boolean failed = !wikiFileIndexer.index(inexFile, indexWriter);
         return failed;
     }

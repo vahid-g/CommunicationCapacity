@@ -32,8 +32,8 @@ public class EnhanceHelper {
         final String tempSub2Wiki13IndexPath = makeTempCopy(myPaths.sub2Wiki13IndexPath);
         final String tempCom2Wiki13IndexPath = makeTempCopy(myPaths.com2Wiki13IndexPath);
 
-        updateIndex(tempSub2Wiki13IndexPath, cacheUpdateLogPath, myPaths.wiki13Count13Path);
-        updateIndex(tempCom2Wiki13IndexPath, restUpdateLogPath, myPaths.wiki13Count13Path);
+        updateIndex(tempSub2Wiki13IndexPath, cacheUpdateLogPath, myPaths.wiki13Count13Path, myPaths.inex_13_text);
+        updateIndex(tempCom2Wiki13IndexPath, restUpdateLogPath, myPaths.wiki13Count13Path, myPaths.inex_13_text);
 
         final String subRRankPath = getRRanks(tempSub2Wiki13IndexPath, "sub2_");
 
@@ -80,10 +80,11 @@ public class EnhanceHelper {
                 expNo, isComplement, indexPath, (endTime-startTime)/1000.0));
     }
 
-    public static void updateIndex(String indexPath, String updateLogFile, String wikiCountPath) throws IOException {
-        LOGGER.log(Level.INFO, String.format("Updating [%s] based log file [%s] and WikiCount [%s]",
+    public static void updateIndex(String indexPath, String updateLogFile, String wikiCountPath,
+                                   String inexDocsRootDir) throws IOException {
+        LOGGER.log(Level.INFO, String.format("Updating [%s] based on log file [%s] and WikiCount [%s]",
                 indexPath, updateLogFile, wikiCountPath));
-        WikiIndexUpdater wikiIndexUpdater = new WikiIndexUpdater(indexPath, wikiCountPath);
+        WikiIndexUpdater wikiIndexUpdater = new WikiIndexUpdater(indexPath, wikiCountPath, inexDocsRootDir);
         List<UpdateDocument> updateDocuments = UpdateDocument.buildFromFile(updateLogFile);
 
         List<String> addLog = new ArrayList<String>();
@@ -97,10 +98,11 @@ public class EnhanceHelper {
                 removeLog.add(doc.docNumber);
             }
         }
-
-        wikiIndexUpdater.addDoc(addLog);
-        wikiIndexUpdater.removeDoc(removeLog);
+        int addFailure = wikiIndexUpdater.addDoc(addLog);
+        int removeFailure = wikiIndexUpdater.removeDoc(removeLog);
         wikiIndexUpdater.commit();
+        LOGGER.log(Level.INFO, String.format("Add-failure %d(%d), remove-failure %d(%d), for index [%s]",
+                addFailure, addLog.size(), removeFailure, removeLog.size(), indexPath));
     }
 
     public static void getMSNQueryLikelihoods(String indexPath, String globalIndexPath, String savePath,
