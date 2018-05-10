@@ -35,12 +35,11 @@ public class StackEfficiency {
 
 	public static void main(String[] args) throws IOException, SQLException {
 		StackEfficiency sqsr = new StackEfficiency();
-		String experiment = args[0];
-		Double trainSize = Double.parseDouble(args[1]); // 0.001
-		sqsr.runExperiment(experiment, trainSize);
+		Double trainSize = 0.001;
+		sqsr.runExperiment(trainSize);
 	}
 
-	private void runExperiment(String experimentNumber, double samplePercentage) throws IOException, SQLException {
+	private void runExperiment(double samplePercentage) throws IOException, SQLException {
 		List<QuestionDAO> questions = new StackQuery().loadQueries("questions_s_test_train");
 		if (samplePercentage < 1.0) {
 			Collections.shuffle(questions, new Random(100));
@@ -51,16 +50,16 @@ public class StackEfficiency {
 					+ "left join posthistory_18 p on a.Id = p.PostId left join postlinks_18 pl on a.Id = pl.PostId "
 					+ "left join votes_18 v on a.Id = v.PostId WHERE a.Id in %s;";
 			LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-			long time = submitQueries(questions, "/data/ghadakcv/stack_index_s/" + experimentNumber, queryTemplate, dc);
+			long time = submitQueries(questions, "/data/ghadakcv/stack_index_s/18", queryTemplate, dc);
 			LOGGER.log(Level.INFO, "querying done!");
 			LOGGER.log(Level.INFO, "time per query = " + (time / 1000 / questions.size()) + " seconds");
 		}
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.ABTIN)) {
-			String queryTemplate = "SELECT a.Id FROM answers_s_train a left join comments_18 c on a.Id = c.PostId "
-					+ "left join posthistory_18 p on a.Id = p.PostId left join postlinks_18 pl on a.Id = pl.PostId "
-					+ "left join votes_18 v on a.Id = v.PostId WHERE a.Id in %s;";
+			String queryTemplate = "SELECT a.Id FROM answers_s_train a left join Comments c on a.Id = c.PostId "
+					+ "left join PostHistory p on a.Id = p.PostId left join PostLinks pl on a.Id = pl.PostId "
+					+ "left join Votes v on a.Id = v.PostId WHERE a.Id in %s;";
 			LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-			long time = submitQueries(questions, "/data/ghadakcv/stack_index_s/" + experimentNumber, queryTemplate, dc);
+			long time = submitQueries(questions, "/data/ghadakcv/stack_index_s/100", queryTemplate, dc);
 			LOGGER.log(Level.INFO, "querying done!");
 			LOGGER.log(Level.INFO, "time per query = " + (time / 1000 / questions.size()) + " seconds");
 		}
