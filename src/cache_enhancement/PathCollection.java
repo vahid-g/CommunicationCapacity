@@ -21,10 +21,28 @@ public class PathCollection {
         switch (group) {
             case "maple":
                 relativePath = "/data/khodadaa/lucene-index/";
-                break;
+                defaultSavePath = relativePath;
+                allWiki13IndexPath = relativePath + "100/";
+                com2Wiki13IndexPath = relativePath + "c2/";
+                sub2Wiki13IndexPath = relativePath + "2/";
+                wiki13Count13Path = relativePath + "wiki13_counts13_title.csv";
+                msnQueryPath = relativePath + "msn_query_qid.csv";
+                msnQrelPath = relativePath + "msn.qrels";
+                allWikiRRanks = relativePath + "rranks.csv";
+                inex_13_text = "/data/wikipedia/wiki_13/";
+                return;
             case "local":
                 relativePath = "data/";
-                break;
+                defaultSavePath = relativePath;
+                allWiki13IndexPath = relativePath + "100/";
+                com2Wiki13IndexPath = relativePath + "c2/";
+                sub2Wiki13IndexPath = relativePath + "2/";
+                wiki13Count13Path = relativePath + "wiki13_counts13_title.csv";
+                msnQueryPath = relativePath + "msn_query_qid.csv";
+                msnQrelPath = relativePath + "msn.qrels";
+                allWikiRRanks = relativePath + "rranks.csv";
+                inex_13_text = relativePath+"wiki_13/";
+                return;
             case "distributed":
                 allWiki13IndexPath = "some custom path";
                 com2Wiki13IndexPath = "some custom path";
@@ -34,17 +52,19 @@ public class PathCollection {
                 msnQrelPath = "some custom path";
                 allWikiRRanks = "some custom path";
                 defaultSavePath = "some custom path";
+                inex_13_text = "some custom path";
                 return;
         }
 
-        allWiki13IndexPath = relativePath + "100";
-        com2Wiki13IndexPath = relativePath + "c2";
-        sub2Wiki13IndexPath = relativePath + "2";
+        defaultSavePath = relativePath;
+        allWiki13IndexPath = relativePath + "100/";
+        com2Wiki13IndexPath = relativePath + "c2/";
+        sub2Wiki13IndexPath = relativePath + "2/";
         wiki13Count13Path = relativePath + "wiki13_counts13_title.csv";
         msnQueryPath = relativePath + "msn_query_qid.csv";
         msnQrelPath = relativePath + "msn.qrels";
         allWikiRRanks = relativePath + "rranks.csv";
-        defaultSavePath = relativePath;
+        inex_13_text = relativePath+"inex_13_text/";
     }
 
     public final String allWiki13IndexPath;
@@ -55,4 +75,5 @@ public class PathCollection {
     public final String msnQrelPath;
     public final String allWikiRRanks;
     public final String defaultSavePath;
+    public final String inex_13_text;
 }
