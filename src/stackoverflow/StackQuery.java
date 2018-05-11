@@ -48,7 +48,7 @@ public class StackQuery {
 
 	private void runExperiment(String experimentNumber, boolean parallel, double samplePercentage)
 			throws IOException, SQLException {
-		List<QuestionDAO> questions = loadQueries("questions_s_test_train");
+		List<QuestionDAO> questions = loadQueriesFromTable("questions_s_test_train");
 		String outputFile = "/data/ghadakcv/stack_results/" + experimentNumber + ".csv";
 		if (samplePercentage < 1.0) {
 			Collections.shuffle(questions, new Random(100));
@@ -141,13 +141,24 @@ public class StackQuery {
 		}
 	}
 
-	public List<QuestionDAO> loadQueries(String questionsTable) throws IOException, SQLException {
+	public List<QuestionDAO> loadQueriesFromTable(String questionsTable) throws IOException, SQLException {
+		String query = "select Id, Title, AcceptedAnswerId, TestViewCount, TrainViewCount from stack_overflow."
+				+ questionsTable + ";";
+		return loadQueries(query);
+	}
+
+	public List<QuestionDAO> loadQueriesFromTable(String questionsTable, int limit) throws IOException, SQLException {
+		String query = "select Id, Title, AcceptedAnswerId, TestViewCount, TrainViewCount from stack_overflow."
+				+ questionsTable + " limit " + limit + ";";
+		return loadQueries(query);
+	}
+
+	private List<QuestionDAO> loadQueries(String query) throws IOException, SQLException {
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();
 		conn.setAutoCommit(false);
 		List<QuestionDAO> result = new ArrayList<QuestionDAO>();
-		String query = "select Id, Title, AcceptedAnswerId, TestViewCount, TrainViewCount from stack_overflow."
-				+ questionsTable + ";";
+
 		try (Statement stmt = conn.createStatement()) {
 			stmt.setFetchSize(Integer.MIN_VALUE);
 			ResultSet rs = stmt.executeQuery(query);
