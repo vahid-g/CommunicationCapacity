@@ -64,7 +64,7 @@ public class StackEfficiency {
 			Connection subsetDatabaseConnection = subsetConnection.getConnection();
 			Connection databaseConnection = dbConnection.getConnection();
 			subsetDatabaseConnection.setAutoCommit(false);
-			int loop = 1;
+			int loop = 10;
 			LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
 			for (int i = 0; i < loop; i++) {
 				LOGGER.log(Level.INFO, "executing loop #" + i);
@@ -86,11 +86,11 @@ public class StackEfficiency {
 			}
 			LOGGER.log(Level.INFO,
 					"subset query time for index and db time per query = "
-							+ (subsetIndexQueryTime / loop / questions.size())
+							+ (subsetIndexQueryTime / loop / questions.size()) + " "
 							+ (subsetQueryTime / loop / questions.size()) + " milli seconds");
 			LOGGER.log(Level.INFO,
 					"db query time for index and db time per query = " + (indexQueryTime / loop / questions.size())
-							+ (queryTime / loop / questions.size()) + " milli seconds");
+							+ " " + (queryTime / loop / questions.size()) + " milli seconds");
 		}
 	}
 
