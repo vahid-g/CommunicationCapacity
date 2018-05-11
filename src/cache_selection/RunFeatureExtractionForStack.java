@@ -133,7 +133,8 @@ public class RunFeatureExtractionForStack {
 				data.add(queryText + "," + f.stream().map(ft -> ft + ",").collect(Collectors.joining()));
 			}
 			long end = System.currentTimeMillis();
-			LOGGER.log(Level.INFO, "Time spent per query: " + (end - start) / queries.size() + " (ms)");
+			double time = end - start;
+			LOGGER.log(Level.INFO, "Time spent per query: " + time / queries.size() + " (ms)");
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
