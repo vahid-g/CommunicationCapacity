@@ -13,7 +13,6 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -33,83 +32,96 @@ public class StackEfficiency {
 
 	private static final Logger LOGGER = Logger.getLogger(StackEfficiency.class.getName());
 
-	public static void main(String[] args) throws IOException, SQLException {
+	public static void main(String[] args) throws IOException, SQLException, ParseException {
 		StackEfficiency sqsr = new StackEfficiency();
 		Double trainSize = 0.00001;
 		sqsr.runExperiment(trainSize);
 	}
 
-	private void runExperiment(double samplePercentage) throws IOException, SQLException {
+	private void runExperiment(double samplePercentage) throws IOException, SQLException, ParseException {
 		List<QuestionDAO> questions = new StackQuery().loadQueriesFromTable("questions_s_test_train");
 		if (samplePercentage < 1.0) {
 			Collections.shuffle(questions, new Random(100));
 			questions = questions.subList(0, (int) (samplePercentage * questions.size()));
 		}
-		long subsetTime = 0;
-		long time = 0;
-		try (DatabaseConnection stackConnection = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
-				DatabaseConnection abtinConnection = new DatabaseConnection(DatabaseType.ABTIN)) {
-			int loop = 10;
+		long subsetIndexQueryTime = 0;
+		long subsetQueryTime = 0;
+		long indexQueryTime = 0;
+		long queryTime = 0;
+		try (IndexReader subsetIndexReader = DirectoryReader
+				.open(NIOFSDirectory.open(Paths.get("/data/ghadakcv/stack_index_s/18")));
+				IndexReader indexReader = DirectoryReader
+						.open(NIOFSDirectory.open(Paths.get("/data/ghadakcv/stack_index_s/10")));
+				DatabaseConnection subsetConnection = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
+				DatabaseConnection dbConnection = new DatabaseConnection(DatabaseType.ABTIN)) {
+			LOGGER.log(Level.INFO, "number of tuples in subset index: {0}",
+					subsetIndexReader.getDocCount(StackIndexer.BODY_FIELD));
+			LOGGER.log(Level.INFO, "number of tuples in index: {0}", indexReader.getDocCount(StackIndexer.BODY_FIELD));
+			IndexSearcher subsetSearcher = new IndexSearcher(subsetIndexReader);
+			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, new StandardAnalyzer());
+			parser.setDefaultOperator(Operator.OR);
+			IndexSearcher searcher = new IndexSearcher(indexReader);
+			Connection subsetDatabaseConnection = subsetConnection.getConnection();
+			Connection databaseConnection = dbConnection.getConnection();
+			subsetDatabaseConnection.setAutoCommit(false);
+			int loop = 1;
+			LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
 			for (int i = 0; i < loop; i++) {
+				LOGGER.log(Level.INFO, "executing loop #" + i);
+				long start = System.currentTimeMillis();
+				List<List<String>> returnedIds = submitQueriesJustToIndex(questions, subsetSearcher, parser);
+				subsetIndexQueryTime += System.currentTimeMillis() - start;
 				String subsetQueryTemplate = "SELECT a.Id FROM answers_s_train_18 a left join comments_18 c on a.Id = c.PostId "
 						+ "left join posthistory_18 p on a.Id = p.PostId "
 						+ "left join postlinks_18 pl on a.Id = pl.PostId "
 						+ "left join votes_18 v on a.Id = v.PostId WHERE a.Id in %s;";
-				LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-				subsetTime += submitQueries(questions, "/data/ghadakcv/stack_index_s/18", subsetQueryTemplate,
-						stackConnection);
-				LOGGER.log(Level.INFO, "querying done!");
-
+				subsetQueryTime += submitQueries(returnedIds, subsetQueryTemplate, subsetDatabaseConnection);
+				start = System.currentTimeMillis();
+				returnedIds = submitQueriesJustToIndex(questions, searcher, parser);
+				indexQueryTime += System.currentTimeMillis() - start;
 				String queryTemplate = "SELECT a.Id FROM answers_s_train a left join Comments c on a.Id = c.PostId "
 						+ "left join PostHistory p on a.Id = p.PostId " + "left join PostLinks pl on a.Id = pl.PostId "
 						+ "left join Votes v on a.Id = v.PostId WHERE a.Id in %s;";
-				LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-				time += submitQueries(questions, "/data/ghadakcv/stack_index_s/100", queryTemplate, abtinConnection);
-				LOGGER.log(Level.INFO, "querying done!");
+				queryTime += submitQueries(returnedIds, queryTemplate, databaseConnection);
 			}
 			LOGGER.log(Level.INFO,
-					"subset time per query = " + (subsetTime / loop / questions.size()) + " milli seconds");
-			LOGGER.log(Level.INFO, "db time per query = " + (time / loop / questions.size()) + " milli seconds");
+					"subset query time for index and db time per query = "
+							+ (subsetIndexQueryTime / loop / questions.size())
+							+ (subsetQueryTime / loop / questions.size()) + " milli seconds");
+			LOGGER.log(Level.INFO,
+					"db query time for index and db time per query = " + (indexQueryTime / loop / questions.size())
+							+ (queryTime / loop / questions.size()) + " milli seconds");
 		}
 	}
 
-	private long submitQueries(List<QuestionDAO> questions, String indexPath, String queryPrefix,
-			DatabaseConnection dc) {
-		LOGGER.log(Level.INFO, "retrieving queries..");
-		long time = 0;
-		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
-			IndexSearcher searcher = new IndexSearcher(reader);
-			Analyzer analyzer = new StandardAnalyzer();
-			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
-			parser.setDefaultOperator(Operator.OR);
-			LOGGER.log(Level.INFO, "number of tuples in index: {0}", reader.getDocCount(StackIndexer.BODY_FIELD));
-			Connection conn = dc.getConnection();
-			conn.setAutoCommit(false);
-			LOGGER.log(Level.INFO, "querying..");
-			long startTime = System.currentTimeMillis();
-			for (QuestionDAO question : questions) {
-				try {
-					String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
-					// in the next line, to lower case is necessary to change AND to and, otherwise
-					// lucene would consider it as an operator
-					Query query = parser.parse(queryText.toLowerCase());
-					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
-					List<String> ids = new ArrayList<String>();
-					for (int i = 0; i < hits.length; i++) {
-						Document doc = searcher.doc(hits[i].doc);
-						ids.add(doc.get(StackIndexer.ID_FIELD));
-					}
-					String sql = String.format(queryPrefix, ids.toString().replace('[', '(').replace(']', ')'));
-					retreiveTupleTrees(sql, conn);
-				} catch (ParseException e) {
-					LOGGER.log(Level.SEVERE, "Couldn't parse query " + question.id);
-					LOGGER.log(Level.SEVERE, e.getMessage(), e);
-				}
+	private List<List<String>> submitQueriesJustToIndex(List<QuestionDAO> questions, IndexSearcher searcher,
+			QueryParser parser) throws IOException, ParseException {
+		List<List<String>> result = new ArrayList<List<String>>();
+		for (QuestionDAO question : questions) {
+			List<String> ids = new ArrayList<String>();
+			String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
+			// in the next line, to lower case is necessary to change AND to and, otherwise
+			// lucene would consider it as an operator
+			Query query = parser.parse(queryText.toLowerCase());
+			ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
+			for (int i = 0; i < hits.length; i++) {
+				Document doc = searcher.doc(hits[i].doc);
+				ids.add(doc.get(StackIndexer.ID_FIELD));
 			}
-			time = System.currentTimeMillis() - startTime;
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+			result.add(ids);
 		}
+		return result;
+	}
+
+	private long submitQueries(List<List<String>> returnedIds, String queryPrefix, Connection conn)
+			throws SQLException, IOException {
+		long time = 0;
+		long startTime = System.currentTimeMillis();
+		for (List<String> ids : returnedIds) {
+			String sql = String.format(queryPrefix, ids.toString().replace('[', '(').replace(']', ')'));
+			retreiveTupleTrees(sql, conn);
+		}
+		time = System.currentTimeMillis() - startTime;
 		return time;
 	}
 
