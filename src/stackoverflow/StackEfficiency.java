@@ -35,7 +35,7 @@ public class StackEfficiency {
 
 	public static void main(String[] args) throws IOException, SQLException {
 		StackEfficiency sqsr = new StackEfficiency();
-		Double trainSize = 0.001;
+		Double trainSize = 0.00001;
 		sqsr.runExperiment(trainSize);
 	}
 
@@ -45,24 +45,32 @@ public class StackEfficiency {
 			Collections.shuffle(questions, new Random(100));
 			questions = questions.subList(0, (int) (samplePercentage * questions.size()));
 		}
-		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {
-			String queryTemplate = "SELECT a.Id FROM answers_s_train_18 a left join comments_18 c on a.Id = c.PostId "
-					+ "left join posthistory_18 p on a.Id = p.PostId left join postlinks_18 pl on a.Id = pl.PostId "
-					+ "left join votes_18 v on a.Id = v.PostId WHERE a.Id in %s;";
-			LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-			long time = submitQueries(questions, "/data/ghadakcv/stack_index_s/18", queryTemplate, dc);
-			LOGGER.log(Level.INFO, "querying done!");
-			LOGGER.log(Level.INFO, "time per query = " + (time / 1000 / questions.size()) + " seconds");
+		long subsetTime = 0;
+		long time = 0;
+		try (DatabaseConnection stackConnection = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
+				DatabaseConnection abtinConnection = new DatabaseConnection(DatabaseType.ABTIN)) {
+			for (int i = 0; i < 1; i++) {
+				String subsetQueryTemplate = "SELECT a.Id FROM answers_s_train_18 a left join comments_18 c on a.Id = c.PostId "
+						+ "left join posthistory_18 p on a.Id = p.PostId "
+						+ "left join postlinks_18 pl on a.Id = pl.PostId "
+						+ "left join votes_18 v on a.Id = v.PostId WHERE a.Id in %s;";
+				LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
+				subsetTime += submitQueries(questions, "/data/ghadakcv/stack_index_s/18", subsetQueryTemplate,
+						stackConnection);
+				LOGGER.log(Level.INFO, "querying done!");
+
+				String queryTemplate = "SELECT a.Id FROM answers_s_train a left join Comments c on a.Id = c.PostId "
+						+ "left join PostHistory p on a.Id = p.PostId " 
+						+ "left join PostLinks pl on a.Id = pl.PostId "
+						+ "left join Votes v on a.Id = v.PostId WHERE a.Id in %s;";
+				LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
+				time += submitQueries(questions, "/data/ghadakcv/stack_index_s/100", queryTemplate, abtinConnection);
+				LOGGER.log(Level.INFO, "querying done!");
+			}
+
 		}
-		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.ABTIN)) {
-			String queryTemplate = "SELECT a.Id FROM answers_s_train a left join Comments c on a.Id = c.PostId "
-					+ "left join PostHistory p on a.Id = p.PostId left join PostLinks pl on a.Id = pl.PostId "
-					+ "left join Votes v on a.Id = v.PostId WHERE a.Id in %s;";
-			LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-			long time = submitQueries(questions, "/data/ghadakcv/stack_index_s/100", queryTemplate, dc);
-			LOGGER.log(Level.INFO, "querying done!");
-			LOGGER.log(Level.INFO, "time per query = " + (time / 1000 / questions.size()) + " seconds");
-		}
+		LOGGER.log(Level.INFO, "subset time per query = " + (subsetTime / 10 / questions.size()) + " milli seconds");
+		LOGGER.log(Level.INFO, "db time per query = " + (time / 10 / questions.size()) + " milli seconds");
 	}
 
 	private long submitQueries(List<QuestionDAO> questions, String indexPath, String queryPrefix,
