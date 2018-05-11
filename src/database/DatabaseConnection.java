@@ -10,7 +10,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import wiki13.maple.WikiMapleRelationalEfficiencyExperiment;
+import wiki13.WikiRelationalEfficiencyExperiment;
 
 public class DatabaseConnection implements Closeable {
 
@@ -22,7 +22,7 @@ public class DatabaseConnection implements Closeable {
 
 	public DatabaseConnection(DatabaseType databaseType) throws IOException, SQLException {
 		config = new Properties();
-		try (InputStream in = WikiMapleRelationalEfficiencyExperiment.class
+		try (InputStream in = WikiRelationalEfficiencyExperiment.class
 				.getResourceAsStream("/config/config.properties")) {
 			config.load(in);
 		}

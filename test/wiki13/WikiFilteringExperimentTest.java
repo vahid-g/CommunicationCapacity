@@ -1,4 +1,4 @@
-package wiki13.maple;
+package wiki13;
 
 import static org.junit.Assert.assertEquals;
 
@@ -9,8 +9,9 @@ import org.junit.Test;
 
 import query.ExperimentQuery;
 import query.QueryResult;
+import wiki13.WikiFilteringExperiment;
 
-public class WikiMapleFilteringExperimentTest {
+public class WikiFilteringExperimentTest {
 
     @Test
     public void testFilterQueryResult() {
@@ -24,10 +25,10 @@ public class WikiMapleFilteringExperimentTest {
 	idPopMap.put("doc2", 10.0);
 	idPopMap.put("doc3", 100.0);
 	assertEquals(3, result1.getTopDocuments().size());
-	QueryResult result2 = WikiMapleFilteringExperiment.filterQueryResult(
+	QueryResult result2 = WikiFilteringExperiment.filterQueryResult(
 		result1, idPopMap, 1);
 	assertEquals(3, result2.getTopDocuments().size());
-	result2 = WikiMapleFilteringExperiment.filterQueryResult(result1,
+	result2 = WikiFilteringExperiment.filterQueryResult(result1,
 		idPopMap, 11);
 	assertEquals(3, result1.getTopDocuments().size());
 	assertEquals(1, result2.getTopDocuments().size());

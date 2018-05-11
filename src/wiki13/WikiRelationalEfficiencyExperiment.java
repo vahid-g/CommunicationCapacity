@@ -1,4 +1,4 @@
-package wiki13.maple;
+package wiki13;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -16,12 +16,10 @@ import database.DatabaseType;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
-import wiki13.WikiExperimentHelper;
-import wiki13.WikiFilesPaths;
 
-public class WikiMapleRelationalEfficiencyExperiment {
+public class WikiRelationalEfficiencyExperiment {
 
-	private static Logger LOGGER = Logger.getLogger(WikiMapleRelationalEfficiencyExperiment.class.getName());
+	private static Logger LOGGER = Logger.getLogger(WikiRelationalEfficiencyExperiment.class.getName());
 	private static WikiFilesPaths PATHS = WikiFilesPaths.getMaplePaths();
 
 	public static void main(String[] args) throws SQLException {
@@ -32,7 +30,7 @@ public class WikiMapleRelationalEfficiencyExperiment {
 		// PATHS.getInexQrelFilePath());
 		Collections.shuffle(queries);
 		queries = queries.subList(0, 50);
-		WikiMapleRelationalEfficiencyExperiment wmree = new WikiMapleRelationalEfficiencyExperiment();
+		WikiRelationalEfficiencyExperiment wmree = new WikiRelationalEfficiencyExperiment();
 		wmree.queryEfficiencyExperiment("memory", "1", queries);
 	}
 

@@ -1,4 +1,4 @@
-package wiki13.maple;
+package wiki13;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -15,13 +15,11 @@ import org.apache.commons.cli.Options;
 
 import query.ExperimentQuery;
 import query.QueryServices;
-import wiki13.WikiExperimentHelper;
-import wiki13.WikiFilesPaths;
 
-public class WikiMapleResourceSelectinEfficiencyExperiment {
+public class WikiResourceSelectinEfficiencyExperiment {
 
 	private static final Logger LOGGER = Logger
-			.getLogger(WikiMapleResourceSelectinEfficiencyExperiment.class.getName());
+			.getLogger(WikiResourceSelectinEfficiencyExperiment.class.getName());
 	private static WikiFilesPaths PATHS = WikiFilesPaths.getMaplePaths();
 
 	public static void main(String[] args) {
