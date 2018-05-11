@@ -49,7 +49,8 @@ public class StackEfficiency {
 		long time = 0;
 		try (DatabaseConnection stackConnection = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 				DatabaseConnection abtinConnection = new DatabaseConnection(DatabaseType.ABTIN)) {
-			for (int i = 0; i < 1; i++) {
+			int loop = 10;
+			for (int i = 0; i < loop; i++) {
 				String subsetQueryTemplate = "SELECT a.Id FROM answers_s_train_18 a left join comments_18 c on a.Id = c.PostId "
 						+ "left join posthistory_18 p on a.Id = p.PostId "
 						+ "left join postlinks_18 pl on a.Id = pl.PostId "
@@ -60,17 +61,16 @@ public class StackEfficiency {
 				LOGGER.log(Level.INFO, "querying done!");
 
 				String queryTemplate = "SELECT a.Id FROM answers_s_train a left join Comments c on a.Id = c.PostId "
-						+ "left join PostHistory p on a.Id = p.PostId " 
-						+ "left join PostLinks pl on a.Id = pl.PostId "
+						+ "left join PostHistory p on a.Id = p.PostId " + "left join PostLinks pl on a.Id = pl.PostId "
 						+ "left join Votes v on a.Id = v.PostId WHERE a.Id in %s;";
 				LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
 				time += submitQueries(questions, "/data/ghadakcv/stack_index_s/100", queryTemplate, abtinConnection);
 				LOGGER.log(Level.INFO, "querying done!");
 			}
-
+			LOGGER.log(Level.INFO,
+					"subset time per query = " + (subsetTime / loop / questions.size()) + " milli seconds");
+			LOGGER.log(Level.INFO, "db time per query = " + (time / loop / questions.size()) + " milli seconds");
 		}
-		LOGGER.log(Level.INFO, "subset time per query = " + (subsetTime / 10 / questions.size()) + " milli seconds");
-		LOGGER.log(Level.INFO, "db time per query = " + (time / 10 / questions.size()) + " milli seconds");
 	}
 
 	private long submitQueries(List<QuestionDAO> questions, String indexPath, String queryPrefix,
