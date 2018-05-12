@@ -5,7 +5,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +12,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
@@ -33,18 +38,41 @@ public class BuildPopIndexFast {
 	public static final Logger LOGGER = Logger.getLogger(BuildPopIndexSlow.class.getName());
 
 	public static void main(String[] args) {
-		String indexPath = args[0]; // "/data/ghadakcv/wiki_index/1";
-		String field = args[1]; // WikiFileIndexer.TITLE_ATTRIB;
-		String weightFieldName = args[2]; // WikiFileIndexer.WEIGHT_ATTRIB
-		if (Arrays.asList(args).contains("-parallel")) {
-			LOGGER.log(Level.INFO, "parallel..");
-			parallelBuildPopIndex(indexPath, field, weightFieldName);
-		} else if (Arrays.asList(args).contains("-small")) {
-			LOGGER.log(Level.INFO, "small..");
-			Set<String> tokens = buildBiwordsOfQueries("/data/ghadakcv/msn_vocab.csv");
-			buildPopIndexForTokens(indexPath, field, weightFieldName, tokens);
-		} else {
-			buildPopIndex(indexPath, field, weightFieldName);
+		Options options = new Options();
+		Option indexOption = new Option("index", true, "Index path"); // "/data/ghadakcv/wiki_index/1";
+		indexOption.setRequired(true);
+		options.addOption(indexOption);
+		Option fieldNameOption = new Option("field", true, "Field name"); // WikiFileIndexer.TITLE_ATTRIB;
+		fieldNameOption.setRequired(true);
+		options.addOption(fieldNameOption);
+		Option weightFieldOption = new Option("weight", true, "Weight field"); // WikiFileIndexer.Weight
+		weightFieldOption.setRequired(true);
+		options.addOption(weightFieldOption);
+		Option vocabFileOption = new Option("vocab", true, "Vocab file");
+		options.addOption(vocabFileOption);
+		Option parallelOption = new Option("parallel", false, "Parallelize the process");
+		options.addOption(parallelOption);
+		CommandLineParser clp = new DefaultParser();
+		CommandLine cl;
+		try {
+			cl = clp.parse(options, args);
+			String indexPath = cl.getOptionValue("index");
+			String field = cl.getOptionValue("field");
+			String weightFieldName = cl.getOptionValue("weight");
+			if (cl.hasOption("parallel")) {
+				LOGGER.log(Level.INFO, "parallel..");
+				parallelBuildPopIndex(indexPath, field, weightFieldName);
+			} else if (cl.hasOption("vocab")) {
+				LOGGER.log(Level.INFO, "vocab based filtering..");
+				String vocabFile = cl.getOptionValue("vocab");
+				Set<String> tokens = buildBiwordsOfQueries(vocabFile);
+				buildPopIndexForTokens(indexPath, field, weightFieldName, tokens);
+			} else {
+				LOGGER.log(Level.INFO, "running bpif in normal mode..");
+				buildPopIndex(indexPath, field, weightFieldName);
+			}
+		} catch (ParseException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	}
 

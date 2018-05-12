@@ -36,7 +36,6 @@ public class RunFeatureExtractionForWiki {
 	public static final Logger LOGGER = Logger.getLogger(RunFeatureExtractionForWiki.class.getName());
 
 	public static void main(String[] args) throws IOException {
-
 		Options options = new Options();
 		Option expNumberOption = new Option("exp", true, "Number of experiment");
 		expNumberOption.setRequired(true);
