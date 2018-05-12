@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import cache_enhancement.Similarity;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -123,6 +124,8 @@ public class RunQueryDifficultyComputer {
 				qdc = new QueryDifficultyComputer(new JelinekMercerScore(globalReader));
 			} else if (difficultyMetric.equals("bjms")) {
 				qdc = new QueryDifficultyComputer(new BigramJelinekMercerScore(globalReader));
+			} else if (difficultyMetric.equals("kld")) {
+				qdc = new QueryDifficultyComputer(new Similarity(globalReader));
 			} else {
 				throw new org.apache.commons.cli.ParseException("Difficulty metric needs to be specified");
 			}

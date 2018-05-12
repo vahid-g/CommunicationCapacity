@@ -43,9 +43,9 @@ public class EnhanceHelper {
                 myPaths.timestamp+"_llk_com2.csv";
 
         getMSNQueryLikelihoods(tempSub2Wiki13IndexPath, myPaths.allWiki13IndexPath,
-                sub2QueryLikelihoodPath, "jms");
+                sub2QueryLikelihoodPath, "kld");
         getMSNQueryLikelihoods(tempCom2Wiki13IndexPath, myPaths.allWiki13IndexPath,
-                com2QueryLikelihoodPath, "jms");
+                com2QueryLikelihoodPath, "kld");
 
         Map<String, String> assignment = assignQueriesBasedonLikelihood(sub2QueryLikelihoodPath, "sub",
                 com2QueryLikelihoodPath, "all");
