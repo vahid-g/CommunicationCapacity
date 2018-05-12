@@ -40,7 +40,7 @@ public class QueryLikelihood extends CsvParsable {
         Map<String, String> assignment = new HashMap<>();
 
         for(String q: seri1.queryLikelihood.keySet()) {
-            if (seri1.queryLikelihood.get(q) <= seri2.queryLikelihood.get(q)){
+            if (Math.log(seri1.queryLikelihood.get(q)) >= Math.log(seri2.queryLikelihood.get(q))){
                 assignment.put(q, seri1.groupName);
             }
             else {
