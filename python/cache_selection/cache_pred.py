@@ -85,8 +85,6 @@ def train_stack(df, size=0.33):
     return output
 
 def train_wiki(df, size=0.33):
-    df = df.drop(['TrainFreq'], axis=1)
-    df = df.loc[df['TestFreq'] > 0]
     df = df.fillna(0)
     labels = df['label']
     X, X_test, y, y_test = train_test_split(df.drop(['label'], axis=1), labels, stratify=labels,
@@ -140,14 +138,13 @@ def train_wiki(df, size=0.33):
     output['TestFreq'] = test_freq
     return output
 
-
 def print_results(y_test, y_pred):
     tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
-    print("  precision = %f" % (tp / (tp + fp)))
-    print("  recall = %.2f" % (tp / (tp + fn)))
-    print("  negative predictive value= %.2f" % (tn / (tn + fn)))
-    print("  true negative rate= %.2f" % (tn / (tn + fp)))
-    print("  1s percentage = %.2f" % (100 * np.sum(y_pred) / y_pred.shape[0]))
+    print("\t  precision = %f" % (tp / (tp + fp)))
+    print("\t  recall = %.2f" % (tp / (tp + fn)))
+    print("\t  negative predictive value= %.2f" % (tn / (tn + fn)))
+    print("\t  true negative rate= %.2f" % (tn / (tn + fp)))
+    print("\t  1s percentage = %.2f" % (100 * np.sum(y_pred) / y_pred.shape[0]))
 
 def param_tuning(X, y):
     tuned_parameters = [{'C': [0.01, 0.1, 1, 10, 100, 1000]}]
