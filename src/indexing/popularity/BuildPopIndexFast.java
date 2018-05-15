@@ -1,8 +1,8 @@
 package indexing.popularity;
 
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,6 +20,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -32,6 +33,8 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 
 import indexing.BiwordAnalyzer;
+import query.QueryServices;
+import wiki13.WikiFilesPaths;
 
 public class BuildPopIndexFast {
 
@@ -48,8 +51,10 @@ public class BuildPopIndexFast {
 		Option weightFieldOption = new Option("weight", true, "Weight field"); // WikiFileIndexer.Weight
 		weightFieldOption.setRequired(true);
 		options.addOption(weightFieldOption);
-		Option vocabFileOption = new Option("vocab", true, "Vocab file");
-		options.addOption(vocabFileOption);
+		Option queriesOption = new Option("queryset", true, "query log");
+		options.addOption(queriesOption);
+		Option biwordOption = new Option("bi", false, "Biword");
+		options.addOption(biwordOption);
 		Option parallelOption = new Option("parallel", false, "Parallelize the process");
 		options.addOption(parallelOption);
 		CommandLineParser clp = new DefaultParser();
@@ -62,11 +67,26 @@ public class BuildPopIndexFast {
 			if (cl.hasOption("parallel")) {
 				LOGGER.log(Level.INFO, "parallel..");
 				parallelBuildPopIndex(indexPath, field, weightFieldName);
-			} else if (cl.hasOption("vocab")) {
-				LOGGER.log(Level.INFO, "vocab based filtering..");
-				String vocabFile = cl.getOptionValue("vocab");
-				Set<String> tokens = buildBiwordsOfQueries(vocabFile);
-				buildPopIndexForTokens(indexPath, field, weightFieldName, tokens);
+			} else if (cl.hasOption("queryset")) {
+				LOGGER.log(Level.INFO, "querylog based filtering..");
+				String queryLog = cl.getOptionValue("queryset");
+				List<String> queries = new ArrayList<String>();
+				WikiFilesPaths paths = WikiFilesPaths.getMaplePaths();
+				if (queryLog.equals("msn")) {
+					queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath())
+							.stream().map(q -> q.getText()).collect(Collectors.toList());
+				} else if (queryLog.equals("inex")) {
+					queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath())
+							.stream().map(q -> q.getText()).collect(Collectors.toList());
+				}
+				Set<String> tokens = new HashSet<String>();
+				if (cl.hasOption("bi")) {
+					tokens = buildBiwordsOfQueries(queries);
+					buildPopIndexForTokens(indexPath, field, weightFieldName, tokens);
+				} else {
+					tokens = buildTokensOfQueries(queries);
+					buildPopIndexForTokens(indexPath, field, weightFieldName, tokens);
+				}
 			} else {
 				LOGGER.log(Level.INFO, "running bpif in normal mode..");
 				buildPopIndex(indexPath, field, weightFieldName);
@@ -155,10 +175,26 @@ public class BuildPopIndexFast {
 		}
 	}
 
-	private static Set<String> buildBiwordsOfQueries(String vocabFile) {
+	private static Set<String> buildBiwordsOfQueries(List<String> queries) {
 		Set<String> tokenSet = new HashSet<String>();
 		try (Analyzer analyzer = new BiwordAnalyzer()) {
-			try (TokenStream tokenStream = analyzer.tokenStream("f", new FileReader(vocabFile))) {
+			tokenSet = buildTokensForQueries(queries, analyzer);
+		}
+		return tokenSet;
+	}
+
+	private static Set<String> buildTokensOfQueries(List<String> queries) {
+		Set<String> tokenSet = new HashSet<String>();
+		try (Analyzer analyzer = new StandardAnalyzer()) {
+			tokenSet = buildTokensForQueries(queries, analyzer);
+		}
+		return tokenSet;
+	}
+
+	private static Set<String> buildTokensForQueries(List<String> queries, Analyzer analyzer) {
+		Set<String> tokenSet = new HashSet<String>();
+		for (String query : queries) {
+			try (TokenStream tokenStream = analyzer.tokenStream("f", new StringReader(query))) {
 				CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
 				tokenStream.reset();
 				while (tokenStream.incrementToken()) {
@@ -169,6 +205,7 @@ public class BuildPopIndexFast {
 			} catch (IOException e) {
 				LOGGER.log(Level.SEVERE, e.getMessage(), e);
 			}
+
 		}
 		return tokenSet;
 	}
@@ -176,7 +213,7 @@ public class BuildPopIndexFast {
 	public static void parallelBuildPopIndex(String indexPath, String field, String weightFieldName) {
 		try (FSDirectory directory = FSDirectory.open(Paths.get(indexPath));
 				IndexReader reader = DirectoryReader.open(directory);
-				FileWriter fw = new FileWriter(indexPath + "_" + field + "_pop_veryfast" + ".csv")) {
+				FileWriter fw = new FileWriter(indexPath + "_" + field + "_pop_paral" + ".csv")) {
 			Terms terms = MultiFields.getTerms(reader, field);
 			final TermsEnum it = terms.iterator();
 			List<String> termList = new ArrayList<String>();

@@ -72,11 +72,11 @@ public class RunFeatureExtractionForWiki {
 			FeatureExtraction wqde = new FeatureExtraction(WikiFileIndexer.WEIGHT_ATTRIB);
 			LOGGER.log(Level.INFO, "loading popularity indices..");
 			Map<String, TokenPopularity> termTitlePopularity = TokenPopularity
-					.loadTokenPopularities(indexPath + "_title_pop_fast" + ".csv");
+					.loadTokenPopularities(indexPath + "_title_pop_fast_tokens" + ".csv");
 			Map<String, TokenPopularity> termContentPopularity = TokenPopularity
-					.loadTokenPopularities(indexPath + "_content_pop_fast" + ".csv");
+					.loadTokenPopularities(indexPath + "_content_pop_fast_tokens" + ".csv");
 			Map<String, TokenPopularity> biwordTitlePopularity = TokenPopularity
-					.loadTokenPopularities(biwordIndexPath + "_title_pop_fast" + ".csv");
+					.loadTokenPopularities(biwordIndexPath + "_title_pop_fast_tokens" + ".csv");
 			Map<String, TokenPopularity> biwordContentPopularity = TokenPopularity
 					.loadTokenPopularities(biwordIndexPath + "_content_pop_fast_tokens" + ".csv");
 			LOGGER.log(Level.INFO, "loading done!");
