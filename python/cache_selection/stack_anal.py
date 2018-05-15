@@ -14,9 +14,10 @@ r1 = c['18'] * c['TestViewCount']
 r2 = c['100'] * c['TestViewCount']
 r3 = c['ml'] * c['TestViewCount']
 r4 = c['best'] * c['TestViewCount']
+r5 = c['ql'] * c['TestViewCount']
 s = c['TestViewCount'].sum()
-print('subset = %.2f \t db = %.2f \t ml = %.2f \t best = %.2f ' %
-      (r1.sum() / s, r2.sum() / s, r3.sum() / s, r4.sum() / s))
+print('subset = %.2f \t db = %.2f \t ml = %.2f \t best = %.2f \t ql=%.2f' %
+      (r1.sum() / s, r2.sum() / s, r3.sum() / s, r4.sum() / s, r5.sum() / s))
 
 b = c['18'] < c['100']
 bad_count = b.value_counts()[True]
@@ -27,7 +28,8 @@ r1 = c['18'][b] * c['TestViewCount']
 r2 = c['100'][b] * c['TestViewCount']
 r3 = c['ml'][b] * c['TestViewCount']
 r4 = c['best'][b] * c['TestViewCount']
+r5 = c['ql'][b] * c['TestViewCount']
 s = c['TestViewCount'][b].sum()
-print('subset = %.2f \t db = %.2f \t ml = %.2f \t best = %.2f ' %
-      (r1.sum() / s, r2.sum() / s, r3.sum() / s, r4.sum() / s))
+print('subset = %.2f \t db = %.2f \t ml = %.2f \t best = %.2f \t ql = %.2f' %
+      (r1.sum() / s, r2.sum() / s, r3.sum() / s, r4.sum() / s, r5.sum() / s))
 

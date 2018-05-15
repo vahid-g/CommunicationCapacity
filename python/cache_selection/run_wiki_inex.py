@@ -32,7 +32,7 @@ def main(argv):
         X_test = X_test.drop(['p12', 'p100'], axis=1)
         # compute query likelihood based effectiveness
         ql = p12.copy()
-        ql_pred = X_test['ql_c'] > X_test['ql_c.1']
+        ql_pred = X_test['ql_c'] < X_test['ql_c.1']
         ql.loc[ql_pred == 1] = p100[ql_pred == 1]
         print("\ttrain set size and ones: %d, %d" % (y_train.shape[0], np.sum(y_train)))
         print("\ttest set size and ones: %d, %d" % (y_test.shape[0], np.sum(y_test)))
