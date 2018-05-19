@@ -14,6 +14,7 @@ def main(argv):
     filename = argv[0]
     t = float(argv[1])
     split = 5
+    subset = 'p10'
     df = pd.read_csv('../../data/python_data/' + filename)
     df = df.drop(['query'], axis = 1)
     print('bad queries ratio = %.2f' % (df['label'].sum() / df['label'].size))
@@ -25,14 +26,14 @@ def main(argv):
     for train_index, test_index in skf.split(X, y):
         X_train, X_test = X.iloc[train_index], X.iloc[test_index]
         y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-        X_train = X_train.drop(['p12', 'p100'], axis=1)
-        p12 = X_test['p12']
+        X_train = X_train.drop([subset, 'p100'], axis=1)
+        p12 = X_test[subset]
         p100 = X_test['p100']
         bad_index = p100 > p12
-        X_test = X_test.drop(['p12', 'p100'], axis=1)
+        X_test = X_test.drop([subset, 'p100'], axis=1)
         # compute query likelihood based effectiveness
         ql = p12.copy()
-        ql_pred = X_test['ql_c'] > X_test['ql_c.1']
+        ql_pred = X_test['ql_c'] < X_test['ql_c.1']
         ql.loc[ql_pred == 1] = p100[ql_pred == 1]
         print("\ttrain set size and ones: %d, %d" % (y_train.shape[0], np.sum(y_train)))
         print("\ttest set size and ones: %d, %d" % (y_test.shape[0], np.sum(y_test)))
