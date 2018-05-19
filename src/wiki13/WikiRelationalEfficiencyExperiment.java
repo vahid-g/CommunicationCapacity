@@ -54,7 +54,7 @@ public class WikiRelationalEfficiencyExperiment {
 			Collections.shuffle(queries, new Random(1l));
 			queries = queries.subList(0, 20);
 			WikiRelationalEfficiencyExperiment wmree = new WikiRelationalEfficiencyExperiment();
-			long gamma = Long.parseLong(cl.getOptionValue("gamma"));
+			float gamma = Float.parseFloat(cl.getOptionValue("gamma"));
 			wmree.queryEfficiencyExperiment("normal", cl.getOptionValue("exp"), queries, gamma);
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage());
@@ -79,7 +79,7 @@ public class WikiRelationalEfficiencyExperiment {
 		}
 	}
 
-	void queryEfficiencyExperiment(String mode, String subset, List<ExperimentQuery> queries, long gamma) {
+	void queryEfficiencyExperiment(String mode, String subset, List<ExperimentQuery> queries, float gamma) {
 		String subsetIndexPath = PATHS.getIndexBase() + subset;
 		String indexPath = PATHS.getIndexBase() + "100";
 		try (DatabaseConnection dm = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
