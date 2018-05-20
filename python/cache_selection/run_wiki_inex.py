@@ -14,7 +14,8 @@ def main(argv):
     filename = argv[0]
     t = float(argv[1])
     split = 5
-    subset = 'p10'
+    subset = 'subset'
+    full = 'full'
     df = pd.read_csv('../../data/python_data/' + filename)
     df = df.drop(['query'], axis = 1)
     print('bad queries ratio = %.2f' % (df['label'].sum() / df['label'].size))
@@ -23,18 +24,21 @@ def main(argv):
     y = df['label']
     p20_mean = np.zeros([1, 4])
     bad_mean = np.zeros([1, 4])
+    ml_average_rare = 0
+    ql_average_rare = 0
     for train_index, test_index in skf.split(X, y):
         X_train, X_test = X.iloc[train_index], X.iloc[test_index]
         y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-        X_train = X_train.drop([subset, 'p100'], axis=1)
+        X_train = X_train.drop([subset, full], axis=1)
         p12 = X_test[subset]
-        p100 = X_test['p100']
+        p100 = X_test[full]
         bad_index = p100 > p12
-        X_test = X_test.drop([subset, 'p100'], axis=1)
+        X_test = X_test.drop([subset, full], axis=1)
         # compute query likelihood based effectiveness
         ql = p12.copy()
         ql_pred = X_test['ql_c'] < X_test['ql_c.1']
         ql.loc[ql_pred == 1] = p100[ql_pred == 1]
+        ql_average_rare += (ql_pred.sum() / ql_pred.size)
         print("\ttrain set size and ones: %d, %d" % (y_train.shape[0], np.sum(y_train)))
         print("\ttest set size and ones: %d, %d" % (y_test.shape[0], np.sum(y_test)))
         print("\tonez ratio in trian set =  %.2f" % (100 * np.sum(y_train) / y_train.shape[0]))
@@ -66,10 +70,13 @@ def main(argv):
         p20_mean += [p12.mean(), p100.mean(), ml.mean(), ql.mean()]
         bad_mean += [p12[bad_index].mean(), p100[bad_index].mean(),
                      ml[bad_index].mean(), ql[bad_index].mean()]
-        print('final results:')
-        print([['subset', 'database', 'ml', 'ql']])
-        print(p20_mean / split)
-        print(bad_mean / split)
+        ml_average_rare += (y_pred.sum() / y_pred.size)
+    print('final results:')
+    print([['subset', 'database', 'ml', 'ql']])
+    print(bad_mean / split)
+    print(p20_mean / split)
+    print('average rare query count ml: %.2f ql: %.2f' %
+          (ml_average_rare /split, ql_average_rare / split))
 
 if __name__ == "__main__":
     main(sys.argv[1:])
