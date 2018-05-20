@@ -8,7 +8,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn import linear_model
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import RepeatedStratifiedKFold
-from cache_pred import print_results
+from utils import print_results
 
 def main(argv):
     filename = argv[0]
@@ -22,10 +22,11 @@ def main(argv):
     skf = StratifiedKFold(n_splits=split, random_state = 1)
     X = df.drop(['label'], axis = 1)
     y = df['label']
-    p20_mean = np.zeros([1, 4])
-    bad_mean = np.zeros([1, 4])
+    p20_mean = np.zeros([1, 5])
+    bad_mean = np.zeros([1, 5])
     ml_average_rare = 0
     ql_average_rare = 0
+    best_average_rare = 0
     for train_index, test_index in skf.split(X, y):
         X_train, X_test = X.iloc[train_index], X.iloc[test_index]
         y_train, y_test = y.iloc[train_index], y.iloc[test_index]
@@ -67,12 +68,15 @@ def main(argv):
                                                   p100[bad_index].mean()))
         print('\tml mean p@20 = %.2f %.2f' % (ml.mean(), ml[bad_index].mean()))
         print('\tql mean p@20 = %.2f %.2f' % (ql.mean(), ql[bad_index].mean()))
-        p20_mean += [p12.mean(), p100.mean(), ml.mean(), ql.mean()]
+        best = p12.copy()
+        best[y_test == 1] = p100[y_test == 1]
+        p20_mean += [p12.mean(), p100.mean(), ml.mean(), ql.mean(), best.mean()]
         bad_mean += [p12[bad_index].mean(), p100[bad_index].mean(),
-                     ml[bad_index].mean(), ql[bad_index].mean()]
+                     ml[bad_index].mean(), ql[bad_index].mean(),
+                    best[bad_index].mean()]
         ml_average_rare += (y_pred.sum() / y_pred.size)
     print('final results:')
-    print([['subset', 'database', 'ml', 'ql']])
+    print([['subset', 'database', 'ml', 'ql', 'best']])
     print(bad_mean / split)
     print(p20_mean / split)
     print('average rare query count ml: %.2f ql: %.2f' %
