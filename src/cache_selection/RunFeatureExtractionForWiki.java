@@ -46,6 +46,8 @@ public class RunFeatureExtractionForWiki {
 		Option querysetOption = new Option("queryset", true, "specifies the query log (msn/inex)");
 		querysetOption.setRequired(true);
 		options.addOption(querysetOption);
+		Option efficiencyOption = new Option("eff", false, "Run efficiency test");
+		options.addOption(efficiencyOption);
 		CommandLineParser clp = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cl;
@@ -68,6 +70,9 @@ public class RunFeatureExtractionForWiki {
 						"title");
 			} else {
 				throw new org.apache.commons.cli.ParseException("Queryset is not recognized");
+			}
+			if (cl.hasOption("eff")) {
+				queries = queries.subList(0, 100);
 			}
 			FeatureExtraction wqde = new FeatureExtraction(WikiFileIndexer.WEIGHT_ATTRIB);
 			LOGGER.log(Level.INFO, "loading popularity indices..");
@@ -95,6 +100,7 @@ public class RunFeatureExtractionForWiki {
 					IndexReader globalBiwordIndexReader = DirectoryReader.open(FSDirectory.open(globalBiwordIndexPath));
 					Analyzer biwordAnalyzer = new BiwordAnalyzer();
 					Analyzer analyzer = new StandardAnalyzer()) {
+				long start = System.currentTimeMillis();
 				for (ExperimentQuery query : queries) {
 					String queryText = query.getText();
 					List<Double> f = new ArrayList<Double>();
@@ -150,6 +156,9 @@ public class RunFeatureExtractionForWiki {
 							globalBiwordIndexReader, biwordAnalyzer));
 					data.add(queryText + "," + f.stream().map(ft -> ft + ",").collect(Collectors.joining()));
 				}
+				long end = System.currentTimeMillis();
+				double time = end - start;
+				LOGGER.log(Level.INFO, "Time spent per query: " + time / queries.size() + " (ms)");
 			} catch (IOException e) {
 				LOGGER.log(Level.SEVERE, e.getMessage(), e);
 			}
