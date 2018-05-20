@@ -7,9 +7,17 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
@@ -23,15 +31,35 @@ public class WikiRelationalEfficiencyExperiment {
 	private static WikiFilesPaths PATHS = WikiFilesPaths.getMaplePaths();
 
 	public static void main(String[] args) throws SQLException {
-		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(),
-				PATHS.getMsnQrelFilePath());
-		// List<ExperimentQuery> queries =
-		// QueryServices.loadInexQueries(PATHS.getInexQueryFilePath(),
-		// PATHS.getInexQrelFilePath());
-		Collections.shuffle(queries);
-		queries = queries.subList(0, 50);
-		WikiRelationalEfficiencyExperiment wmree = new WikiRelationalEfficiencyExperiment();
-		wmree.queryEfficiencyExperiment("memory", "1", queries);
+		Options options = new Options();
+		Option expOption = new Option("exp", true, "experiment number");
+		expOption.setRequired(true);
+		options.addOption(expOption);
+		Option querysetOption = new Option("queryset", true, "specifies the query log (msn/inex)");
+		querysetOption.setRequired(true);
+		options.addOption(querysetOption);
+		Option gammaOption = new Option("gamma", true, "the weight of title field");
+		options.addOption(gammaOption);
+		CommandLineParser clp = new DefaultParser();
+		HelpFormatter formatter = new HelpFormatter();
+		CommandLine cl;
+		try {
+			cl = clp.parse(options, args);
+			List<ExperimentQuery> queries;
+			if (cl.getOptionValue("queryset").equals("msn")) {
+				queries = QueryServices.loadMsnQueries(PATHS.getMsnQueryFilePath(), PATHS.getMsnQrelFilePath());
+			} else {
+				queries = QueryServices.loadInexQueries(PATHS.getInexQueryFilePath(), PATHS.getInexQrelFilePath());
+			}
+			Collections.shuffle(queries, new Random(1l));
+			queries = queries.subList(0, 20);
+			WikiRelationalEfficiencyExperiment wmree = new WikiRelationalEfficiencyExperiment();
+			float gamma = Float.parseFloat(cl.getOptionValue("gamma"));
+			wmree.queryEfficiencyExperiment("normal", cl.getOptionValue("exp"), queries, gamma);
+		} catch (org.apache.commons.cli.ParseException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage());
+			formatter.printHelp("", options);
+		}
 	}
 
 	void debug() {
@@ -51,21 +79,32 @@ public class WikiRelationalEfficiencyExperiment {
 		}
 	}
 
-	void queryEfficiencyExperiment(String mode, String subset, List<ExperimentQuery> queries) {
+	void queryEfficiencyExperiment(String mode, String subset, List<ExperimentQuery> queries, float gamma) {
 		String subsetIndexPath = PATHS.getIndexBase() + subset;
 		String indexPath = PATHS.getIndexBase() + "100";
 		try (DatabaseConnection dm = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			String subsetPrefix = "";
+			String articleTable = "sub_article_" + subset;
+			String imageRelTable = "sub_article_image_" + subset;
+			String linkRelTable = "sub_article_link_" + subset;
+			String imageTable = "sub_image_" + subset;
+			String linkTable = "sub_link_" + subset;
 			switch (mode) {
+			case "normal":
+				subsetPrefix = "SELECT a.id FROM " + articleTable + " a left join " + imageRelTable
+						+ " i on a.id = i.article_id left join " + imageTable + " ii on i.image_id = ii.id left join "
+						+ linkRelTable + " l on a.id = l.article_id left join " + linkTable
+						+ " ll on l.article_id = ll.id WHERE a.id in %s;";
+				break;
 			case "denorm":
 				subsetPrefix = "SELECT a.id FROM den_article_link_1 WHERE a.id in %s;";
 				break;
 			case "memory":
-				String articleTable = "mem_article_" + subset;
-				String imageRelTable = "mem_article_image_" + subset;
-				String linkRelTable = "mem_article_link_" + subset;
-				String imageTable = "mem_image_" + subset;
-				String linkTable = "mem_link_" + subset;
+				articleTable = "mem_article_" + subset;
+				imageRelTable = "mem_article_image_" + subset;
+				linkRelTable = "mem_article_link_" + subset;
+				imageTable = "mem_image_" + subset;
+				linkTable = "mem_link_" + subset;
 				subsetPrefix = "SELECT a.id FROM " + articleTable + " a left join " + imageRelTable
 						+ " i on a.id = i.article_id left join " + imageTable + " ii on i.image_id = ii.id left join "
 						+ linkRelTable + " l on a.id = l.article_id left join " + linkTable
@@ -75,11 +114,11 @@ public class WikiRelationalEfficiencyExperiment {
 				LOGGER.log(Level.SEVERE, "Mode is not correct");
 				return;
 			}
-			String articleTable = "tbl_article_wiki13";
-			String imageRelTable = "tbl_article_image_09";
-			String linkRelTable = "tbl_article_link_09";
-			String imageTable = "tbl_image_09";
-			String linkTable = "tbl_link_09";
+			articleTable = "tbl_article_wiki13";
+			imageRelTable = "tbl_article_image_09";
+			linkRelTable = "tbl_article_link_09";
+			imageTable = "tbl_image_09";
+			linkTable = "tbl_link_09";
 			String dbPrefix = "SELECT a.id FROM " + articleTable + " a left join " + imageRelTable
 					+ " i on a.id = i.article_id left join " + imageTable + " ii on i.image_id = ii.id left join "
 					+ linkRelTable + " l on a.id = l.article_id left join " + linkTable
@@ -87,8 +126,8 @@ public class WikiRelationalEfficiencyExperiment {
 			double[] time = new double[4];
 			int iterCount = 3;
 			for (int i = 0; i < iterCount; i++) {
-				double dbTimes[] = measureQueryEfficiency(indexPath, dm, queries, dbPrefix);
-				double subsetTimes[] = measureQueryEfficiency(subsetIndexPath, dm, queries, subsetPrefix);
+				double dbTimes[] = measureQueryEfficiency(indexPath, dm, queries, dbPrefix, gamma);
+				double subsetTimes[] = measureQueryEfficiency(subsetIndexPath, dm, queries, subsetPrefix, gamma);
 				time[0] += subsetTimes[0];
 				time[1] += subsetTimes[1];
 				time[2] += dbTimes[0];
@@ -107,9 +146,9 @@ public class WikiRelationalEfficiencyExperiment {
 	}
 
 	double[] measureQueryEfficiency(String indexPath, DatabaseConnection dm, List<ExperimentQuery> queries,
-			String queryPrefix) throws SQLException {
+			String queryPrefix, float gamma) throws SQLException {
 		long startTime = System.currentTimeMillis();
-		List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, 1f);
+		List<QueryResult> results = WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, gamma);
 		long middleTime = System.currentTimeMillis();
 		int counter = 0;
 		for (QueryResult result : results) {
