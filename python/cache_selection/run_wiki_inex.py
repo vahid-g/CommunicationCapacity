@@ -13,9 +13,9 @@ from utils import print_results
 def main(argv):
     filename = argv[0]
     t = float(argv[1])
+    subset = argv[2]
+    full = '100'
     split = 5
-    subset = 'subset'
-    full = 'full'
     df = pd.read_csv('../../data/python_data/' + filename)
     df = df.drop(['query'], axis = 1)
     print('bad queries ratio = %.2f' % (df['label'].sum() / df['label'].size))
@@ -36,8 +36,8 @@ def main(argv):
         bad_index = p100 > p12
         X_test = X_test.drop([subset, full], axis=1)
         # compute query likelihood based effectiveness
-        ql = p12.copy()
         ql_pred = X_test['ql_c'] < X_test['ql_c.1']
+        ql = p12.copy()
         ql.loc[ql_pred == 1] = p100[ql_pred == 1]
         ql_average_rare += (ql_pred.sum() / ql_pred.size)
         print("\ttrain set size and ones: %d, %d" % (y_train.shape[0], np.sum(y_train)))
@@ -61,6 +61,8 @@ def main(argv):
         # compute ML based effectiveness
         ml = p12.copy()
         ml.loc[y_pred == 1] = p100[y_pred == 1]
+        best = p12.copy()
+        best.loc[y_test == 1] = p100[y_test == 1]
         print('\t---')
         print('\tsubset mean p@20 = %.2f %.2f' % (p12.mean(),
                                                   p12[bad_index].mean()))
@@ -68,8 +70,8 @@ def main(argv):
                                                   p100[bad_index].mean()))
         print('\tml mean p@20 = %.2f %.2f' % (ml.mean(), ml[bad_index].mean()))
         print('\tql mean p@20 = %.2f %.2f' % (ql.mean(), ql[bad_index].mean()))
-        best = p12.copy()
-        best[y_test == 1] = p100[y_test == 1]
+        print('\tbest mean p@20 = %.2f %.2f' %
+              (best.mean(),best[bad_index].mean()))
         p20_mean += [p12.mean(), p100.mean(), ml.mean(), ql.mean(), best.mean()]
         bad_mean += [p12[bad_index].mean(), p100[bad_index].mean(),
                      ml[bad_index].mean(), ql[bad_index].mean(),
