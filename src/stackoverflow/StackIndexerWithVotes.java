@@ -43,6 +43,8 @@ public class StackIndexerWithVotes {
 
 	static final int ANSWERS_S_RECALL_SIZE = 1925204;
 
+	private static double totalExp = 10.0;
+
 	private static final Logger LOGGER = Logger.getLogger(StackIndexerWithVotes.class.getName());
 
 	private IndexWriterConfig config;
@@ -91,19 +93,19 @@ public class StackIndexerWithVotes {
 
 	void indexSubsets(String experimentNumber, String indexPath, int tableSize, String tableName)
 			throws SQLException, IOException {
-		int limit = (int) (Double.parseDouble(experimentNumber) * tableSize / 100.0);
+		int limit = (int) (Double.parseDouble(experimentNumber) * tableSize / totalExp);
 		LOGGER.log(Level.INFO, "indexing subset..");
-		String query = "select Id, Body, Score from stack_overflow." + tableName
-				+ " order by Score desc limit " + limit + ";";
+		String query = "select Id, Body, Score from stack_overflow." + tableName + " order by Score desc limit " + limit
+				+ ";";
 		indexTable(indexPath, query);
 	}
 
 	void indexRest(String experimentNumber, String indexPath, int tableSize, String tableName)
 			throws SQLException, IOException {
-		int limit = (int) (tableSize - Double.parseDouble(experimentNumber) * tableSize / 100.0);
+		int limit = (int) (tableSize - Double.parseDouble(experimentNumber) * tableSize / totalExp);
 		LOGGER.log(Level.INFO, "indexing rest..");
-		String query = "select Id, Body, Score from stack_overflow." + tableName
-				+ " order by Score asc limit " + limit + ";";
+		String query = "select Id, Body, Score from stack_overflow." + tableName + " order by Score asc limit " + limit
+				+ ";";
 		indexTable(indexPath, query);
 	}
 
