@@ -36,39 +36,49 @@ public class StackQuery {
 	private static final Logger LOGGER = Logger.getLogger(StackQuery.class.getName());
 
 	public static void main(String[] args) throws IOException, SQLException {
-		StackQuery sqsr = new StackQuery();
 		String experiment = args[0];
+		StackQuery sqsr = new StackQuery("questions_s_test_train", "/data/ghadakcv/stack_index_s/" + experiment);
 		Double trainSize = Double.parseDouble(args[1]);
+		List<QuestionDAO> questions = null;
 		if (args.length > 2 && args[2].equals("-parallel")) {
-			sqsr.runExperiment(experiment, true, trainSize);
+			questions = sqsr.runExperiment(experiment, true, trainSize);
 		} else {
-			sqsr.runExperiment(experiment, false, trainSize);
+			questions = sqsr.runExperiment(experiment, false, trainSize);
 		}
-	}
-
-	private void runExperiment(String experimentNumber, boolean parallel, double samplePercentage)
-			throws IOException, SQLException {
-		List<QuestionDAO> questions = loadQueriesFromTable("questions_s_test_train");
-		String outputFile = "/data/ghadakcv/stack_results/" + experimentNumber + ".csv";
-		if (samplePercentage < 1.0) {
-			Collections.shuffle(questions, new Random(100));
-			questions = questions.subList(0, (int) (samplePercentage * questions.size()));
-			outputFile = "/data/ghadakcv/stack_results/train_" + experimentNumber + ".csv";
-		}
-		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-		if (parallel) {
-			submitParallelQueries(questions, "/data/ghadakcv/stack_index_s/" + experimentNumber);
-		} else {
-			submitQueries(questions, "/data/ghadakcv/stack_index_s/" + experimentNumber);
-		}
-		LOGGER.log(Level.INFO, "querying done!");
-		try (FileWriter fw = new FileWriter(new File(outputFile))) {
+		String output = (trainSize < 1) ? "/data/ghadakcv/stack_results/train_" + experiment + ".csv"
+				: "/data/ghadakcv/stack_results/" + experiment + ".csv";
+		try (FileWriter fw = new FileWriter(new File(output))) {
 			for (QuestionDAO question : questions) {
 				fw.write(question.id + "," + question.text.replace(',', ' ') + "," + question.testViewCount + ","
 						+ question.trainViewCount + "," + question.mrr + "\n");
 			}
 		}
 		LOGGER.log(Level.INFO, "experiment done!");
+	}
+
+	private String questionTable;
+	private String indexPath;
+
+	public StackQuery(String questionTable, String indexPath) {
+		this.questionTable = questionTable;
+		this.indexPath = indexPath;
+	}
+
+	private List<QuestionDAO> runExperiment(String experimentNumber, boolean parallel, double samplePercentage)
+			throws IOException, SQLException {
+		String query = "select Id, Title, AcceptedAnswerId, TestViewCount, TrainViewCount from stack_overflow."
+				+ questionTable + ";";
+		List<QuestionDAO> questions = loadQuestions(query);
+		Collections.shuffle(questions, new Random(100));
+		questions = questions.subList(0, (int) (samplePercentage * questions.size()));
+		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
+		if (parallel) {
+			submitParallelQueries(questions, this.indexPath);
+		} else {
+			submitQueries(questions, this.indexPath);
+		}
+		LOGGER.log(Level.INFO, "querying done!");
+		return questions;
 	}
 
 	private void submitQueries(List<QuestionDAO> questions, String indexPath) {
@@ -141,19 +151,19 @@ public class StackQuery {
 		}
 	}
 
-	public List<QuestionDAO> loadQueriesFromTable(String questionsTable) throws IOException, SQLException {
+	public List<QuestionDAO> loadQuestionsFromTable() throws IOException, SQLException {
 		String query = "select Id, Title, AcceptedAnswerId, TestViewCount, TrainViewCount from stack_overflow."
-				+ questionsTable + ";";
-		return loadQueries(query);
+				+ this.questionTable + ";";
+		return loadQuestions(query);
 	}
 
-	public List<QuestionDAO> loadQueriesFromTable(String questionsTable, int limit) throws IOException, SQLException {
+	public List<QuestionDAO> loadQuestionsFromTable(int limit) throws IOException, SQLException {
 		String query = "select Id, Title, AcceptedAnswerId, TestViewCount, TrainViewCount from stack_overflow."
-				+ questionsTable + " limit " + limit + ";";
-		return loadQueries(query);
+				+ this.questionTable + " limit " + limit + ";";
+		return loadQuestions(query);
 	}
 
-	private List<QuestionDAO> loadQueries(String query) throws IOException, SQLException {
+	private List<QuestionDAO> loadQuestions(String query) throws IOException, SQLException {
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();
 		conn.setAutoCommit(false);

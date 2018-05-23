@@ -54,12 +54,12 @@ public class RunFeatureExtractionForStack {
 			cl = clp.parse(options, args);
 			String exp = cl.getOptionValue("exp");
 			String totalExp = cl.getOptionValue("total");
-			StackQuery sqsr = new StackQuery();
+			StackQuery sqsr = new StackQuery("questions_s_test_train", "/data/ghadakcv/stack_index_s/");
 			if (cl.hasOption("eff")) {
-				List<QuestionDAO> queries = sqsr.loadQueriesFromTable("questions_s_test_train", 100);
+				List<QuestionDAO> queries = sqsr.loadQuestionsFromTable(100);
 				featureExtraction(exp, totalExp, queries);
 			} else {
-				List<QuestionDAO> queries = sqsr.loadQueriesFromTable("questions_s_test_train");
+				List<QuestionDAO> queries = sqsr.loadQuestionsFromTable();
 				List<String> data = featureExtraction(exp, totalExp, queries);
 				try (FileWriter fw = new FileWriter("/data/ghadakcv/stack_results/stack_feat/" + exp + ".csv")) {
 					for (String line : data) {
