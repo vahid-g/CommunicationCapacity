@@ -1,11 +1,14 @@
 package stackoverflow;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class QuestionDAO {
 
 	public String id;
 	public String text;
 	public String acceptedAnswer;
-	public String allAnswers[];
+	public List<Integer> allAnswers = new ArrayList<Integer>();
 	public int resultRank = -1;
 	public int testViewCount = 0;
 	public int trainViewCount = 0;

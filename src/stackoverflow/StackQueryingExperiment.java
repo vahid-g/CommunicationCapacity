@@ -46,7 +46,16 @@ public class StackQueryingExperiment {
 		}
 		StackQueryingExperiment sqe = new StackQueryingExperiment("questions_s_test_train",
 				"/data/ghadakcv/stack_index_s/" + indexName, isParallel);
-		List<QuestionDAO> questions = sqe.runExperiment(trainQuerySetSize);
+		List<QuestionDAO> questions = sqe.loadQuestionsFromTable();
+		Collections.shuffle(questions, new Random(100));
+		questions = questions.subList(0, (int) (trainQuerySetSize * questions.size()));
+		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
+		if (sqe.isParallelExperiment) {
+			sqe.submitQueriesInParallel(questions);
+		} else {
+			sqe.submitQueries(questions);
+		}
+		LOGGER.log(Level.INFO, "querying done!");
 		String output = (trainQuerySetSize < 1) ? "/data/ghadakcv/stack_results/train_" + indexName + ".csv"
 				: "/data/ghadakcv/stack_results/" + indexName + ".csv";
 		try (FileWriter fw = new FileWriter(new File(output))) {
@@ -66,20 +75,6 @@ public class StackQueryingExperiment {
 		this.questionTable = questionTable;
 		this.indexPath = indexPath;
 		this.isParallelExperiment = isParallel;
-	}
-
-	private List<QuestionDAO> runExperiment(double samplePercentage) throws IOException, SQLException {
-		List<QuestionDAO> questions = loadQuestionsFromTable();
-		Collections.shuffle(questions, new Random(100));
-		questions = questions.subList(0, (int) (samplePercentage * questions.size()));
-		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-		if (this.isParallelExperiment) {
-			submitQueriesInParallel(questions);
-		} else {
-			submitQueries(questions);
-		}
-		LOGGER.log(Level.INFO, "querying done!");
-		return questions;
 	}
 
 	void submitQueries(List<QuestionDAO> questions) {
@@ -116,7 +111,7 @@ public class StackQueryingExperiment {
 		}
 	}
 
-	private void submitQueriesInParallel(List<QuestionDAO> questions) {
+	protected void submitQueriesInParallel(List<QuestionDAO> questions) {
 		LOGGER.log(Level.INFO, "retrieving queries..");
 		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
@@ -164,7 +159,7 @@ public class StackQueryingExperiment {
 		return loadQuestions(query);
 	}
 
-	private List<QuestionDAO> loadQuestions(String query) throws IOException, SQLException {
+	protected List<QuestionDAO> loadQuestions(String query) throws IOException, SQLException {
 		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 		Connection conn = dc.getConnection();
 		conn.setAutoCommit(false);
@@ -191,35 +186,4 @@ public class StackQueryingExperiment {
 		return result;
 	}
 
-	public List<QuestionDAO> loadQuestionsWithScoresFromTable() throws IOException, SQLException {
-		String query = "select Id, Title, AcceptedAnswerId, ViewCount, Score from stack_overflow.questions_s_recall;";
-		return loadQuestionsWithScores(query);
-	}
-
-	private List<QuestionDAO> loadQuestionsWithScores(String query) throws IOException, SQLException {
-		DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
-		Connection conn = dc.getConnection();
-		conn.setAutoCommit(false);
-		List<QuestionDAO> result = new ArrayList<QuestionDAO>();
-
-		try (Statement stmt = conn.createStatement()) {
-			stmt.setFetchSize(Integer.MIN_VALUE);
-			ResultSet rs = stmt.executeQuery(query);
-			while (rs.next()) {
-				String id = rs.getString("Id");
-				String title = rs.getString("Title").replace(',', ' ');
-				String acceptedAnswerId = rs.getString("AcceptedAnswerId");
-				String viewCount = rs.getString("ViewCount");
-				String score = rs.getString("Score");
-				QuestionDAO dao = new QuestionDAO(id, title, acceptedAnswerId);
-				dao.testViewCount = Integer.parseInt(score);
-				dao.trainViewCount = Integer.parseInt(viewCount);
-				result.add(dao);
-			}
-		} catch (SQLException e) {
-			LOGGER.log(Level.SEVERE, e.getMessage(), e);
-		}
-		dc.close();
-		return result;
-	}
 }
