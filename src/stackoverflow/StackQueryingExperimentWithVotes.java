@@ -52,10 +52,10 @@ public class StackQueryingExperimentWithVotes extends StackQueryingExperiment {
 		LOGGER.log(Level.INFO, "recall = " + sum / counter);
 		String output = "/data/ghadakcv/stack_results_recall/" + indexName + ".csv";
 		try (FileWriter fw = new FileWriter(new File(output))) {
-			fw.write("id, score, viewcount, rrank, recall \n");
+			fw.write("id,score,viewcount,rrank,recall\n");
 			for (QuestionDAO question : questions) {
-				fw.write(question.id + "," + question.score + "," + question.viewCount + "," + "," + question.rrank
-						+ "," + question.recall + "\n");
+				fw.write(question.id + "," + question.score + "," + question.viewCount + "," + question.rrank + ","
+						+ question.recall + "\n");
 			}
 		}
 		LOGGER.log(Level.INFO, "experiment done!");
