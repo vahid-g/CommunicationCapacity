@@ -66,7 +66,7 @@ public class StackQueryWithVotes {
 		double sum = 0;
 		for (QuestionDAO question : questions) {
 			sum += question.testViewCount * question.mrr;
-			counter++;
+			counter += question.testViewCount;
 		}
 		LOGGER.log(Level.INFO, "experiment done!");
 		LOGGER.log(Level.INFO, "MRR = " + sum / counter);
