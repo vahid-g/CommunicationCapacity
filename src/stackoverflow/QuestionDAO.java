@@ -10,6 +10,7 @@ public class QuestionDAO {
 	public String acceptedAnswer;
 	public List<Integer> allAnswers = new ArrayList<Integer>();
 	public int resultRank = -1;
+	public int viewCount = 0;
 	public int testViewCount = 0;
 	public int trainViewCount = 0;
 	public int score = 0;
