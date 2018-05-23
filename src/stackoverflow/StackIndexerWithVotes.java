@@ -43,7 +43,7 @@ public class StackIndexerWithVotes {
 
 	static final int ANSWERS_S_RECALL_SIZE = 1925204;
 
-	private static double totalExp = 10.0;
+	private static double totalExp = 100.0;
 
 	private static final Logger LOGGER = Logger.getLogger(StackIndexerWithVotes.class.getName());
 

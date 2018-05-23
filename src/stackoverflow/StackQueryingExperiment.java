@@ -61,14 +61,14 @@ public class StackQueryingExperiment {
 		try (FileWriter fw = new FileWriter(new File(output))) {
 			for (QuestionDAO question : questions) {
 				fw.write(question.id + "," + question.text.replace(',', ' ') + "," + question.testViewCount + ","
-						+ question.trainViewCount + "," + question.mrr + "\n");
+						+ question.trainViewCount + "," + question.rrank + "\n");
 			}
 		}
 		LOGGER.log(Level.INFO, "experiment done!");
 	}
 
 	private String questionTable;
-	private String indexPath;
+	protected String indexPath;
 	private boolean isParallelExperiment;
 
 	public StackQueryingExperiment(String questionTable, String indexPath, boolean isParallel) {
@@ -77,7 +77,7 @@ public class StackQueryingExperiment {
 		this.isParallelExperiment = isParallel;
 	}
 
-	void submitQueries(List<QuestionDAO> questions) {
+	protected void submitQueries(List<QuestionDAO> questions) {
 		LOGGER.log(Level.INFO, "retrieving queries..");
 		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
@@ -97,7 +97,7 @@ public class StackQueryingExperiment {
 						Document doc = searcher.doc(hits[i].doc);
 						if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer)) {
 							question.resultRank = i + 1;
-							question.mrr = 1.0 / question.resultRank;
+							question.rrank = 1.0 / question.resultRank;
 							break;
 						}
 					}
@@ -131,7 +131,7 @@ public class StackQueryingExperiment {
 						Document doc = searcher.doc(hits[i].doc);
 						if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer)) {
 							question.resultRank = i + 1;
-							question.mrr = 1.0 / question.resultRank;
+							question.rrank = 1.0 / question.resultRank;
 							break;
 						}
 					}

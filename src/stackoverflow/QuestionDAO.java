@@ -13,7 +13,8 @@ public class QuestionDAO {
 	public int testViewCount = 0;
 	public int trainViewCount = 0;
 	public int score = 0;
-	public double mrr = 0;
+	public double rrank = 0;
+	public double recall = 0;
 
 	public QuestionDAO(String id, String question, String answer) {
 		this.id = id;
