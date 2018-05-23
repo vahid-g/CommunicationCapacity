@@ -29,7 +29,7 @@ import indexing.BiwordAnalyzer;
 import indexing.popularity.TokenPopularity;
 import stackoverflow.QuestionDAO;
 import stackoverflow.StackIndexer;
-import stackoverflow.StackQuery;
+import stackoverflow.StackQueryingExperiment;
 
 public class RunFeatureExtractionForStack {
 
@@ -54,7 +54,8 @@ public class RunFeatureExtractionForStack {
 			cl = clp.parse(options, args);
 			String exp = cl.getOptionValue("exp");
 			String totalExp = cl.getOptionValue("total");
-			StackQuery sqsr = new StackQuery("questions_s_test_train", "/data/ghadakcv/stack_index_s/");
+			StackQueryingExperiment sqsr = new StackQueryingExperiment("questions_s_test_train",
+					"/data/ghadakcv/stack_index_s/", false);
 			if (cl.hasOption("eff")) {
 				List<QuestionDAO> queries = sqsr.loadQuestionsFromTable(100);
 				featureExtraction(exp, totalExp, queries);
