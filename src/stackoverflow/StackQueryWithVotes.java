@@ -90,7 +90,7 @@ public class StackQueryWithVotes {
 					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
 					for (int i = 0; i < hits.length; i++) {
 						Document doc = searcher.doc(hits[i].doc);
-						if (doc.get(StackIndexer.ID_FIELD).equals(question.answer)) {
+						if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer)) {
 							question.resultRank = i + 1;
 							question.mrr = 1.0 / question.resultRank;
 							break;
@@ -124,7 +124,7 @@ public class StackQueryWithVotes {
 					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
 					for (int i = 0; i < hits.length; i++) {
 						Document doc = searcher.doc(hits[i].doc);
-						if (doc.get(StackIndexer.ID_FIELD).equals(question.answer)) {
+						if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer)) {
 							question.resultRank = i + 1;
 							question.mrr = 1.0 / question.resultRank;
 							break;

@@ -4,7 +4,8 @@ public class QuestionDAO {
 
 	public String id;
 	public String text;
-	public String answer;
+	public String acceptedAnswer;
+	public String allAnswers[];
 	public int resultRank = -1;
 	public int testViewCount = 0;
 	public int trainViewCount = 0;
@@ -13,7 +14,7 @@ public class QuestionDAO {
 	public QuestionDAO(String id, String question, String answer) {
 		this.id = id;
 		this.text = question;
-		this.answer = answer;
+		this.acceptedAnswer = answer;
 	}
 	
 	@Override

@@ -42,7 +42,7 @@ public class StackInitialQuery {
 		try (FileWriter fw = new FileWriter(new File(args[0] + ".csv"))) {
 			for (QuestionDAO question : questions) {
 				if (question.resultRank != -1) {
-					fw.write(question.id + "," + question.answer + "," + 1.0 / question.resultRank + "\n");
+					fw.write(question.id + "," + question.acceptedAnswer + "," + 1.0 / question.resultRank + "\n");
 				}
 			}
 		}
@@ -64,7 +64,7 @@ public class StackInitialQuery {
 					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
 					for (int i = 0; i < hits.length; i++) {
 						Document doc = searcher.doc(hits[i].doc);
-						if (doc.get(StackIndexer.ID_FIELD).equals(question.answer)) {
+						if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer)) {
 							question.resultRank = i + 1;
 							break;
 						}
@@ -96,7 +96,7 @@ public class StackInitialQuery {
 					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
 					for (int i = 0; i < hits.length; i++) {
 						Document doc = searcher.doc(hits[i].doc);
-						if (doc.get(StackIndexer.ID_FIELD).equals(question.answer)) {
+						if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer)) {
 							question.resultRank = i + 1;
 							break;
 						}
@@ -113,7 +113,7 @@ public class StackInitialQuery {
 			try (FileWriter fw = new FileWriter(new File(offset + "n.csv"))) {
 				for (QuestionDAO question : questions) {
 					if (question.resultRank != -1) {
-						fw.write(question.id + "," + question.answer + "," + 1.0 / question.resultRank + "\n");
+						fw.write(question.id + "," + question.acceptedAnswer + "," + 1.0 / question.resultRank + "\n");
 					}
 				}
 			}
