@@ -41,9 +41,11 @@ public class StackIndexer {
 
 	public static final String VIEW_COUNT_FIELD = "ViewCount";
 
-	static final int ANSWERS_S_SIZE = 1092420;
+	static final int ANSWERS_S_SIZE = 1092420; // Size of stack_overflow.answers_s_train
 
-	static final int ANSWERS_A_SIZE = 8033979;
+	static final int ANSWERS_A_SIZE = 8033979; // Size of stack_overflow.answers_a
+	
+	static final int ANSWERS_S_RECALL_SIZE = 1925204; // Size of stack_overflow.answers_s_recall
 
 	private static final Logger LOGGER = Logger.getLogger(StackIndexer.class.getName());
 
@@ -60,6 +62,9 @@ public class StackIndexer {
 		Option indexOption = new Option("index", true, "index number");
 		indexOption.setRequired(true);
 		options.addOption(indexOption);
+		Option indexFolderOption = new Option("folder", true, "index number"); //"/data/ghadakcv/stack_index_s_bi/"
+		indexFolderOption.setRequired(true);
+		options.addOption(indexFolderOption);
 		options.addOption(new Option("bi", false, "biword index"));
 		options.addOption(new Option("rest", false, "rest index"));
 		CommandLineParser clp = new DefaultParser();
@@ -71,18 +76,17 @@ public class StackIndexer {
 			String indexBasePath = "";
 			if (cl.hasOption("bi")) {
 				si = new StackIndexer(new BiwordAnalyzer());
-				indexBasePath = "/data/ghadakcv/stack_index_s_bi/";
 			} else {
 				si = new StackIndexer(new StandardAnalyzer());
-				indexBasePath = "/data/ghadakcv/stack_index_s/";
 			}
+			indexBasePath = cl.getOptionValue("folder");
 			String indexNumber = cl.getOptionValue("index");
 			if (cl.hasOption("rest")) {
 				String indexPath = indexBasePath + "c" + indexNumber;
-				si.indexRest(indexNumber, indexPath, ANSWERS_S_SIZE, "answers_s_train");
+				si.indexRest(indexNumber, indexPath, ANSWERS_S_RECALL_SIZE, "answers_s_recall");
 			} else {
 				String indexPath = indexBasePath + indexNumber;
-				si.indexSubsets(indexNumber, indexPath, ANSWERS_S_SIZE, "answers_s_train");
+				si.indexSubsets(indexNumber, indexPath, ANSWERS_S_RECALL_SIZE, "answers_s_recall");
 			}
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
