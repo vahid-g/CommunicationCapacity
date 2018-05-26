@@ -18,7 +18,7 @@ public class StackQueryingExperimentOptimized {
 		sqe.loadMultipleAnswersForQuestions(questions);
 		Collections.shuffle(questions, new Random(100));
 		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-		for (int i = 1; i <= 100; i++) {
+		for (int i = 1; i <= 100; i+=10) {
 			LOGGER.log(Level.INFO, "running loop: " + i);
 			List<StackQueryAnswer> results = sqe.submitQueriesInParallelWithMultipleAnswers(questions,
 					"/data/ghadakcv/stack_index_s_recall/" + i);

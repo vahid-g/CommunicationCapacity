@@ -35,7 +35,7 @@ public class StackQueryingExperimentWithVotes extends StackQueryingExperiment {
 		LOGGER.log(Level.INFO, "experiment done!");
 		LOGGER.log(Level.INFO, "recall = " + sum / counter);
 		String output = "/data/ghadakcv/stack_results_recall/" + indexName + ".csv";
-		sqe.printResultsWithMultipleAnswers(results, output);
+		sqe.printResultsWithVotes(results, output);
 		LOGGER.log(Level.INFO, "experiment done!");
 	}
 

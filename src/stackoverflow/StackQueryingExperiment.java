@@ -140,11 +140,15 @@ public class StackQueryingExperiment {
 			Query query = parser.parse(queryText.toLowerCase());
 			ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
 			double tp = 0;
+			double tp20 = 0;
 			for (int i = 0; i < hits.length; i++) {
 				Document doc = searcher.doc(hits[i].doc);
 				if (question.allAnswers.contains(Integer.parseInt(doc.get(StackIndexer.ID_FIELD)))) {
 					if (sqa.rrank == 0) {
 						sqa.rrank = 1.0 / (i + 1);
+					}
+					if (i <= 20) {
+						tp20++;
 					}
 					tp++;
 				}
@@ -152,6 +156,7 @@ public class StackQueryingExperiment {
 			if (question.allAnswers.size() > 0) {
 				sqa.recall = tp / question.allAnswers.size();
 			}
+			sqa.p20 = tp20 / 20;
 		} catch (ParseException e) {
 			LOGGER.log(Level.SEVERE, "Couldn't parse query " + question.id);
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
@@ -229,13 +234,13 @@ public class StackQueryingExperiment {
 		}
 	}
 
-	void printResultsWithMultipleAnswers(List<StackQueryAnswer> results, String output) {
+	void printResultsWithVotes(List<StackQueryAnswer> results, String output) {
 		try (FileWriter fw = new FileWriter(new File(output))) {
 			fw.write("id,score,viewcount,rrank,recall\n");
 			for (StackQueryAnswer result : results) {
 				QuestionDAO question = result.question;
 				fw.write(question.id + "," + question.score + "," + question.viewCount + "," + result.rrank + ","
-						+ result.recall + "\n");
+						+ result.recall + "," + result.p20 + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);

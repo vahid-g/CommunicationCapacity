@@ -5,6 +5,7 @@ public class StackQueryAnswer {
 	QuestionDAO question;
 	public double rrank = 0;
 	public double recall = 0;
+	public double p20;
 	
 
 	public StackQueryAnswer(QuestionDAO question) {
