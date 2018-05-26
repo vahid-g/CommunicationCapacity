@@ -39,7 +39,8 @@ public class StackEfficiency {
 	}
 
 	private void runExperiment(double samplePercentage) throws IOException, SQLException, ParseException {
-		StackQueryingExperiment sq = new StackQueryingExperiment("questions_s_test_train", "/data/ghadakcv/stack_index_s/18", false);
+		StackQueryingExperiment sq = new StackQueryingExperiment("questions_s_test_train",
+				"/data/ghadakcv/stack_index_s/18");
 		List<QuestionDAO> questions = sq.loadQuestionsFromTable();
 		if (samplePercentage < 1.0) {
 			Collections.shuffle(questions, new Random(100));

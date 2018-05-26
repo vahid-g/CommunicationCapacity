@@ -77,24 +77,7 @@ public class StackQueryingExperiment {
 			LOGGER.log(Level.INFO, "number of tuples in index: {0}", reader.getDocCount(StackIndexer.BODY_FIELD));
 			LOGGER.log(Level.INFO, "querying..");
 			for (QuestionDAO question : questions) {
-				try {
-					String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
-					// in the next line, to lower case is necessary to change AND to and, otherwise
-					// lucene would consider it as an operator
-					Query query = parser.parse(queryText.toLowerCase());
-					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
-					for (int i = 0; i < hits.length; i++) {
-						Document doc = searcher.doc(hits[i].doc);
-						if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer)) {
-							question.resultRank = i + 1;
-							question.rrank = 1.0 / question.resultRank;
-							break;
-						}
-					}
-				} catch (ParseException e) {
-					LOGGER.log(Level.SEVERE, "Couldn't parse query " + question.id);
-					LOGGER.log(Level.SEVERE, e.getMessage(), e);
-				}
+				submitQuestion(searcher, analyzer, question);
 			}
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
@@ -108,31 +91,77 @@ public class StackQueryingExperiment {
 			Analyzer analyzer = new StandardAnalyzer();
 			LOGGER.log(Level.INFO, "number of tuples in index: {0}", reader.getDocCount(StackIndexer.BODY_FIELD));
 			LOGGER.log(Level.INFO, "querying..");
-			questions.parallelStream().forEach(question -> {
-				try {
-					String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
-					// in the next line, to lower case is necessary to change AND to and, otherwise
-					// lucene would consider it as an operator
-					QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
-					parser.setDefaultOperator(Operator.OR);
-					Query query = parser.parse(queryText.toLowerCase());
-					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
-					for (int i = 0; i < hits.length; i++) {
-						Document doc = searcher.doc(hits[i].doc);
-						if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer)) {
-							question.resultRank = i + 1;
-							question.rrank = 1.0 / question.resultRank;
-							break;
-						}
-					}
-				} catch (ParseException e) {
-					LOGGER.log(Level.SEVERE, "Couldn't parse query " + question.id);
-					LOGGER.log(Level.SEVERE, e.getMessage(), e);
-				} catch (IOException e) {
-					LOGGER.log(Level.SEVERE, e.getMessage(), e);
-				}
-			});
+			questions.parallelStream().forEach(question -> submitQuestion(searcher, analyzer, question));
 		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+	}
+	
+	protected void submitQueriesInParallelComputeRecall(List<QuestionDAO> questions) {
+		LOGGER.log(Level.INFO, "retrieving queries..");
+		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
+			IndexSearcher searcher = new IndexSearcher(reader);
+			Analyzer analyzer = new StandardAnalyzer();
+			LOGGER.log(Level.INFO, "number of tuples in index: {0}", reader.getDocCount(StackIndexer.BODY_FIELD));
+			LOGGER.log(Level.INFO, "querying..");
+			questions.parallelStream().forEach(question -> submitQuestionComputeRecall(searcher, analyzer, question));
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+	}
+
+	protected void submitQuestion(IndexSearcher searcher, Analyzer analyzer, QuestionDAO question) {
+		try {
+			String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
+			// in the next line, to lower case is necessary to change AND to and, otherwise
+			// lucene would consider it as an operator
+			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
+			parser.setDefaultOperator(Operator.OR);
+			Query query = parser.parse(queryText.toLowerCase());
+			ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
+			for (int i = 0; i < hits.length; i++) {
+				Document doc = searcher.doc(hits[i].doc);
+				if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer)) {
+					question.resultRank = i + 1;
+					question.rrank = 1.0 / question.resultRank;
+					break;
+				}
+			}
+		} catch (ParseException e) {
+			LOGGER.log(Level.SEVERE, "Couldn't parse query " + question.id);
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+	}
+
+	protected void submitQuestionComputeRecall(IndexSearcher searcher, Analyzer analyzer, QuestionDAO question) {
+		try {
+			String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
+			// in the next line, to lower case is necessary to change AND to and, otherwise
+			// lucene would consider it as an operator
+			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
+			parser.setDefaultOperator(Operator.OR);
+			Query query = parser.parse(queryText.toLowerCase());
+			ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
+			double tp = 0;
+			for (int i = 0; i < hits.length; i++) {
+				Document doc = searcher.doc(hits[i].doc);
+				if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer) && question.rrank == 0) {
+					question.resultRank = i + 1;
+					question.rrank = 1.0 / question.resultRank;
+				}
+				if (question.allAnswers.contains(Integer.parseInt(doc.get(StackIndexer.ID_FIELD)))) {
+					tp++;
+				}
+			}
+			if (question.allAnswers.size() > 0) {
+				question.recall = tp / question.allAnswers.size();
+			}
+		} catch (ParseException e) {
+			LOGGER.log(Level.SEVERE, "Couldn't parse query " + question.id);
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	}
