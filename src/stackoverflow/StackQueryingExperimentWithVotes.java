@@ -22,11 +22,11 @@ public class StackQueryingExperimentWithVotes extends StackQueryingExperiment {
 	public static void main(String[] args) throws IOException, SQLException {
 		String indexName = args[0];
 		StackQueryingExperimentWithVotes sqe = new StackQueryingExperimentWithVotes("questions_s_recall",
-				"/data/ghadakcv/stack_index_s_recall/" + indexName);
+				"/data/ghadakcv/stack_index_s_recall/" + indexName, "/data/ghadakcv/stack_results_recall/");
 		List<QuestionDAO> questions = sqe.loadQuestionsFromTable();
 		sqe.loadMultipleAnswersForQuestions(questions);
 		LOGGER.log(Level.INFO, "number of distinct queries: {0}", questions.size());
-		sqe.submitQueriesInParallelComputeRecall(questions);
+		sqe.submitQueriesInParallelWithMultipleAnswers(questions);
 		LOGGER.log(Level.INFO, "querying done!");
 		double counter = 0;
 		double sum = 0;
@@ -47,26 +47,8 @@ public class StackQueryingExperimentWithVotes extends StackQueryingExperiment {
 		LOGGER.log(Level.INFO, "experiment done!");
 	}
 
-	public StackQueryingExperimentWithVotes(String questionTable, String indexPath) {
-		super(questionTable, indexPath);
-	}
-
-	private void loadMultipleAnswersForQuestions(List<QuestionDAO> questions) throws IOException, SQLException {
-		LOGGER.log(Level.INFO, "Loading multiple answers from database..");
-		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {
-			Connection conn = dc.getConnection();
-			conn.setAutoCommit(false);
-			for (QuestionDAO question : questions) {
-				try (Statement stmt = conn.createStatement()) {
-					stmt.setFetchSize(Integer.MIN_VALUE);
-					ResultSet rs = stmt
-							.executeQuery("select Id from answers_s_recall where ParentId = " + question.id + ";");
-					while (rs.next()) {
-						question.allAnswers.add(rs.getInt("Id"));
-					}
-				}
-			}
-		}
+	public StackQueryingExperimentWithVotes(String questionTable, String indexPath, String outputFolder) {
+		super(questionTable, indexPath, outputFolder);
 	}
 
 	public List<QuestionDAO> loadQuestionsFromTable() throws IOException, SQLException {

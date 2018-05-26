@@ -37,23 +37,22 @@ public class StackQueryingExperiment {
 
 	public static void main(String[] args) throws IOException, SQLException {
 		String indexName = args[0];
-		// set the next arg to a samll fraction like 0.01 to find the effective subset
+		// set the next arg to a small fraction like 0.01 to find the effective subset
 		// with a few queries
 		Double trainQuerySetSize = Double.parseDouble(args[1]);
 		StackQueryingExperiment sqe = new StackQueryingExperiment("questions_s_test_train",
-				"/data/ghadakcv/stack_index_s/" + indexName);
+				"/data/ghadakcv/stack_index_s_recall/" + indexName, "/data/ghadakcv/stack_results_recall/");
 		List<QuestionDAO> questions = sqe.loadQuestionsFromTable();
 		Collections.shuffle(questions, new Random(100));
 		questions = questions.subList(0, (int) (trainQuerySetSize * questions.size()));
 		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-		sqe.submitQueriesInParallel(questions);
+		sqe.loadMultipleAnswersForQuestions(questions);
+		sqe.submitQueriesInParallelWithMultipleAnswers(questions);
 		LOGGER.log(Level.INFO, "querying done!");
-		String output = (trainQuerySetSize < 1) ? "/data/ghadakcv/stack_results/train_" + indexName + ".csv"
-				: "/data/ghadakcv/stack_results/" + indexName + ".csv";
-		try (FileWriter fw = new FileWriter(new File(output))) {
+		try (FileWriter fw = new FileWriter(new File(sqe.outputFolder + indexName + ".csv"))) {
 			for (QuestionDAO question : questions) {
-				fw.write(question.id + "," + question.text.replace(',', ' ') + "," + question.testViewCount + ","
-						+ question.trainViewCount + "," + question.rrank + "\n");
+				fw.write(question.id + "," + question.testViewCount + "," + question.trainViewCount + ","
+						+ question.rrank + "," + question.recall + "\n");
 			}
 		}
 		LOGGER.log(Level.INFO, "experiment done!");
@@ -61,10 +60,12 @@ public class StackQueryingExperiment {
 
 	private String questionTable;
 	protected String indexPath;
+	String outputFolder;
 
-	public StackQueryingExperiment(String questionTable, String indexPath) {
+	public StackQueryingExperiment(String questionTable, String indexPath, String outputFolder) {
 		this.questionTable = questionTable;
 		this.indexPath = indexPath;
+		this.outputFolder = outputFolder;
 	}
 
 	protected void submitQueries(List<QuestionDAO> questions) {
@@ -96,15 +97,16 @@ public class StackQueryingExperiment {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	}
-	
-	protected void submitQueriesInParallelComputeRecall(List<QuestionDAO> questions) {
+
+	protected void submitQueriesInParallelWithMultipleAnswers(List<QuestionDAO> questions) {
 		LOGGER.log(Level.INFO, "retrieving queries..");
 		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			Analyzer analyzer = new StandardAnalyzer();
 			LOGGER.log(Level.INFO, "number of tuples in index: {0}", reader.getDocCount(StackIndexer.BODY_FIELD));
 			LOGGER.log(Level.INFO, "querying..");
-			questions.parallelStream().forEach(question -> submitQuestionComputeRecall(searcher, analyzer, question));
+			questions.parallelStream()
+					.forEach(question -> submitQuestionWithMultipleAnswers(searcher, analyzer, question));
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
@@ -135,7 +137,7 @@ public class StackQueryingExperiment {
 		}
 	}
 
-	protected void submitQuestionComputeRecall(IndexSearcher searcher, Analyzer analyzer, QuestionDAO question) {
+	protected void submitQuestionWithMultipleAnswers(IndexSearcher searcher, Analyzer analyzer, QuestionDAO question) {
 		try {
 			String queryText = question.text.replaceAll("[^a-zA-Z0-9 ]", " ").replaceAll("\\s+", " ");
 			// in the next line, to lower case is necessary to change AND to and, otherwise
@@ -147,11 +149,11 @@ public class StackQueryingExperiment {
 			double tp = 0;
 			for (int i = 0; i < hits.length; i++) {
 				Document doc = searcher.doc(hits[i].doc);
-				if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer) && question.rrank == 0) {
-					question.resultRank = i + 1;
-					question.rrank = 1.0 / question.resultRank;
-				}
 				if (question.allAnswers.contains(Integer.parseInt(doc.get(StackIndexer.ID_FIELD)))) {
+					if (question.rrank == 0) {
+						question.resultRank = i + 1;
+						question.rrank = 1.0 / question.resultRank;
+					}
 					tp++;
 				}
 			}
@@ -203,6 +205,24 @@ public class StackQueryingExperiment {
 		}
 		dc.close();
 		return result;
+	}
+
+	protected void loadMultipleAnswersForQuestions(List<QuestionDAO> questions) throws IOException, SQLException {
+		LOGGER.log(Level.INFO, "Loading multiple answers from database..");
+		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {
+			Connection conn = dc.getConnection();
+			conn.setAutoCommit(false);
+			for (QuestionDAO question : questions) {
+				try (Statement stmt = conn.createStatement()) {
+					stmt.setFetchSize(Integer.MIN_VALUE);
+					ResultSet rs = stmt
+							.executeQuery("select Id from answers_s_recall where ParentId = " + question.id + ";");
+					while (rs.next()) {
+						question.allAnswers.add(rs.getInt("Id"));
+					}
+				}
+			}
+		}
 	}
 
 }
