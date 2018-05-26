@@ -1,7 +1,5 @@
 package stackoverflow;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -26,24 +24,18 @@ public class StackQueryingExperimentWithVotes extends StackQueryingExperiment {
 		List<QuestionDAO> questions = sqe.loadQuestionsFromTable();
 		sqe.loadMultipleAnswersForQuestions(questions);
 		LOGGER.log(Level.INFO, "number of distinct queries: {0}", questions.size());
-		sqe.submitQueriesInParallelWithMultipleAnswers(questions);
+		List<StackQueryAnswer> results = sqe.submitQueriesInParallelWithMultipleAnswers(questions);
 		LOGGER.log(Level.INFO, "querying done!");
 		double counter = 0;
 		double sum = 0;
-		for (QuestionDAO question : questions) {
-			sum += question.score * question.rrank;
-			counter += question.score;
+		for (StackQueryAnswer result : results) {
+			sum += result.question.score * result.rrank;
+			counter += result.question.score;
 		}
 		LOGGER.log(Level.INFO, "experiment done!");
 		LOGGER.log(Level.INFO, "recall = " + sum / counter);
 		String output = "/data/ghadakcv/stack_results_recall/" + indexName + ".csv";
-		try (FileWriter fw = new FileWriter(new File(output))) {
-			fw.write("id,score,viewcount,rrank,recall\n");
-			for (QuestionDAO question : questions) {
-				fw.write(question.id + "," + question.score + "," + question.viewCount + "," + question.rrank + ","
-						+ question.recall + "\n");
-			}
-		}
+		sqe.printResultsWithMultipleAnswers(results, output);
 		LOGGER.log(Level.INFO, "experiment done!");
 	}
 

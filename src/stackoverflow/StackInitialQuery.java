@@ -39,6 +39,7 @@ public class StackInitialQuery {
 		StackInitialQuery se = new StackInitialQuery();
 		List<QuestionDAO> questions = se.exp(args[0], args[1]);
 		LOGGER.log(Level.INFO, "writing results to file..");
+		
 		try (FileWriter fw = new FileWriter(new File(args[0] + ".csv"))) {
 			for (QuestionDAO question : questions) {
 				if (question.resultRank != -1) {
