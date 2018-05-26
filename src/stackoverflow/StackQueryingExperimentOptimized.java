@@ -15,9 +15,9 @@ public class StackQueryingExperimentOptimized {
 	public static void main(String[] args) throws IOException, SQLException {
 		StackQueryingExperiment sqe = new StackQueryingExperiment();
 		List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
+		sqe.loadMultipleAnswersForQuestions(questions);
 		Collections.shuffle(questions, new Random(100));
 		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-		sqe.loadMultipleAnswersForQuestions(questions);
 		for (int i = 1; i <= 100; i++) {
 			LOGGER.log(Level.INFO, "running loop: " + i);
 			List<StackQueryAnswer> results = sqe.submitQueriesInParallelWithMultipleAnswers(questions,
