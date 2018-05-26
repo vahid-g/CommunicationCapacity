@@ -19,12 +19,12 @@ public class StackQueryingExperimentWithVotes extends StackQueryingExperiment {
 
 	public static void main(String[] args) throws IOException, SQLException {
 		String indexName = args[0];
-		StackQueryingExperimentWithVotes sqe = new StackQueryingExperimentWithVotes("questions_s_recall",
-				"/data/ghadakcv/stack_index_s_recall/" + indexName, "/data/ghadakcv/stack_results_recall/");
+		StackQueryingExperimentWithVotes sqe = new StackQueryingExperimentWithVotes();
 		List<QuestionDAO> questions = sqe.loadQuestionsFromTable();
 		sqe.loadMultipleAnswersForQuestions(questions);
 		LOGGER.log(Level.INFO, "number of distinct queries: {0}", questions.size());
-		List<StackQueryAnswer> results = sqe.submitQueriesInParallelWithMultipleAnswers(questions);
+		List<StackQueryAnswer> results = sqe.submitQueriesInParallelWithMultipleAnswers(questions,
+				"/data/ghadakcv/stack_index_s_recall/" + indexName);
 		LOGGER.log(Level.INFO, "querying done!");
 		double counter = 0;
 		double sum = 0;
@@ -37,10 +37,6 @@ public class StackQueryingExperimentWithVotes extends StackQueryingExperiment {
 		String output = "/data/ghadakcv/stack_results_recall/" + indexName + ".csv";
 		sqe.printResultsWithMultipleAnswers(results, output);
 		LOGGER.log(Level.INFO, "experiment done!");
-	}
-
-	public StackQueryingExperimentWithVotes(String questionTable, String indexPath, String outputFolder) {
-		super(questionTable, indexPath, outputFolder);
 	}
 
 	public List<QuestionDAO> loadQuestionsFromTable() throws IOException, SQLException {

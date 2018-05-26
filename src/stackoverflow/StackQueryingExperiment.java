@@ -41,30 +41,20 @@ public class StackQueryingExperiment {
 		// set the next arg to a small fraction like 0.01 to find the effective subset
 		// with a few queries
 		Double trainQuerySetSize = Double.parseDouble(args[1]);
-		StackQueryingExperiment sqe = new StackQueryingExperiment("questions_s_test_train",
-				"/data/ghadakcv/stack_index_s_recall/" + indexName, "/data/ghadakcv/stack_results_recall/");
-		List<QuestionDAO> questions = sqe.loadQuestionsFromTable();
+		StackQueryingExperiment sqe = new StackQueryingExperiment();
+		List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
 		Collections.shuffle(questions, new Random(100));
 		questions = questions.subList(0, (int) (trainQuerySetSize * questions.size()));
 		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
 		sqe.loadMultipleAnswersForQuestions(questions);
-		List<StackQueryAnswer> results = sqe.submitQueriesInParallelWithMultipleAnswers(questions);
+		List<StackQueryAnswer> results = sqe.submitQueriesInParallelWithMultipleAnswers(questions,
+				"/data/ghadakcv/stack_index_s_recall/" + indexName);
 		LOGGER.log(Level.INFO, "querying done!");
 		sqe.printResults(results, "/data/ghadakcv/stack_results_recall/");
 		LOGGER.log(Level.INFO, "experiment done!");
 	}
 
-	private String questionTable;
-	protected String indexPath;
-	String outputFolder;
-
-	public StackQueryingExperiment(String questionTable, String indexPath, String outputFolder) {
-		this.questionTable = questionTable;
-		this.indexPath = indexPath;
-		this.outputFolder = outputFolder;
-	}
-
-	protected void submitQueries(List<QuestionDAO> questions) {
+	protected void submitQueries(List<QuestionDAO> questions, String indexPath) {
 		LOGGER.log(Level.INFO, "retrieving queries..");
 		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
@@ -81,7 +71,7 @@ public class StackQueryingExperiment {
 		}
 	}
 
-	protected void submitQueriesInParallel(List<QuestionDAO> questions) {
+	protected void submitQueriesInParallel(List<QuestionDAO> questions, String indexPath) {
 		LOGGER.log(Level.INFO, "retrieving queries..");
 		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
@@ -94,7 +84,8 @@ public class StackQueryingExperiment {
 		}
 	}
 
-	protected List<StackQueryAnswer> submitQueriesInParallelWithMultipleAnswers(List<QuestionDAO> questions) {
+	protected List<StackQueryAnswer> submitQueriesInParallelWithMultipleAnswers(List<QuestionDAO> questions,
+			String indexPath) {
 		List<StackQueryAnswer> results = new ArrayList<StackQueryAnswer>();
 		LOGGER.log(Level.INFO, "retrieving queries..");
 		try (IndexReader reader = DirectoryReader.open(NIOFSDirectory.open(Paths.get(indexPath)))) {
@@ -170,15 +161,15 @@ public class StackQueryingExperiment {
 		return sqa;
 	}
 
-	public List<QuestionDAO> loadQuestionsFromTable() throws IOException, SQLException {
+	public List<QuestionDAO> loadQuestionsFromTable(String questionTable) throws IOException, SQLException {
 		String query = "select Id, Title, AcceptedAnswerId, TestViewCount, TrainViewCount from stack_overflow."
-				+ this.questionTable + ";";
+				+ questionTable + ";";
 		return loadQuestions(query);
 	}
 
-	public List<QuestionDAO> loadQuestionsFromTable(int limit) throws IOException, SQLException {
+	public List<QuestionDAO> loadQuestionsFromTable(String questionTable, int limit) throws IOException, SQLException {
 		String query = "select Id, Title, AcceptedAnswerId, TestViewCount, TrainViewCount from stack_overflow."
-				+ this.questionTable + " limit " + limit + ";";
+				+ questionTable + " limit " + limit + ";";
 		return loadQuestions(query);
 	}
 
