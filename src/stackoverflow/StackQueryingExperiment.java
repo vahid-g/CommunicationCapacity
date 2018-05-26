@@ -40,21 +40,13 @@ public class StackQueryingExperiment {
 		// set the next arg to a samll fraction like 0.01 to find the effective subset
 		// with a few queries
 		Double trainQuerySetSize = Double.parseDouble(args[1]);
-		boolean isParallel = false;
-		if (args.length > 2 && args[2].equals("-parallel")) {
-			isParallel = true;
-		}
 		StackQueryingExperiment sqe = new StackQueryingExperiment("questions_s_test_train",
-				"/data/ghadakcv/stack_index_s/" + indexName, isParallel);
+				"/data/ghadakcv/stack_index_s/" + indexName);
 		List<QuestionDAO> questions = sqe.loadQuestionsFromTable();
 		Collections.shuffle(questions, new Random(100));
 		questions = questions.subList(0, (int) (trainQuerySetSize * questions.size()));
 		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-		if (sqe.isParallelExperiment) {
-			sqe.submitQueriesInParallel(questions);
-		} else {
-			sqe.submitQueries(questions);
-		}
+		sqe.submitQueriesInParallel(questions);
 		LOGGER.log(Level.INFO, "querying done!");
 		String output = (trainQuerySetSize < 1) ? "/data/ghadakcv/stack_results/train_" + indexName + ".csv"
 				: "/data/ghadakcv/stack_results/" + indexName + ".csv";
@@ -69,12 +61,10 @@ public class StackQueryingExperiment {
 
 	private String questionTable;
 	protected String indexPath;
-	private boolean isParallelExperiment;
 
-	public StackQueryingExperiment(String questionTable, String indexPath, boolean isParallel) {
+	public StackQueryingExperiment(String questionTable, String indexPath) {
 		this.questionTable = questionTable;
 		this.indexPath = indexPath;
-		this.isParallelExperiment = isParallel;
 	}
 
 	protected void submitQueries(List<QuestionDAO> questions) {

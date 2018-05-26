@@ -36,7 +36,7 @@ public class StackQueryingExperimentWithVotes extends StackQueryingExperiment {
 	public static void main(String[] args) throws IOException, SQLException {
 		String indexName = args[0];
 		StackQueryingExperimentWithVotes sqe = new StackQueryingExperimentWithVotes("questions_s_recall",
-				"/data/ghadakcv/stack_index_s_recall/" + indexName, false);
+				"/data/ghadakcv/stack_index_s_recall/" + indexName);
 		List<QuestionDAO> questions = sqe.loadQuestionsFromTable();
 		sqe.loadMultipleAnswersForQuestions(questions);
 		LOGGER.log(Level.INFO, "number of distinct queries: {0}", questions.size());
@@ -61,8 +61,8 @@ public class StackQueryingExperimentWithVotes extends StackQueryingExperiment {
 		LOGGER.log(Level.INFO, "experiment done!");
 	}
 
-	public StackQueryingExperimentWithVotes(String questionTable, String indexPath, boolean isParallel) {
-		super(questionTable, indexPath, isParallel);
+	public StackQueryingExperimentWithVotes(String questionTable, String indexPath) {
+		super(questionTable, indexPath);
 	}
 
 	protected void submitQueries(List<QuestionDAO> questions) {
