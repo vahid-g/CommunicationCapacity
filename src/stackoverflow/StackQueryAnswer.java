@@ -1,8 +1,5 @@
 package stackoverflow;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class StackQueryAnswer {
 	
 	QuestionDAO question;
