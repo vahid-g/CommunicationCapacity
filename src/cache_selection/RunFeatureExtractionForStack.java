@@ -55,7 +55,7 @@ public class RunFeatureExtractionForStack {
 			String exp = cl.getOptionValue("exp");
 			String totalExp = cl.getOptionValue("total");
 			StackQueryingExperiment sqsr = new StackQueryingExperiment("questions_s_test_train",
-					"/data/ghadakcv/stack_index_s/", false);
+					"/data/ghadakcv/stack_index_s/", "output");
 			if (cl.hasOption("eff")) {
 				List<QuestionDAO> queries = sqsr.loadQuestionsFromTable(100);
 				featureExtraction(exp, totalExp, queries);
