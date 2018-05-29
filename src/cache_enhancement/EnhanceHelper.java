@@ -22,11 +22,19 @@ public class EnhanceHelper {
     public static final Logger LOGGER = Logger.getLogger(EnhanceHelper.class.getName());
     public static PathCollection myPaths;
 
-    public static void main(String[] args) throws IOException, ParseException {
-        final String pathGroup = args[0];
-        final String cacheUpdateLogPath = args[1];
-        final String restUpdateLogPath = args[2];
+    public static void main(String[] args) throws IOException {
+//        final String pathGroup = args[0];
+//        final String cacheUpdateLogPath = args[1];
+//        final String restUpdateLogPath = args[2];
+//
+//        enhance(pathGroup, cacheUpdateLogPath, restUpdateLogPath);
 
+        final String updateAssignmentPath = args[0];
+        final String assignmentPath = args[1];
+        enhance2(updateAssignmentPath, assignmentPath);
+    }
+
+    private static Double enhance(String pathGroup, String cacheUpdateLogPath, String restUpdateLogPath) throws IOException {
         myPaths = PathCollection.get(pathGroup);
 
         final String tempSub2Wiki13IndexPath = makeTempCopy(myPaths.sub2Wiki13IndexPath);
@@ -55,6 +63,33 @@ public class EnhanceHelper {
         fileLablePath.put("all", myPaths.allWikiRRanks);
         Double MRR = calculateMRR(assignment, fileLablePath);
         System.out.println("MRR: " + MRR);
+        return MRR;
+    }
+
+    public static Double enhance2(String updatedAssignmentFilePath, String assignmentFilePath) throws IOException {
+        /**
+         * Enhance cache based on query difficulties.
+         */
+        List<List<String>> update = CsvParsable.parseFile(assignmentFilePath, ",", 2, true);
+        List<List<String>> assignment = CsvParsable.parseFile(assignmentFilePath, ",", 2, true);
+
+        Map<String, String> updateAssignment = new HashMap<>();
+        for (List<String> line: update) {
+            updateAssignment.put(line.get(0), line.get(1));
+        }
+        Map<String, String> queryAssignment = new HashMap<>();
+        for (List<String> line: assignment) {
+            final String query = line.get(0);
+            final String assign = updateAssignment.containsKey(query) ? updateAssignment.get(query) : line.get(1);
+            queryAssignment.put(query, assign);
+        }
+
+        HashMap<String, String> fileLablePath = new HashMap<>();
+        fileLablePath.put("sub", "/data/khodadaa/lucene-index/query-assignments/05092047_query_assignment.csv");
+        fileLablePath.put("all", myPaths.allWikiRRanks);
+        Double MRR = calculateMRR(queryAssignment, fileLablePath);
+        System.out.println("MRR: " + MRR);
+        return MRR;
     }
 
     public static void buildWikiIndex(String indexPath, int expNo, boolean isComplement,

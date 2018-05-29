@@ -35,12 +35,12 @@ public class CsvParsable {
             parsed = parse(csvTextLine, separator, limit);
         }
         else if (reverse){
-            String firstPart = csvTextLine.substring(0, pos);
+            String firstPart = csvTextLine.substring(0, pos).trim();
             parsed = parse(csvTextLine.substring(pos+1), separator, limit-1);
             parsed.add(0, firstPart);
         }
         else if (!reverse){
-            String lastPart = csvTextLine.substring(pos+1);
+            String lastPart = csvTextLine.substring(pos+1).trim();
             parsed = parse(csvTextLine.substring(0, pos), separator, limit-1);
             parsed.add(lastPart);
         }
