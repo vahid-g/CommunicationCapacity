@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn import linear_model
-from cache_pred import print_results
+from utils import print_results
 import datetime
 
 def f(row):
@@ -25,7 +25,7 @@ def g(row):
 
 def main(argv):
     filename = argv[0]
-    t = argv[1]
+    t = float(argv[1])
     size = 0.33
     df = pd.read_csv('../../data/python_data/' + filename)
     labels = df['Label']
@@ -69,15 +69,12 @@ def main(argv):
     #print(c[c[:,1].argsort()])
     start = datetime.datetime.now()
     y_prob = lr.predict_proba(X_test)
-    y_pred = y_prob[:, 1] > 0.5
+    y_pred = y_prob[:, 1] > t
     y_pred = y_pred.astype('uint8')
     print(y_pred.shape)
     end = datetime.datetime.now()
-    print('--- t = 0.5 results:')
+    print('--- results:')
     print_results(y_test, y_pred)
-    y_pred = y_prob[:, 1] > t
-    y_pred = y_pred.astype('uint8')
-    print('--- t = %.2f results:' % t)
     delta = end - start
     print('total time: %f' % delta.total_seconds())
     print('time per query: %f' % (delta.total_seconds() / len(y_pred)))

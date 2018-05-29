@@ -2,7 +2,7 @@ import pandas as pd
 import sys
 
 def main(argv):
-    f = sys.argv[0]
+    f = argv[0]
     c = pd.read_csv('../../data/python_data/' + f, '18', '100',
                     'TestViewCount')
 
