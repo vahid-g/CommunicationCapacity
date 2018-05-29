@@ -23,20 +23,22 @@ public class EnhanceHelper {
     public static PathCollection myPaths;
 
     public static void main(String[] args) throws IOException {
-//        final String pathGroup = args[0];
+        final String pathGroupName = args[0];
+        myPaths = PathCollection.get(pathGroupName);
+
 //        final String cacheUpdateLogPath = args[1];
 //        final String restUpdateLogPath = args[2];
-//
 //        enhance(pathGroup, cacheUpdateLogPath, restUpdateLogPath);
 
-        final String updateAssignmentPath = args[0];
         final String assignmentPath = args[1];
+        final String updateAssignmentPath = args[2];
         enhance2(updateAssignmentPath, assignmentPath);
     }
 
-    private static Double enhance(String pathGroup, String cacheUpdateLogPath, String restUpdateLogPath) throws IOException {
-        myPaths = PathCollection.get(pathGroup);
-
+    private static Double enhance(String cacheUpdateLogPath, String restUpdateLogPath) throws IOException {
+        /**
+         * Enhance by adding and removing tuples from the cache
+         */
         final String tempSub2Wiki13IndexPath = makeTempCopy(myPaths.sub2Wiki13IndexPath);
         final String tempCom2Wiki13IndexPath = makeTempCopy(myPaths.com2Wiki13IndexPath);
 
@@ -66,29 +68,33 @@ public class EnhanceHelper {
         return MRR;
     }
 
-    public static Double enhance2(String updatedAssignmentFilePath, String assignmentFilePath) throws IOException {
+    private static Double enhance2(String updatedAssignmentFilePath, String assignmentFilePath) throws IOException {
         /**
-         * Enhance cache based on query difficulties.
+         * Enhance by modifying the query assignments (to sub or all) based on the difficulty level of the queries
          */
-        List<List<String>> update = CsvParsable.parseFile(assignmentFilePath, ",", 2, true);
-        List<List<String>> assignment = CsvParsable.parseFile(assignmentFilePath, ",", 2, true);
+        List<List<String>> update = CsvParsable.parseFile(updatedAssignmentFilePath, ",", 2, true);
+        List<List<String>> previous = CsvParsable.parseFile(assignmentFilePath, ",", 2, true);
 
         Map<String, String> updateAssignment = new HashMap<>();
         for (List<String> line: update) {
             updateAssignment.put(line.get(0), line.get(1));
         }
         Map<String, String> queryAssignment = new HashMap<>();
-        for (List<String> line: assignment) {
+        int updateCount = 0;
+        for (List<String> line: previous) {
             final String query = line.get(0);
-            final String assign = updateAssignment.containsKey(query) ? updateAssignment.get(query) : line.get(1);
-            queryAssignment.put(query, assign);
+            final String prevGroup = line.get(1);
+            final String group = updateAssignment.getOrDefault(query, prevGroup);
+            if (! group.equals(prevGroup)) updateCount++;
+            queryAssignment.put(query, group);
         }
 
         HashMap<String, String> fileLablePath = new HashMap<>();
-        fileLablePath.put("sub", "/data/khodadaa/lucene-index/query-assignments/05092047_query_assignment.csv");
+        fileLablePath.put("sub", "/data/khodadaa/lucene-index/rr/05092047_sub2_rranks.csv");
         fileLablePath.put("all", myPaths.allWikiRRanks);
         Double MRR = calculateMRR(queryAssignment, fileLablePath);
-        System.out.println("MRR: " + MRR);
+        LOGGER.info("Number of queries with changed assignment: " + updateCount);
+        LOGGER.info("MRR: " + MRR);
         return MRR;
     }
 
