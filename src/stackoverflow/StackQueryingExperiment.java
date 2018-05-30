@@ -36,19 +36,22 @@ public class StackQueryingExperiment {
 
 	private static final Logger LOGGER = Logger.getLogger(StackQueryingExperiment.class.getName());
 
+	private static final String TBL_QUESTIONS = "questions_s_test_train";
+	private static final String TBL_MULTI_ANSWER = "answers_s_2";
+
 	public static void main(String[] args) throws IOException, SQLException {
 		String indexName = args[0];
 		// set the next arg to a small fraction like 0.01 to find the effective subset
 		// with a few queries
 		Double trainQuerySetSize = Double.parseDouble(args[1]);
 		StackQueryingExperiment sqe = new StackQueryingExperiment();
-		List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
+		List<QuestionDAO> questions = sqe.loadQuestionsFromTable(TBL_QUESTIONS);
 		Collections.shuffle(questions, new Random(100));
 		questions = questions.subList(0, (int) (trainQuerySetSize * questions.size()));
 		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-		sqe.loadMultipleAnswersForQuestions(questions);
+		sqe.loadMultipleAnswersForQuestions(questions, TBL_MULTI_ANSWER);
 		List<StackQueryAnswer> results = sqe.submitQueriesInParallelWithMultipleAnswers(questions,
-				"/data/ghadakcv/stack_index_s_recall/" + indexName);
+				"/data/ghadakcv/stack_index_s_2/" + indexName);
 		LOGGER.log(Level.INFO, "querying done!");
 		sqe.printResults(results, "/data/ghadakcv/stack_results_recall/");
 		LOGGER.log(Level.INFO, "experiment done!");
@@ -141,6 +144,7 @@ public class StackQueryingExperiment {
 			ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
 			double tp = 0;
 			double tp20 = 0;
+			double tp50 = 0;
 			for (int i = 0; i < hits.length; i++) {
 				Document doc = searcher.doc(hits[i].doc);
 				if (question.allAnswers.contains(Integer.parseInt(doc.get(StackIndexer.ID_FIELD)))) {
@@ -150,11 +154,20 @@ public class StackQueryingExperiment {
 					if (i <= 20) {
 						tp20++;
 					}
+					if (i <= 50) {
+						tp50++;
+					}
 					tp++;
 				}
 			}
 			if (question.allAnswers.size() > 0) {
 				sqa.recall = tp / question.allAnswers.size();
+				sqa.rec50 = tp50 / 50;
+			} else {
+				LOGGER.log(Level.SEVERE, "query doesn't have answer: " + question.id);
+				LOGGER.log(Level.SEVERE, "setting recall to 1!");
+				sqa.recall = 1;
+				sqa.rec50 = 1;
 			}
 			sqa.p20 = tp20 / 20;
 		} catch (ParseException e) {
@@ -205,7 +218,8 @@ public class StackQueryingExperiment {
 		return result;
 	}
 
-	protected void loadMultipleAnswersForQuestions(List<QuestionDAO> questions) throws IOException, SQLException {
+	protected void loadMultipleAnswersForQuestions(List<QuestionDAO> questions, String table)
+			throws IOException, SQLException {
 		LOGGER.log(Level.INFO, "Loading multiple answers from database..");
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {
 			Connection conn = dc.getConnection();
@@ -214,7 +228,7 @@ public class StackQueryingExperiment {
 				try (Statement stmt = conn.createStatement()) {
 					stmt.setFetchSize(Integer.MIN_VALUE);
 					ResultSet rs = stmt
-							.executeQuery("select Id from answers_s_recall where ParentId = " + question.id + ";");
+							.executeQuery("select Id from " + table + " where ParentId = " + question.id + ";");
 					while (rs.next()) {
 						question.allAnswers.add(rs.getInt("Id"));
 					}
@@ -227,7 +241,7 @@ public class StackQueryingExperiment {
 		try (FileWriter fw = new FileWriter(new File(output))) {
 			for (StackQueryAnswer result : results) {
 				fw.write(result.question.id + "," + result.question.testViewCount + "," + result.question.trainViewCount
-						+ "," + result.rrank + "," + result.recall + "\n");
+						+ "," + result.rrank + "," + result.recall + "," + result.rec50 + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);

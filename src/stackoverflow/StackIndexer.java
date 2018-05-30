@@ -44,8 +44,10 @@ public class StackIndexer {
 	static final int ANSWERS_S_SIZE = 1092420; // Size of stack_overflow.answers_s_train
 
 	static final int ANSWERS_A_SIZE = 8033979; // Size of stack_overflow.answers_a
-	
+
 	static final int ANSWERS_S_RECALL_SIZE = 1925204; // Size of stack_overflow.answers_s_recall
+
+	static final int ANSWERS_S_2_SIZE = 1291952; // This table contains accepted ansewrs and answers with score > 2
 
 	private static final Logger LOGGER = Logger.getLogger(StackIndexer.class.getName());
 
@@ -62,7 +64,7 @@ public class StackIndexer {
 		Option indexOption = new Option("index", true, "index number");
 		indexOption.setRequired(true);
 		options.addOption(indexOption);
-		Option indexFolderOption = new Option("folder", true, "index number"); //"/data/ghadakcv/stack_index_s_bi/"
+		Option indexFolderOption = new Option("folder", true, "index number"); // "/data/ghadakcv/stack_index_s_bi/"
 		indexFolderOption.setRequired(true);
 		options.addOption(indexFolderOption);
 		options.addOption(new Option("bi", false, "biword index"));
@@ -83,10 +85,10 @@ public class StackIndexer {
 			String indexNumber = cl.getOptionValue("index");
 			if (cl.hasOption("rest")) {
 				String indexPath = indexBasePath + "c" + indexNumber;
-				si.indexRest(indexNumber, indexPath, ANSWERS_S_RECALL_SIZE, "answers_s_recall");
+				si.indexRest(indexNumber, indexPath, ANSWERS_S_2_SIZE, "answers_s_2");
 			} else {
 				String indexPath = indexBasePath + indexNumber;
-				si.indexSubsets(indexNumber, indexPath, ANSWERS_S_RECALL_SIZE, "answers_s_recall");
+				si.indexSubsets(indexNumber, indexPath, ANSWERS_S_2_SIZE, "answers_s_2");
 			}
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
