@@ -21,7 +21,7 @@ public class StackQueryingExperimentWithVotes extends StackQueryingExperiment {
 		String indexName = args[0];
 		StackQueryingExperimentWithVotes sqe = new StackQueryingExperimentWithVotes();
 		List<QuestionDAO> questions = sqe.loadQuestionsFromTable();
-		sqe.loadMultipleAnswersForQuestions(questions);
+		sqe.loadMultipleAnswersForQuestions(questions, "ansewrs_s_recall");
 		LOGGER.log(Level.INFO, "number of distinct queries: {0}", questions.size());
 		List<StackQueryAnswer> results = sqe.submitQueriesInParallelWithMultipleAnswers(questions,
 				"/data/ghadakcv/stack_index_s_recall/" + indexName);

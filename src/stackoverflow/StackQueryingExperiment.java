@@ -36,8 +36,9 @@ public class StackQueryingExperiment {
 
 	private static final Logger LOGGER = Logger.getLogger(StackQueryingExperiment.class.getName());
 
-	private static final String TBL_QUESTIONS = "questions_s_test_train";
-	private static final String TBL_MULTI_ANSWER = "answers_s_2";
+	static final String TBL_QUESTIONS = "questions_s_test_train";
+	
+	static final String TBL_MULTI_ANSWER = "answers_s_2";
 
 	public static void main(String[] args) throws IOException, SQLException {
 		String indexName = args[0];
