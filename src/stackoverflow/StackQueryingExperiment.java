@@ -37,7 +37,7 @@ public class StackQueryingExperiment {
 	private static final Logger LOGGER = Logger.getLogger(StackQueryingExperiment.class.getName());
 
 	static final String TBL_QUESTIONS = "questions_s_test_train";
-	
+
 	static final String TBL_MULTI_ANSWER = "answers_s_2";
 
 	public static void main(String[] args) throws IOException, SQLException {
@@ -242,7 +242,7 @@ public class StackQueryingExperiment {
 		try (FileWriter fw = new FileWriter(new File(output))) {
 			for (StackQueryAnswer result : results) {
 				fw.write(result.question.id + "," + result.question.testViewCount + "," + result.question.trainViewCount
-						+ "," + result.rrank + "," + result.recall + "," + result.rec50 + "\n");
+						+ "," + result.rrank + "," + result.recall + "," + result.rec50 + "," + result.p20 + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
