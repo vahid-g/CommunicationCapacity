@@ -22,7 +22,7 @@ public class StackQueryingExperimentOptimized {
 		sqe.loadMultipleAnswersForQuestions(questions, StackQueryingExperiment.TBL_MULTI_ANSWER);
 		Collections.shuffle(questions, new Random(100));
 		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
-		for (int i = 10; i <= 100; i += 10) {
+		for (int i = 1; i <= 100; i += 1) {
 			LOGGER.log(Level.INFO, "running loop: " + i);
 			List<StackQueryAnswer> results = sqe.submitQueriesInParallelWithMultipleAnswers(questions,
 					"/data/ghadakcv/stack_index_s_recall/" + i);
