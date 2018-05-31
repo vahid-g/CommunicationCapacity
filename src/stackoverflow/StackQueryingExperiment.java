@@ -40,6 +40,8 @@ public class StackQueryingExperiment {
 
 	static final String TBL_MULTI_ANSWER = "answers_s_2";
 
+	private static final int TOP_DOCS_COUNT = 50;
+
 	public static void main(String[] args) throws IOException, SQLException {
 		String indexName = args[0];
 		// set the next arg to a small fraction like 0.01 to find the effective subset
@@ -115,7 +117,7 @@ public class StackQueryingExperiment {
 			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
 			parser.setDefaultOperator(Operator.OR);
 			Query query = parser.parse(queryText.toLowerCase());
-			ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
+			ScoreDoc[] hits = searcher.search(query, TOP_DOCS_COUNT).scoreDocs;
 			for (int i = 0; i < hits.length; i++) {
 				Document doc = searcher.doc(hits[i].doc);
 				if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer)) {
@@ -142,33 +144,26 @@ public class StackQueryingExperiment {
 			QueryParser parser = new QueryParser(StackIndexer.BODY_FIELD, analyzer);
 			parser.setDefaultOperator(Operator.OR);
 			Query query = parser.parse(queryText.toLowerCase());
-			ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
+			ScoreDoc[] hits = searcher.search(query, TOP_DOCS_COUNT).scoreDocs;
 			double tp = 0;
 			double tp20 = 0;
-			double tp50 = 0;
 			for (int i = 0; i < hits.length; i++) {
 				Document doc = searcher.doc(hits[i].doc);
 				if (question.allAnswers.contains(Integer.parseInt(doc.get(StackIndexer.ID_FIELD)))) {
+					tp++;
 					if (sqa.rrank == 0) {
 						sqa.rrank = 1.0 / (i + 1);
 					}
 					if (i <= 20) {
 						tp20++;
 					}
-					if (i <= 50) {
-						tp50++;
-					}
-					tp++;
 				}
 			}
 			if (question.allAnswers.size() > 0) {
 				sqa.recall = tp / question.allAnswers.size();
-				sqa.rec50 = tp50 / 50;
 			} else {
 				LOGGER.log(Level.SEVERE, "query doesn't have answer: " + question.id);
-				LOGGER.log(Level.SEVERE, "setting recall to 1!");
 				sqa.recall = 1;
-				sqa.rec50 = 1;
 			}
 			sqa.p20 = tp20 / 20;
 		} catch (ParseException e) {
@@ -242,7 +237,7 @@ public class StackQueryingExperiment {
 		try (FileWriter fw = new FileWriter(new File(output))) {
 			for (StackQueryAnswer result : results) {
 				fw.write(result.question.id + "," + result.question.testViewCount + "," + result.question.trainViewCount
-						+ "," + result.rrank + "," + result.recall + "," + result.rec50 + "," + result.p20 + "\n");
+						+ "," + result.rrank + "," + result.recall + "," + result.p20 + "\n");
 			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
