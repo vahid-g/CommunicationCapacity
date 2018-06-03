@@ -3,8 +3,8 @@ import sys
 
 def main(argv):
     f = argv[0]
-    c = pd.read_csv('../../data/python_data/' + f, '18', '100',
-                    'TestViewCount')
+    c = pd.read_csv('../../data/python_data/' + f)
+    analyze(c, '18', '100', 'TestViewCount')
 
 def analyze(c, subset, db, popularity):
     zero_count = c['ml'].value_counts()[0]
@@ -23,10 +23,12 @@ def analyze(c, subset, db, popularity):
     r3 = c['ql'] * c[popularity]
     r4 = c['ml'] * c[popularity]
     r5 = c['best'] * c[popularity]
+    r6 = c['rand'] * c[popularity]
     s = c[popularity].sum()
-    print('sub \t db \t ql \t ml \t best')
-    print('%.2f \t %.2f \t %.2f \t %.2f \t %.2f' %
-          (r1.sum() / s, r2.sum() / s, r3.sum() / s, r4.sum() / s, r5.sum() / s))
+    print('sub \t db \t ql \t ml \t best \t rand')
+    print('%.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f' %
+          (r1.sum() / s, r2.sum() / s, r3.sum() / s, r4.sum() / s, r5.sum() /
+           s, r6.sum() / s))
     b = c[subset] < c[db]
     bad_count = b.value_counts()[True]
     print('%d distinct bad queries (%.2f %%)' %
@@ -39,11 +41,27 @@ def analyze(c, subset, db, popularity):
     r3 = c['ql'][b] * c[popularity][b]
     r4 = c['ml'][b] * c[popularity][b]
     r5 = c['best'][b] * c[popularity][b]
+    r6 = c['rand'][b] * c[popularity][b]
     sdf= c[popularity][b].sum()
-    print('sub \t db \t ql \t ml \t best')
-    print('%.2f \t %.2f \t %.2f \t %.2f \t %.2f' %
-          (r1.sum() / s, r2.sum() / s, r3.sum() / s, r4.sum() / s, r5.sum() / s))
+    print('sub \t db \t ql \t ml \t best \t rand')
+    print('%.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f' %
+          (r1.sum() / s, r2.sum() / s, r3.sum() / s, r4.sum() / s, r5.sum() /
+           s, r6.sum() / s))
 
+    print('average mrr for not bad queries:')
+    b = c['Label'] == 0
+    s = c[popularity][b].sum()
+    r1 = c[subset][b] * c[popularity][b]
+    r2 = c[db][b] * c[popularity][b]
+    r3 = c['ql'][b] * c[popularity][b]
+    r4 = c['ml'][b] * c[popularity][b]
+    r5 = c['best'][b] * c[popularity][b]
+    r6 = c['rand'][b] * c[popularity][b]
+    sdf= c[popularity][b].sum()
+    print('sub \t db \t ql \t ml \t best \t rand')
+    print('%.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f' %
+          (r1.sum() / s, r2.sum() / s, r3.sum() / s, r4.sum() / s, r5.sum() /
+           s, r6.sum() / s))
 if __name__ == "__main__":
     main(sys.argv[1:])
 

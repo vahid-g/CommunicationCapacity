@@ -92,6 +92,9 @@ def main(argv):
     output['ql'] = ql
     output['ml'] = output.apply(f, axis=1)
     output['best'] = output.apply(g, axis=1)
+    r = np.random.randint(0, 2, q18.size)
+    output['rand'] = q18.copy()
+    output['rand'][r == 1] = q100[r == 1].copy()
     if (argv[2]):
         output.to_csv('../../data/python_data/%s_result.csv' %
                   filename[:-4], index=False)
