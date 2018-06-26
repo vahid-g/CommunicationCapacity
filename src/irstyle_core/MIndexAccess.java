@@ -118,7 +118,7 @@ public class MIndexAccess {
 		String keywList = "";
 		for (int j = 0; j < allkeywords.size(); j++) {
 			String keyw = (String) allkeywords.elementAt(j);
-			keywList += keyw + ",";
+			keywList += keyw + " ";
 		}
 		keywList = keywList.substring(0, keywList.length() - 1);
 
@@ -141,9 +141,10 @@ public class MIndexAccess {
 						columns += rel.getAttribute(k);
 					}
 				}
-				String command = "match(" + columns + ") against('" + keywList + "' IN BOOLEAN MODE)";
+				String command = "";
+				String matchAgainst = "match(" + columns + ") against('" + keywList + "' IN NATURAL LANGUAGE MODE)";
 				// command+=storage_clause;
-				command = startOfCommand + command + " as score FROM " + rel.getName() + " order by score desc;";
+				command = startOfCommand + matchAgainst + " as score FROM " + rel.getName() + " where " + matchAgainst + ";";
 				// cleanupCommands.addElement( (String) ("DROP TABLE TS_"+rel.getName()));
 				jdbcacc.execute(command);// SQLcommands.addElement(command);
 				if (Flags.DEBUG_INFO2)

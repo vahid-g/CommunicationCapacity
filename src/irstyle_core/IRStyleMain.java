@@ -357,7 +357,7 @@ public class IRStyleMain {
 		}
 	}
 
-	public static void dropTupleSets() {
+	private static void dropTupleSets() {
 		jdbcacc.dropTable("TS_mem_article_1");
 		jdbcacc.dropTable("TS_mem_article_link_1"); // TODO
 

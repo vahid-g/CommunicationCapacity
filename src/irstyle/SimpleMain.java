@@ -60,17 +60,20 @@ public class SimpleMain {
 			// access master index and create tuple sets
 			MIndexAccess MIndx = new MIndexAccess(relations);
 			jdbcacc = new JDBCaccess(Server, Port, Database_name, Username, Password);
-			IRStyleMain.dropTupleSets();
+			jdbcacc.dropTable("TS_mem_article_1");
+			jdbcacc.dropTable("TS_mem_article_link_1"); // TODO
 
 			WikiFilesPaths paths = null;
 			paths = WikiFilesPaths.getMaplePaths();
-			List<ExperimentQuery> queries;
-			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
+			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
+					paths.getMsnQrelFilePath());
+			queries = queries.subList(1, 20);
 			for (ExperimentQuery query : queries) {
 				System.out.println("processing " + query.getText());
 
 				Vector<String> allkeyw = new Vector<String>();
 				allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
+				// allkeyw.add("Afghanistan");
 				int NumKeyw = allkeyw.size();
 				long time3 = System.currentTimeMillis();
 				MIndx.createTupleSets2(sch, allkeyw, jdbcacc.conn);
@@ -139,9 +142,7 @@ public class SimpleMain {
 				System.out.println(" Exec CNs in parallel: total exec time = " + exectime + allKeywInResults
 						+ " #results==" + results.size());
 				timeParallel += exectime;
-
-				// dropTupleSets();
-				break;
+				jdbcacc.dropTable("TS_mem_article_1");
 			}
 		}
 

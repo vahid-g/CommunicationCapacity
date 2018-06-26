@@ -22,7 +22,7 @@ public class JDBCaccess {
 			Properties connectionProps = new Properties();
 			connectionProps.put("user", "root");
 			connectionProps.put("password", "M@ple!");
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/wikipedia", connectionProps);
+			conn = DriverManager.getConnection("jdbc:mysql://" + Server + ":3306/wikipedia", connectionProps);
 			stmt = conn.createStatement();
 		} catch (Exception e1) {
 			System.out.println("exception class: " + e1.getClass() + "  with message: " + e1.getMessage()
