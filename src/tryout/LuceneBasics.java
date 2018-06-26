@@ -68,7 +68,7 @@ public class LuceneBasics {
 		IndexSearcher isearcher = new IndexSearcher(ireader);
 		isearcher.setSimilarity(new BM25Similarity()); // Parse a simple
 		QueryParser parser = new QueryParser("f", new StandardAnalyzer());
-		Query query = parser.parse("shekh");
+		Query query = parser.parse("shekh shit new");
 		ScoreDoc[] hits = isearcher.search(query, 10).scoreDocs;
 		System.out.println("#hits:" + hits.length);
 		for (int i = 0; i < hits.length; i++) {
