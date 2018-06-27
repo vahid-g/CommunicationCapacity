@@ -18,6 +18,7 @@ import irstyle_core.Result;
 import irstyle_core.Schema;
 import irstyle_core.IRStyleMain;
 import query.ExperimentQuery;
+import query.QueryResult;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
 
@@ -120,10 +121,11 @@ public class SimpleMain {
 					System.out.println("final results, one CN at a time");
 					IRStyleMain.printResults(results, N);
 				}
-				IRStyleMain.printResults(results, N);
+				//IRStyleMain.printResults(results, N);
 				System.out.println(" Exec one CN at a time: total exec time = " + exectime + " with allKeywInResults="
 						+ allKeywInResults + " #results==" + results.size());
 				timeOneCN += exectime;
+				/*
 				// Method C: parallel execution
 				exectime = 0;
 				ArrayList[] nfreeTSs = new ArrayList[CNs.size()];
@@ -138,14 +140,29 @@ public class SimpleMain {
 				execprepared = new ExecPrepared();
 				exectime = execprepared.ExecuteParallel(jdbcacc, sqls, nfreeTSs, new ArrayList(allkeyw), N, CNsize,
 						allKeywInResults);
-
-				System.out.println(" Exec CNs in parallel: total exec time = " + exectime + allKeywInResults
+						System.out.println(" Exec CNs in parallel: total exec time = " + exectime + allKeywInResults
 						+ " #results==" + results.size());
+				*/
 				timeParallel += exectime;
 				jdbcacc.dropTable("TS_mem_article_1");
+				System.out.println(mrr(results, query));
 			}
 		}
 
+	}
+	
+	static double mrr(List<Result> results, ExperimentQuery query) {
+		for (int i = 0; i < results.size(); i++) {
+			Result r = results.get(i);
+			for (String qrel : query.getQrelScoreMap().keySet()) {
+				System.out.println("qrel = " + qrel);
+				// TODO very losey, can be improved
+				if (r.getStr().contains(qrel)) {
+					return 1.0 / (i + 1);
+				}
+			}
+		}
+		return 0;
 	}
 
 }
