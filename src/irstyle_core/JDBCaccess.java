@@ -167,59 +167,21 @@ public class JDBCaccess {
 	}
 
 	void printResult(ResultSet rs) {
-		try {
-			String str = "";
-			ResultSetMetaData rsmd = rs.getMetaData();
-			int numberOfColumns = rsmd.getColumnCount();
-
-			for (int i = 1; i <= numberOfColumns; i++) {
-				String type = rsmd.getColumnTypeName(i);
-				if (type.compareToIgnoreCase("integer") == 0)
-					str += rs.getInt(i) + " - ";
-				else
-					str += rs.getString(i) + " - ";
-			}
-			System.out.println(str);
-		} catch (Exception e1) {
-			System.out.println("exception class: " + e1.getClass() + "  with message: " + e1.getMessage()
-					+ "exception in  JDBCaccess.printResult");
-
-		}
+		System.out.println(getResult(rs));
 	}
 
-	String getResult(ResultSet rs) {// like printResult, but returns it instead of printing
+	String getResult(ResultSet rs) {
 		try {
 			String str = "";
 			ResultSetMetaData rsmd = rs.getMetaData();
 			int numberOfColumns = rsmd.getColumnCount();
-
 			for (int i = 1; i <= numberOfColumns; i++) {
 				String type = rsmd.getColumnTypeName(i);
-				if (type.compareToIgnoreCase("integer") == 0)
-					str += rs.getInt(i) + " - ";
+				if (type.compareTo("INT") == 0)
+					str += rs.getInt(i);
 				else
-					str += rs.getString(i) + " - ";
-			}
-			return str;
-		} catch (Exception e1) {
-			System.out.println("exception class: " + e1.getClass() + "  with message: " + e1.getMessage()
-					+ "exception in  JDBCaccess.printResult");
-			return null;
-		}
-	}
-
-	String printResult2String(ResultSet rs) {
-		try {
-			String str = "";
-			ResultSetMetaData rsmd = rs.getMetaData();
-			int numberOfColumns = rsmd.getColumnCount();
-
-			for (int i = 1; i <= numberOfColumns; i++) {
-				String type = rsmd.getColumnTypeName(i);
-				if (type.compareToIgnoreCase("integer") == 0)
-					str += rs.getInt(i) + " - ";
-				else
-					str += rs.getString(i) + " - ";
+					str += rs.getString(i);
+				str +=  " - ";
 			}
 			return str;
 		} catch (Exception e1) {

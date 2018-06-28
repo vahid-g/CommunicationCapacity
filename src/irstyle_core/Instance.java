@@ -537,14 +537,15 @@ public class Instance implements Cloneable// , iCandidateNetwork
 		return SQL;
 	}
 
-	public String getSQLstatementOrderedwScores(Vector relations, Vector allkeywords) {// inputs a Vector of all Relation
-																				// objects and outputs the SQL statement
-																				// that evaluates
-																				// this candidate network, ordered by
-																				// sum scores/(CNsize+1)
-																				// like getSQLstatementOrdered, but also
-																				// returns an attribute totalscore,
-																				// which has the score of the tuple
+	public String getSQLstatementOrderedwScores(Vector relations, Vector allkeywords) {// inputs a Vector of all
+																						// Relation
+		// objects and outputs the SQL statement
+		// that evaluates
+		// this candidate network, ordered by
+		// sum scores/(CNsize+1)
+		// like getSQLstatementOrdered, but also
+		// returns an attribute totalscore,
+		// which has the score of the tuple
 		String SQL = "select ";
 		String select = "";
 		String from = "";
@@ -593,38 +594,10 @@ public class Instance implements Cloneable// , iCandidateNetwork
 		return SQL;
 	}
 
-	public String getSQLstatementParameterized(Vector relations, Vector allkeywords, ArrayList nfreeTSs /* is output */) {// inputs
-																													// a
-																													// Vector
-																													// of
-																													// all
-																													// Relation
-																													// objects
-																													// and
-																													// outputs
-																													// the
-																													// parameterized
-																													// SQL
-																													// statement
-																													// that
-																													// evaluates
-																													// this
-																													// candidate
-																													// network
-																													// and
-																													// also
-																													// the
-																													// names
-																													// of
-																													// non
-																													// free
-																													// TSs
-																													// from
-																													// which
-																													// the
-																													// parameters
-																													// are
-																													// instantiated
+	public String getSQLstatementParameterized(Vector relations, Vector allkeywords,
+			ArrayList nfreeTSs /* is output */) {// inputs
+		// a Vector of all Relation objects and outputs the parametrized SQL statement that evaluates this candidate network
+		// and also the names of non free TSs from which the parameters are instantiated
 		String SQL = "select * from ";
 		Vector v = this.getAllInstances();
 		String parameters = "";
@@ -833,4 +806,8 @@ public class Instance implements Cloneable// , iCandidateNetwork
 		return ((Integer) inremote.joiningAttr.elementAt(index_of_this_in_inremote)).intValue();
 	}
 
+	@Override
+	public String toString() {
+		return this.relationName;
+	}
 }

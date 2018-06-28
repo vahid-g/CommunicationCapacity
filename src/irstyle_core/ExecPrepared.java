@@ -140,11 +140,8 @@ public class ExecPrepared {
 		return score / CNSize;
 	}
 
-	private int addResult(double score, String result, ArrayList R, ArrayList scoresR, int N) {// adds result to results
-																								// array R if result is
-																								// in top-N results
-																								// returns new
-																								// resultsSoFar
+	private int addResult(double score, String result, ArrayList R, ArrayList scoresR, int N) {
+		// adds result to results array R if result is in top-N results returns new resultsSoFar
 		int i = 0;
 		for (i = 0; i < R.size(); i++)
 			if (score > ((Double) scoresR.get(i)).doubleValue())
@@ -187,9 +184,9 @@ public class ExecPrepared {
 					// numresults++;
 					double score = getScore(scoresS, indexToBeChecked, CNsize);
 					if (!allKeywInResults)
-						addResult(score, jdbcacc.printResult2String(rs), R, scoresR, N);
+						addResult(score, jdbcacc.getResult(rs), R, scoresR, N);
 					else {
-						String str = jdbcacc.printResult2String(rs);
+						String str = jdbcacc.getResult(rs);
 						if (jdbcacc.containsAll(str, keywords))
 							addResult(score, str, R, scoresR, N);
 					}
@@ -227,9 +224,9 @@ public class ExecPrepared {
 				// numresults++;
 				double score = getScore(scoresS, indexToBeChecked, CNsize, numnfreeTSs);
 				if (!allKeywInResults)
-					addResult(score, jdbcacc.printResult2String(rs), R, scoresR, N);
+					addResult(score, jdbcacc.getResult(rs), R, scoresR, N);
 				else {
-					String str = jdbcacc.printResult2String(rs);
+					String str = jdbcacc.getResult(rs);
 					if (jdbcacc.containsAll(str, keywords))
 						addResult(score, str, R, scoresR, N);
 				}
@@ -503,8 +500,9 @@ public class ExecPrepared {
 			// foundtopn=foundTopN(R,scoresR,lookaheadscores,B,N,CNsize);
 		}
 		long time2 = System.currentTimeMillis();
-		System.out.println("results output = " + resultsSoFar + " numPreparedQueries = " + numPreparedQueries
-				+ " in time = " + (time2 - time1));
+		// System.out.println("results output = " + resultsSoFar + " numPreparedQueries
+		// = " + numPreparedQueries
+		// + " in time = " + (time2 - time1));
 		if (Flags.RESULTS__SHOW_OUTPUT)
 			printResults(R, scoresR);
 		for (int i = 0; i < R.size(); i++)

@@ -311,7 +311,7 @@ public class IRStyleMain {
 	 * return relations; }
 	 */
 
-	public static Vector createRelations() { // schema 1
+	static Vector createRelations() { // schema 1
 		Vector relations = new Vector(1);
 
 		Relation rel = new Relation("mem_article_1");
