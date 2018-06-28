@@ -141,7 +141,8 @@ public class ExecPrepared {
 	}
 
 	private int addResult(double score, String result, ArrayList R, ArrayList scoresR, int N) {
-		// adds result to results array R if result is in top-N results returns new resultsSoFar
+		// adds result to results array R if result is in top-N results returns new
+		// resultsSoFar
 		int i = 0;
 		for (i = 0; i < R.size(); i++)
 			if (score > ((Double) scoresR.get(i)).doubleValue())
@@ -164,7 +165,7 @@ public class ExecPrepared {
 	// check for results and add them to R returns new resultsSoFar
 	private int check4Results(JDBCaccess jdbcacc, PreparedStatement prepared, ArrayList[] S, ArrayList[] scoresS,
 			int[] indexToBeChecked, ArrayList R, ArrayList scoresR, int N, int CNsize, ArrayList keywords,
-			boolean allKeywInResults) { 
+			boolean allKeywInResults) {
 		try {
 			int numparams = indexToBeChecked.length;
 			// int numresults=0;
@@ -363,8 +364,9 @@ public class ExecPrepared {
 		for (int i = 0; i < R.size(); i++)
 			System.out.println(((String) R.get(i)) + "------" + ((Double) scoresR.get(i)).doubleValue());
 	}
-	
-	// returns time also adds results and their scores to ResultsAndScores, which is an ArrayList of type Result
+
+	// returns time also adds results and their scores to ResultsAndScores, which is
+	// an ArrayList of type Result
 	public int ExecuteParameterized(JDBCaccess jdbcacc, String sql, ArrayList nfreeTSs, ArrayList keywords, int N,
 			int CNsize, ArrayList ResultsAndScores, boolean allKeywInResults) {
 		int numPreparedQueries = 0;
@@ -384,18 +386,20 @@ public class ExecPrepared {
 		int numkeywords = keywords.size();
 		int numnfreeTSs = nfreeTSs.size();
 		// keep the ids retrieved so far from nfree TS[i]
-		ArrayList[] S = new ArrayList[numnfreeTSs]; 
-		// keep the scores of the ids retrieved so far from nfree  TS[i]
-		ArrayList[] scoresS = new ArrayList[numnfreeTSs]; 
+		ArrayList[] S = new ArrayList[numnfreeTSs];
+		// keep the scores of the ids retrieved so far from nfree TS[i]
+		ArrayList[] scoresS = new ArrayList[numnfreeTSs];
 		ResultSet[] rs = new ResultSet[numnfreeTSs];
 		// score of top tuple for nfree TS[i]. Used instead of the B(TSi)'s in alg.
-		int[] B = new int[numnfreeTSs]; 
+		int[] B = new int[numnfreeTSs];
 		// used to select a particular combination of ids to check for a result
 		int[] indexToBeChecked = new int[numnfreeTSs];
-		// used to keep ids retrieved but not yet processed. If -1 then no lookahead available
-		int[] lookahead = new int[numnfreeTSs]; 
-		// used to keep scores of corresponding ids in lookahead. If -1 then no lookahead available
-		int[] lookaheadscores = new int[numnfreeTSs]; 
+		// used to keep ids retrieved but not yet processed. If -1 then no lookahead
+		// available
+		int[] lookahead = new int[numnfreeTSs];
+		// used to keep scores of corresponding ids in lookahead. If -1 then no
+		// lookahead available
+		int[] lookaheadscores = new int[numnfreeTSs];
 		ArrayList R = new ArrayList(N); // to store the Strings of top-N results
 		ArrayList scoresR = new ArrayList(N); // to store the scores (double) of the top-N results
 
@@ -518,7 +522,7 @@ public class ExecPrepared {
 	}
 
 	public int ExecuteParallel(JDBCaccess jdbcacc, String[] sqls, ArrayList[] nfreeTSs, ArrayList keywords, int N,
-			int[] CNsize, boolean allKeywInResults) {// input:
+			int[] CNsize, ArrayList ResultsAndScores, boolean allKeywInResults) {// input:
 														// sqls[i]: param sql for i-th CN
 														// nfreeTSs[i]: list of non free TS names for i-th CN
 		int numPreparedQueries = 0;
@@ -756,6 +760,8 @@ public class ExecPrepared {
 				+ numPreparedQueries + "  in time = " + (time2 - time1));
 		if (Flags.RESULTS__SHOW_OUTPUT)
 			printResults(R, scoresR);
+		for (int i = 0; i < R.size(); i++)
+			ResultsAndScores.add(new Result((String) R.get(i), ((Double) scoresR.get(i)).doubleValue()));
 		return (int) (time2 - time1);
 	}
 

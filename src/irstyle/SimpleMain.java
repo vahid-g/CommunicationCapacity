@@ -70,15 +70,14 @@ public class SimpleMain {
 			paths = WikiFilesPaths.getMaplePaths();
 			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
 					paths.getMsnQrelFilePath());
-			queries = queries.subList(1, 2);
 			try (FileWriter fw = new FileWriter("result.csv")) {
 				for (ExperimentQuery query : queries) {
 					System.out.println("processing " + query.getText());
 
 					Vector<String> allkeyw = new Vector<String>();
-					allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
-					//allkeyw.add("Hercule");
-					//allkeyw.add("Suchet");
+					//allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
+					allkeyw.add("jimmy");
+					allkeyw.add("hoffa");
 					long time3 = System.currentTimeMillis();
 					MIndx.createTupleSets2(sch, allkeyw, jdbcacc.conn);
 					long time4 = System.currentTimeMillis();
@@ -86,13 +85,12 @@ public class SimpleMain {
 					System.out.println("time to create tuple sets=" + (time4 - time3) + "ms");
 					time3 = System.currentTimeMillis();
 					/** returns a vector of instances (tuple sets) */ // P1
-					Vector CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx); // also prune identical CNs with P2 in
-																				// place of
-
+					Vector CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx);
+					// also prune identical CNs with P2 in place of
 					time4 = System.currentTimeMillis();
 					// IRStyleMain.writetofile("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 -
 					// time3) + "\r\n");
-
+					System.out.println("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + "\r\n");
 					ArrayList results = new ArrayList(1);
 					double timeOneCN = 0;
 					double timeParallel = 0;
@@ -100,56 +98,65 @@ public class SimpleMain {
 					ExecPrepared execprepared = null;
 					int exectime = 0;
 					results = new ArrayList(1);
-					for (int i = 0; i < CNs.size(); i++) {
-						ArrayList nfreeTSs2 = new ArrayList(1);
-						if (Flags.DEBUG_INFO2)// Flags.DEBUG_INFO2)
-						{
-							Instance inst = ((Instance) CNs.elementAt(i));
-							Vector v = inst.getAllInstances();
-							for (int j = 0; j < v.size(); j++) {
-								System.out.print(((Instance) v.elementAt(j)).getRelationName() + " ");
-								for (int k = 0; k < ((Instance) v.elementAt(j)).keywords.size(); k++)
-									System.out.print((String) ((Instance) v.elementAt(j)).keywords.elementAt(k));
-							}
-							System.out.println("");
-						}
-						String sql = ((Instance) CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw,
-								nfreeTSs2);
-						execprepared = new ExecPrepared();
-						exectime += execprepared.ExecuteParameterized(jdbcacc, sql, nfreeTSs2, new ArrayList(allkeyw),
-								N, ((Instance) CNs.elementAt(i)).getsize() + 1, results, allKeywInResults); // +1
-																											// because
-						// different size semantics than DISCOVER
-					}
-					Collections.sort(results, new Result.ResultComparator());
-					if (Flags.RESULTS__SHOW_OUTPUT) {
-						System.out.println("final results, one CN at a time");
-						IRStyleMain.printResults(results, N);
-					}
-					//IRStyleMain.printResults(results, N);
-					System.out.println(" Exec one CN at a time: total exec time = " + exectime
-							+ " with allKeywInResults=" + allKeywInResults + " #results==" + results.size());
+					// for (int i = 0; i < CNs.size(); i++) {
+					// ArrayList nfreeTSs2 = new ArrayList(1);
+					// if (Flags.DEBUG_INFO2)// Flags.DEBUG_INFO2)
+					// {
+					// Instance inst = ((Instance) CNs.elementAt(i));
+					// Vector v = inst.getAllInstances();
+					// for (int j = 0; j < v.size(); j++) {
+					// System.out.print(((Instance) v.elementAt(j)).getRelationName() + " ");
+					// for (int k = 0; k < ((Instance) v.elementAt(j)).keywords.size(); k++)
+					// System.out.print((String) ((Instance) v.elementAt(j)).keywords.elementAt(k));
+					// }
+					// System.out.println("");
+					// }
+					// String sql = ((Instance)
+					// CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw,
+					// nfreeTSs2);
+					// execprepared = new ExecPrepared();
+					// exectime += execprepared.ExecuteParameterized(jdbcacc, sql, nfreeTSs2, new
+					// ArrayList(allkeyw),
+					// N, ((Instance) CNs.elementAt(i)).getsize() + 1, results, allKeywInResults);
+					// // +1
+					// // because
+					// // different size semantics than DISCOVER
+					// }
+					// Collections.sort(results, new Result.ResultComparator());
+					// if (Flags.RESULTS__SHOW_OUTPUT) {
+					// System.out.println("final results, one CN at a time");
+					// IRStyleMain.printResults(results, N);
+					// }
+					// IRStyleMain.printResults(results, N);
+					// System.out.println(" Exec one CN at a time: total exec time = " + exectime
+					// + " with allKeywInResults=" + allKeywInResults + " #results==" +
+					// results.size());
 					timeOneCN += exectime;
-					/*
-					 * // Method C: parallel execution exectime = 0; ArrayList[] nfreeTSs = new
-					 * ArrayList[CNs.size()]; String[] sqls = new String[CNs.size()]; int[] CNsize =
-					 * new int[CNs.size()]; for (int i = 0; i < CNs.size(); i++) { CNsize[i] =
-					 * ((Instance) CNs.elementAt(i)).getsize() + 1; nfreeTSs[i] = new ArrayList(1);
-					 * sqls[i] = ((Instance)
-					 * CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw,
-					 * nfreeTSs[i]); } execprepared = new ExecPrepared(); exectime =
-					 * execprepared.ExecuteParallel(jdbcacc, sqls, nfreeTSs, new ArrayList(allkeyw),
-					 * N, CNsize, allKeywInResults);
-					 * System.out.println(" Exec CNs in parallel: total exec time = " + exectime +
-					 * allKeywInResults + " #results==" + results.size());
-					 */
+					// Method C: parallel execution
+					exectime = 0;
+					
+					ArrayList[] nfreeTSs = new ArrayList[CNs.size()];
+					String[] sqls = new String[CNs.size()];
+					int[] CNsize = new int[CNs.size()];
+					for (int i = 0; i < CNs.size(); i++) {
+						CNsize[i] = ((Instance) CNs.elementAt(i)).getsize() + 1;
+						nfreeTSs[i] = new ArrayList(1);
+						sqls[i] = ((Instance) CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw,
+								nfreeTSs[i]);
+					}
+					execprepared = new ExecPrepared();
+					exectime = execprepared.ExecuteParallel(jdbcacc, sqls, nfreeTSs, new ArrayList(allkeyw), N, CNsize,
+							results, allKeywInResults);
+					System.out.println(" Exec CNs in parallel: total exec time = " + exectime + allKeywInResults
+							+ " #results==" + results.size());
+
 					timeParallel += exectime;
-					// dropTupleSets();
+					dropTupleSets();
 					String queryText = query.getText();
 					if (queryText.contains(",")) {
 						queryText = "\"" + queryText + "\"";
 					}
-					fw.write(query.getId() + "," + queryText + "," + mrr(results, query) + "," + timeOneCN + "\n");
+					fw.write(query.getId() + "," + queryText + "," + mrr(results, query) + "," + timeParallel + "\n");
 				}
 			}
 		}

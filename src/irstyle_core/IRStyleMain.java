@@ -177,6 +177,7 @@ public class IRStyleMain {
 				timeOneCN += exectime;
 				// Method C: parallel execution
 				exectime = 0;
+				results = new ArrayList(1);
 				ArrayList[] nfreeTSs = new ArrayList[CNs.size()];
 				String[] sqls = new String[CNs.size()];
 				int[] CNsize = new int[CNs.size()];
@@ -188,7 +189,7 @@ public class IRStyleMain {
 				}
 				execprepared = new ExecPrepared();
 				exectime = execprepared.ExecuteParallel(jdbcacc, sqls, nfreeTSs, new ArrayList(allkeyw), N, CNsize,
-						allKeywInResults);
+						results,allKeywInResults);
 
 				System.out.println(" Exec CNs in parallel: total exec time = " + exectime + allKeywInResults
 						+ " #results==" + results.size());
