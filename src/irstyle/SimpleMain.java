@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -55,9 +56,9 @@ public class SimpleMain {
 		for (int exec = 0; exec < numExecutions; exec++) {
 
 			Schema sch = new Schema(
-					"5 mem_article_1 tbl_article_image_09 tbl_image_09_tk tbl_article_link_09 tbl_link_09"
-							+ " mem_article_1 tbl_article_image_09" + " tbl_article_image_09 tbl_image_09_tk"
-							+ " mem_article_1 tbl_article_link_09" + " tbl_article_link_09 tbl_link_09");
+					"5 tbl_article_09 tbl_article_image_09 tbl_image_09_tk tbl_article_link_09 tbl_link_09"
+							+ " tbl_article_09 tbl_article_image_09" + " tbl_article_image_09 tbl_image_09_tk"
+							+ " tbl_article_09 tbl_article_link_09" + " tbl_article_link_09 tbl_link_09");
 			Vector<Relation> relations = createRelations();
 
 			// access master index and create tuple sets
@@ -75,9 +76,9 @@ public class SimpleMain {
 					System.out.println("processing " + query.getText());
 
 					Vector<String> allkeyw = new Vector<String>();
-					// allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
-					allkeyw.add("Hercule");
-					allkeyw.add("Suchet");
+					allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
+					//allkeyw.add("Hercule");
+					//allkeyw.add("Suchet");
 					long time3 = System.currentTimeMillis();
 					MIndx.createTupleSets2(sch, allkeyw, jdbcacc.conn);
 					long time4 = System.currentTimeMillis();
@@ -125,7 +126,7 @@ public class SimpleMain {
 						System.out.println("final results, one CN at a time");
 						IRStyleMain.printResults(results, N);
 					}
-					IRStyleMain.printResults(results, N);
+					//IRStyleMain.printResults(results, N);
 					System.out.println(" Exec one CN at a time: total exec time = " + exectime
 							+ " with allKeywInResults=" + allKeywInResults + " #results==" + results.size());
 					timeOneCN += exectime;
@@ -171,10 +172,10 @@ public class SimpleMain {
 		// the first attrib should be its ID
 		Vector<Relation> relations = new Vector<Relation>();
 
-		Relation rel = new Relation("mem_article_1");
+		Relation rel = new Relation("tbl_article_09");
 		rel.addAttribute("id", false, "INTEGER");
 		rel.addAttribute("title", true, "VARCHAR2(256)");
-		// rel.addAttribute("text", true, "VARCHAR2(32000)");
+		rel.addAttribute("text", true, "VARCHAR2(32000)");
 		// rel.addAttribute("popularity", false, "INTEGER");
 		rel.addAttr4Rel("id", "tbl_article_image_09");
 		rel.addAttr4Rel("id", "tbl_article_link_09");
@@ -184,7 +185,7 @@ public class SimpleMain {
 		rel = new Relation("tbl_article_image_09");
 		rel.addAttribute("article_id", false, "INTEGER");
 		rel.addAttribute("image_id", false, "INTEGER");
-		rel.addAttr4Rel("article_id", "mem_article_1");
+		rel.addAttr4Rel("article_id", "tbl_article_09");
 		rel.addAttr4Rel("image_id", "tbl_image_09_tk");
 		rel.setSize(3840433);
 		relations.addElement(rel);
@@ -200,7 +201,7 @@ public class SimpleMain {
 		rel.addAttribute("link_id", false, "INTEGER");
 		rel.addAttribute("article_id", false, "INTEGER");
 		rel.addAttr4Rel("link_id", "tbl_link_09");
-		rel.addAttr4Rel("article_id", "mem_article_1");
+		rel.addAttr4Rel("article_id", "tbl_article_09");
 		rel.setSize(120916125);
 		relations.addElement(rel);
 
@@ -215,7 +216,7 @@ public class SimpleMain {
 	}
 
 	static void dropTupleSets() {
-		jdbcacc.dropTable("TS_mem_article_1");
+		jdbcacc.dropTable("TS_tbl_article_09");
 		jdbcacc.dropTable("TS_tbl_article_image_09");
 		jdbcacc.dropTable("TS_tbl_image_09_tk");
 		jdbcacc.dropTable("TS_tbl_article_link_09");
