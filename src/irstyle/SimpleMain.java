@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.Vector;
 
 import irstyle_core.ExecPrepared;
@@ -49,14 +50,13 @@ public class SimpleMain {
 		// Server = "localhost";
 		Server = "vm-maple.eecs.oregonstate.edu";
 		Database_name = "wikipedia";
-		Username = "";
-		Password = "!";
+		Username = "root";
 		Port = "3306";
-
+		Scanner sc = new Scanner(System.in);
+		Password = sc.nextLine();
 		// end input
 
 		for (int exec = 0; exec < numExecutions; exec++) {
-
 			Schema sch = new Schema(
 					"5 tbl_article_09 tbl_article_image_09 tbl_image_09_tk tbl_article_link_09 tbl_link_09"
 							+ " tbl_article_09 tbl_article_image_09" + " tbl_article_image_09 tbl_image_09_tk"
