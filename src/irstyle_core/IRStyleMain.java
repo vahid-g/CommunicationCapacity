@@ -38,8 +38,8 @@ public class IRStyleMain {
 		// Server = "TERIYAKI.ucsd.edu";
 		Server = "localhost";
 		Database_name = "wikipedia";
-		Username = "root";
-		Password = "M@ple!";
+		Username = "";
+		Password = "";
 		Port = "3306";
 
 		// end input

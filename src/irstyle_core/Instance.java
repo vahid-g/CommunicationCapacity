@@ -4,6 +4,8 @@ package irstyle_core;
 import java.math.*;
 import java.util.*;
 
+import irstyle.SimpleMain;
+
 //import com.ms.wfc.ui.*;
 
 //Instance is the Tuple Set of the paper
@@ -450,7 +452,7 @@ public class Instance implements Cloneable// , iCandidateNetwork
 																				// allkeywords
 		String name = inst1.getRelationName();
 		if (!inst1.keywords.isEmpty()) // 10/6/02
-			name = "TS_" + name;
+			name = SimpleMain.TUPLESET_PREFIX + "_" + name;
 		/*
 		 * if(inst1.isIntResult()) return name; for(int i=0;i<allkeywords.size();i++)
 		 * if(stringContained(inst1.keywords, (String) allkeywords.elementAt(i)))

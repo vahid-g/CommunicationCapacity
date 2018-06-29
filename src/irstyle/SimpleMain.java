@@ -34,6 +34,8 @@ public class SimpleMain {
 	static String Database_name;
 	static String Username;
 	static String Password;
+	
+	public static String TUPLESET_PREFIX = "TS2";
 
 	public static void main(String[] args) throws IOException {
 
@@ -47,8 +49,8 @@ public class SimpleMain {
 		// Server = "localhost";
 		Server = "vm-maple.eecs.oregonstate.edu";
 		Database_name = "wikipedia";
-		Username = "root";
-		Password = "M@ple!";
+		Username = "";
+		Password = "!";
 		Port = "3306";
 
 		// end input
@@ -82,7 +84,7 @@ public class SimpleMain {
 					MIndx.createTupleSets2(sch, allkeyw, jdbcacc.conn);
 					long time4 = System.currentTimeMillis();
 
-					System.out.println("time to create tuple sets=" + (time4 - time3) + "ms");
+					System.out.println("time to create tuple sets=" + (time4 - time3) + " (ms)");
 					time3 = System.currentTimeMillis();
 					/** returns a vector of instances (tuple sets) */ // P1
 					Vector CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx);
@@ -90,7 +92,7 @@ public class SimpleMain {
 					time4 = System.currentTimeMillis();
 					// IRStyleMain.writetofile("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 -
 					// time3) + "\r\n");
-					System.out.println("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + "\r\n");
+					System.out.println("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)\r\n");
 					ArrayList results = new ArrayList(1);
 					double timeOneCN = 0;
 					double timeParallel = 0;
@@ -147,7 +149,7 @@ public class SimpleMain {
 					execprepared = new ExecPrepared();
 					exectime = execprepared.ExecuteParallel(jdbcacc, sqls, nfreeTSs, new ArrayList(allkeyw), N, CNsize,
 							results, allKeywInResults);
-					System.out.println(" Exec CNs in parallel: total exec time = " + exectime + allKeywInResults
+					System.out.println(" Exec CNs in parallel: total exec time = " + exectime + " (ms) " + allKeywInResults
 							+ " #results==" + results.size());
 
 					timeParallel += exectime;
@@ -223,11 +225,11 @@ public class SimpleMain {
 	}
 
 	static void dropTupleSets() {
-		jdbcacc.dropTable("TS_tbl_article_09");
-		jdbcacc.dropTable("TS_tbl_article_image_09");
-		jdbcacc.dropTable("TS_tbl_image_09_tk");
-		jdbcacc.dropTable("TS_tbl_article_link_09");
-		jdbcacc.dropTable("TS_tbl_link_09");
+		jdbcacc.dropTable(TUPLESET_PREFIX + "_tbl_article_09");
+		jdbcacc.dropTable(TUPLESET_PREFIX + "_tbl_article_image_09");
+		jdbcacc.dropTable(TUPLESET_PREFIX + "_tbl_image_09_tk");
+		jdbcacc.dropTable(TUPLESET_PREFIX + "_tbl_article_link_09");
+		jdbcacc.dropTable(TUPLESET_PREFIX + "_tbl_link_09");
 
 	}
 
