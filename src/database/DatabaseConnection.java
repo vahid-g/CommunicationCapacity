@@ -1,5 +1,6 @@
 package database;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -9,9 +10,9 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import wiki13.maple.WikiMapleRelationalEfficiencyExperiment;
+import wiki13.WikiRelationalEfficiencyExperiment;
 
-public class DatabaseConnection {
+public class DatabaseConnection implements Closeable {
 
 	private static final Logger LOGGER = Logger.getLogger(DatabaseConnection.class.getName());
 
@@ -21,7 +22,7 @@ public class DatabaseConnection {
 
 	public DatabaseConnection(DatabaseType databaseType) throws IOException, SQLException {
 		config = new Properties();
-		try (InputStream in = WikiMapleRelationalEfficiencyExperiment.class
+		try (InputStream in = WikiRelationalEfficiencyExperiment.class
 				.getResourceAsStream("/config/config.properties")) {
 			config.load(in);
 		}
@@ -44,11 +45,21 @@ public class DatabaseConnection {
 		return connection;
 	}
 
-	public void closeConnection() throws SQLException {
+	private void closeConnection() throws SQLException {
 		if (connection != null) {
 			LOGGER.log(Level.INFO, "Closing the databse connection..");
 			connection.close();
 		}
+	}
+
+	@Override
+	public void close() throws IOException {
+		try {
+			closeConnection();
+		} catch (SQLException e) {
+			throw new IOException();
+		}
+
 	}
 
 }

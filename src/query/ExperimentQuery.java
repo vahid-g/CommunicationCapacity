@@ -13,15 +13,24 @@ public class ExperimentQuery {
 	private Integer id;
 	private String text;
 	private Map<String, Integer> qrelScoreMap = new HashMap<String, Integer>();
+	private int freq;
 
-	public ExperimentQuery(int id, String text) {
+	public ExperimentQuery(int id, String text, int freq) {
 		this.id = id;
 		this.text = text;
+		this.freq = freq;
 	}
 
 	public ExperimentQuery(int id, String text, Set<Qrel> qrels) {
-		this.id = id;
-		this.text = text;
+		this(id, text, 1, qrels);
+	}
+
+	public int getFreq() {
+		return freq;
+	}
+
+	public ExperimentQuery(int id, String text, int freq, Set<Qrel> qrels) {
+		this(id, text, freq);
 		for (Qrel qrel : qrels) {
 			qrelScoreMap.put(qrel.getQrelId(), qrel.getRel());
 		}

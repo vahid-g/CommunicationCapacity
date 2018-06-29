@@ -37,7 +37,7 @@ public class LanguageModelScoreTest {
 	    }
 	    IndexReader reader = DirectoryReader.open(rd);
 	    List<ExperimentQuery> queries = new ArrayList<ExperimentQuery>();
-	    ExperimentQuery query1 = new ExperimentQuery(1, "hanhan");
+	    ExperimentQuery query1 = new ExperimentQuery(1, "hanhan", 1);
 	    queries.add(query1);
 	    LanguageModelScore lms = new LanguageModelScore();
 	    Map<String, Double> results = lms.computeScore(reader, queries,

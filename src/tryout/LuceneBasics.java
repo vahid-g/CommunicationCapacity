@@ -27,7 +27,6 @@ import org.apache.lucene.queries.function.FunctionQuery;
 import org.apache.lucene.queries.function.valuesource.DoubleFieldSource;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
@@ -48,10 +47,38 @@ import query.BoostedScoreQuery;
 public class LuceneBasics {
 
 	public static void main(String[] args) throws Exception {
+		Directory directory = new RAMDirectory();
 		Analyzer analyzer = new StandardAnalyzer();
-		QueryParser parser = new QueryParser("f", analyzer);
-		parser.setDefaultOperator(Operator.OR);
-		parser.parse(QueryParser.escape(" and and OR in IF statements"));
+		IndexWriterConfig config = new IndexWriterConfig(analyzer);
+		config.setSimilarity(new BM25Similarity());
+		IndexWriter iwriter = new IndexWriter(directory, config);
+		Document doc1 = new Document();
+		Document doc2 = new Document();
+		Document doc3 = new Document();
+		doc1.add(new Field("f", "this is the new shekh", TextField.TYPE_STORED));
+		doc2.add(new Field("f", " this is the shekh", TextField.TYPE_STORED));
+		doc3.add(new Field("f", "this is the new shit", TextField.TYPE_STORED));
+		iwriter.addDocument(doc1);
+		iwriter.addDocument(doc2);
+		iwriter.addDocument(doc3);
+		iwriter.close();
+
+		// search the index:
+		IndexReader ireader = DirectoryReader.open(directory);
+		IndexSearcher isearcher = new IndexSearcher(ireader);
+		isearcher.setSimilarity(new BM25Similarity()); // Parse a simple
+		QueryParser parser = new QueryParser("f", new StandardAnalyzer());
+		Query query = parser.parse("shekh shit new");
+		ScoreDoc[] hits = isearcher.search(query, 10).scoreDocs;
+		System.out.println("#hits:" + hits.length);
+		for (int i = 0; i < hits.length; i++) {
+			Document hitDoc = isearcher.doc(hits[i].doc);
+			System.out.println(hits[i].score + "\t" + hitDoc.get("f"));
+			System.out.println(isearcher.explain(query, hits[i].doc));
+		}
+
+		ireader.close();
+		directory.close();
 	}
 
 	// testing multifield boolean query

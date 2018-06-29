@@ -39,10 +39,11 @@ public class StackInitialQuery {
 		StackInitialQuery se = new StackInitialQuery();
 		List<QuestionDAO> questions = se.exp(args[0], args[1]);
 		LOGGER.log(Level.INFO, "writing results to file..");
+		
 		try (FileWriter fw = new FileWriter(new File(args[0] + ".csv"))) {
 			for (QuestionDAO question : questions) {
 				if (question.resultRank != -1) {
-					fw.write(question.id + "," + question.answer + "," + 1.0 / question.resultRank + "\n");
+					fw.write(question.id + "," + question.acceptedAnswer + "," + 1.0 / question.resultRank + "\n");
 				}
 			}
 		}
@@ -64,7 +65,7 @@ public class StackInitialQuery {
 					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
 					for (int i = 0; i < hits.length; i++) {
 						Document doc = searcher.doc(hits[i].doc);
-						if (doc.get(StackIndexer.ID_FIELD).equals(question.answer)) {
+						if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer)) {
 							question.resultRank = i + 1;
 							break;
 						}
@@ -96,7 +97,7 @@ public class StackInitialQuery {
 					ScoreDoc[] hits = searcher.search(query, 200).scoreDocs;
 					for (int i = 0; i < hits.length; i++) {
 						Document doc = searcher.doc(hits[i].doc);
-						if (doc.get(StackIndexer.ID_FIELD).equals(question.answer)) {
+						if (doc.get(StackIndexer.ID_FIELD).equals(question.acceptedAnswer)) {
 							question.resultRank = i + 1;
 							break;
 						}
@@ -113,7 +114,7 @@ public class StackInitialQuery {
 			try (FileWriter fw = new FileWriter(new File(offset + "n.csv"))) {
 				for (QuestionDAO question : questions) {
 					if (question.resultRank != -1) {
-						fw.write(question.id + "," + question.answer + "," + 1.0 / question.resultRank + "\n");
+						fw.write(question.id + "," + question.acceptedAnswer + "," + 1.0 / question.resultRank + "\n");
 					}
 				}
 			}
@@ -141,7 +142,7 @@ public class StackInitialQuery {
 		} catch (SQLException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
-		dc.closeConnection();
+		dc.close();
 		return result;
 	}
 
@@ -165,7 +166,7 @@ public class StackInitialQuery {
 		} catch (SQLException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
-		dc.closeConnection();
+		dc.close();
 		return result;
 	}
 }

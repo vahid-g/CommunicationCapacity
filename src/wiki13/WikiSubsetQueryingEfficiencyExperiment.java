@@ -1,4 +1,4 @@
-package wiki13.maple;
+package wiki13;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -15,13 +15,10 @@ import org.apache.commons.cli.Options;
 
 import query.ExperimentQuery;
 import query.QueryServices;
-import wiki13.WikiExperimentHelper;
-import wiki13.WikiFilesPaths;
 
-public class WikiMapleResourceSelectinEfficiencyExperiment {
+public class WikiSubsetQueryingEfficiencyExperiment {
 
-	private static final Logger LOGGER = Logger
-			.getLogger(WikiMapleResourceSelectinEfficiencyExperiment.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(WikiSubsetQueryingEfficiencyExperiment.class.getName());
 	private static WikiFilesPaths PATHS = WikiFilesPaths.getMaplePaths();
 
 	public static void main(String[] args) {
@@ -29,9 +26,6 @@ public class WikiMapleResourceSelectinEfficiencyExperiment {
 		Option expOption = new Option("exp", true, "experiment number");
 		expOption.setRequired(true);
 		options.addOption(expOption);
-		Option timingOption = new Option("timing", true, "run timig experiment");
-		timingOption.setRequired(true);
-		options.addOption(timingOption);
 		Option querysetOption = new Option("queryset", true, "specifies the query log (msn/inex)");
 		querysetOption.setRequired(true);
 		options.addOption(querysetOption);
@@ -52,25 +46,23 @@ public class WikiMapleResourceSelectinEfficiencyExperiment {
 						"title");
 			}
 			queries = queries.subList(0, 100);
-			if (cl.getOptionValue("timing").equals("query")) {
-				double times[] = new double[partitionCount];
-				int iterationCount = 10;
-				for (int i = 0; i < iterationCount; i++) {
-					for (int expNo = 1; expNo <= partitionCount; expNo++) {
-						String indexPath = PATHS.getIndexBase() + expNo;
-						long startTime = System.currentTimeMillis();
-						WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, gamma);
-						long spentTime = System.currentTimeMillis() - startTime;
-						times[expNo - 1] += spentTime;
-					}
+			double times[] = new double[partitionCount];
+			int iterationCount = 10;
+			for (int i = 0; i < iterationCount; i++) {
+				for (int expNo = 1; expNo <= partitionCount; expNo++) {
+					String indexPath = PATHS.getIndexBase() + expNo;
+					long startTime = System.currentTimeMillis();
+					WikiExperimentHelper.runQueriesOnGlobalIndex(indexPath, queries, gamma);
+					long spentTime = System.currentTimeMillis() - startTime;
+					times[expNo - 1] += spentTime;
 				}
-				try (FileWriter fw = new FileWriter("time_results.csv")) {
-					for (double l : times) {
-						fw.write(l / iterationCount + "\n");
-					}
-				} catch (IOException e) {
-					LOGGER.log(Level.SEVERE, e.getMessage(), e);
+			}
+			try (FileWriter fw = new FileWriter("time_results.csv")) {
+				for (double l : times) {
+					fw.write(l / iterationCount + "\n");
 				}
+			} catch (IOException e) {
+				LOGGER.log(Level.SEVERE, e.getMessage(), e);
 			}
 		} catch (org.apache.commons.cli.ParseException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage());
