@@ -22,3 +22,4 @@ config.properties
 
 #python
 *.pyc
+/result.csv

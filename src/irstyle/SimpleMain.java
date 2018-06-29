@@ -3,14 +3,18 @@ package irstyle;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Vector;
 
+import database.DatabaseType;
 import irstyle_core.ExecPrepared;
 import irstyle_core.Flags;
 import irstyle_core.IRStyleMain;
@@ -23,6 +27,7 @@ import irstyle_core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
+import wiki13.WikiRelationalEfficiencyExperiment;
 
 public class SimpleMain {
 
@@ -35,7 +40,7 @@ public class SimpleMain {
 	static String Database_name;
 	static String Username;
 	static String Password;
-	
+
 	public static String TUPLESET_PREFIX = "TS2";
 
 	public static void main(String[] args) throws IOException {
@@ -50,11 +55,15 @@ public class SimpleMain {
 		// Server = "localhost";
 		Server = "vm-maple.eecs.oregonstate.edu";
 		Database_name = "wikipedia";
-		Username = "root";
 		Port = "3306";
-		Scanner sc = new Scanner(System.in);
-		Password = sc.nextLine();
 		// end input
+		Properties config = new Properties();
+		try (InputStream in = WikiRelationalEfficiencyExperiment.class
+				.getResourceAsStream("/config/config.properties")) {
+			config.load(in);
+		}
+		Username = config.getProperty("username");
+		Password = config.getProperty("password");
 
 		for (int exec = 0; exec < numExecutions; exec++) {
 			Schema sch = new Schema(
@@ -77,7 +86,7 @@ public class SimpleMain {
 					System.out.println("processing " + query.getText());
 
 					Vector<String> allkeyw = new Vector<String>();
-					//allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
+					// allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
 					allkeyw.add("jimmy");
 					allkeyw.add("hoffa");
 					long time3 = System.currentTimeMillis();
@@ -136,7 +145,7 @@ public class SimpleMain {
 					timeOneCN += exectime;
 					// Method C: parallel execution
 					exectime = 0;
-					
+
 					ArrayList[] nfreeTSs = new ArrayList[CNs.size()];
 					String[] sqls = new String[CNs.size()];
 					int[] CNsize = new int[CNs.size()];
@@ -149,8 +158,8 @@ public class SimpleMain {
 					execprepared = new ExecPrepared();
 					exectime = execprepared.ExecuteParallel(jdbcacc, sqls, nfreeTSs, new ArrayList(allkeyw), N, CNsize,
 							results, allKeywInResults);
-					System.out.println(" Exec CNs in parallel: total exec time = " + exectime + " (ms) " + allKeywInResults
-							+ " #results==" + results.size());
+					System.out.println(" Exec CNs in parallel: total exec time = " + exectime + " (ms) "
+							+ allKeywInResults + " #results==" + results.size());
 
 					timeParallel += exectime;
 					dropTupleSets();

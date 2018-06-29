@@ -20,9 +20,9 @@ public class JDBCaccess {
 			// Database_name, Username,
 			// Password); // jdbc\:mysql\://localhost\:3306/wikipedia
 			Properties connectionProps = new Properties();
-			connectionProps.put("user", "root");
-			connectionProps.put("password", "M@ple!");
-			conn = DriverManager.getConnection("jdbc:mysql://" + Server + ":3306/wikipedia", connectionProps);
+			connectionProps.put("user", Username);
+			connectionProps.put("password", Password);
+			conn = DriverManager.getConnection("jdbc:mysql://" + Server + ":3306/" + Database_name, connectionProps);
 			stmt = conn.createStatement();
 		} catch (Exception e1) {
 			System.out.println("exception class: " + e1.getClass() + "  with message: " + e1.getMessage()
@@ -181,7 +181,7 @@ public class JDBCaccess {
 					str += rs.getInt(i);
 				else
 					str += rs.getString(i);
-				str +=  " - ";
+				str += " - ";
 			}
 			return str;
 		} catch (Exception e1) {
@@ -246,7 +246,8 @@ public class JDBCaccess {
 		}
 	}
 
-	public int getTopNResults(String sql, int N, ArrayList results) {// adds top-N results to the array results of Result type
+	public int getTopNResults(String sql, int N, ArrayList results) {// adds top-N results to the array results of
+																		// Result type
 		try {
 			long time1 = System.currentTimeMillis();
 			ResultSet rs = stmt.executeQuery(sql);
@@ -285,9 +286,10 @@ public class JDBCaccess {
 		return true;
 	}
 
-	public int getTopNResultsAllKeyw(String sql, int N, ArrayList results, ArrayList keywords) {// adds top-N results to the
-																							// array results of Result
-																							// type
+	public int getTopNResultsAllKeyw(String sql, int N, ArrayList results, ArrayList keywords) {// adds top-N results to
+																								// the
+		// array results of Result
+		// type
 		try {
 			long time1 = System.currentTimeMillis();
 			ResultSet rs = stmt.executeQuery(sql);
