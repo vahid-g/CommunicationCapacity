@@ -11,10 +11,11 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 from utils import print_results
 
 def main(argv):
-    filename = argv[0]
-    t = float(argv[1])
-    subset = argv[2]
-    full = '100'
+    filename = argv[0] # the file containing features + precision of cache +
+    # precision of db 
+    t = float(argv[1]) # threshold for logistic regression (default=0.5)
+    subset = argv[2] # column title for precision of cache
+    full = '100' # column title for precision of full db
     split = 5
     df = pd.read_csv('../../data/python_data/' + filename)
     df = df.drop(['query'], axis = 1)
