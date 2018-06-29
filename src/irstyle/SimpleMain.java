@@ -66,10 +66,13 @@ public class SimpleMain {
 		Password = config.getProperty("password");
 
 		for (int exec = 0; exec < numExecutions; exec++) {
+//			Schema sch = new Schema(
+//					"5 tbl_article_09 tbl_article_image_09 tbl_image_09_tk tbl_article_link_09 tbl_link_09"
+//							+ " tbl_article_09 tbl_article_image_09" + " tbl_article_image_09 tbl_image_09_tk"
+//							+ " tbl_article_09 tbl_article_link_09" + " tbl_article_link_09 tbl_link_09");
 			Schema sch = new Schema(
-					"5 tbl_article_09 tbl_article_image_09 tbl_image_09_tk tbl_article_link_09 tbl_link_09"
-							+ " tbl_article_09 tbl_article_image_09" + " tbl_article_image_09 tbl_image_09_tk"
-							+ " tbl_article_09 tbl_article_link_09" + " tbl_article_link_09 tbl_link_09");
+					"3 tbl_article_09 tbl_article_image_09 tbl_image_09_tk "
+							+ " tbl_article_09 tbl_article_image_09" + " tbl_article_image_09 tbl_image_09_tk");
 			Vector<Relation> relations = createRelations();
 
 			// access master index and create tuple sets
@@ -215,20 +218,20 @@ public class SimpleMain {
 		rel.setSize(1183070);
 		relations.addElement(rel);
 
-		rel = new Relation("tbl_article_link_09");
-		rel.addAttribute("link_id", false, "INTEGER");
-		rel.addAttribute("article_id", false, "INTEGER");
-		rel.addAttr4Rel("link_id", "tbl_link_09");
-		rel.addAttr4Rel("article_id", "tbl_article_09");
-		rel.setSize(120916125);
-		relations.addElement(rel);
-
-		rel = new Relation("tbl_link_09");
-		rel.addAttribute("id", false, "INTEGER");
-		rel.addAttribute("url", true, "VARCHAR(255)");
-		rel.addAttr4Rel("id", "tbl_article_link_09");
-		rel.setSize(9766351);
-		relations.addElement(rel);
+//		rel = new Relation("tbl_article_link_09");
+//		rel.addAttribute("link_id", false, "INTEGER");
+//		rel.addAttribute("article_id", false, "INTEGER");
+//		rel.addAttr4Rel("link_id", "tbl_link_09");
+//		rel.addAttr4Rel("article_id", "tbl_article_09");
+//		rel.setSize(120916125);
+//		relations.addElement(rel);
+//
+//		rel = new Relation("tbl_link_09");
+//		rel.addAttribute("id", false, "INTEGER");
+//		rel.addAttribute("url", true, "VARCHAR(255)");
+//		rel.addAttr4Rel("id", "tbl_article_link_09");
+//		rel.setSize(9766351);
+//		relations.addElement(rel);
 
 		return relations;
 	}
