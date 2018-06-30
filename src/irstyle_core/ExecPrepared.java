@@ -523,8 +523,8 @@ public class ExecPrepared {
 
 	public int ExecuteParallel(JDBCaccess jdbcacc, String[] sqls, ArrayList[] nfreeTSs, ArrayList keywords, int N,
 			int[] CNsize, ArrayList ResultsAndScores, boolean allKeywInResults) {// input:
-														// sqls[i]: param sql for i-th CN
-														// nfreeTSs[i]: list of non free TS names for i-th CN
+		// sqls[i]: param sql for i-th CN
+		// nfreeTSs[i]: list of non free TS names for i-th CN
 		int numPreparedQueries = 0;
 		if (Flags.DEBUG_INFO) {
 			String str = "ExecuteParallel ";

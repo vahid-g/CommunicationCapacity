@@ -4,17 +4,13 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
-import java.util.Scanner;
 import java.util.Vector;
 
-import database.DatabaseType;
 import irstyle_core.ExecPrepared;
 import irstyle_core.Flags;
 import irstyle_core.IRStyleMain;
@@ -48,7 +44,7 @@ public class SimpleMain {
 		// start input
 		int maxCNsize = 4;
 		int numExecutions = 1;
-		int N = 200;
+		int N = 2;
 		boolean allKeywInResults = true;
 
 		// JDBC input
@@ -86,12 +82,11 @@ public class SimpleMain {
 					paths.getMsnQrelFilePath());
 			try (FileWriter fw = new FileWriter("result.csv")) {
 				for (ExperimentQuery query : queries) {
-					System.out.println("processing " + query.getText());
-
 					Vector<String> allkeyw = new Vector<String>();
 					// allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
 					allkeyw.add("jimmy");
 					allkeyw.add("hoffa");
+					System.out.println("processing " + allkeyw);
 					long time3 = System.currentTimeMillis();
 					MIndx.createTupleSets2(sch, allkeyw, jdbcacc.conn);
 					long time4 = System.currentTimeMillis();
@@ -112,42 +107,41 @@ public class SimpleMain {
 					ExecPrepared execprepared = null;
 					int exectime = 0;
 					results = new ArrayList(1);
-					// for (int i = 0; i < CNs.size(); i++) {
-					// ArrayList nfreeTSs2 = new ArrayList(1);
-					// if (Flags.DEBUG_INFO2)// Flags.DEBUG_INFO2)
-					// {
-					// Instance inst = ((Instance) CNs.elementAt(i));
-					// Vector v = inst.getAllInstances();
-					// for (int j = 0; j < v.size(); j++) {
-					// System.out.print(((Instance) v.elementAt(j)).getRelationName() + " ");
-					// for (int k = 0; k < ((Instance) v.elementAt(j)).keywords.size(); k++)
-					// System.out.print((String) ((Instance) v.elementAt(j)).keywords.elementAt(k));
-					// }
-					// System.out.println("");
-					// }
-					// String sql = ((Instance)
-					// CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw,
-					// nfreeTSs2);
-					// execprepared = new ExecPrepared();
-					// exectime += execprepared.ExecuteParameterized(jdbcacc, sql, nfreeTSs2, new
-					// ArrayList(allkeyw),
-					// N, ((Instance) CNs.elementAt(i)).getsize() + 1, results, allKeywInResults);
-					// // +1
-					// // because
-					// // different size semantics than DISCOVER
-					// }
-					// Collections.sort(results, new Result.ResultComparator());
-					// if (Flags.RESULTS__SHOW_OUTPUT) {
-					// System.out.println("final results, one CN at a time");
-					// IRStyleMain.printResults(results, N);
-					// }
-					// IRStyleMain.printResults(results, N);
-					// System.out.println(" Exec one CN at a time: total exec time = " + exectime
-					// + " with allKeywInResults=" + allKeywInResults + " #results==" +
-					// results.size());
+					for (int i = 0; i < CNs.size(); i++) {
+						ArrayList nfreeTSs2 = new ArrayList(1);
+						if (Flags.DEBUG_INFO2)// Flags.DEBUG_INFO2)
+						{
+							Instance inst = ((Instance) CNs.elementAt(i));
+							Vector v = inst.getAllInstances();
+							for (int j = 0; j < v.size(); j++) {
+								System.out.print(((Instance) v.elementAt(j)).getRelationName() + " ");
+								for (int k = 0; k < ((Instance) v.elementAt(j)).keywords.size(); k++)
+									System.out.print((String) ((Instance) v.elementAt(j)).keywords.elementAt(k));
+							}
+							System.out.println("");
+						}
+						String sql = ((Instance) CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw,
+								nfreeTSs2);
+						execprepared = new ExecPrepared();
+						long start = System.currentTimeMillis();
+						exectime += execprepared.ExecuteParameterized(jdbcacc, sql, nfreeTSs2, new ArrayList(allkeyw),
+								N, ((Instance) CNs.elementAt(i)).getsize() + 1, results, allKeywInResults);
+						System.out.println("  Time for CN = " + (System.currentTimeMillis() - start));
+						// +1
+						// because
+						// different size semantics than DISCOVER
+					}
+					Collections.sort(results, new Result.ResultComparator());
+					if (Flags.RESULTS__SHOW_OUTPUT) {
+						System.out.println("final results, one CN at a time");
+						IRStyleMain.printResults(results, N);
+					}
+					IRStyleMain.printResults(results, N);
+					System.out.println(" Exec one CN at a time: total exec time = " + exectime
+							+ " with allKeywInResults=" + allKeywInResults + " #results==" + results.size());
 					timeOneCN += exectime;
 					// Method C: parallel execution
-					exectime = 0;
+					/*exectime = 0;
 
 					ArrayList[] nfreeTSs = new ArrayList[CNs.size()];
 					String[] sqls = new String[CNs.size()];
@@ -164,7 +158,7 @@ public class SimpleMain {
 					System.out.println(" Exec CNs in parallel: total exec time = " + exectime + " (ms) "
 							+ allKeywInResults + " #results==" + results.size());
 
-					timeParallel += exectime;
+					timeParallel += exectime;*/
 					dropTupleSets();
 					String queryText = query.getText();
 					if (queryText.contains(",")) {

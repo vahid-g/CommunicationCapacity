@@ -276,7 +276,7 @@ public class JDBCaccess {
 		while (st.hasMoreTokens()) {
 			String s = st.nextToken();
 			for (int i = 0; i < keywords.size(); i++) {
-				if (s.compareTo((String) keywords.get(i)) == 0)
+				if (s.compareToIgnoreCase((String) keywords.get(i)) == 0)
 					found[i] = true;
 			}
 		}
