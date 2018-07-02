@@ -48,7 +48,8 @@ public class SimpleMain {
 		int numExecutions = 1;
 		int N = 100;
 		boolean allKeywInResults = false;
-
+		boolean parallel = true;
+		
 		// JDBC input
 		// Server = "localhost";
 		Server = "vm-maple.eecs.oregonstate.edu";
@@ -107,74 +108,71 @@ public class SimpleMain {
 					System.out.println("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 					ArrayList<Result> results = new ArrayList<Result>(1);
 					int exectime = 0;
-					// double timeOneCN = 0;
-					// double timeParallel = 0;
-					// Method B: get top-K from each CN
-					// ExecPrepared execprepared = null;
-					// results = new ArrayList<Result>(1);
-					// for (int i = 0; i < CNs.size(); i++) {
-					// System.out.println(" processing " + CNs.get(i));
-					// ArrayList<?> nfreeTSs2 = new ArrayList<Object>(1);
-					// if (Flags.DEBUG_INFO2)// Flags.DEBUG_INFO2)
-					// {
-					// Instance inst = ((Instance) CNs.elementAt(i));
-					// Vector<?> v = inst.getAllInstances();
-					// for (int j = 0; j < v.size(); j++) {
-					// System.out.print(((Instance) v.elementAt(j)).getRelationName() + " ");
-					// for (int k = 0; k < ((Instance) v.elementAt(j)).keywords.size(); k++)
-					// System.out.print((String) ((Instance) v.elementAt(j)).keywords.elementAt(k));
-					// }
-					// System.out.println("");
-					// }
-					// String sql = ((Instance)
-					// CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw,
-					// nfreeTSs2);
-					// execprepared = new ExecPrepared();
-					// System.out.println(" sql: " + sql);
-					// long start = System.currentTimeMillis();
-					// exectime += execprepared.ExecuteParameterized(jdbcacc, sql, nfreeTSs2, new
-					// ArrayList<String>(allkeyw),
-					// N, ((Instance) CNs.elementAt(i)).getsize() + 1, results, allKeywInResults);
-					// // +1 because different size semantics than DISCOVER
-					// System.out.println(" Time = " + (System.currentTimeMillis() - start));
-					// }
-					// Collections.sort(results, new Result.ResultComparator());
-					// if (Flags.RESULTS__SHOW_OUTPUT) {
-					// System.out.println("final results, one CN at a time");
-					// IRStyleMain.printResults(results, N);
-					// }
-					// System.out.println("Exec one CN at a time: total exec time = " + (exectime /
-					// 1000)
-					// + " (s) with allKeywInResults=" + allKeywInResults + " #results==" +
-					// results.size() + " \n");
-					// timeOneCN += exectime;
-					// Method C: parallel execution
-					exectime = 0;
+					double timeOneCN = 0;
+					double timeParallel = 0;
+					if (!parallel) {
+						// Method B: get top-K from each CN
+						ExecPrepared execprepared = null;
+						results = new ArrayList<Result>(1);
+						for (int i = 0; i < CNs.size(); i++) {
+							System.out.println(" processing " + CNs.get(i));
+							ArrayList<?> nfreeTSs2 = new ArrayList<Object>(1);
+							if (Flags.DEBUG_INFO2)// Flags.DEBUG_INFO2)
+							{
+								Instance inst = ((Instance) CNs.elementAt(i));
+								Vector<?> v = inst.getAllInstances();
+								for (int j = 0; j < v.size(); j++) {
+									System.out.print(((Instance) v.elementAt(j)).getRelationName() + " ");
+									for (int k = 0; k < ((Instance) v.elementAt(j)).keywords.size(); k++)
+										System.out.print((String) ((Instance) v.elementAt(j)).keywords.elementAt(k));
+								}
+								System.out.println("");
+							}
+							String sql = ((Instance) CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw,
+									nfreeTSs2);
+							execprepared = new ExecPrepared();
+							System.out.println(" sql: " + sql);
+							long start = System.currentTimeMillis();
+							exectime += execprepared.ExecuteParameterized(jdbcacc, sql, nfreeTSs2,
+									new ArrayList<String>(allkeyw), N, ((Instance) CNs.elementAt(i)).getsize() + 1,
+									results, allKeywInResults);
+							// +1 because different size semantics than DISCOVER
+							System.out.println(" Time = " + (System.currentTimeMillis() - start));
+						}
+						Collections.sort(results, new Result.ResultComparator());
+						if (Flags.RESULTS__SHOW_OUTPUT) {
+							System.out.println("final results, one CN at a time");
+							IRStyleMain.printResults(results, N);
+						}
+						System.out.println("Exec one CN at a time: total exec time = " + (exectime / 1000)
+								+ " (s) with allKeywInResults=" + allKeywInResults + " #results==" + results.size()
+								+ " \n");
+						timeOneCN += exectime;
+					} else {
+						// Method C: parallel execution
+						exectime = 0;
 
-					ArrayList[] nfreeTSs = new ArrayList[CNs.size()];
-					String[] sqls = new String[CNs.size()];
-					int[] CNsize = new int[CNs.size()];
-					for (int i = 0; i < CNs.size(); i++) {
-						CNsize[i] = ((Instance) CNs.elementAt(i)).getsize() + 1;
-						nfreeTSs[i] = new ArrayList<String>();
-						sqls[i] = ((Instance) CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw,
-								nfreeTSs[i]);
+						ArrayList[] nfreeTSs = new ArrayList[CNs.size()];
+						String[] sqls = new String[CNs.size()];
+						int[] CNsize = new int[CNs.size()];
+						for (int i = 0; i < CNs.size(); i++) {
+							CNsize[i] = ((Instance) CNs.elementAt(i)).getsize() + 1;
+							nfreeTSs[i] = new ArrayList<String>();
+							sqls[i] = ((Instance) CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw,
+									nfreeTSs[i]);
+						}
+						ExecPrepared execprepared2 = new ExecPrepared();
+						exectime = execprepared2.ExecuteParallel(jdbcacc, sqls, nfreeTSs,
+								new ArrayList<String>(allkeyw), N, CNsize, results, allKeywInResults);
+						System.out.println(" Exec CNs in parallel: total exec time = " + exectime + " (ms) "
+								+ allKeywInResults + " #results==" + results.size());
 					}
-					ExecPrepared execprepared2 = new ExecPrepared();
-					exectime = execprepared2.ExecuteParallel(jdbcacc, sqls, nfreeTSs, new ArrayList<String>(allkeyw), N,
-							CNsize, results, allKeywInResults);
-					System.out.println(" Exec CNs in parallel: total exec time = " + exectime + " (ms) "
-							+ allKeywInResults + " #results==" + results.size());
-
 					// timeParallel += exectime;
 					dropTupleSets();
-					String queryText = query.getText();
-					if (queryText.contains(",")) {
-						queryText = "\"" + queryText + "\"";
-					}
 					double mrr = mrr(results, query);
 					System.out.println(" R-rank = " + mrr);
-					fw.write(query.getId() + "," + queryText + "," + mrr + "," + exectime + "\n");
+					fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + mrr + "," + exectime
+							+ "\n");
 				}
 			}
 		}
