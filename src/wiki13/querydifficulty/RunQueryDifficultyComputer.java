@@ -124,8 +124,6 @@ public class RunQueryDifficultyComputer {
 				qdc = new QueryDifficultyComputer(new JelinekMercerScore(globalReader));
 			} else if (difficultyMetric.equals("bjms")) {
 				qdc = new QueryDifficultyComputer(new BigramJelinekMercerScore(globalReader));
-			} else if (difficultyMetric.equals("kld")) {
-				qdc = new QueryDifficultyComputer(new Similarity(globalReader));
 			} else {
 				throw new org.apache.commons.cli.ParseException("Difficulty metric needs to be specified");
 			}
