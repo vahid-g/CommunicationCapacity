@@ -29,16 +29,20 @@ public class WikiTableIndexer {
 
 	public static String TEXT_FIELD = "text";
 
-	private IndexWriterConfig config;
-
 	Connection conn;
 
 	public WikiTableIndexer(Analyzer analyzer, DatabaseConnection dc) throws IOException, SQLException {
-		config = new IndexWriterConfig(analyzer);
-		config.setSimilarity(new BM25Similarity());
-		config.setRAMBufferSizeMB(1024);
+
 		conn = dc.getConnection();
 		conn.setAutoCommit(false);
+	}
+
+	public IndexWriterConfig getIndexWriterConfig() {
+		IndexWriterConfig config;
+		config = new IndexWriterConfig(new StandardAnalyzer());
+		config.setSimilarity(new BM25Similarity());
+		config.setRAMBufferSizeMB(1024);
+		return config;
 	}
 
 	public static void main(String[] args) throws IOException, SQLException {
@@ -73,7 +77,7 @@ public class WikiTableIndexer {
 			indexFile.mkdirs();
 		}
 		Directory directory = FSDirectory.open(Paths.get(indexFile.getAbsolutePath()));
-		try (IndexWriter iwriter = new IndexWriter(directory, config)) {
+		try (IndexWriter iwriter = new IndexWriter(directory, getIndexWriterConfig())) {
 			try (Statement stmt = conn.createStatement()) {
 				stmt.setFetchSize(Integer.MIN_VALUE);
 				String attribs = "id";
