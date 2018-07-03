@@ -18,7 +18,6 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.store.FSDirectory;
 
-import indexing.GeneralIndexer;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
