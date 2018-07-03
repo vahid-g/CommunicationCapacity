@@ -54,7 +54,7 @@ public class StackQueryingExperiment {
 		LOGGER.log(Level.INFO, "number of queries: {0}", questions.size());
 		sqe.loadMultipleAnswersForQuestions(questions, TBL_MULTI_ANSWER);
 		List<StackQueryAnswer> results = sqe.submitQueriesInParallelWithMultipleAnswers(questions,
-				"/data/ghadakcv/stack_index_s_2/" + indexName);
+				"/data/ghadakcv/stack_index_s/" + indexName);
 		LOGGER.log(Level.INFO, "querying done!");
 		sqe.printResults(results, "/data/ghadakcv/stack_results_recall/");
 		LOGGER.log(Level.INFO, "experiment done!");

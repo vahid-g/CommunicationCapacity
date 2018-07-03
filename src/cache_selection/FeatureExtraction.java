@@ -30,6 +30,7 @@ import query.ExperimentQuery;
 import query.LuceneQueryBuilder;
 import wiki13.querydifficulty.SimilarityScore;
 import wiki13.querydifficulty.SpecificityScore;
+import wiki13.querydifficulty.VarianceScore;
 
 public class FeatureExtraction {
 
@@ -208,6 +209,10 @@ public class FeatureExtraction {
 
 	protected double similarity(IndexReader indexReader, String query, String field, Analyzer analyzer) throws IOException {
 		return SimilarityScore.computeScore(indexReader, query, field, analyzer);
+	}
+
+	protected double maxVar(IndexReader indexReader, String query, String field, Analyzer analyzer) throws IOException {
+		return VarianceScore.computeMaxVAR(indexReader, query, field, analyzer);
 	}
 
 	@Deprecated

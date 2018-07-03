@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -89,5 +90,38 @@ public class VarianceScore implements QueryDifficultyScoreInterface {
 			}
 		}
 		return difficulties;
+	}
+
+	public static double computeMaxVAR(IndexReader indexReader, String query, String field, Analyzer analyzer) throws IOException {
+		double maxVar = 0;
+		IndexSearcher searcher = new IndexSearcher(indexReader);
+		searcher.setSimilarity(new BM25Similarity());
+		List<String> terms = Arrays.asList(query.split("[ \"'+]")).stream().filter(str -> !str.isEmpty())
+				.collect(Collectors.toList());
+		QueryParser parser = new QueryParser(field, new StandardAnalyzer());
+		for (String term : terms) {
+			try {
+				Query termQuery = parser.parse(term);
+				TopDocs topDocs = searcher.search(termQuery, 12000000);
+				double scoreSum = 0;
+				double scoreSquareSum = 0;
+				for (int i = 0; i < topDocs.totalHits; i++) {
+					double score = topDocs.scoreDocs[i].score;
+					scoreSum += score;
+					scoreSquareSum += Math.pow(score, 2);
+				}
+				double ex = scoreSum / topDocs.totalHits;
+				double var = 0;
+				if (topDocs.totalHits > 0) {
+					var = (scoreSquareSum / topDocs.totalHits) - Math.pow(ex, 2);
+					maxVar = Math.max(var, maxVar);
+				}
+				LOGGER.log(Level.INFO, "\t(" + query + "): Var[x] = " + var + ", N = "
+						+ topDocs.totalHits);
+			} catch (org.apache.lucene.queryparser.classic.ParseException e) {
+				LOGGER.log(Level.SEVERE, e.getMessage(), e);
+			}
+		}
+		return maxVar;
 	}
 }

@@ -17,6 +17,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * simplified clarity score
+ */
 public class SpecificityScore implements QueryDifficultyScoreInterface {
 
     private static final Logger LOGGER = Logger.getLogger(SpecificityScore.class.getName());
@@ -35,7 +38,7 @@ public class SpecificityScore implements QueryDifficultyScoreInterface {
     }
 
     public static double computeScore(IndexReader indexReader, String query, String field, Analyzer analyzer) throws IOException {
-        double spec = 0;
+        double scs = 0;
 
         long tfSum = indexReader.getSumTotalTermFreq(field);
         HashMap<String, Integer> tokensTextCount = new HashMap<>();
@@ -61,8 +64,8 @@ public class SpecificityScore implements QueryDifficultyScoreInterface {
             double tf = indexReader.totalTermFreq(currentTokenTerm);
             double probabilityOfTermGivenSubset = (tf+tfQ) / (tfSum+tfQSum);
             double probabilityOfTermGivenQuery = tokensTextCount.get(term) / tfQSum;
-            spec += probabilityOfTermGivenQuery * log(probabilityOfTermGivenQuery / probabilityOfTermGivenSubset);
+            scs += probabilityOfTermGivenQuery * log(probabilityOfTermGivenQuery / probabilityOfTermGivenSubset);
         }
-        return spec;
+        return scs;
     }
 }

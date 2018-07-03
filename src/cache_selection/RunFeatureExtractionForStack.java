@@ -61,7 +61,7 @@ public class RunFeatureExtractionForStack {
 			} else {
 				List<QuestionDAO> queries = sqsr.loadQuestionsFromTable("questions_s_test_train");
 				List<String> data = featureExtraction(exp, totalExp, queries);
-				try (FileWriter fw = new FileWriter("/data/ghadakcv/stack_results/stack_feat/" + exp + ".csv")) {
+				try (FileWriter fw = new FileWriter("/data/khodadaa/stack_results/stack_feat/" + exp + ".csv")) {
 					for (String line : data) {
 						fw.write(line + "\n");
 					}
@@ -104,7 +104,7 @@ public class RunFeatureExtractionForStack {
 			String[] featureNames = { "query", "covered_t", "mean_df_t", "min_df_t", "mean_mean_pop_t",
 					"mean_min_pop_t", "min_mean_pop_t", "min_min_pop_t", "ql_t", "qll_t", "covered_t_bi",
 					"mean_df_t_bi", "min_df_t_bi", "mean_mean_pop_t_bi", "mean_min_pop_t_bi", "min_mean_pop_t_bi",
-					"min_min_pop_t_bi", "ql_t_bi", "qll_t_bi" };
+					"min_min_pop_t_bi", "ql_t_bi", "qll_t_bi", "scs_t", "maxSCQ_t", "maxVAR_t"};
 			data.add(Arrays.asList(featureNames).stream().map(ft -> ft + ",").collect(Collectors.joining()));
 			long start = System.currentTimeMillis();
 			for (QuestionDAO query : queries) {
@@ -130,6 +130,9 @@ public class RunFeatureExtractionForStack {
 						biwordAnalyzer));
 				f.add(wqde.queryLogLikelihood(biwordIndexReader, queryText, bodyField, globalBiwordIndexReader,
 						biwordAnalyzer));
+				f.add(wqde.specificity(indexReader, queryText, bodyField, analyzer));
+				f.add(wqde.similarity(indexReader, queryText, bodyField, analyzer));
+				f.add(wqde.maxVar(indexReader, queryText, bodyField, analyzer));
 				data.add(queryText + "," + f.stream().map(ft -> ft + ",").collect(Collectors.joining()));
 			}
 			long end = System.currentTimeMillis();

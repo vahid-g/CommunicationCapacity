@@ -18,6 +18,9 @@ import java.util.logging.Logger;
 
 import static java.lang.Math.log;
 
+/**
+ * Maximum (over query terms) of Collection query similarity
+ */
 public class SimilarityScore implements QueryDifficultyScoreInterface {
 
     private static final Logger LOGGER = Logger.getLogger(SimilarityScore.class.getName());
@@ -36,7 +39,30 @@ public class SimilarityScore implements QueryDifficultyScoreInterface {
     }
 
     public static double computeScore(IndexReader indexReader, String query, String field, Analyzer analyzer) throws IOException {
-        double simi = 0;
-        return simi;
+        double maxSCQ = 0;
+
+        HashMap<String, Integer> tokensTextCount = new HashMap<>();
+        try {
+            TokenStream tokenStream = analyzer.tokenStream(field,
+                    new StringReader(query.replaceAll("'", "`")));
+            CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+            tokenStream.reset();
+            while (tokenStream.incrementToken()) {
+                String term = termAtt.toString();
+                tokensTextCount.put(term, 1 + tokensTextCount.getOrDefault(term, 0));
+            }
+            tokenStream.close();
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        }
+
+        for(String term : tokensTextCount.keySet()) {
+            Term currentTokenTerm = new Term(field, term);
+            long tf = indexReader.totalTermFreq(currentTokenTerm);
+            double idf = log(1.0 * indexReader.numDocs() / (indexReader.docFreq(currentTokenTerm)+1));
+            double SCQ_t = (1+log(tf)) * idf;
+            if (SCQ_t > maxSCQ) maxSCQ = SCQ_t;
+        }
+        return maxSCQ;
     }
 }
