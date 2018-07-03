@@ -48,9 +48,8 @@ public class WikiFindCache {
 					ScoreDoc[] scoreDocHits = searcher.search(query, TOPDOC_COUNTS).scoreDocs;
 					for (int j = 0; j < Math.min(TOPDOC_COUNTS, scoreDocHits.length); j++) {
 						Document doc = reader.document(scoreDocHits[j].doc);
-						String docId = doc.get(GeneralIndexer.DOCNAME_ATTRIB);
-						String docTitle = doc.get(GeneralIndexer.TITLE_ATTRIB);
-						iqr.addResult(docId, docTitle);
+						String docId = doc.get(WikiTableIndexer.ID_FIELD);
+						iqr.addResult(docId, "no title");
 					}
 					queryResults.add(iqr);
 				}
