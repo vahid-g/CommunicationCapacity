@@ -45,12 +45,11 @@ public class WikiTableIndexer {
 		String tableName = "tbl_article_09";
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
-			for (double i = 1; i <= 100; i += 10) {
+			for (int i = 1; i <= 100; i += 1) {
 				double count = wti.tableSize(tableName);
-				int limit = (int) Math.floor(i * count / 100);
-				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + ((int) i);
-				wti.indexTable(indexPath, tableName, "id",
-						new String[] { "title", "text" }, limit);
+				int limit = (int) Math.floor((i * count) / 100.0);
+				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
+				wti.indexTable(indexPath, tableName, "id", new String[] { "title", "text" }, limit);
 			}
 		}
 	}
