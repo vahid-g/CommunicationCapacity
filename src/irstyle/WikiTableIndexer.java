@@ -59,7 +59,9 @@ public class WikiTableIndexer {
 		try (Statement stmt = conn.createStatement()) {
 			String sql = "select count(*) count from " + tableName + ";";
 			ResultSet rs = stmt.executeQuery(sql);
-			count = rs.getInt("count");
+			while (rs.next()) {
+				count = rs.getInt("count");
+			}
 		}
 		return count;
 	}
@@ -74,12 +76,12 @@ public class WikiTableIndexer {
 		try (IndexWriter iwriter = new IndexWriter(directory, config)) {
 			try (Statement stmt = conn.createStatement()) {
 				stmt.setFetchSize(Integer.MIN_VALUE);
-				String commaSeparatedTextAttribs = "";
+				String attribs = "id";
 				for (String s : textAttribs) {
-					commaSeparatedTextAttribs += s;
+					attribs += "," + s;
 				}
-				String sql = "select " + commaSeparatedTextAttribs + " from " + table
-						+ " order by popularity desc limit " + limit + ";";
+				String sql = "select " + attribs + " from " + table + " order by popularity desc limit " + limit + ";";
+				System.out.println(sql);
 				ResultSet rs = stmt.executeQuery(sql);
 				while (rs.next()) {
 					String id = rs.getString(idAttrib);
