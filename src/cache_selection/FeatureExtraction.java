@@ -41,7 +41,7 @@ public class FeatureExtraction {
 		this.weightField = weightField;
 	}
 
-	protected double coveredTokenRatio(IndexReader indexReader, String query, String field, Analyzer analyzer) {
+	public double coveredTokenRatio(IndexReader indexReader, String query, String field, Analyzer analyzer) {
 		double coveredBiwordCounts = 0;
 		double biwordCount = 0;
 		try (TokenStream tokenStream = analyzer.tokenStream(field, new StringReader(query.replaceAll("'", "`")))) {
@@ -63,7 +63,7 @@ public class FeatureExtraction {
 		return coveredBiwordCounts / biwordCount;
 	}
 
-	protected double meanNormalizedTokenDocumentFrequency(IndexReader indexReader, String query, String field,
+	public double meanNormalizedTokenDocumentFrequency(IndexReader indexReader, String query, String field,
 			Analyzer analyzer) {
 		double normalizedBiwordDocFrequencySum = 0;
 		int tokenCount = 0;
@@ -86,7 +86,7 @@ public class FeatureExtraction {
 		return normalizedBiwordDocFrequencySum / (N * tokenCount);
 	}
 
-	protected double minNormalizedTokenDocumentFrequency(IndexReader indexReader, String query, String field,
+	public double minNormalizedTokenDocumentFrequency(IndexReader indexReader, String query, String field,
 			Analyzer analyzer) {
 		double minNormalizedTokenDocFrequency = Double.MAX_VALUE;
 		double N = 1.0;
@@ -106,7 +106,7 @@ public class FeatureExtraction {
 		return minNormalizedTokenDocFrequency / N;
 	}
 
-	protected List<Double> fastTokenPopularityFeatures(Map<String, TokenPopularity> popularityMap, String query,
+	public List<Double> fastTokenPopularityFeatures(Map<String, TokenPopularity> popularityMap, String query,
 			String field, Analyzer analyzer) {
 		double averagePopularitySum = 0;
 		double minAverage = Double.MAX_VALUE;
@@ -152,7 +152,7 @@ public class FeatureExtraction {
 		return result;
 	}
 
-	protected double queryLikelihood(IndexReader reader, String query, String field, IndexReader globalIndexReader,
+	public double queryLikelihood(IndexReader reader, String query, String field, IndexReader globalIndexReader,
 			Analyzer analyzer) throws IOException {
 		long tfSum = reader.getSumTotalTermFreq(field);
 		long globalTfSum = globalIndexReader.getSumTotalTermFreq(field);
@@ -176,7 +176,7 @@ public class FeatureExtraction {
 		return likelihood;
 	}
 
-	protected double queryLogLikelihood(IndexReader reader, String query, String field, IndexReader globalIndexReader,
+	public double queryLogLikelihood(IndexReader reader, String query, String field, IndexReader globalIndexReader,
 			Analyzer analyzer) throws IOException {
 		long tfSum = reader.getSumTotalTermFreq(field);
 		long globalTfSum = globalIndexReader.getSumTotalTermFreq(field);
@@ -203,7 +203,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected double meanBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
+	public double meanBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
 		Query query = lqb.buildQuery(queryText);
 		ScoreDoc[] scoreDocHits = null;
 		int k = 200;
@@ -220,7 +220,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected double minBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
+	public double minBM25Score(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
 		Query query = lqb.buildQuery(queryText);
 		ScoreDoc[] scoreDocHits = null;
 		int k = 200;
@@ -236,7 +236,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected double meanBoolScore(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
+	public double meanBoolScore(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
 		Query query = lqb.buildQuery(queryText, Operator.AND);
 		ScoreDoc[] scoreDocHits = null;
 		int k = 20;
@@ -253,7 +253,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected double minBoolScore(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
+	public double minBoolScore(IndexSearcher searcher, String queryText, LuceneQueryBuilder lqb) {
 		Query query = lqb.buildQuery(queryText, Operator.AND);
 		ScoreDoc[] scoreDocHits = null;
 		int k = 20;
@@ -269,7 +269,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected double coveredQueryTermRatio(IndexReader indexReader, String[] queryTerms, String field) {
+	public double coveredQueryTermRatio(IndexReader indexReader, String[] queryTerms, String field) {
 		Stream<Term> termsStream = Arrays.stream(queryTerms).map(t -> new Term(field, t));
 		long coveredTermCount = termsStream.map(t -> {
 			long covered = 0;
@@ -284,7 +284,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected double meanNormalizedDocumentFrequency(IndexReader indexReader, String[] queryTerms, String field) {
+	public double meanNormalizedDocumentFrequency(IndexReader indexReader, String[] queryTerms, String field) {
 		Stream<Term> termStream = Arrays.stream(queryTerms).map(t -> new Term(field, t));
 		double dfSum = termStream.map(t -> {
 			long df = 0;
@@ -302,7 +302,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected double minNormalizedDocumentFrequency(IndexReader indexReader, String[] queryTerms, String field) {
+	public double minNormalizedDocumentFrequency(IndexReader indexReader, String[] queryTerms, String field) {
 		Stream<Term> termStream = Arrays.stream(queryTerms).map(t -> new Term(field, t));
 		double dfMin = termStream.map(t -> {
 			long df = 0;
@@ -320,7 +320,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected List<Double> termPopularityFeatures(IndexReader reader, String queryText, String field) {
+	public List<Double> termPopularityFeatures(IndexReader reader, String queryText, String field) {
 		double averagePopularitySum = 0;
 		double minAverage = Double.MAX_VALUE;
 		double minPopularitySum = 0;
@@ -379,7 +379,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected double queryLikelihood(IndexReader reader, String query, String field, IndexReader globalIndexReader)
+	public double queryLikelihood(IndexReader reader, String query, String field, IndexReader globalIndexReader)
 			throws IOException {
 		long tfSum = reader.getSumTotalTermFreq(field);
 		long globalTfSum = globalIndexReader.getSumTotalTermFreq(field);
@@ -412,7 +412,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected double coveredBiwordRatio(IndexSearcher indexSearcher, String query, String field) {
+	public double coveredBiwordRatio(IndexSearcher indexSearcher, String query, String field) {
 		int coveredBiwordCounts = 0;
 		int biwordCount = 0;
 		int k = 20;
@@ -445,7 +445,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected double meanNormalizedDocumentBiwordFrequency(IndexSearcher indexSearcher, String query, String field) {
+	public double meanNormalizedDocumentBiwordFrequency(IndexSearcher indexSearcher, String query, String field) {
 		double normalizedBiwordDocFrequencySum = 0;
 		int bigramCount = 0;
 		int k = 10000;
@@ -480,7 +480,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected double minNormalizedDocumentBiwordFrequency(IndexSearcher indexSearcher, String query, String field) {
+	public double minNormalizedDocumentBiwordFrequency(IndexSearcher indexSearcher, String query, String field) {
 		double minNormalizedBiwordDocFrequency = 1;
 		int k = 10000;
 		try (StandardAnalyzer analyzer = new StandardAnalyzer();
@@ -516,7 +516,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected List<Double> termPopularityFeatures(IndexSearcher searcher, String queryText, String field) {
+	public List<Double> termPopularityFeatures(IndexSearcher searcher, String queryText, String field) {
 		double meanAverage = 0;
 		double minAverage = -1;
 		double meanMin = 0;
@@ -577,7 +577,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected List<Double> biwordPopularityFeatures(IndexSearcher indexSearcher, String query, String field) {
+	public List<Double> biwordPopularityFeatures(IndexSearcher indexSearcher, String query, String field) {
 		double meanAverage = 0;
 		double minAverage = -1;
 		double meanMin = 0;
@@ -641,7 +641,7 @@ public class FeatureExtraction {
 	}
 
 	@Deprecated
-	protected List<Double> tokenPopularityFeatures(IndexReader indexReader, String query, String field,
+	public List<Double> tokenPopularityFeatures(IndexReader indexReader, String query, String field,
 			Analyzer analyzer) {
 		double averagePopularitySum = 0;
 		double minAverage = Double.MAX_VALUE;

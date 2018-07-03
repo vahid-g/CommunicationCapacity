@@ -106,7 +106,7 @@ public class SimpleMainRefactored {
 		}
 	}
 
-	private static JDBCaccess jdbcAccess() throws IOException {
+	static JDBCaccess jdbcAccess() throws IOException {
 		// JDBC input
 		// Server = "localhost";
 		String Server = "vm-maple.eecs.oregonstate.edu";
@@ -124,7 +124,7 @@ public class SimpleMainRefactored {
 		return jdbcacc;
 	}
 
-	private static int methodB(int N, boolean allKeywInResults, Vector<Relation> relations, Vector<String> allkeyw,
+	static int methodB(int N, boolean allKeywInResults, Vector<Relation> relations, Vector<String> allkeyw,
 			Vector<?> CNs, ArrayList<Result> results, JDBCaccess jdbcacc) {
 		// Method B: get top-K from each CN
 		int exectime = 0;
@@ -161,7 +161,7 @@ public class SimpleMainRefactored {
 		return exectime;
 	}
 
-	private static int methodC(int N, boolean allKeywInResults, Vector<Relation> relations, Vector<String> allkeyw,
+	static int methodC(int N, boolean allKeywInResults, Vector<Relation> relations, Vector<String> allkeyw,
 			Vector<?> CNs, ArrayList<Result> results, JDBCaccess jdbcacc) {
 		// Method C: parallel execution
 		int exectime = 0;
