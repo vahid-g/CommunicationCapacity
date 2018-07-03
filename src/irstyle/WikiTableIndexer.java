@@ -48,7 +48,8 @@ public class WikiTableIndexer {
 			for (double i = 1; i <= 100; i += 10) {
 				double count = wti.tableSize(tableName);
 				int limit = (int) Math.floor(i * count / 100);
-				wti.indexTable("/data/ghadakcv/wikipedia/tbl_" + tableName + "/" + i, tableName, "id",
+				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + ((int) i);
+				wti.indexTable(indexPath, tableName, "id",
 						new String[] { "title", "text" }, limit);
 			}
 		}

@@ -36,7 +36,7 @@ public class WikiFindCache {
 		queries = queries.subList(0, 50);
 		String tableName = "tbl_article_09";
 		for (int i = 1; i <= 100; i += 10) {
-			String indexPath = "/data/ghadakcv/wikipedia/tbl_" + tableName + "/" + i;
+			String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
 			List<QueryResult> queryResults = new ArrayList<QueryResult>();
 			try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
 				IndexSearcher searcher = new IndexSearcher(reader);
