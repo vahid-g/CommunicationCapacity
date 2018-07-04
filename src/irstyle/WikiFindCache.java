@@ -1,6 +1,5 @@
 package irstyle;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -36,32 +35,30 @@ public class WikiFindCache {
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 50);
 		String tableName = "tbl_article_09";
-		try (FileWriter fw = new FileWriter(tableName + ".csv")) {
-			for (int i = 1; i <= 100; i += 1) {
-				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
-				List<QueryResult> queryResults = new ArrayList<QueryResult>();
-				try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
-					IndexSearcher searcher = new IndexSearcher(reader);
-					QueryParser qp = new QueryParser(WikiTableIndexer.TEXT_FIELD, new StandardAnalyzer());
-					for (ExperimentQuery q : queries) {
-						QueryResult result = new QueryResult(q);
-						Query query = qp.parse(q.getText());
-						ScoreDoc[] scoreDocHits = searcher.search(query, TOPDOC_COUNTS).scoreDocs;
-						for (int j = 0; j < Math.min(TOPDOC_COUNTS, scoreDocHits.length); j++) {
-							Document doc = reader.document(scoreDocHits[j].doc);
-							String docId = doc.get(WikiTableIndexer.QREL_FIELD);
-							result.addResult(docId, "no title");
-						}
-						queryResults.add(result);
+		for (int i = 1; i <= 100; i += 1) {
+			String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
+			List<QueryResult> queryResults = new ArrayList<QueryResult>();
+			try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
+				IndexSearcher searcher = new IndexSearcher(reader);
+				QueryParser qp = new QueryParser(WikiTableIndexer.TEXT_FIELD, new StandardAnalyzer());
+				for (ExperimentQuery q : queries) {
+					QueryResult result = new QueryResult(q);
+					Query query = qp.parse(q.getText());
+					ScoreDoc[] scoreDocHits = searcher.search(query, TOPDOC_COUNTS).scoreDocs;
+					for (int j = 0; j < Math.min(TOPDOC_COUNTS, scoreDocHits.length); j++) {
+						Document doc = reader.document(scoreDocHits[j].doc);
+						String docId = doc.get(WikiTableIndexer.QREL_FIELD);
+						result.addResult(docId, "no title");
 					}
+					queryResults.add(result);
 				}
-				double mrr = 0;
-				for (QueryResult qr : queryResults) {
-					mrr += qr.mrr();
-				}
-				mrr /= queryResults.size();
-				fw.write("index: " + i + " mrr = " + mrr + "\n");
 			}
+			double mrr = 0;
+			for (QueryResult qr : queryResults) {
+				mrr += qr.mrr();
+			}
+			mrr /= queryResults.size();
+			System.out.println("index: " + i + " mrr = " + mrr);
 		}
 
 	}
