@@ -29,6 +29,8 @@ public class WikiTableIndexer {
 
 	public static String TEXT_FIELD = "text";
 
+	public static String QREL_FIELD = "qrel";
+
 	Connection conn;
 
 	public WikiTableIndexer(Analyzer analyzer, DatabaseConnection dc) throws IOException, SQLException {
@@ -46,6 +48,10 @@ public class WikiTableIndexer {
 	}
 
 	public static void main(String[] args) throws IOException, SQLException {
+		WikiTableIndexer.indexLinks();
+	}
+
+	public static void indexLinks() throws IOException, SQLException {
 		String tableName = "tbl_link_pop";
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
@@ -53,11 +59,11 @@ public class WikiTableIndexer {
 				double count = wti.tableSize(tableName);
 				int limit = (int) Math.floor((i * count) / 100.0);
 				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, "id", new String[] { "url" }, limit, "pop");
+				wti.indexTable(indexPath, tableName, "id", new String[] { "url" }, limit, "pop", "article_id");
 			}
 		}
 	}
-	
+
 	public static void indexImages(String[] args) throws IOException, SQLException {
 		String tableName = "tbl_image_pop";
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
@@ -66,7 +72,7 @@ public class WikiTableIndexer {
 				double count = wti.tableSize(tableName);
 				int limit = (int) Math.floor((i * count) / 100.0);
 				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, "id", new String[] { "src_tk" }, limit, "pop");
+				wti.indexTable(indexPath, tableName, "id", new String[] { "src_tk" }, limit, "pop", "article_id");
 			}
 		}
 	}
@@ -79,7 +85,7 @@ public class WikiTableIndexer {
 				double count = wti.tableSize(tableName);
 				int limit = (int) Math.floor((i * count) / 100.0);
 				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, "id", new String[] { "title", "text" }, limit, "popularity");
+				wti.indexTable(indexPath, tableName, "id", new String[] { "title", "text" }, limit, "popularity", "id");
 			}
 		}
 	}
@@ -97,7 +103,7 @@ public class WikiTableIndexer {
 	}
 
 	private void indexTable(String indexPath, String table, String idAttrib, String[] textAttribs, int limit,
-			String popularity) throws IOException, SQLException {
+			String popularity, String qrelAttrib) throws IOException, SQLException {
 		File indexFile = new File(indexPath);
 		if (!indexFile.exists()) {
 			indexFile.mkdirs();
@@ -106,7 +112,7 @@ public class WikiTableIndexer {
 		try (IndexWriter iwriter = new IndexWriter(directory, getIndexWriterConfig())) {
 			try (Statement stmt = conn.createStatement()) {
 				stmt.setFetchSize(Integer.MIN_VALUE);
-				String attribs = "id";
+				String attribs = idAttrib + "," + qrelAttrib;
 				for (String s : textAttribs) {
 					attribs += "," + s;
 				}
@@ -116,6 +122,7 @@ public class WikiTableIndexer {
 				ResultSet rs = stmt.executeQuery(sql);
 				while (rs.next()) {
 					String id = rs.getString(idAttrib);
+					String qrel = rs.getString(qrelAttrib);
 					StringBuilder answerBuilder = new StringBuilder();
 					for (String s : textAttribs) {
 						answerBuilder.append(rs.getString(s));
@@ -126,6 +133,7 @@ public class WikiTableIndexer {
 					// answer = StringEscapeUtils.unescapeHtml4(answer); // convert html encoded
 					// characters to unicode
 					doc.add(new TextField(TEXT_FIELD, answer, Store.NO));
+					doc.add(new StoredField(QREL_FIELD, qrel));
 					iwriter.addDocument(doc);
 				}
 			}
