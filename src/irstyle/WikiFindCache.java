@@ -41,7 +41,7 @@ public class WikiFindCache {
 		} else if (args[0].equals("images")) {
 			findOtherCache("tbl_image_pop", "tbl_article_image_09", "image_id");
 		} else if (args[0].equals("links")) {
-			findOtherCache("tbl_links_pop", "tbl_article_link_09", "link_id");
+			findOtherCache("tbl_link_pop", "tbl_article_link_09", "link_id");
 		} else {
 			System.out.println("Wrong input args!");
 		}

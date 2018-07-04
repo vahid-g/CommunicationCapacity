@@ -78,7 +78,7 @@ public class WikiTableIndexer {
 				double count = wti.tableSize(tableName);
 				int limit = (int) Math.floor((i * count) / 100.0);
 				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, "id", new String[] { "src_tk" }, limit, "pop");
+				wti.indexTable(indexPath, tableName, "id", new String[] { "src" }, limit, "pop");
 			}
 		}
 	}
