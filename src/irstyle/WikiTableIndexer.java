@@ -46,6 +46,32 @@ public class WikiTableIndexer {
 	}
 
 	public static void main(String[] args) throws IOException, SQLException {
+		String tableName = "tbl_link_pop";
+		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
+			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
+			for (int i = 1; i <= 100; i += 1) {
+				double count = wti.tableSize(tableName);
+				int limit = (int) Math.floor((i * count) / 100.0);
+				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
+				wti.indexTable(indexPath, tableName, "id", new String[] { "url" }, limit, "pop");
+			}
+		}
+	}
+	
+	public static void indexImages(String[] args) throws IOException, SQLException {
+		String tableName = "tbl_image_pop";
+		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
+			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
+			for (int i = 1; i <= 100; i += 1) {
+				double count = wti.tableSize(tableName);
+				int limit = (int) Math.floor((i * count) / 100.0);
+				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
+				wti.indexTable(indexPath, tableName, "id", new String[] { "src_tk" }, limit, "pop");
+			}
+		}
+	}
+
+	public static void indexArticles() throws IOException, SQLException {
 		String tableName = "tbl_article_09";
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
@@ -53,7 +79,7 @@ public class WikiTableIndexer {
 				double count = wti.tableSize(tableName);
 				int limit = (int) Math.floor((i * count) / 100.0);
 				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, "id", new String[] { "title", "text" }, limit);
+				wti.indexTable(indexPath, tableName, "id", new String[] { "title", "text" }, limit, "popularity");
 			}
 		}
 	}
@@ -70,8 +96,8 @@ public class WikiTableIndexer {
 		return count;
 	}
 
-	private void indexTable(String indexPath, String table, String idAttrib, String[] textAttribs, int limit)
-			throws IOException, SQLException {
+	private void indexTable(String indexPath, String table, String idAttrib, String[] textAttribs, int limit,
+			String popularity) throws IOException, SQLException {
 		File indexFile = new File(indexPath);
 		if (!indexFile.exists()) {
 			indexFile.mkdirs();
@@ -84,7 +110,8 @@ public class WikiTableIndexer {
 				for (String s : textAttribs) {
 					attribs += "," + s;
 				}
-				String sql = "select " + attribs + " from " + table + " order by popularity desc limit " + limit + ";";
+				String sql = "select " + attribs + " from " + table + " order by " + popularity + " desc limit " + limit
+						+ ";";
 				System.out.println(sql);
 				ResultSet rs = stmt.executeQuery(sql);
 				while (rs.next()) {
