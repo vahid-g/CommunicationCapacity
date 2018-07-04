@@ -46,9 +46,9 @@ public class SimpleMain {
 		// start input
 		int maxCNsize = 5;
 		int numExecutions = 1;
-		int N = 100;
+		int N = 5;
 		boolean allKeywInResults = false;
-		boolean parallel = true;
+		boolean parallel = false;
 		
 		// JDBC input
 		// Server = "localhost";
