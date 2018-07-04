@@ -48,7 +48,15 @@ public class WikiTableIndexer {
 	}
 
 	public static void main(String[] args) throws IOException, SQLException {
-		WikiTableIndexer.indexLinks();
+		if (args[0].equals("articles")) {
+			WikiTableIndexer.indexArticles();
+		} else if (args[0].equals("images")) {
+			WikiTableIndexer.indexImages();
+		} else if (args[0].equals("links")) {
+			WikiTableIndexer.indexLinks();
+		} else {
+			System.out.println("Wrong input args!");
+		}
 	}
 
 	public static void indexLinks() throws IOException, SQLException {
@@ -64,7 +72,7 @@ public class WikiTableIndexer {
 		}
 	}
 
-	public static void indexImages(String[] args) throws IOException, SQLException {
+	public static void indexImages() throws IOException, SQLException {
 		String tableName = "tbl_image_pop";
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
