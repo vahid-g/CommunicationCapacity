@@ -63,7 +63,7 @@ public class WikiFindCache {
 			mrr /= queryResults.size();
 			System.out.println("index: " + i + " mrr = " + mrr);
 		}
-	
+
 	}
 
 	public static void findOtherCache(String tableName, String joinTableName, String idAttrib)
@@ -126,5 +126,4 @@ public class WikiFindCache {
 		}
 		return queryResults;
 	}
-
 }

@@ -41,7 +41,7 @@ public class SimpleMainRefactored {
 		int numExecutions = 1;
 		int N = 100;
 		boolean allKeywInResults = false;
-		boolean parallel = true;
+		boolean parallel = false;
 
 		JDBCaccess jdbcacc = jdbcAccess();
 
@@ -146,12 +146,13 @@ public class SimpleMainRefactored {
 			String sql = ((Instance) CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw, nfreeTSs2);
 			execprepared = new ExecPrepared();
 			System.out.println(" sql: " + sql);
+			long start = System.currentTimeMillis();
 			exectime += execprepared.ExecuteParameterized(jdbcacc, sql, nfreeTSs2, new ArrayList<String>(allkeyw), N,
 					((Instance) CNs.elementAt(i)).getsize() + 1, results, allKeywInResults);
 			// +1 because different size semantics than DISCOVER
-
+			System.out.println(" Time = " + (System.currentTimeMillis() - start) + "(ms)");
 		}
-		Collections.sort(results, new Result.ResultComparator());
+		// Collections.sort(results, new Result.ResultComparator());
 		if (Flags.RESULTS__SHOW_OUTPUT) {
 			System.out.println("final results, one CN at a time");
 			IRStyleMain.printResults(results, N);
