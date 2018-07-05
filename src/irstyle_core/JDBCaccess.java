@@ -23,6 +23,7 @@ public class JDBCaccess {
 			connectionProps.put("user", Username);
 			connectionProps.put("password", Password);
 			conn = DriverManager.getConnection("jdbc:mysql://" + Server + ":3306/" + Database_name, connectionProps);
+			conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 			stmt = conn.createStatement();
 		} catch (Exception e1) {
 			System.out.println("exception class: " + e1.getClass() + "  with message: " + e1.getMessage()
