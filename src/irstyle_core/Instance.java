@@ -4,7 +4,7 @@ package irstyle_core;
 import java.math.*;
 import java.util.*;
 
-import irstyle.SimpleMain;
+import irstyle.IRStyleParams;
 
 //import com.ms.wfc.ui.*;
 
@@ -452,7 +452,7 @@ public class Instance implements Cloneable// , iCandidateNetwork
 																				// allkeywords
 		String name = inst1.getRelationName();
 		if (!inst1.keywords.isEmpty()) // 10/6/02
-			name = SimpleMain.TUPLESET_PREFIX + "_" + name;
+			name = IRStyleParams.TUPLESET_PREFIX + "_" + name;
 		/*
 		 * if(inst1.isIntResult()) return name; for(int i=0;i<allkeywords.size();i++)
 		 * if(stringContained(inst1.keywords, (String) allkeywords.elementAt(i)))
@@ -598,7 +598,8 @@ public class Instance implements Cloneable// , iCandidateNetwork
 
 	public String getSQLstatementParameterized(Vector relations, Vector allkeywords,
 			ArrayList nfreeTSs /* is output */) {// inputs
-		// a Vector of all Relation objects and outputs the parametrized SQL statement that evaluates this candidate network
+		// a Vector of all Relation objects and outputs the parametrized SQL statement
+		// that evaluates this candidate network
 		// and also the names of non free TSs from which the parameters are instantiated
 		String SQL = "select * from ";
 		Vector v = this.getAllInstances();
@@ -810,6 +811,11 @@ public class Instance implements Cloneable// , iCandidateNetwork
 
 	@Override
 	public String toString() {
-		return this.relationName;
+		StringBuilder sb = new StringBuilder();
+		for (Object keyword : keywords) {
+			sb.append(keyword.toString());
+			sb.append(" ");
+		}
+		return this.relationName + ": " + sb.toString();
 	}
 }

@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.Random;
 import java.util.Vector;
 
-public class IRStyleMain {
+public class InitialMain {
 
 	static FileOutputStream output;
 	Random ran = new Random();

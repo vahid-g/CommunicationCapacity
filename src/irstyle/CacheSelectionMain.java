@@ -41,12 +41,12 @@ public class CacheSelectionMain {
 		int N = 100;
 		boolean allKeywInResults = false;
 		boolean parallel = true;
-		JDBCaccess jdbcacc = SimpleMainRefactored.jdbcAccess();
+		JDBCaccess jdbcacc = IRStyleMain.jdbcAccess();
 		WikiFilesPaths paths = null;
 		paths = WikiFilesPaths.getMaplePaths();
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
 				paths.getMsnQrelFilePath());
-		SimpleMainRefactored.dropTupleSets(jdbcacc);
+		IRStyleMain.dropTupleSets(jdbcacc);
 		try (FileWriter fw = new FileWriter("result.csv")) {
 			try (IndexReader articleReader = DirectoryReader.open(FSDirectory.open(Paths.get("")));
 					IndexReader articleCacheReader = DirectoryReader.open(FSDirectory.open(Paths.get("")));
@@ -106,14 +106,14 @@ public class CacheSelectionMain {
 					ArrayList<Result> results = new ArrayList<Result>(1);
 					int exectime = 0;
 					if (!parallel) {
-						exectime = SimpleMainRefactored.methodB(N, allKeywInResults, relations, allkeyw, CNs, results,
+						exectime = IRStyleMain.methodB(N, allKeywInResults, relations, allkeyw, CNs, results,
 								jdbcacc);
 					} else {
-						exectime = SimpleMainRefactored.methodC(N, allKeywInResults, relations, allkeyw, CNs, results,
+						exectime = IRStyleMain.methodC(N, allKeywInResults, relations, allkeyw, CNs, results,
 								jdbcacc);
 					}
-					SimpleMainRefactored.dropTupleSets(jdbcacc);
-					double mrr = SimpleMainRefactored.mrr(results, query);
+					IRStyleMain.dropTupleSets(jdbcacc);
+					double mrr = IRStyleMain.mrr(results, query);
 					System.out.println(" R-rank = " + mrr);
 					fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + mrr + "," + exectime
 							+ "\n");

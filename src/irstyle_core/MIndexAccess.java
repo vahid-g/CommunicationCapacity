@@ -4,7 +4,7 @@ package irstyle_core;
 import java.sql.Connection;
 import java.util.*;
 
-import irstyle.SimpleMain;
+import irstyle.IRStyleParams;
 
 public class MIndexAccess {
 	Vector tuplesets;
@@ -128,7 +128,7 @@ public class MIndexAccess {
 			if (hasTextAttr((Relation) relations.elementAt(i))) {
 				String orderbyclause = "";
 				Relation rel = (Relation) relations.elementAt(i);
-				String startOfCommand = "CREATE TABLE " + SimpleMain.TUPLESET_PREFIX + "_" + rel.getName() + " AS SELECT ";
+				String startOfCommand = "CREATE TABLE " + IRStyleParams.TUPLESET_PREFIX + "_" + rel.getName() + " AS SELECT ";
 				for (int j = 0; j < rel.getAttributes().size(); j++) {
 					// if (rel.isInMasterIndex(rel.getAttribute(j))) {
 						startOfCommand += rel.getAttribute(j) + ", ";

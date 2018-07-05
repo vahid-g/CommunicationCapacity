@@ -14,7 +14,7 @@ import java.util.Vector;
 
 import irstyle_core.ExecPrepared;
 import irstyle_core.Flags;
-import irstyle_core.IRStyleMain;
+import irstyle_core.InitialMain;
 import irstyle_core.Instance;
 import irstyle_core.JDBCaccess;
 import irstyle_core.MIndexAccess;
@@ -26,59 +26,39 @@ import query.QueryServices;
 import wiki13.WikiFilesPaths;
 import wiki13.WikiRelationalEfficiencyExperiment;
 
-public class SimpleMain {
+public class IRStyleMain {
 
 	static FileOutputStream output;
 	Random ran = new Random();
-
-	static JDBCaccess jdbcacc;
-	static String Server;
-	static String Port;
-	static String Database_name;
-	static String Username;
-	static String Password;
-
-	public static String TUPLESET_PREFIX = "TS2";
-	public static int MAX_GENERATED_CNS = 50;
 
 	public static void main(String[] args) throws IOException {
 
 		// start input
 		int maxCNsize = 5;
 		int numExecutions = 1;
-		int N = 5;
+		int N = 100;
 		boolean allKeywInResults = false;
 		boolean parallel = false;
-		
-		// JDBC input
-		// Server = "localhost";
-		Server = "vm-maple.eecs.oregonstate.edu";
-		Database_name = "wikipedia";
-		Port = "3306";
-		// end input
-		Properties config = new Properties();
-		try (InputStream in = WikiRelationalEfficiencyExperiment.class
-				.getResourceAsStream("/config/config.properties")) {
-			config.load(in);
-		}
-		Username = config.getProperty("username");
-		Password = config.getProperty("password");
+
+		JDBCaccess jdbcacc = jdbcAccess();
 
 		for (int exec = 0; exec < numExecutions; exec++) {
-			Schema sch = new Schema(
-					"5 tbl_article_09 tbl_article_image_09 tbl_image_09_tk tbl_article_link_09 tbl_link_09"
-							+ " tbl_article_09 tbl_article_image_09" + " tbl_article_image_09 tbl_image_09_tk"
-							+ " tbl_article_09 tbl_article_link_09" + " tbl_article_link_09 tbl_link_09");
-			// Schema sch = new Schema(
-			// "3 tbl_article_09 tbl_article_image_09 tbl_image_09_tk "
-			// + " tbl_article_09 tbl_article_image_09" + " tbl_article_image_09
-			// tbl_image_09_tk");
+			String articleTable = "tbl_article_09";
+			String imageTable = "tbl_image_09_tk";
+			String linkTable = "tbl_link_09";
+			String articleImageTable = "tbl_article_image_09";
+			String articleLinkTable = "tbl_article_link_09";
+			String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
+					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
+					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
+					+ articleLinkTable + " " + linkTable;
+			Schema sch = new Schema(schemaDescription);
 			Vector<Relation> relations = createRelations();
 
 			// access master index and create tuple sets
 			MIndexAccess MIndx = new MIndexAccess(relations);
-			jdbcacc = new JDBCaccess(Server, Port, Database_name, Username, Password);
-			dropTupleSets();
+
+			dropTupleSets(jdbcacc);
 
 			WikiFilesPaths paths = null;
 			paths = WikiFilesPaths.getMaplePaths();
@@ -108,67 +88,12 @@ public class SimpleMain {
 					System.out.println("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 					ArrayList<Result> results = new ArrayList<Result>(1);
 					int exectime = 0;
-					double timeOneCN = 0;
-					double timeParallel = 0;
 					if (!parallel) {
-						// Method B: get top-K from each CN
-						ExecPrepared execprepared = null;
-						results = new ArrayList<Result>(1);
-						for (int i = 0; i < CNs.size(); i++) {
-							System.out.println(" processing " + CNs.get(i));
-							ArrayList<?> nfreeTSs2 = new ArrayList<Object>(1);
-							if (Flags.DEBUG_INFO2)// Flags.DEBUG_INFO2)
-							{
-								Instance inst = ((Instance) CNs.elementAt(i));
-								Vector<?> v = inst.getAllInstances();
-								for (int j = 0; j < v.size(); j++) {
-									System.out.print(((Instance) v.elementAt(j)).getRelationName() + " ");
-									for (int k = 0; k < ((Instance) v.elementAt(j)).keywords.size(); k++)
-										System.out.print((String) ((Instance) v.elementAt(j)).keywords.elementAt(k));
-								}
-								System.out.println("");
-							}
-							String sql = ((Instance) CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw,
-									nfreeTSs2);
-							execprepared = new ExecPrepared();
-							System.out.println(" sql: " + sql);
-							long start = System.currentTimeMillis();
-							exectime += execprepared.ExecuteParameterized(jdbcacc, sql, nfreeTSs2,
-									new ArrayList<String>(allkeyw), N, ((Instance) CNs.elementAt(i)).getsize() + 1,
-									results, allKeywInResults);
-							// +1 because different size semantics than DISCOVER
-							System.out.println(" Time = " + (System.currentTimeMillis() - start));
-						}
-						Collections.sort(results, new Result.ResultComparator());
-						if (Flags.RESULTS__SHOW_OUTPUT) {
-							System.out.println("final results, one CN at a time");
-							IRStyleMain.printResults(results, N);
-						}
-						System.out.println("Exec one CN at a time: total exec time = " + (exectime / 1000)
-								+ " (s) with allKeywInResults=" + allKeywInResults + " #results==" + results.size()
-								+ " \n");
-						timeOneCN += exectime;
+						exectime = methodB(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
 					} else {
-						// Method C: parallel execution
-						exectime = 0;
-
-						ArrayList[] nfreeTSs = new ArrayList[CNs.size()];
-						String[] sqls = new String[CNs.size()];
-						int[] CNsize = new int[CNs.size()];
-						for (int i = 0; i < CNs.size(); i++) {
-							CNsize[i] = ((Instance) CNs.elementAt(i)).getsize() + 1;
-							nfreeTSs[i] = new ArrayList<String>();
-							sqls[i] = ((Instance) CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw,
-									nfreeTSs[i]);
-						}
-						ExecPrepared execprepared2 = new ExecPrepared();
-						exectime = execprepared2.ExecuteParallel(jdbcacc, sqls, nfreeTSs,
-								new ArrayList<String>(allkeyw), N, CNsize, results, allKeywInResults);
-						System.out.println(" Exec CNs in parallel: total exec time = " + exectime + " (ms) "
-								+ allKeywInResults + " #results==" + results.size());
+						exectime = methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
 					}
-					// timeParallel += exectime;
-					dropTupleSets();
+					dropTupleSets(jdbcacc);
 					double mrr = mrr(results, query);
 					System.out.println(" R-rank = " + mrr);
 					fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + mrr + "," + exectime
@@ -176,6 +101,82 @@ public class SimpleMain {
 				}
 			}
 		}
+	}
+
+	static JDBCaccess jdbcAccess() throws IOException {
+		// JDBC input
+		// Server = "localhost";
+		String Server = "vm-maple.eecs.oregonstate.edu";
+		String Database_name = "wikipedia";
+		String Port = "3306";
+		// end input
+		Properties config = new Properties();
+		try (InputStream in = WikiRelationalEfficiencyExperiment.class
+				.getResourceAsStream("/config/config.properties")) {
+			config.load(in);
+		}
+		String Username = config.getProperty("username");
+		String Password = config.getProperty("password");
+		JDBCaccess jdbcacc = new JDBCaccess(Server, Port, Database_name, Username, Password);
+		return jdbcacc;
+	}
+
+	static int methodB(int N, boolean allKeywInResults, Vector<Relation> relations, Vector<String> allkeyw,
+			Vector<?> CNs, ArrayList<Result> results, JDBCaccess jdbcacc) {
+		// Method B: get top-K from each CN
+		int exectime = 0;
+		ExecPrepared execprepared = null;
+		for (int i = 0; i < CNs.size(); i++) {
+			System.out.println(" processing " + CNs.get(i));
+			ArrayList<?> nfreeTSs2 = new ArrayList<Object>(1);
+			if (Flags.DEBUG_INFO2)// Flags.DEBUG_INFO2)
+			{
+				Instance inst = ((Instance) CNs.elementAt(i));
+				Vector<?> v = inst.getAllInstances();
+				for (int j = 0; j < v.size(); j++) {
+					System.out.print(((Instance) v.elementAt(j)).getRelationName() + " ");
+					for (int k = 0; k < ((Instance) v.elementAt(j)).keywords.size(); k++)
+						System.out.print((String) ((Instance) v.elementAt(j)).keywords.elementAt(k));
+				}
+				System.out.println("");
+			}
+			String sql = ((Instance) CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw, nfreeTSs2);
+			execprepared = new ExecPrepared();
+			System.out.println(" sql: " + sql);
+			long start = System.currentTimeMillis();
+			exectime += execprepared.ExecuteParameterized(jdbcacc, sql, nfreeTSs2, new ArrayList<String>(allkeyw), N,
+					((Instance) CNs.elementAt(i)).getsize() + 1, results, allKeywInResults);
+			// +1 because different size semantics than DISCOVER
+			System.out.println(" Time = " + (System.currentTimeMillis() - start) + "(ms)");
+		}
+		// Collections.sort(results, new Result.ResultComparator());
+		if (Flags.RESULTS__SHOW_OUTPUT) {
+			System.out.println("final results, one CN at a time");
+			InitialMain.printResults(results, N);
+		}
+		System.out.println("Exec one CN at a time: total exec time = " + (exectime / 1000)
+				+ " (s) with allKeywInResults=" + allKeywInResults + " #results==" + results.size() + " \n");
+		return exectime;
+	}
+
+	static int methodC(int N, boolean allKeywInResults, Vector<Relation> relations, Vector<String> allkeyw,
+			Vector<?> CNs, ArrayList<Result> results, JDBCaccess jdbcacc) {
+		// Method C: parallel execution
+		int exectime = 0;
+		ArrayList[] nfreeTSs = new ArrayList[CNs.size()];
+		String[] sqls = new String[CNs.size()];
+		int[] CNsize = new int[CNs.size()];
+		for (int i = 0; i < CNs.size(); i++) {
+			CNsize[i] = ((Instance) CNs.elementAt(i)).getsize() + 1;
+			nfreeTSs[i] = new ArrayList<String>();
+			sqls[i] = ((Instance) CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw, nfreeTSs[i]);
+		}
+		ExecPrepared execprepared2 = new ExecPrepared();
+		exectime = execprepared2.ExecuteParallel(jdbcacc, sqls, nfreeTSs, new ArrayList<String>(allkeyw), N, CNsize,
+				results, allKeywInResults);
+		System.out.println(" Exec CNs in parallel: total exec time = " + exectime + " (ms) " + allKeywInResults
+				+ " #results==" + results.size());
+		return exectime;
 	}
 
 	static double mrr(List<Result> results, ExperimentQuery query) {
@@ -238,12 +239,12 @@ public class SimpleMain {
 		return relations;
 	}
 
-	static void dropTupleSets() {
-		jdbcacc.dropTable(TUPLESET_PREFIX + "_tbl_article_09");
-		jdbcacc.dropTable(TUPLESET_PREFIX + "_tbl_article_image_09");
-		jdbcacc.dropTable(TUPLESET_PREFIX + "_tbl_image_09_tk");
-		jdbcacc.dropTable(TUPLESET_PREFIX + "_tbl_article_link_09");
-		jdbcacc.dropTable(TUPLESET_PREFIX + "_tbl_link_09");
+	static void dropTupleSets(JDBCaccess jdbcacc) {
+		jdbcacc.dropTable(IRStyleParams.TUPLESET_PREFIX + "_tbl_article_09");
+		jdbcacc.dropTable(IRStyleParams.TUPLESET_PREFIX + "_tbl_article_image_09");
+		jdbcacc.dropTable(IRStyleParams.TUPLESET_PREFIX + "_tbl_image_09_tk");
+		jdbcacc.dropTable(IRStyleParams.TUPLESET_PREFIX + "_tbl_article_link_09");
+		jdbcacc.dropTable(IRStyleParams.TUPLESET_PREFIX + "_tbl_link_09");
 
 	}
 

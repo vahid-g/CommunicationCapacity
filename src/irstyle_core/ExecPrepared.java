@@ -1,8 +1,8 @@
 package irstyle_core;
 
-import java.util.*;
-import java.io.*;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
 
 public class ExecPrepared {
 
