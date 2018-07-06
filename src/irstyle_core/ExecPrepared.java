@@ -217,6 +217,9 @@ public class ExecPrepared {
 				prepared.setInt(i + 1, id);
 				if (Flags.DEBUG_INFO2)
 					System.out.print(id + " ");
+				if (id == -1) {
+					System.out.println("nothing");
+				}
 			}
 			if (Flags.DEBUG_INFO2)
 				System.out.println("");
@@ -308,18 +311,20 @@ public class ExecPrepared {
 		double max = -1;
 		int index = -1;
 		for (int i = 0; i < numnfreeTSs; i++) {
-			double[] scores = new double[numnfreeTSs];
-			for (int j = 0; j < numnfreeTSs; j++)
-				if (i != j)
-					scores[j] = B[j];
-				else if (lookaheadscores[j] == -1)
-					scores[j] = 0;
-				else
-					scores[j] = lookaheadscores[j];
-			double score = getScore(scores, CNsize);
-			if (score > max) {
-				max = score;
-				index = i;
+			if (lookaheadscores[i] != -1) {
+				double[] scores = new double[numnfreeTSs];
+				for (int j = 0; j < numnfreeTSs; j++)
+					if (i != j)
+						scores[j] = B[j];
+					else if (lookaheadscores[j] == -1)
+						scores[j] = 0;
+					else
+						scores[j] = lookaheadscores[j];
+				double score = getScore(scores, CNsize);
+				if (score > max) {
+					max = score;
+					index = i;
+				}
 			}
 		}
 		return index;
@@ -724,8 +729,9 @@ public class ExecPrepared {
 			int numcombinations = getNumCombinations(S[CNindexOfTopScore], numnfreeTSs[CNindexOfTopScore]);
 			for (int j = 0; j < numcombinations; j++) {
 				numPreparedQueries++;
-				if (Flags.DEBUG_INFO2)
+				if (Flags.DEBUG_INFO2) {
 					System.out.println("CN: " + CNindexOfTopScore);
+				}
 				indexToBeChecked[CNindexOfTopScore] = getACombination(S[CNindexOfTopScore], j,
 						numnfreeTSs[CNindexOfTopScore]);
 				// ignore combinations with same tuple for the same tuple set
