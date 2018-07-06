@@ -768,6 +768,7 @@ public class ExecPrepared {
 			printResults(R, scoresR);
 		for (int i = 0; i < R.size(); i++)
 			ResultsAndScores.add(new Result((String) R.get(i), ((Double) scoresR.get(i)).doubleValue()));
+		jdbcacc.cleanup();
 		return (int) (time2 - time1);
 	}
 

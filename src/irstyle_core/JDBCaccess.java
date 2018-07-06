@@ -7,6 +7,8 @@ import java.util.*;
 public class JDBCaccess {
 	private Statement stmt;
 	public Connection conn;
+	Set<Statement> statementPool = new HashSet<Statement>();
+	Set<ResultSet> resultsetPool = new HashSet<ResultSet>();
 
 	public JDBCaccess(String Server, String Port, String Database_name, String Username, String Password) {
 		try {
@@ -195,13 +197,38 @@ public class JDBCaccess {
 	ResultSet createCursor(String sqlstatement) {
 		try {
 			Statement st = conn.createStatement();
-			return st.executeQuery(sqlstatement);
+			statementPool.add(st);
+			ResultSet rs = st.executeQuery(sqlstatement);
+			resultsetPool.add(rs);
+			return rs;
 		} catch (Exception e1) {
 			System.out.println("exception class: " + e1.getClass() + "  with message: " + e1.getMessage()
 					+ "exception in  JDBCaccess.createCursor");
 			e1.printStackTrace();
 			return null;
 		}
+	}
+
+	public void cleanup() {
+		for (Statement st : statementPool) {
+			if (st != null) {
+				try {
+					st.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		for (ResultSet rs : resultsetPool) {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
 	}
 
 	int getNextID(ResultSet rset) {
