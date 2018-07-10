@@ -1,11 +1,11 @@
 package irstyle;
 
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Vector;
@@ -28,9 +28,6 @@ import wiki13.WikiFilesPaths;
 
 public class CacheSelectionMain {
 
-	static FileOutputStream output;
-	Random ran = new Random();
-
 	public static void main(String[] args) throws IOException {
 
 		// start input
@@ -42,6 +39,8 @@ public class CacheSelectionMain {
 		paths = WikiFilesPaths.getMaplePaths();
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
 				paths.getMsnQrelFilePath());
+		Collections.shuffle(queries, new Random(1));
+		queries = queries.subList(0, 50);
 		try (FileWriter fw = new FileWriter("result_cs.csv")) {
 			String baseDir = "/data/ghadakcv/wikipedia/";
 			try (IndexReader articleReader = DirectoryReader

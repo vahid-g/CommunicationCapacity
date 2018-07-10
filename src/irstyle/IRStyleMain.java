@@ -1,6 +1,5 @@
 package irstyle;
 
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,9 +26,6 @@ import wiki13.WikiFilesPaths;
 import wiki13.WikiRelationalEfficiencyExperiment;
 
 public class IRStyleMain {
-
-	static FileOutputStream output;
-	Random ran = new Random();
 
 	public static void main(String[] args) throws IOException {
 
