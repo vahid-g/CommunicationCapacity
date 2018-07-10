@@ -64,6 +64,8 @@ public class IRStyleMain {
 			paths = WikiFilesPaths.getMaplePaths();
 			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
 					paths.getMsnQrelFilePath());
+			Collections.shuffle(queries, new Random(1));
+			queries = queries.subList(0, 50);
 			// queries = new ArrayList<ExperimentQuery>();
 			// queries.add(new ExperimentQuery(1, "malcolm x", 1));
 			try (FileWriter fw = new FileWriter("result.csv")) {
