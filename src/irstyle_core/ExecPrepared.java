@@ -595,7 +595,10 @@ public class ExecPrepared {
 				scoresS[c][i] = new ArrayList(1);
 				resultSets[c].add(jdbcacc.createCursor("select id,score from " + (String) nfreeTSs[c].get(i)));
 				int id = jdbcacc.getNextID((ResultSet) resultSets[c].get(i));
-				int score = jdbcacc.getCurrScore((ResultSet) resultSets[c].get(i));
+				int score = -1;
+				if (id > -1) {
+					score = jdbcacc.getCurrScore((ResultSet) resultSets[c].get(i));
+				}
 				S[c][i].add(new Integer(id));
 				scoresS[c][i].add(new Integer(score));
 				lookahead[c][i] = id;

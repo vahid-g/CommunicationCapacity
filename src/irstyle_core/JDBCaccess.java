@@ -228,11 +228,9 @@ public class JDBCaccess {
 				}
 			}
 		}
-
 	}
 
 	int getNextID(ResultSet rset) {
-
 		try {
 			if (!rset.next()) // no more results
 				return -1;
@@ -245,7 +243,6 @@ public class JDBCaccess {
 	}
 
 	int getCurrScore(ResultSet rset) {
-
 		try {
 			return rset.getInt("SCORE");
 		} catch (Exception e1) {
