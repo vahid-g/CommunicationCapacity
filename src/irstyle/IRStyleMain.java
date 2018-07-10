@@ -58,19 +58,19 @@ public class IRStyleMain {
 			// access master index and create tuple sets
 			MIndexAccess MIndx = new MIndexAccess(relations);
 
-			dropTupleSets(jdbcacc);
+			dropTupleSets(jdbcacc, relations);
 
 			WikiFilesPaths paths = null;
 			paths = WikiFilesPaths.getMaplePaths();
 			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
 					paths.getMsnQrelFilePath());
+//			queries = new ArrayList<ExperimentQuery>();
+//			queries.add(new ExperimentQuery(1, "malcolm x", 1));
 			try (FileWriter fw = new FileWriter("result.csv")) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
 					Vector<String> allkeyw = new Vector<String>();
 					allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
-					// allkeyw.add("jimmy");
-					// allkeyw.add("hoffa");
 					System.out.println("processing " + allkeyw + " " + ((100 * loop) / queries.size()) + "% completed");
 					loop++;
 					long time3 = System.currentTimeMillis();
@@ -93,7 +93,7 @@ public class IRStyleMain {
 					} else {
 						exectime = methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
 					}
-					dropTupleSets(jdbcacc);
+					dropTupleSets(jdbcacc, relations);
 					double mrr = mrr(results, query);
 					System.out.println(" R-rank = " + mrr);
 					fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + mrr + "," + exectime
@@ -239,13 +239,10 @@ public class IRStyleMain {
 		return relations;
 	}
 
-	static void dropTupleSets(JDBCaccess jdbcacc) {
-		jdbcacc.dropTable(IRStyleParams.TUPLESET_PREFIX + "_tbl_article_09");
-		jdbcacc.dropTable(IRStyleParams.TUPLESET_PREFIX + "_tbl_article_image_09");
-		jdbcacc.dropTable(IRStyleParams.TUPLESET_PREFIX + "_tbl_image_09_tk");
-		jdbcacc.dropTable(IRStyleParams.TUPLESET_PREFIX + "_tbl_article_link_09");
-		jdbcacc.dropTable(IRStyleParams.TUPLESET_PREFIX + "_tbl_link_09");
-
+	static void dropTupleSets(JDBCaccess jdbcacc, Vector<Relation> relations) {
+		for (Relation rel : relations) {
+			jdbcacc.dropTable(IRStyleParams.TUPLESET_PREFIX + "_" + rel.getName());
+		}
 	}
 
 }

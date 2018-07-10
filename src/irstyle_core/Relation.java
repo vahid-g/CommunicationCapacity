@@ -26,7 +26,7 @@ public class Relation {
 		attrType = new Vector(1);
 	}
 
-	String getName() {
+	public String getName() {
 		return name;
 	}
 

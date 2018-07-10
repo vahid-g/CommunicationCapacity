@@ -204,11 +204,11 @@ public class ExecPrepared {
 		}
 	}
 
+	// check for results and add them to R returns new results SoFar differs in that
+	// it inputs numnfreeTSs
 	private int check4ResultsParallel(JDBCaccess jdbcacc, PreparedStatement prepared, ArrayList[] S,
 			ArrayList[] scoresS, int[] indexToBeChecked, ArrayList R, ArrayList scoresR, int N, int CNsize,
-			int numnfreeTSs, ArrayList keywords, boolean allKeywInResults) { // check for results and add them to R
-																				// returns new resultsSoFar
-																				// differs in that it inputs numnfreeTSs
+			int numnfreeTSs, ArrayList keywords, boolean allKeywInResults) {
 		try {
 			int numparams = numnfreeTSs;// indexToBeChecked.length;
 			// int numresults=0;
@@ -217,9 +217,6 @@ public class ExecPrepared {
 				prepared.setInt(i + 1, id);
 				if (Flags.DEBUG_INFO2)
 					System.out.print(id + " ");
-				if (id == -1) {
-					System.out.println("nothing");
-				}
 			}
 			if (Flags.DEBUG_INFO2)
 				System.out.println("");
