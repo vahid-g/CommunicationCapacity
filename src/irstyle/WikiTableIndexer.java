@@ -52,6 +52,10 @@ public class WikiTableIndexer {
 			WikiTableIndexer.indexImages();
 		} else if (args[0].equals("links")) {
 			WikiTableIndexer.indexLinks();
+		} else if (args[0].equals("rest")) {
+			WikiTableIndexer.indexCompTable("tbl_article_09", 3, new String[] { "title", "text" }, "popularity");
+			WikiTableIndexer.indexCompTable("tbl_link_pop", 6, new String[] { "url" }, "pop");
+			WikiTableIndexer.indexCompTable("tbl_image_pop", 10, new String[] { "src" }, "pop");
 		} else {
 			System.out.println("Wrong input args!");
 		}
@@ -65,7 +69,7 @@ public class WikiTableIndexer {
 				double count = wti.tableSize(tableName);
 				int limit = (int) Math.floor((i * count) / 100.0);
 				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, "id", new String[] { "url" }, limit, "pop");
+				wti.indexTable(indexPath, tableName, "id", new String[] { "url" }, limit, "pop", false);
 			}
 		}
 	}
@@ -78,7 +82,7 @@ public class WikiTableIndexer {
 				double count = wti.tableSize(tableName);
 				int limit = (int) Math.floor((i * count) / 100.0);
 				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, "id", new String[] { "src" }, limit, "pop");
+				wti.indexTable(indexPath, tableName, "id", new String[] { "src" }, limit, "pop", false);
 			}
 		}
 	}
@@ -91,8 +95,20 @@ public class WikiTableIndexer {
 				double count = wti.tableSize(tableName);
 				int limit = (int) Math.floor((i * count) / 100.0);
 				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, "id", new String[] { "title", "text" }, limit, "popularity");
+				wti.indexTable(indexPath, tableName, "id", new String[] { "title", "text" }, limit, "popularity",
+						false);
 			}
+		}
+	}
+
+	public static void indexCompTable(String tableName, int percentage, String[] textAttribs, String popularityAttrib)
+			throws IOException, SQLException {
+		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
+			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
+			String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/c" + percentage;
+			double count = wti.tableSize(tableName);
+			int limit = (int) Math.floor(count - ((percentage * count) / 100.0));
+			wti.indexTable(indexPath, tableName, "id", textAttribs, limit, popularityAttrib, true);
 		}
 	}
 
@@ -109,7 +125,7 @@ public class WikiTableIndexer {
 	}
 
 	private void indexTable(String indexPath, String table, String idAttrib, String[] textAttribs, int limit,
-			String popularity) throws IOException, SQLException {
+			String popularity, boolean ascending) throws IOException, SQLException {
 		File indexFile = new File(indexPath);
 		if (!indexFile.exists()) {
 			indexFile.mkdirs();
@@ -124,6 +140,10 @@ public class WikiTableIndexer {
 				}
 				String sql = "select " + attribs + " from " + table + " order by " + popularity + " desc limit " + limit
 						+ ";";
+				if (ascending) {
+					sql = "select " + attribs + " from " + table + " order by " + popularity + " asc limit " + limit
+							+ ";";
+				}
 				System.out.println(sql);
 				ResultSet rs = stmt.executeQuery(sql);
 				while (rs.next()) {
