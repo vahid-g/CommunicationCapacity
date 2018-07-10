@@ -31,56 +31,60 @@ public class CacheSelectionMain {
 	static FileOutputStream output;
 	Random ran = new Random();
 
-	public static String TUPLESET_PREFIX = "TS2";
-	public static int MAX_GENERATED_CNS = 50;
-
 	public static void main(String[] args) throws IOException {
 
 		// start input
 		int maxCNsize = 5;
 		int N = 100;
 		boolean allKeywInResults = false;
-		boolean parallel = true;
 		JDBCaccess jdbcacc = IRStyleMain.jdbcAccess();
 		WikiFilesPaths paths = null;
 		paths = WikiFilesPaths.getMaplePaths();
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
 				paths.getMsnQrelFilePath());
-		IRStyleMain.dropTupleSets(jdbcacc);
-		try (FileWriter fw = new FileWriter("result.csv")) {
-			try (IndexReader articleReader = DirectoryReader.open(FSDirectory.open(Paths.get("")));
-					IndexReader articleCacheReader = DirectoryReader.open(FSDirectory.open(Paths.get("")));
-					IndexReader articleRestReader = DirectoryReader.open(FSDirectory.open(Paths.get("")));
-					IndexReader imageReader = DirectoryReader.open(FSDirectory.open(Paths.get("")));
-					IndexReader imageCacheReader = DirectoryReader.open(FSDirectory.open(Paths.get("")));
-					IndexReader imageRestReader = DirectoryReader.open(FSDirectory.open(Paths.get("")));
-					IndexReader linkReader = DirectoryReader.open(FSDirectory.open(Paths.get("")));
-					IndexReader linkCacheReader = DirectoryReader.open(FSDirectory.open(Paths.get("")));
-					IndexReader linkRestReader = DirectoryReader.open(FSDirectory.open(Paths.get("")))) {
+		try (FileWriter fw = new FileWriter("result_cs.csv")) {
+			String baseDir = "/data/ghadakcv/wikipedia/";
+			try (IndexReader articleReader = DirectoryReader
+					.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/100")));
+					IndexReader articleCacheReader = DirectoryReader
+							.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/3")));
+					IndexReader articleRestReader = DirectoryReader
+							.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/c3")));
+					IndexReader imageReader = DirectoryReader
+							.open(FSDirectory.open(Paths.get(baseDir + "tbl_image_pop/100")));
+					IndexReader imageCacheReader = DirectoryReader
+							.open(FSDirectory.open(Paths.get(baseDir + "tbl_image_pop/10")));
+					IndexReader imageRestReader = DirectoryReader
+							.open(FSDirectory.open(Paths.get(baseDir + "tbl_image_pop/c10")));
+					IndexReader linkReader = DirectoryReader
+							.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/100")));
+					IndexReader linkCacheReader = DirectoryReader
+							.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/6")));
+					IndexReader linkRestReader = DirectoryReader
+							.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/c6")))) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
 					Vector<String> allkeyw = new Vector<String>();
 					allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
-					// allkeyw.add("jimmy");
-					// allkeyw.add("hoffa");
-					System.out
-							.println("processing " + allkeyw + " " + ((100 * loop++) / queries.size()) + "% completed");
-
+					System.out.println(
+							"processing " + query.getText() + " " + ((100 * loop++) / queries.size()) + "% completed");
 					String articleTable = "tbl_article_09";
 					String imageTable = "tbl_image_09_tk";
 					String linkTable = "tbl_link_09";
 					String articleImageTable = "tbl_article_image_09";
 					String articleLinkTable = "tbl_article_link_09";
+					long time1 = System.currentTimeMillis();
 					if (useCache(query.getText(), articleCacheReader, articleReader, articleRestReader)) {
-						articleTable = "mem_article_09";
+						articleTable = "sub_article_3";
 					}
 					if (useCache(query.getText(), imageCacheReader, imageReader, imageRestReader)) {
-						imageTable = "mem_image_09";
+						imageTable = "sub_image_10";
 					}
 					if (useCache(query.getText(), linkCacheReader, linkReader, linkRestReader)) {
-						linkTable = "mem_link_09";
+						linkTable = "sub_link_6";
 					}
-
+					long time2 = System.currentTimeMillis();
+					System.out.println(" Time to select cache: " + (time2 - time1) + " (ms)");
 					String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
 							+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 							+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
@@ -94,7 +98,7 @@ public class CacheSelectionMain {
 					MIndx.createTupleSets2(sch, allkeyw, jdbcacc.conn);
 					long time4 = System.currentTimeMillis();
 
-					System.out.println("time to create tuple sets=" + (time4 - time3) + " (ms)");
+					System.out.println(" Time to create tuple sets: " + (time4 - time3) + " (ms)");
 					time3 = System.currentTimeMillis();
 					/** returns a vector of instances (tuple sets) */ // P1
 					Vector<?> CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx);
@@ -102,17 +106,11 @@ public class CacheSelectionMain {
 					time4 = System.currentTimeMillis();
 					// IRStyleMain.writetofile("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 -
 					// time3) + "\r\n");
-					System.out.println("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
+					System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 					ArrayList<Result> results = new ArrayList<Result>(1);
-					int exectime = 0;
-					if (!parallel) {
-						exectime = IRStyleMain.methodB(N, allKeywInResults, relations, allkeyw, CNs, results,
-								jdbcacc);
-					} else {
-						exectime = IRStyleMain.methodC(N, allKeywInResults, relations, allkeyw, CNs, results,
-								jdbcacc);
-					}
-					IRStyleMain.dropTupleSets(jdbcacc);
+					long exectime = time2 - time1;
+					exectime += IRStyleMain.methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
+					IRStyleMain.dropTupleSets(jdbcacc, relations);
 					double mrr = IRStyleMain.mrr(results, query);
 					System.out.println(" R-rank = " + mrr);
 					fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + mrr + "," + exectime
