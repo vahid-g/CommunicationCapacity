@@ -33,6 +33,11 @@ public class DatabaseConnection implements Closeable {
 		Properties connectionProps = new Properties();
 		connectionProps.put("user", config.get("username"));
 		connectionProps.put("password", config.get("password"));
+		try{
+			Class.forName("com.mysql.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		try {
 			connection = DriverManager.getConnection(databasename, connectionProps);
 		} catch (SQLException e) {
