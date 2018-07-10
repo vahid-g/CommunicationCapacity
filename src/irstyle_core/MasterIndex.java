@@ -2,6 +2,9 @@ package irstyle_core;
 
 import java.util.*;
 
+import irstyle.IRStyleMain;
+import irstyle.IRStyleParams;
+
 public class MasterIndex {/*
 							 * We use Oracle8i interMedia Text 8.1.5 to create the invetred index for each
 							 * attribute. This class creates the script to create these indices and uses

@@ -239,7 +239,7 @@ public class IRStyleMain {
 
 	static void dropTupleSets(JDBCaccess jdbcacc, Vector<Relation> relations) {
 		for (Relation rel : relations) {
-			jdbcacc.dropTable(IRStyleParams.TUPLESET_PREFIX + "_" + rel.getName());
+			jdbcacc.dropTable("TS_" + rel.getName());
 		}
 	}
 

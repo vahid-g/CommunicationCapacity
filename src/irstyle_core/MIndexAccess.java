@@ -2,9 +2,8 @@ package irstyle_core;
 //package xkeyword;
 
 import java.sql.Connection;
-import java.util.*;
-
-import irstyle.IRStyleParams;
+import java.util.Random;
+import java.util.Vector;
 
 public class MIndexAccess {
 	Vector tuplesets;
@@ -128,10 +127,10 @@ public class MIndexAccess {
 			if (hasTextAttr((Relation) relations.elementAt(i))) {
 				String orderbyclause = "";
 				Relation rel = (Relation) relations.elementAt(i);
-				String startOfCommand = "CREATE TABLE " + IRStyleParams.TUPLESET_PREFIX + "_" + rel.getName() + " AS SELECT ";
+				String startOfCommand = "CREATE TABLE TS_" + rel.getName() + " AS SELECT ";
 				for (int j = 0; j < rel.getAttributes().size(); j++) {
 					// if (rel.isInMasterIndex(rel.getAttribute(j))) {
-						startOfCommand += rel.getAttribute(j) + ", ";
+					startOfCommand += rel.getAttribute(j) + ", ";
 					// }
 				}
 				String columns = "";
@@ -146,7 +145,8 @@ public class MIndexAccess {
 				String command = "";
 				String matchAgainst = "match(" + columns + ") against('" + keywList + "' IN NATURAL LANGUAGE MODE)";
 				// command+=storage_clause;
-				command = startOfCommand + matchAgainst + " as score FROM " + rel.getName() + " where " + matchAgainst + ";";
+				command = startOfCommand + matchAgainst + " as score FROM " + rel.getName() + " where " + matchAgainst
+						+ ";";
 				// cleanupCommands.addElement( (String) ("DROP TABLE TS_"+rel.getName()));
 				jdbcacc.execute(command);// SQLcommands.addElement(command);
 				if (Flags.DEBUG_INFO2)

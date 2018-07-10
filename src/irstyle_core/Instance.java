@@ -443,16 +443,13 @@ public class Instance implements Cloneable// , iCandidateNetwork
 		return false;
 	}
 
-	private String getTupleSet4Instance(Instance inst1, Vector allkeywords) {// returns the tuple set name for the root
-																				// Instance of inst1
-																				// format for tuple sets is
-																				// relationName_k1_.._.._kn, where
-																				// k1..kn are the
-																				// indices of the keywords in inst1 in
-																				// allkeywords
+	// returns the tuple set name for the root Instance of inst1 format for tuple
+	// sets is relationName_k1_.._.._kn, where k1..kn are the indices of the
+	// keywords in inst1 in allkeywords
+	private String getTupleSet4Instance(Instance inst1, Vector allkeywords) {
 		String name = inst1.getRelationName();
 		if (!inst1.keywords.isEmpty()) // 10/6/02
-			name = IRStyleParams.TUPLESET_PREFIX + "_" + name;
+			name = "TS_" + name;
 		/*
 		 * if(inst1.isIntResult()) return name; for(int i=0;i<allkeywords.size();i++)
 		 * if(stringContained(inst1.keywords, (String) allkeywords.elementAt(i)))
