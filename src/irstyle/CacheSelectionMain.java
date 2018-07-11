@@ -41,8 +41,6 @@ public class CacheSelectionMain {
 				paths.getMsnQrelFilePath());
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 50);
-		queries = new ArrayList<ExperimentQuery>();
-		queries.add(new ExperimentQuery(1, "full house the complete fourth season", 1));
 		try (FileWriter fw = new FileWriter("result_cs.csv")) {
 			String baseDir = "/data/ghadakcv/wikipedia/";
 			try (IndexReader articleReader = DirectoryReader
