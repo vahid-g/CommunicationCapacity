@@ -72,6 +72,7 @@ public class CacheSelectionMain {
 					String linkTable = "tbl_link_09";
 					String articleImageTable = "tbl_article_image_09";
 					String articleLinkTable = "tbl_article_link_09";
+					long exectime = 0;
 					long time1 = System.currentTimeMillis();
 					if (useCache(query.getText(), articleCacheReader, articleReader, articleRestReader)) {
 						articleTable = "sub_article_3";
@@ -83,6 +84,7 @@ public class CacheSelectionMain {
 						linkTable = "sub_link_6";
 					}
 					long time2 = System.currentTimeMillis();
+					exectime += time2 - time1;
 					System.out.println(" Time to select cache: " + (time2 - time1) + " (ms)");
 					String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
 							+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
@@ -90,30 +92,29 @@ public class CacheSelectionMain {
 							+ articleLinkTable + " " + linkTable;
 					Schema sch = new Schema(schemaDescription);
 					Vector<Relation> relations = createRelations(articleTable, imageTable, linkTable);
-
 					// access master index and create tuple sets
 					MIndexAccess MIndx = new MIndexAccess(relations);
 					long time3 = System.currentTimeMillis();
 					MIndx.createTupleSets2(sch, allkeyw, jdbcacc.conn);
 					long time4 = System.currentTimeMillis();
-
+					exectime += time4 - time3;
 					System.out.println(" Time to create tuple sets: " + (time4 - time3) + " (ms)");
 					time3 = System.currentTimeMillis();
 					/** returns a vector of instances (tuple sets) */ // P1
 					Vector<?> CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx);
 					// also prune identical CNs with P2 in place of
 					time4 = System.currentTimeMillis();
+					exectime += time4 - time3;
 					// IRStyleMain.writetofile("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 -
 					// time3) + "\r\n");
 					System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 					ArrayList<Result> results = new ArrayList<Result>(1);
-					long exectime = time2 - time1;
 					exectime += IRStyleMain.methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
 					IRStyleMain.dropTupleSets(jdbcacc, relations);
 					double mrr = IRStyleMain.mrr(results, query);
 					System.out.println(" R-rank = " + mrr);
 					fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + mrr + "," + exectime
-							+ "\n");
+							+ "," + (time4 - time3) + "," + (time2 - time1) + "\n");
 					fw.flush();
 				}
 			}

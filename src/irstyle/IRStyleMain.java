@@ -34,7 +34,6 @@ public class IRStyleMain {
 		int numExecutions = 1;
 		int N = 20;
 		boolean allKeywInResults = false;
-		boolean parallel = true;
 
 		JDBCaccess jdbcacc = jdbcAccess();
 
@@ -50,47 +49,43 @@ public class IRStyleMain {
 					+ articleLinkTable + " " + linkTable;
 			Schema sch = new Schema(schemaDescription);
 			Vector<Relation> relations = createRelations();
-
 			// access master index and create tuple sets
 			MIndexAccess MIndx = new MIndexAccess(relations);
-
 			dropTupleSets(jdbcacc, relations);
-
 			WikiFilesPaths paths = null;
 			paths = WikiFilesPaths.getMaplePaths();
 			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
 					paths.getMsnQrelFilePath());
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 50);
-			//queries = new ArrayList<ExperimentQuery>();
-			//queries.add(new ExperimentQuery(1, "malcolm x", 1));
-			//queries.add(new ExperimentQuery(1, "full house the complete fourth season", 1));
+			// queries = new ArrayList<ExperimentQuery>();
+			// queries.add(new ExperimentQuery(1, "malcolm x", 1));
+			// queries.add(new ExperimentQuery(1, "full house the complete fourth season",
+			// 1));
 			try (FileWriter fw = new FileWriter("result.csv")) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
 					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
 					Vector<String> allkeyw = new Vector<String>();
-					allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" "))); //escaping single quotes
+					// escaping single quotes
+					allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
+					int exectime = 0;
 					long time3 = System.currentTimeMillis();
 					MIndx.createTupleSets2(sch, allkeyw, jdbcacc.conn);
 					long time4 = System.currentTimeMillis();
-
+					exectime += time4 - time3;
 					System.out.println("time to create tuple sets=" + (time4 - time3) + " (ms)");
 					time3 = System.currentTimeMillis();
 					/** returns a vector of instances (tuple sets) */ // P1
 					Vector<?> CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx);
 					// also prune identical CNs with P2 in place of
 					time4 = System.currentTimeMillis();
+					exectime += time4 - time3;
 					// IRStyleMain.writetofile("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 -
 					// time3) + "\r\n");
 					System.out.println("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 					ArrayList<Result> results = new ArrayList<Result>(1);
-					int exectime = 0;
-					if (!parallel) {
-						exectime = methodB(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
-					} else {
-						exectime = methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
-					}
+					exectime += methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
 					dropTupleSets(jdbcacc, relations);
 					double mrr = mrr(results, query);
 					System.out.println(" R-rank = " + mrr);
