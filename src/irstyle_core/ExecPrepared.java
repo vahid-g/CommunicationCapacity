@@ -637,8 +637,8 @@ public class ExecPrepared {
 				for (int i = 0; i < numnfreeTSs[c]; i++) {
 					if (lookaheadscores[c][i] < 0) // no lookahead
 					{
-						lookahead[c][i] = jdbcacc.getNextID((ResultSet) resultSets[c].get(i)); // if finished will
-																								// return -1
+						// if finished will return -1
+						lookahead[c][i] = jdbcacc.getNextID((ResultSet) resultSets[c].get(i)); 
 						if (lookahead[c][i] < 0)
 							lookaheadscores[c][i] = -1;
 						if (lookahead[c][i] > -1) {
@@ -757,6 +757,10 @@ public class ExecPrepared {
 			}
 			if (foundtopn)
 				break;
+			long time = System.currentTimeMillis();
+			if (time - time1 > (300000)) { // query takes more than 5mins
+				break;
+			}
 			S[CNindexOfTopScore][indexOfTopScore] = temp;
 			scoresS[CNindexOfTopScore][indexOfTopScore] = scorestemp;
 		}
