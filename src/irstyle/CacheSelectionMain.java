@@ -65,9 +65,10 @@ public class CacheSelectionMain {
 							.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/c6")))) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
+					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
 					Vector<String> allkeyw = new Vector<String>();
-					allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
-					System.out.println("processing query " + loop++ + "/" + queries.size() + " :" + query.getText());
+					// escaping single quotes
+					allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
 					String articleTable = "tbl_article_09";
 					String imageTable = "tbl_image_09_tk";
 					String linkTable = "tbl_link_09";
@@ -115,6 +116,7 @@ public class CacheSelectionMain {
 					System.out.println(" R-rank = " + mrr);
 					fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + mrr + "," + exectime
 							+ "\n");
+					fw.flush();
 				}
 			}
 		}

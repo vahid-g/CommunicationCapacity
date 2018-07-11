@@ -68,9 +68,9 @@ public class IRStyleMain {
 			try (FileWriter fw = new FileWriter("result.csv")) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
-					System.out.println("processing query " + loop++ + "/" + queries.size() + " :" + query.getText());
+					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
 					Vector<String> allkeyw = new Vector<String>();
-					allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
+					allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" "))); //escaping single quotes
 					long time3 = System.currentTimeMillis();
 					MIndx.createTupleSets2(sch, allkeyw, jdbcacc.conn);
 					long time4 = System.currentTimeMillis();
