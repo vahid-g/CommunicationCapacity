@@ -41,6 +41,8 @@ public class CacheSelectionMain {
 				paths.getMsnQrelFilePath());
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 50);
+		queries = new ArrayList<ExperimentQuery>();
+		queries.add(new ExperimentQuery(1, "full house the complete fourth season", 1));
 		try (FileWriter fw = new FileWriter("result_cs.csv")) {
 			String baseDir = "/data/ghadakcv/wikipedia/";
 			try (IndexReader articleReader = DirectoryReader
@@ -65,8 +67,7 @@ public class CacheSelectionMain {
 				for (ExperimentQuery query : queries) {
 					Vector<String> allkeyw = new Vector<String>();
 					allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
-					System.out.println(
-							"processing " + query.getText() + " " + ((100 * loop++) / queries.size()) + "% completed");
+					System.out.println("processing query " + loop++ + "/" + queries.size() + " :" + query.getText());
 					String articleTable = "tbl_article_09";
 					String imageTable = "tbl_image_09_tk";
 					String linkTable = "tbl_link_09";

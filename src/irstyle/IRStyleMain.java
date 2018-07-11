@@ -62,15 +62,15 @@ public class IRStyleMain {
 					paths.getMsnQrelFilePath());
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 50);
-			// queries = new ArrayList<ExperimentQuery>();
-			// queries.add(new ExperimentQuery(1, "malcolm x", 1));
+			//queries = new ArrayList<ExperimentQuery>();
+			//queries.add(new ExperimentQuery(1, "malcolm x", 1));
+			//queries.add(new ExperimentQuery(1, "full house the complete fourth season", 1));
 			try (FileWriter fw = new FileWriter("result.csv")) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
+					System.out.println("processing query " + loop++ + "/" + queries.size() + " :" + query.getText());
 					Vector<String> allkeyw = new Vector<String>();
 					allkeyw.addAll(Arrays.asList(query.getText().split(" ")));
-					System.out.println("processing " + allkeyw + " " + ((100 * loop) / queries.size()) + "% completed");
-					loop++;
 					long time3 = System.currentTimeMillis();
 					MIndx.createTupleSets2(sch, allkeyw, jdbcacc.conn);
 					long time4 = System.currentTimeMillis();
@@ -96,6 +96,7 @@ public class IRStyleMain {
 					System.out.println(" R-rank = " + mrr);
 					fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + mrr + "," + exectime
 							+ "\n");
+					fw.flush();
 				}
 			}
 		}
