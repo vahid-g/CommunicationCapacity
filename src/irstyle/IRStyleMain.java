@@ -26,11 +26,23 @@ import wiki13.WikiFilesPaths;
 import wiki13.WikiRelationalEfficiencyExperiment;
 
 public class IRStyleMain {
-	
+
 	static int maxCNsize = 5;
 	static int numExecutions = 1;
 	static int N = 100;
 	static boolean allKeywInResults = false;
+
+	static class QueryResult {
+		ExperimentQuery query;
+		double rrank = 0;
+		long execTime = 0;
+
+		public QueryResult(ExperimentQuery query, double rrank, long execTime) {
+			this.query = query;
+			this.rrank = rrank;
+			this.execTime = execTime;
+		}
+	}
 
 	public static void main(String[] args) throws IOException {
 		JDBCaccess jdbcacc = jdbcAccess();
@@ -45,9 +57,7 @@ public class IRStyleMain {
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
 			Schema sch = new Schema(schemaDescription);
-			Vector<Relation> relations = createRelations();
-			// access master index and create tuple sets
-			MIndexAccess MIndx = new MIndexAccess(relations);
+			Vector<Relation> relations = createRelations(articleTable, imageTable, linkTable);
 			dropTupleSets(jdbcacc, relations);
 			WikiFilesPaths paths = null;
 			paths = WikiFilesPaths.getMaplePaths();
@@ -55,42 +65,16 @@ public class IRStyleMain {
 					paths.getMsnQrelFilePath());
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 50);
+			List<QueryResult> queryResults = new ArrayList<QueryResult>();
 			// queries = new ArrayList<ExperimentQuery>();
-			// queries.add(new ExperimentQuery(1, "malcolm x", 1));
-			// queries.add(new ExperimentQuery(1, "full house the complete fourth season",
-			// 1));
-			try (FileWriter fw = new FileWriter("result.csv")) {
-				int loop = 1;
-				for (ExperimentQuery query : queries) {
-					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
-					Vector<String> allkeyw = new Vector<String>();
-					// escaping single quotes
-					allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
-					int exectime = 0;
-					long time3 = System.currentTimeMillis();
-					MIndx.createTupleSets2(sch, allkeyw, jdbcacc.conn);
-					long time4 = System.currentTimeMillis();
-					exectime += time4 - time3;
-					System.out.println("time to create tuple sets=" + (time4 - time3) + " (ms)");
-					time3 = System.currentTimeMillis();
-					/** returns a vector of instances (tuple sets) */ // P1
-					Vector<?> CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx);
-					// also prune identical CNs with P2 in place of
-					time4 = System.currentTimeMillis();
-					exectime += time4 - time3;
-					// IRStyleMain.writetofile("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 -
-					// time3) + "\r\n");
-					System.out.println("#CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
-					ArrayList<Result> results = new ArrayList<Result>(1);
-					exectime += methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
-					dropTupleSets(jdbcacc, relations);
-					double mrr = mrr(results, query);
-					System.out.println(" R-rank = " + mrr);
-					fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + mrr + "," + exectime
-							+ "\n");
-					fw.flush();
-				}
+			// queries.add(new ExperimentQuery(1, "angela y. davis", 1));
+			int loop = 1;
+			for (ExperimentQuery query : queries) {
+				System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
+				QueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query);
+				queryResults.add(result);
 			}
+			printResults(queryResults, "ir_result.csv");
 		}
 	}
 
@@ -110,6 +94,85 @@ public class IRStyleMain {
 		String Password = config.getProperty("password");
 		JDBCaccess jdbcacc = new JDBCaccess(Server, Port, Database_name, Username, Password);
 		return jdbcacc;
+	}
+
+	static Vector<Relation> createRelations(String articleTable, String imageTable, String linkTable) {
+		// Note that to be able to match qrels with answers, the main table should be
+		// the first relation and
+		// the first attrib should be its ID
+		Vector<Relation> relations = new Vector<Relation>();
+
+		Relation rel = new Relation(articleTable);
+		rel.addAttribute("id", false, "INTEGER");
+		rel.addAttribute("title", true, "VARCHAR2(256)");
+		rel.addAttribute("text", true, "VARCHAR2(32000)");
+		// rel.addAttribute("popularity", false, "INTEGER");
+		rel.addAttr4Rel("id", "tbl_article_image_09");
+		rel.addAttr4Rel("id", "tbl_article_link_09");
+		rel.setSize(233909);
+		relations.addElement(rel);
+
+		rel = new Relation("tbl_article_image_09");
+		rel.addAttribute("article_id", false, "INTEGER");
+		rel.addAttribute("image_id", false, "INTEGER");
+		rel.addAttr4Rel("article_id", articleTable);
+		rel.addAttr4Rel("image_id", imageTable);
+		rel.setSize(3840433);
+		relations.addElement(rel);
+
+		rel = new Relation(imageTable);
+		rel.addAttribute("id", false, "INTEGER");
+		rel.addAttribute("src", true, "VARCHAR(256)");
+		rel.addAttr4Rel("id", "tbl_article_image_09");
+		rel.setSize(1183070);
+		relations.addElement(rel);
+
+		rel = new Relation("tbl_article_link_09");
+		rel.addAttribute("link_id", false, "INTEGER");
+		rel.addAttribute("article_id", false, "INTEGER");
+		rel.addAttr4Rel("link_id", linkTable);
+		rel.addAttr4Rel("article_id", articleTable);
+		rel.setSize(120916125);
+		relations.addElement(rel);
+
+		rel = new Relation(linkTable);
+		rel.addAttribute("id", false, "INTEGER");
+		rel.addAttribute("url", true, "VARCHAR(255)");
+		rel.addAttr4Rel("id", "tbl_article_link_09");
+		rel.setSize(9766351);
+		relations.addElement(rel);
+
+		return relations;
+	}
+
+	static QueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,
+			ExperimentQuery query) {
+		MIndexAccess MIndx = new MIndexAccess(relations);
+		Vector<String> allkeyw = new Vector<String>();
+		// escaping single quotes
+		allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
+		int exectime = 0;
+		long time3 = System.currentTimeMillis();
+		MIndx.createTupleSets2(sch, allkeyw, jdbcacc.conn);
+		long time4 = System.currentTimeMillis();
+		exectime += time4 - time3;
+		System.out.println(" Time to create tuple sets: " + (time4 - time3) + " (ms)");
+		time3 = System.currentTimeMillis();
+		/** returns a vector of instances (tuple sets) */ // P1
+		Vector<?> CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx);
+		for (Object v : CNs) {
+			System.out.println(v);
+		}
+		time4 = System.currentTimeMillis();
+		exectime += time4 - time3;
+		System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
+		ArrayList<Result> results = new ArrayList<Result>(1);
+		exectime += methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
+		dropTupleSets(jdbcacc, relations);
+		double rrank = rrank(results, query);
+		System.out.println(" R-rank = " + rrank);
+		QueryResult result = new QueryResult(query, rrank, exectime);
+		return result;
 	}
 
 	static int methodB(int N, boolean allKeywInResults, Vector<Relation> relations, Vector<String> allkeyw,
@@ -170,7 +233,7 @@ public class IRStyleMain {
 		return exectime;
 	}
 
-	static double mrr(List<Result> results, ExperimentQuery query) {
+	static double rrank(List<Result> results, ExperimentQuery query) {
 		for (int i = 0; i < results.size(); i++) {
 			String resultText = results.get(i).getStr();
 			String resultId = resultText.substring(0, resultText.indexOf(" - "));
@@ -181,58 +244,20 @@ public class IRStyleMain {
 		return 0;
 	}
 
-	static Vector<Relation> createRelations() { // schema 1
-		// Note that to be able to match qrels with answers, the main table should be
-		// the first relation and
-		// the first attrib should be its ID
-		Vector<Relation> relations = new Vector<Relation>();
-
-		Relation rel = new Relation("tbl_article_09");
-		rel.addAttribute("id", false, "INTEGER");
-		rel.addAttribute("title", true, "VARCHAR2(256)");
-		rel.addAttribute("text", true, "VARCHAR2(32000)");
-		// rel.addAttribute("popularity", false, "INTEGER");
-		rel.addAttr4Rel("id", "tbl_article_image_09");
-		rel.addAttr4Rel("id", "tbl_article_link_09");
-		rel.setSize(233909);
-		relations.addElement(rel);
-
-		rel = new Relation("tbl_article_image_09");
-		rel.addAttribute("article_id", false, "INTEGER");
-		rel.addAttribute("image_id", false, "INTEGER");
-		rel.addAttr4Rel("article_id", "tbl_article_09");
-		rel.addAttr4Rel("image_id", "tbl_image_09_tk");
-		rel.setSize(3840433);
-		relations.addElement(rel);
-
-		rel = new Relation("tbl_image_09_tk");
-		rel.addAttribute("id", false, "INTEGER");
-		rel.addAttribute("src", true, "VARCHAR(256)");
-		rel.addAttr4Rel("id", "tbl_article_image_09");
-		rel.setSize(1183070);
-		relations.addElement(rel);
-
-		rel = new Relation("tbl_article_link_09");
-		rel.addAttribute("link_id", false, "INTEGER");
-		rel.addAttribute("article_id", false, "INTEGER");
-		rel.addAttr4Rel("link_id", "tbl_link_09");
-		rel.addAttr4Rel("article_id", "tbl_article_09");
-		rel.setSize(120916125);
-		relations.addElement(rel);
-
-		rel = new Relation("tbl_link_09");
-		rel.addAttribute("id", false, "INTEGER");
-		rel.addAttribute("url", true, "VARCHAR(255)");
-		rel.addAttr4Rel("id", "tbl_article_link_09");
-		rel.setSize(9766351);
-		relations.addElement(rel);
-
-		return relations;
-	}
-
 	static void dropTupleSets(JDBCaccess jdbcacc, Vector<Relation> relations) {
 		for (Relation rel : relations) {
 			jdbcacc.dropTable("TS_" + rel.getName());
+		}
+	}
+
+	static void printResults(List<QueryResult> queryResults, String filename) throws IOException {
+		try (FileWriter fw = new FileWriter(filename)) {
+			for (QueryResult result : queryResults) {
+				ExperimentQuery query = result.query;
+				fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + result.rrank + ","
+						+ result.execTime + "\n");
+				fw.flush();
+			}
 		}
 	}
 
