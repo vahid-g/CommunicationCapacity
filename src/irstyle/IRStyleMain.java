@@ -26,17 +26,14 @@ import wiki13.WikiFilesPaths;
 import wiki13.WikiRelationalEfficiencyExperiment;
 
 public class IRStyleMain {
+	
+	static int maxCNsize = 5;
+	static int numExecutions = 1;
+	static int N = 100;
+	static boolean allKeywInResults = false;
 
 	public static void main(String[] args) throws IOException {
-
-		// start input
-		int maxCNsize = 5;
-		int numExecutions = 1;
-		int N = 20;
-		boolean allKeywInResults = false;
-
 		JDBCaccess jdbcacc = jdbcAccess();
-
 		for (int exec = 0; exec < numExecutions; exec++) {
 			String articleTable = "tbl_article_09";
 			String imageTable = "tbl_image_09_tk";

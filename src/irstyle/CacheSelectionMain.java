@@ -30,10 +30,6 @@ public class CacheSelectionMain {
 
 	public static void main(String[] args) throws IOException {
 
-		// start input
-		int maxCNsize = 5;
-		int N = 100;
-		boolean allKeywInResults = false;
 		JDBCaccess jdbcacc = IRStyleMain.jdbcAccess();
 		WikiFilesPaths paths = null;
 		paths = WikiFilesPaths.getMaplePaths();
@@ -101,7 +97,7 @@ public class CacheSelectionMain {
 					System.out.println(" Time to create tuple sets: " + (time4 - time3) + " (ms)");
 					time3 = System.currentTimeMillis();
 					/** returns a vector of instances (tuple sets) */ // P1
-					Vector<?> CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx);
+					Vector<?> CNs = sch.getCNs(IRStyleMain.maxCNsize, allkeyw, sch, MIndx);
 					// also prune identical CNs with P2 in place of
 					time4 = System.currentTimeMillis();
 					exectime += time4 - time3;
@@ -109,7 +105,8 @@ public class CacheSelectionMain {
 					// time3) + "\r\n");
 					System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 					ArrayList<Result> results = new ArrayList<Result>(1);
-					exectime += IRStyleMain.methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
+					exectime += IRStyleMain.methodC(IRStyleMain.N, IRStyleMain.allKeywInResults, relations, allkeyw,
+							CNs, results, jdbcacc);
 					IRStyleMain.dropTupleSets(jdbcacc, relations);
 					double mrr = IRStyleMain.mrr(results, query);
 					System.out.println(" R-rank = " + mrr);
