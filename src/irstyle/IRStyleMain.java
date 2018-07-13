@@ -65,8 +65,8 @@ public class IRStyleMain {
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 50);
 			List<QueryResult> queryResults = new ArrayList<QueryResult>();
-			// queries = new ArrayList<ExperimentQuery>();
-			// queries.add(new ExperimentQuery(1, "angela y. davis", 1));
+			queries = new ArrayList<ExperimentQuery>();
+			queries.add(new ExperimentQuery(1, "Nero", 1));
 			int loop = 1;
 			for (ExperimentQuery query : queries) {
 				System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
