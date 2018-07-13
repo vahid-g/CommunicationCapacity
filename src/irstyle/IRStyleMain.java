@@ -68,6 +68,7 @@ public class IRStyleMain {
 			List<QueryResult> queryResults = new ArrayList<QueryResult>();
 			// queries = new ArrayList<ExperimentQuery>();
 			// queries.add(new ExperimentQuery(1, "angela y. davis", 1));
+
 			int loop = 1;
 			for (ExperimentQuery query : queries) {
 				System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
@@ -101,7 +102,6 @@ public class IRStyleMain {
 		// the first relation and
 		// the first attrib should be its ID
 		Vector<Relation> relations = new Vector<Relation>();
-
 		Relation rel = new Relation(articleTable);
 		rel.addAttribute("id", false, "INTEGER");
 		rel.addAttribute("title", true, "VARCHAR2(256)");

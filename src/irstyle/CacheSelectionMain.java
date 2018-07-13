@@ -90,6 +90,7 @@ public class CacheSelectionMain {
 				queryResults.add(result);
 			}
 			IRStyleMain.printResults(queryResults, "cs_result.csv");
+
 		}
 	}
 
