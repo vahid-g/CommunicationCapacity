@@ -56,7 +56,6 @@ public class IRStyleMain {
 					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
-			Schema sch = new Schema(schemaDescription);
 			Vector<Relation> relations = createRelations(articleTable, imageTable, linkTable);
 			dropTupleSets(jdbcacc, relations);
 			WikiFilesPaths paths = null;
@@ -68,10 +67,10 @@ public class IRStyleMain {
 			List<QueryResult> queryResults = new ArrayList<QueryResult>();
 			// queries = new ArrayList<ExperimentQuery>();
 			// queries.add(new ExperimentQuery(1, "angela y. davis", 1));
-
 			int loop = 1;
 			for (ExperimentQuery query : queries) {
 				System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
+				Schema sch = new Schema(schemaDescription);
 				QueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query);
 				queryResults.add(result);
 			}
