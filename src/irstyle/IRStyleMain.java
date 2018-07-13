@@ -47,7 +47,7 @@ public class IRStyleMain {
 	public static void main(String[] args) throws IOException {
 		JDBCaccess jdbcacc = jdbcAccess();
 		for (int exec = 0; exec < numExecutions; exec++) {
-			String articleTable = "tbl_article_09";
+			String articleTable = "tbl_article_wiki13";
 			String imageTable = "tbl_image_09_tk";
 			String linkTable = "tbl_link_09";
 			String articleImageTable = "tbl_article_image_09";
