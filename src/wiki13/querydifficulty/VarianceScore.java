@@ -1,16 +1,16 @@
 package wiki13.querydifficulty;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.StringReader;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -96,9 +96,18 @@ public class VarianceScore implements QueryDifficultyScoreInterface {
 		double maxVar = 0;
 		IndexSearcher searcher = new IndexSearcher(indexReader);
 		searcher.setSimilarity(new BM25Similarity());
-		List<String> terms = Arrays.asList(query.split("[ \"'+]")).stream().filter(str -> !str.isEmpty())
-				.collect(Collectors.toList());
-		QueryParser parser = new QueryParser(field, new StandardAnalyzer());
+
+		TokenStream tokenStream = analyzer.tokenStream(field,
+				new StringReader(query.replaceAll("'", "`")));
+		CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+		tokenStream.reset();
+		List<String> terms = new ArrayList<>();
+		while(tokenStream.incrementToken()){
+			terms.add(termAtt.toString());
+		}
+		tokenStream.close();
+
+		QueryParser parser = new QueryParser(field, analyzer);
 		for (String term : terms) {
 			try {
 				Query termQuery = parser.parse(term);
@@ -116,8 +125,6 @@ public class VarianceScore implements QueryDifficultyScoreInterface {
 					var = (scoreSquareSum / topDocs.totalHits) - Math.pow(ex, 2);
 					maxVar = Math.max(var, maxVar);
 				}
-				LOGGER.log(Level.INFO, "\t(" + query + "): Var[x] = " + var + ", N = "
-						+ topDocs.totalHits);
 			} catch (org.apache.lucene.queryparser.classic.ParseException e) {
 				LOGGER.log(Level.SEVERE, e.getMessage(), e);
 			}
