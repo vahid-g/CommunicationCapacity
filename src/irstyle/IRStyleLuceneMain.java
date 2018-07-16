@@ -23,6 +23,7 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
 import irstyle_core.ExecPrepared;
@@ -33,6 +34,7 @@ import irstyle_core.Relation;
 import irstyle_core.Result;
 import irstyle_core.Schema;
 import query.ExperimentQuery;
+import query.Qrel;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
 import wiki13.WikiRelationalEfficiencyExperiment;
@@ -43,6 +45,7 @@ public class IRStyleLuceneMain {
 	static int numExecutions = 1;
 	static int N = 100;
 	static boolean allKeywInResults = false;
+	static int tupleSetSize = 1000;
 
 	static class QueryResult {
 		ExperimentQuery query;
@@ -59,7 +62,7 @@ public class IRStyleLuceneMain {
 	public static void main(String[] args) throws Exception {
 		JDBCaccess jdbcacc = jdbcAccess();
 		for (int exec = 0; exec < numExecutions; exec++) {
-			String articleTable = "tbl_article_wiki13";
+			String articleTable = "tbl_article_09";
 			String imageTable = "tbl_image_09_tk";
 			String linkTable = "tbl_link_09";
 			String articleImageTable = "tbl_article_image_09";
@@ -78,10 +81,13 @@ public class IRStyleLuceneMain {
 			queries = queries.subList(0, 50);
 			List<QueryResult> queryResults = new ArrayList<QueryResult>();
 			queries = new ArrayList<ExperimentQuery>();
-			queries.add(new ExperimentQuery(1, "Nero", 1));
+			ExperimentQuery eq = new ExperimentQuery(1, "Nero", 1);
+			eq.addRelevantAnswer(new Qrel(1, "21632", 1));
+			queries.add(eq);
 			String baseDir = "/data/ghadakcv/wikipedia/";
 			try (IndexReader articleReader = DirectoryReader
 					.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/100")));
+					//.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/100")));
 					IndexReader imageReader = DirectoryReader
 							.open(FSDirectory.open(Paths.get(baseDir + "tbl_image_pop/100")));
 					IndexReader linkReader = DirectoryReader
@@ -194,7 +200,7 @@ public class IRStyleLuceneMain {
 		System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 		ArrayList<Result> results = new ArrayList<Result>(1);
 		exectime += methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
-		dropTupleSets(jdbcacc, relations);
+//		dropTupleSets(jdbcacc, relations);
 		double rrank = rrank(results, query);
 		System.out.println(" R-rank = " + rrank);
 		QueryResult result = new QueryResult(query, rrank, exectime);
@@ -251,12 +257,12 @@ public class IRStyleLuceneMain {
 
 	static List<String> executeLuceneQuery(IndexReader reader, String queryText) throws ParseException, IOException {
 		IndexSearcher searcher = new IndexSearcher(reader);
+		searcher.setSimilarity(new BM25Similarity());
 		QueryParser qp = new QueryParser(WikiTableIndexer.TEXT_FIELD, new StandardAnalyzer());
 		Query query = qp.parse(queryText);
-		int n = 20;
-		ScoreDoc[] scoreDocHits = searcher.search(query, n).scoreDocs;
+		ScoreDoc[] scoreDocHits = searcher.search(query, tupleSetSize).scoreDocs;
 		List<String> results = new ArrayList<String>();
-		for (int j = 0; j < Math.min(n, scoreDocHits.length); j++) {
+		for (int j = 0; j < scoreDocHits.length; j++) {
 			Document doc = reader.document(scoreDocHits[j].doc);
 			String docId = doc.get(WikiTableIndexer.ID_FIELD);
 			results.add("(" + docId + "," + scoreDocHits[j].score + ")");

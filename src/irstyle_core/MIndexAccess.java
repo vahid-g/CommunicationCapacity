@@ -1,26 +1,11 @@
 package irstyle_core;
 //package xkeyword;
 
-import java.io.IOException;
 import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
-
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-
-import irstyle.WikiTableIndexer;
-import wiki13.WikiFileIndexer;
 
 public class MIndexAccess {
 	Vector tuplesets;
@@ -196,11 +181,11 @@ public class MIndexAccess {
 			if (hasTextAttr((Relation) relations.elementAt(i))) {
 				Relation rel = (Relation) relations.elementAt(i);
 				String tuplesetName = "TS_" + rel.getName();
-				String createTable = "CREATE TABLE  " + tuplesetName + "(id int, scores int);";
+				String createTable = "CREATE TABLE  " + tuplesetName + "(id int, score int);";
 				jdbcacc.execute(createTable);
 				List<String> values = relnameValues.get(rel.name);
 				for (String value : values) {
-					String insertInto = "INSERT INTO " + tuplesetName + "(id, scores) VALUES " + value + ";";
+					String insertInto = "INSERT INTO " + tuplesetName + "(id, score) VALUES " + value + ";";
 					jdbcacc.execute(insertInto);
 				}
 				if (!jdbcacc.isTableEmpty("TS_" + rel.getName())) {// add all or none keywords
