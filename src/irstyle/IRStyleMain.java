@@ -21,6 +21,7 @@ import irstyle_core.Relation;
 import irstyle_core.Result;
 import irstyle_core.Schema;
 import query.ExperimentQuery;
+import query.Qrel;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
 import wiki13.WikiRelationalEfficiencyExperiment;
@@ -47,7 +48,7 @@ public class IRStyleMain {
 	public static void main(String[] args) throws IOException {
 		JDBCaccess jdbcacc = jdbcAccess();
 		for (int exec = 0; exec < numExecutions; exec++) {
-			String articleTable = "tbl_article_wiki13";
+			String articleTable = "tbl_article_09";
 			String imageTable = "tbl_image_09_tk";
 			String linkTable = "tbl_link_09";
 			String articleImageTable = "tbl_article_image_09";
@@ -65,8 +66,10 @@ public class IRStyleMain {
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 50);
 			List<QueryResult> queryResults = new ArrayList<QueryResult>();
-			queries = new ArrayList<ExperimentQuery>();
-			queries.add(new ExperimentQuery(1, "Nero", 1));
+//			queries = new ArrayList<ExperimentQuery>();
+//			ExperimentQuery eq = new ExperimentQuery(1, "Nero", 1);
+//			eq.addRelevantAnswer(new Qrel(1, "21632", 1));
+//			queries.add(eq);
 			int loop = 1;
 			for (ExperimentQuery query : queries) {
 				System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
