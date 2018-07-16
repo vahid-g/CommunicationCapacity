@@ -3,17 +3,29 @@ package irstyle;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.store.FSDirectory;
+
 import irstyle_core.ExecPrepared;
-import irstyle_core.Flags;
-import irstyle_core.InitialMain;
 import irstyle_core.Instance;
 import irstyle_core.JDBCaccess;
 import irstyle_core.MIndexAccess;
@@ -44,7 +56,7 @@ public class IRStyleLuceneMain {
 		}
 	}
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
 		JDBCaccess jdbcacc = jdbcAccess();
 		for (int exec = 0; exec < numExecutions; exec++) {
 			String articleTable = "tbl_article_wiki13";
@@ -67,12 +79,28 @@ public class IRStyleLuceneMain {
 			List<QueryResult> queryResults = new ArrayList<QueryResult>();
 			queries = new ArrayList<ExperimentQuery>();
 			queries.add(new ExperimentQuery(1, "Nero", 1));
-			int loop = 1;
-			for (ExperimentQuery query : queries) {
-				System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
-				Schema sch = new Schema(schemaDescription);
-				QueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query);
-				queryResults.add(result);
+			String baseDir = "/data/ghadakcv/wikipedia/";
+			try (IndexReader articleReader = DirectoryReader
+					.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/100")));
+					IndexReader imageReader = DirectoryReader
+							.open(FSDirectory.open(Paths.get(baseDir + "tbl_image_pop/100")));
+					IndexReader linkReader = DirectoryReader
+							.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/100")))) {
+				int loop = 1;
+				for (ExperimentQuery query : queries) {
+					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
+					Schema sch = new Schema(schemaDescription);
+					List<String> articleIds = executeLuceneQuery(articleReader, query.getText());
+					System.out.println(articleIds);
+					List<String> imageIds = executeLuceneQuery(imageReader, query.getText());
+					List<String> linkIds = executeLuceneQuery(linkReader, query.getText());
+					Map<String, List<String>> relationIDs = new HashMap<String, List<String>>();
+					relationIDs.put(articleTable, articleIds);
+					relationIDs.put(imageTable, imageIds);
+					relationIDs.put(linkTable, linkIds);
+					QueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query, relationIDs);
+					queryResults.add(result);
+				}
 			}
 			printResults(queryResults, "ir_result.csv");
 		}
@@ -145,14 +173,14 @@ public class IRStyleLuceneMain {
 	}
 
 	static QueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,
-			ExperimentQuery query) {
+			ExperimentQuery query, Map<String, List<String>> relationIDs) throws Exception {
 		MIndexAccess MIndx = new MIndexAccess(relations);
 		Vector<String> allkeyw = new Vector<String>();
 		// escaping single quotes
 		allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
 		int exectime = 0;
 		long time3 = System.currentTimeMillis();
-		MIndx.createTupleSets2(sch, allkeyw, jdbcacc.conn);
+		MIndx.createTupleSets3(sch, allkeyw, jdbcacc.conn, relationIDs);
 		long time4 = System.currentTimeMillis();
 		exectime += time4 - time3;
 		System.out.println(" Time to create tuple sets: " + (time4 - time3) + " (ms)");
@@ -172,44 +200,6 @@ public class IRStyleLuceneMain {
 		System.out.println(" R-rank = " + rrank);
 		QueryResult result = new QueryResult(query, rrank, exectime);
 		return result;
-	}
-
-	static int methodB(int N, boolean allKeywInResults, Vector<Relation> relations, Vector<String> allkeyw,
-			Vector<?> CNs, ArrayList<Result> results, JDBCaccess jdbcacc) {
-		// Method B: get top-K from each CN
-		int exectime = 0;
-		ExecPrepared execprepared = null;
-		for (int i = 0; i < CNs.size(); i++) {
-			System.out.println(" processing " + CNs.get(i));
-			ArrayList<?> nfreeTSs2 = new ArrayList<Object>(1);
-			if (Flags.DEBUG_INFO2)// Flags.DEBUG_INFO2)
-			{
-				Instance inst = ((Instance) CNs.elementAt(i));
-				Vector<?> v = inst.getAllInstances();
-				for (int j = 0; j < v.size(); j++) {
-					System.out.print(((Instance) v.elementAt(j)).getRelationName() + " ");
-					for (int k = 0; k < ((Instance) v.elementAt(j)).keywords.size(); k++)
-						System.out.print((String) ((Instance) v.elementAt(j)).keywords.elementAt(k));
-				}
-				System.out.println("");
-			}
-			String sql = ((Instance) CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw, nfreeTSs2);
-			execprepared = new ExecPrepared();
-			System.out.println(" sql: " + sql);
-			long start = System.currentTimeMillis();
-			exectime += execprepared.ExecuteParameterized(jdbcacc, sql, nfreeTSs2, new ArrayList<String>(allkeyw), N,
-					((Instance) CNs.elementAt(i)).getsize() + 1, results, allKeywInResults);
-			// +1 because different size semantics than DISCOVER
-			System.out.println(" Time = " + (System.currentTimeMillis() - start) + "(ms)");
-		}
-		Collections.sort(results, new Result.ResultComparator());
-		if (Flags.RESULTS__SHOW_OUTPUT) {
-			System.out.println("final results, one CN at a time");
-			InitialMain.printResults(results, N);
-		}
-		System.out.println("Exec one CN at a time: total exec time = " + (exectime / 1000)
-				+ " (s) with allKeywInResults=" + allKeywInResults + " #results==" + results.size() + " \n");
-		return exectime;
 	}
 
 	static int methodC(int N, boolean allKeywInResults, Vector<Relation> relations, Vector<String> allkeyw,
@@ -258,6 +248,21 @@ public class IRStyleLuceneMain {
 				fw.flush();
 			}
 		}
+	}
+
+	static List<String> executeLuceneQuery(IndexReader reader, String queryText) throws ParseException, IOException {
+		IndexSearcher searcher = new IndexSearcher(reader);
+		QueryParser qp = new QueryParser(WikiTableIndexer.TEXT_FIELD, new StandardAnalyzer());
+		Query query = qp.parse(queryText);
+		int n = 50;
+		ScoreDoc[] scoreDocHits = searcher.search(query, n).scoreDocs;
+		List<String> results = new ArrayList<String>();
+		for (int j = 0; j < Math.min(n, scoreDocHits.length); j++) {
+			Document doc = reader.document(scoreDocHits[j].doc);
+			String docId = doc.get(WikiTableIndexer.ID_FIELD);
+			results.add(docId);
+		}
+		return results;
 	}
 
 }
