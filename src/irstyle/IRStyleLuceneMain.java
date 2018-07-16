@@ -62,7 +62,7 @@ public class IRStyleLuceneMain {
 	public static void main(String[] args) throws Exception {
 		JDBCaccess jdbcacc = jdbcAccess();
 		for (int exec = 0; exec < numExecutions; exec++) {
-			String articleTable = "tbl_article_09";
+			String articleTable = "tbl_article_wiki13";
 			String imageTable = "tbl_image_09_tk";
 			String linkTable = "tbl_link_09";
 			String articleImageTable = "tbl_article_image_09";
@@ -80,13 +80,13 @@ public class IRStyleLuceneMain {
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 50);
 			List<QueryResult> queryResults = new ArrayList<QueryResult>();
-			queries = new ArrayList<ExperimentQuery>();
-			ExperimentQuery eq = new ExperimentQuery(1, "Nero", 1);
-			eq.addRelevantAnswer(new Qrel(1, "21632", 1));
-			queries.add(eq);
+//			queries = new ArrayList<ExperimentQuery>();
+//			ExperimentQuery eq = new ExperimentQuery(1, "Nero", 1);
+//			eq.addRelevantAnswer(new Qrel(1, "21632", 1));
+//			queries.add(eq);
 			String baseDir = "/data/ghadakcv/wikipedia/";
 			try (IndexReader articleReader = DirectoryReader
-					.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/100")));
+					.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/100")));
 					//.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/100")));
 					IndexReader imageReader = DirectoryReader
 							.open(FSDirectory.open(Paths.get(baseDir + "tbl_image_pop/100")));
@@ -200,7 +200,7 @@ public class IRStyleLuceneMain {
 		System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 		ArrayList<Result> results = new ArrayList<Result>(1);
 		exectime += methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
-//		dropTupleSets(jdbcacc, relations);
+		dropTupleSets(jdbcacc, relations);
 		double rrank = rrank(results, query);
 		System.out.println(" R-rank = " + rrank);
 		QueryResult result = new QueryResult(query, rrank, exectime);
