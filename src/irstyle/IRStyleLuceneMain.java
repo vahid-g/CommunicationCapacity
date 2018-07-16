@@ -91,14 +91,13 @@ public class IRStyleLuceneMain {
 					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
 					Schema sch = new Schema(schemaDescription);
 					List<String> articleIds = executeLuceneQuery(articleReader, query.getText());
-					System.out.println(articleIds);
 					List<String> imageIds = executeLuceneQuery(imageReader, query.getText());
 					List<String> linkIds = executeLuceneQuery(linkReader, query.getText());
-					Map<String, List<String>> relationIDs = new HashMap<String, List<String>>();
-					relationIDs.put(articleTable, articleIds);
-					relationIDs.put(imageTable, imageIds);
-					relationIDs.put(linkTable, linkIds);
-					QueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query, relationIDs);
+					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
+					relnamesValues.put(articleTable, articleIds);
+					relnamesValues.put(imageTable, imageIds);
+					relnamesValues.put(linkTable, linkIds);
+					QueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query, relnamesValues);
 					queryResults.add(result);
 				}
 			}
@@ -173,14 +172,14 @@ public class IRStyleLuceneMain {
 	}
 
 	static QueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,
-			ExperimentQuery query, Map<String, List<String>> relationIDs) throws Exception {
+			ExperimentQuery query, Map<String, List<String>> relnameValues) throws Exception {
 		MIndexAccess MIndx = new MIndexAccess(relations);
 		Vector<String> allkeyw = new Vector<String>();
 		// escaping single quotes
 		allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
 		int exectime = 0;
 		long time3 = System.currentTimeMillis();
-		MIndx.createTupleSets3(sch, allkeyw, jdbcacc.conn, relationIDs);
+		MIndx.createTupleSets3(sch, allkeyw, jdbcacc.conn, relnameValues);
 		long time4 = System.currentTimeMillis();
 		exectime += time4 - time3;
 		System.out.println(" Time to create tuple sets: " + (time4 - time3) + " (ms)");
@@ -254,13 +253,13 @@ public class IRStyleLuceneMain {
 		IndexSearcher searcher = new IndexSearcher(reader);
 		QueryParser qp = new QueryParser(WikiTableIndexer.TEXT_FIELD, new StandardAnalyzer());
 		Query query = qp.parse(queryText);
-		int n = 50;
+		int n = 20;
 		ScoreDoc[] scoreDocHits = searcher.search(query, n).scoreDocs;
 		List<String> results = new ArrayList<String>();
 		for (int j = 0; j < Math.min(n, scoreDocHits.length); j++) {
 			Document doc = reader.document(scoreDocHits[j].doc);
 			String docId = doc.get(WikiTableIndexer.ID_FIELD);
-			results.add(docId);
+			results.add("(" + docId + "," + scoreDocHits[j].score + ")");
 		}
 		return results;
 	}

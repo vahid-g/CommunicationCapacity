@@ -1,11 +1,26 @@
 package irstyle_core;
 //package xkeyword;
 
+import java.io.IOException;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
+
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+
+import irstyle.WikiTableIndexer;
+import wiki13.WikiFileIndexer;
 
 public class MIndexAccess {
 	Vector tuplesets;
@@ -167,42 +182,27 @@ public class MIndexAccess {
 	}
 
 	public void createTupleSets3(Schema sch, Vector allkeywords, Connection conn,
-			Map<String, List<String>> relationIds) {
+			Map<String, List<String>> relnameValues) {
 		JDBCaccess jdbcacc = new JDBCaccess(conn);
 		// create non-empty tuple sets and add keywords to schema
-		// tuple set is named R_keyw. eg: C_SIGMOD
 		Vector allInst = sch.getAllInstances();
-		// Vector keywcombs=getKeywCombinations( allkeyw);
 		String keywList = "";
 		for (int j = 0; j < allkeywords.size(); j++) {
 			String keyw = (String) allkeywords.elementAt(j);
 			keywList += keyw + " ";
 		}
 		keywList = keywList.substring(0, keywList.length() - 1);
-
 		for (int i = 0; i < relations.size(); i++) {
 			if (hasTextAttr((Relation) relations.elementAt(i))) {
 				Relation rel = (Relation) relations.elementAt(i);
-				String startOfCommand = "CREATE TABLE TS_" + rel.getName() + " AS SELECT " + rel.getAttribute(0);
-				for (int j = 1; j < rel.getAttributes().size(); j++) {
-					startOfCommand += "," + rel.getAttribute(j);
+				String tuplesetName = "TS_" + rel.getName();
+				String createTable = "CREATE TABLE  " + tuplesetName + "(id int, scores int);";
+				jdbcacc.execute(createTable);
+				List<String> values = relnameValues.get(rel.name);
+				for (String value : values) {
+					String insertInto = "INSERT INTO " + tuplesetName + "(id, scores) VALUES " + value + ";";
+					jdbcacc.execute(insertInto);
 				}
-				String whereClause = " WHERE id IN "
-						+ relationIds.get(rel.name).toString().replace('[', '(').replace(']', ')');
-				String columns = "";
-				for (int k = 0; k < rel.getNumAttributes(); k++) {
-					if (rel.isInMasterIndex(rel.getAttribute(k))) {
-						if (!columns.equals("")) {
-							columns += ",";
-						}
-						columns += rel.getAttribute(k);
-					}
-				}
-				String matchAgainst = ",match(" + columns + ") against('" + keywList + "' IN NATURAL LANGUAGE MODE) as score";
-				String command = startOfCommand + matchAgainst + " FROM " + rel.name + whereClause + ";";
-				jdbcacc.execute(command);
-				if (Flags.DEBUG_INFO2)
-					System.out.println(command);
 				if (!jdbcacc.isTableEmpty("TS_" + rel.getName())) {// add all or none keywords
 					for (int y = 0; y < allkeywords.size(); y++)
 						sch.getInstance(rel.getName()).addKeyword((String) allkeywords.elementAt(y));
@@ -214,7 +214,6 @@ public class MIndexAccess {
 				}
 			}
 		}
-
 	}
 
 	void clearTupleSets(Connection conn) {
