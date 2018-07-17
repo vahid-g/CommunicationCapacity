@@ -56,6 +56,7 @@ public class WikiTableIndexer {
 			WikiTableIndexer.indexCompTable("tbl_article_09", 3, new String[] { "title", "text" }, "popularity");
 			WikiTableIndexer.indexCompTable("tbl_link_pop", 6, new String[] { "url" }, "pop");
 			WikiTableIndexer.indexCompTable("tbl_image_pop", 10, new String[] { "src" }, "pop");
+			WikiTableIndexer.indexCompTable("tbl_article_wiki13", 1, new String[] { "title", "text" }, "popularity");
 		} else {
 			System.out.println("Wrong input args!");
 		}
