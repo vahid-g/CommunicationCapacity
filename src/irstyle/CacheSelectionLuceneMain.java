@@ -39,11 +39,11 @@ public class CacheSelectionLuceneMain {
 		// queries.add(new ExperimentQuery(1, "angela y. davis", 1));
 		String baseDir = "/data/ghadakcv/wikipedia/";
 		try (IndexReader articleReader = DirectoryReader
-				.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/100")));
+				.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/100")));
 				IndexReader articleCacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/3")));
+						.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/1")));
 				IndexReader articleRestReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/c3")));
+						.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/c1")));
 				IndexReader imageReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(baseDir + "tbl_image_pop/100")));
 				IndexReader imageCacheReader = DirectoryReader
@@ -62,14 +62,15 @@ public class CacheSelectionLuceneMain {
 				Vector<String> allkeyw = new Vector<String>();
 				// escaping single quotes
 				allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
-				String articleTable = "tbl_article_09";
+				// String articleTable = "tbl_article_09";
+				String articleTable = "tbl_article_wiki13";
 				String imageTable = "tbl_image_09_tk";
 				String linkTable = "tbl_link_09";
 				String articleImageTable = "tbl_article_image_09";
 				String articleLinkTable = "tbl_article_link_09";
 				long time1 = System.currentTimeMillis();
 				if (useCache(query.getText(), articleCacheReader, articleReader, articleRestReader)) {
-					articleTable = "sub_article_3";
+					articleTable = "sub_wiki13_1";
 				}
 				if (useCache(query.getText(), imageCacheReader, imageReader, imageRestReader)) {
 					imageTable = "sub_image_10";
