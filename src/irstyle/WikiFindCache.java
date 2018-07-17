@@ -33,7 +33,7 @@ import wiki13.WikiFilesPaths;
 
 public class WikiFindCache {
 
-	public static int TOPDOC_COUNTS = 100;
+	private static int TOPDOC_COUNTS = 100;
 
 	public static void main(String[] args) throws IOException, SQLException, ParseException {
 		if (args[0].equals("articles")) {
@@ -48,7 +48,7 @@ public class WikiFindCache {
 	}
 
 	public static void findArticleCache() throws IOException, ParseException {
-		String tableName = "tbl_article_09";
+		String tableName = "tbl_article_wiki13";
 		WikiFilesPaths paths = WikiFilesPaths.getMaplePaths();
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
 				paths.getMsnQrelFilePath());
