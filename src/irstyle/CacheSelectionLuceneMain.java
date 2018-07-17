@@ -33,7 +33,7 @@ public class CacheSelectionLuceneMain {
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
 				paths.getMsnQrelFilePath());
 		Collections.shuffle(queries, new Random(1));
-		queries = queries.subList(0, 50);
+		queries = queries.subList(0, 10);
 		List<QueryResult> queryResults = new ArrayList<QueryResult>();
 		// queries = new ArrayList<ExperimentQuery>();
 		// queries.add(new ExperimentQuery(1, "angela y. davis", 1));
@@ -56,40 +56,45 @@ public class CacheSelectionLuceneMain {
 						.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/6")));
 				IndexReader linkRestReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/c6")))) {
-			int loop = 1;
-			for (ExperimentQuery query : queries) {
-				System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
-				Vector<String> allkeyw = new Vector<String>();
-				// escaping single quotes
-				allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
-				// String articleTable = "tbl_article_09";
-				String articleTable = "tbl_article_wiki13";
-				String imageTable = "tbl_image_09_tk";
-				String linkTable = "tbl_link_09";
-				String articleImageTable = "tbl_article_image_09";
-				String articleLinkTable = "tbl_article_link_09";
-				long time1 = System.currentTimeMillis();
-				if (useCache(query.getText(), articleCacheReader, articleReader, articleRestReader)) {
-					articleTable = "sub_wiki13_1";
+			long time = 0;
+			for (int exec = 0; exec < IRStyleLuceneMain.numExecutions; exec++) {
+				int loop = 1;
+				for (ExperimentQuery query : queries) {
+					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
+					Vector<String> allkeyw = new Vector<String>();
+					// escaping single quotes
+					allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
+					// String articleTable = "tbl_article_09";
+					String articleTable = "tbl_article_wiki13";
+					String imageTable = "tbl_image_09_tk";
+					String linkTable = "tbl_link_09";
+					String articleImageTable = "tbl_article_image_09";
+					String articleLinkTable = "tbl_article_link_09";
+					long time1 = System.currentTimeMillis();
+					if (useCache(query.getText(), articleCacheReader, articleReader, articleRestReader)) {
+						articleTable = "sub_wiki13_1";
+					}
+					if (useCache(query.getText(), imageCacheReader, imageReader, imageRestReader)) {
+						imageTable = "sub_image_10";
+					}
+					if (useCache(query.getText(), linkCacheReader, linkReader, linkRestReader)) {
+						linkTable = "sub_link_6";
+					}
+					long time2 = System.currentTimeMillis();
+					System.out.println(" Time to select cache: " + (time2 - time1) + " (ms)");
+					String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
+							+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
+							+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
+							+ articleLinkTable + " " + linkTable;
+					Schema sch = new Schema(schemaDescription);
+					Vector<Relation> relations = IRStyleMain.createRelations(articleTable, imageTable, linkTable);
+					QueryResult result = IRStyleMain.executeIRStyleQuery(jdbcacc, sch, relations, query);
+					time += result.execTime;
+					queryResults.add(result);
 				}
-				if (useCache(query.getText(), imageCacheReader, imageReader, imageRestReader)) {
-					imageTable = "sub_image_10";
-				}
-				if (useCache(query.getText(), linkCacheReader, linkReader, linkRestReader)) {
-					linkTable = "sub_link_6";
-				}
-				long time2 = System.currentTimeMillis();
-				System.out.println(" Time to select cache: " + (time2 - time1) + " (ms)");
-				String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
-						+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
-						+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
-						+ articleLinkTable + " " + linkTable;
-				Schema sch = new Schema(schemaDescription);
-				Vector<Relation> relations = IRStyleMain.createRelations(articleTable, imageTable, linkTable);
-				QueryResult result = IRStyleMain.executeIRStyleQuery(jdbcacc, sch, relations, query);
-				queryResults.add(result);
 			}
-			IRStyleMain.printResults(queryResults, "cs_result.csv");
+			System.out.println("time = " + (time / IRStyleLuceneMain.numExecutions));
+			// IRStyleMain.printResults(queryResults, "cs_result.csv");
 
 		}
 	}

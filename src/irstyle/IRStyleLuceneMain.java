@@ -42,13 +42,14 @@ import wiki13.WikiRelationalEfficiencyExperiment;
 public class IRStyleLuceneMain {
 
 	static int maxCNsize = 5;
-	static int numExecutions = 1;
+	static int numExecutions = 3;
 	static int N = 100;
 	static boolean allKeywInResults = false;
 	static int tupleSetSize = 1000;
 
 	public static void main(String[] args) throws Exception {
 		JDBCaccess jdbcacc = jdbcAccess();
+		int time = 0;
 		for (int exec = 0; exec < numExecutions; exec++) {
 			String articleTable = "tbl_article_wiki13";
 			String imageTable = "tbl_image_09_tk";
@@ -66,7 +67,7 @@ public class IRStyleLuceneMain {
 			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
 					paths.getMsnQrelFilePath());
 			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 50);
+			queries = queries.subList(0, 10);
 			List<QueryResult> queryResults = new ArrayList<QueryResult>();
 //			queries = new ArrayList<ExperimentQuery>();
 //			ExperimentQuery eq = new ExperimentQuery(1, "Nero", 1);
@@ -92,10 +93,12 @@ public class IRStyleLuceneMain {
 					relnamesValues.put(imageTable, imageIds);
 					relnamesValues.put(linkTable, linkIds);
 					QueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query, relnamesValues);
+					time += result.execTime;
 					queryResults.add(result);
 				}
 			}
-			printResults(queryResults, "ir_result.csv");
+			System.out.println("time = " + (time / numExecutions));
+			// printResults(queryResults, "ir_result.csv");
 		}
 	}
 
