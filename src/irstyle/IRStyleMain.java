@@ -33,18 +33,6 @@ public class IRStyleMain {
 	static int N = 100;
 	static boolean allKeywInResults = false;
 
-	static class QueryResult {
-		ExperimentQuery query;
-		double rrank = 0;
-		long execTime = 0;
-
-		public QueryResult(ExperimentQuery query, double rrank, long execTime) {
-			this.query = query;
-			this.rrank = rrank;
-			this.execTime = execTime;
-		}
-	}
-
 	public static void main(String[] args) throws IOException {
 		JDBCaccess jdbcacc = jdbcAccess();
 		for (int exec = 0; exec < numExecutions; exec++) {

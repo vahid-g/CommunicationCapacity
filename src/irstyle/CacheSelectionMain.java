@@ -5,17 +5,19 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.store.FSDirectory;
 
 import cache_selection.FeatureExtraction;
-import irstyle.IRStyleMain.QueryResult;
 import irstyle_core.JDBCaccess;
 import irstyle_core.Relation;
 import irstyle_core.Schema;
@@ -26,7 +28,7 @@ import wiki13.WikiFilesPaths;
 
 public class CacheSelectionMain {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
 
 		JDBCaccess jdbcacc = IRStyleMain.jdbcAccess();
 		WikiFilesPaths paths = null;
@@ -86,7 +88,16 @@ public class CacheSelectionMain {
 						+ articleLinkTable + " " + linkTable;
 				Schema sch = new Schema(schemaDescription);
 				Vector<Relation> relations = IRStyleMain.createRelations(articleTable, imageTable, linkTable);
-				QueryResult result = IRStyleMain.executeIRStyleQuery(jdbcacc, sch, relations, query);
+
+				List<String> articleIds = IRStyleLuceneMain.executeLuceneQuery(articleReader, query.getText());
+				List<String> imageIds = IRStyleLuceneMain.executeLuceneQuery(imageReader, query.getText());
+				List<String> linkIds = IRStyleLuceneMain.executeLuceneQuery(linkReader, query.getText());
+				Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
+				relnamesValues.put(articleTable, articleIds);
+				relnamesValues.put(imageTable, imageIds);
+				relnamesValues.put(linkTable, linkIds);
+				QueryResult result = IRStyleLuceneMain.executeIRStyleQuery(jdbcacc, sch, relations, query,
+						relnamesValues);
 				queryResults.add(result);
 			}
 			IRStyleMain.printResults(queryResults, "cs_result.csv");

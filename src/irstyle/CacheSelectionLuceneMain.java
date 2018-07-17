@@ -15,7 +15,6 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
 import cache_selection.FeatureExtraction;
-import irstyle.IRStyleMain.QueryResult;
 import irstyle_core.JDBCaccess;
 import irstyle_core.Relation;
 import irstyle_core.Schema;
