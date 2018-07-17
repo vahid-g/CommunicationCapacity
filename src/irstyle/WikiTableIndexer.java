@@ -88,7 +88,7 @@ public class WikiTableIndexer {
 	}
 
 	public static void indexArticles() throws IOException, SQLException {
-		String tableName = "tbl_article_09";
+		String tableName = "tbl_article_wiki13";
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
 			for (int i = 1; i <= 100; i += 1) {
