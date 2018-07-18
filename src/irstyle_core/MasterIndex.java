@@ -2,7 +2,7 @@ package irstyle_core;
 
 import java.util.*;
 
-import irstyle.IRStyleMain;
+import irstyle.RunBaseline;
 import irstyle.IRStyleParams;
 
 public class MasterIndex {/*

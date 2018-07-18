@@ -25,11 +25,11 @@ import query.QueryServices;
 import wiki13.WikiFileIndexer;
 import wiki13.WikiFilesPaths;
 
-public class CacheSelectionMain {
+public class RunCacheSearch {
 
 	public static void main(String[] args) throws Exception {
 
-		JDBCaccess jdbcacc = IRStyleMain.jdbcAccess();
+		JDBCaccess jdbcacc = RunBaseline.jdbcAccess();
 		WikiFilesPaths paths = null;
 		paths = WikiFilesPaths.getMaplePaths();
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
@@ -87,14 +87,14 @@ public class CacheSelectionMain {
 				Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
 						jdbcacc.conn);
 
-				List<String> articleIds = IRStyleLuceneMain.executeLuceneQuery(articleReader, query.getText());
-				List<String> imageIds = IRStyleLuceneMain.executeLuceneQuery(imageReader, query.getText());
-				List<String> linkIds = IRStyleLuceneMain.executeLuceneQuery(linkReader, query.getText());
+				List<String> articleIds = RunBaselineWithLucene.executeLuceneQuery(articleReader, query.getText());
+				List<String> imageIds = RunBaselineWithLucene.executeLuceneQuery(imageReader, query.getText());
+				List<String> linkIds = RunBaselineWithLucene.executeLuceneQuery(linkReader, query.getText());
 				Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 				relnamesValues.put(articleTable, articleIds);
 				relnamesValues.put(imageTable, imageIds);
 				relnamesValues.put(linkTable, linkIds);
-				QueryResult result = IRStyleLuceneMain.executeIRStyleQuery(jdbcacc, sch, relations, query,
+				QueryResult result = RunBaselineWithLucene.executeIRStyleQuery(jdbcacc, sch, relations, query,
 						relnamesValues);
 				queryResults.add(result);
 			}
@@ -108,9 +108,9 @@ public class CacheSelectionMain {
 		FeatureExtraction fe = new FeatureExtraction(WikiFileIndexer.WEIGHT_ATTRIB);
 		double ql_cache = 0;
 		double ql_rest = 0;
-		ql_cache = fe.queryLikelihood(cacheIndexReader, query, WikiTableIndexer.TEXT_FIELD, globalIndexReader,
+		ql_cache = fe.queryLikelihood(cacheIndexReader, query, RunTableIndexer.TEXT_FIELD, globalIndexReader,
 				new StandardAnalyzer());
-		ql_rest = fe.queryLikelihood(restIndexReader, query, WikiTableIndexer.TEXT_FIELD, globalIndexReader,
+		ql_rest = fe.queryLikelihood(restIndexReader, query, RunTableIndexer.TEXT_FIELD, globalIndexReader,
 				new StandardAnalyzer());
 		return (ql_cache >= ql_rest);
 	}

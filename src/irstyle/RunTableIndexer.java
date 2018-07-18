@@ -23,7 +23,7 @@ import org.apache.lucene.store.FSDirectory;
 import database.DatabaseConnection;
 import database.DatabaseType;
 
-public class WikiTableIndexer {
+public class RunTableIndexer {
 
 	public static String ID_FIELD = "id";
 
@@ -31,7 +31,7 @@ public class WikiTableIndexer {
 
 	Connection conn;
 
-	public WikiTableIndexer(Analyzer analyzer, DatabaseConnection dc) throws IOException, SQLException {
+	public RunTableIndexer(Analyzer analyzer, DatabaseConnection dc) throws IOException, SQLException {
 
 		conn = dc.getConnection();
 		conn.setAutoCommit(false);
@@ -47,16 +47,16 @@ public class WikiTableIndexer {
 
 	public static void main(String[] args) throws IOException, SQLException {
 		if (args[0].equals("articles")) {
-			WikiTableIndexer.indexArticles();
+			RunTableIndexer.indexArticles();
 		} else if (args[0].equals("images")) {
-			WikiTableIndexer.indexImages();
+			RunTableIndexer.indexImages();
 		} else if (args[0].equals("links")) {
-			WikiTableIndexer.indexLinks();
+			RunTableIndexer.indexLinks();
 		} else if (args[0].equals("rest")) {
-			WikiTableIndexer.indexCompTable("tbl_article_09", 3, new String[] { "title", "text" }, "popularity");
-			WikiTableIndexer.indexCompTable("tbl_link_pop", 6, new String[] { "url" }, "pop");
-			WikiTableIndexer.indexCompTable("tbl_image_pop", 10, new String[] { "src" }, "pop");
-			WikiTableIndexer.indexCompTable("tbl_article_wiki13", 1, new String[] { "title", "text" }, "popularity");
+			RunTableIndexer.indexCompTable("tbl_article_09", 3, new String[] { "title", "text" }, "popularity");
+			RunTableIndexer.indexCompTable("tbl_link_pop", 6, new String[] { "url" }, "pop");
+			RunTableIndexer.indexCompTable("tbl_image_pop", 10, new String[] { "src" }, "pop");
+			RunTableIndexer.indexCompTable("tbl_article_wiki13", 1, new String[] { "title", "text" }, "popularity");
 		} else {
 			System.out.println("Wrong input args!");
 		}
@@ -65,7 +65,7 @@ public class WikiTableIndexer {
 	public static void indexLinks() throws IOException, SQLException {
 		String tableName = "tbl_link_pop";
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
+			RunTableIndexer wti = new RunTableIndexer(new StandardAnalyzer(), dc);
 			for (int i = 1; i <= 100; i += 1) {
 				double count = DatabaseHelper.tableSize(tableName, wti.conn);
 				int limit = (int) Math.floor((i * count) / 100.0);
@@ -78,7 +78,7 @@ public class WikiTableIndexer {
 	public static void indexImages() throws IOException, SQLException {
 		String tableName = "tbl_image_pop";
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
+			RunTableIndexer wti = new RunTableIndexer(new StandardAnalyzer(), dc);
 			for (int i = 1; i <= 100; i += 1) {
 				double count = DatabaseHelper.tableSize(tableName, wti.conn);
 				int limit = (int) Math.floor((i * count) / 100.0);
@@ -91,7 +91,7 @@ public class WikiTableIndexer {
 	public static void indexArticles() throws IOException, SQLException {
 		String tableName = "tbl_article_wiki13";
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
+			RunTableIndexer wti = new RunTableIndexer(new StandardAnalyzer(), dc);
 			for (int i = 1; i <= 100; i += 1) {
 				double count = DatabaseHelper.tableSize(tableName, wti.conn);
 				int limit = (int) Math.floor((i * count) / 100.0);
@@ -105,7 +105,7 @@ public class WikiTableIndexer {
 	public static void indexCompTable(String tableName, int percentage, String[] textAttribs, String popularityAttrib)
 			throws IOException, SQLException {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
+			RunTableIndexer wti = new RunTableIndexer(new StandardAnalyzer(), dc);
 			String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/c" + percentage;
 			double count = DatabaseHelper.tableSize(tableName, wti.conn);
 			int limit = (int) Math.floor(count - ((percentage * count) / 100.0));
