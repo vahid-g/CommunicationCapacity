@@ -762,7 +762,7 @@ public class ExecPrepared {
 			scoresS[CNindexOfTopScore][indexOfTopScore] = scorestemp;
 			if (foundtopn)
 				break;
-			if (System.currentTimeMillis() - time1 > (60000)) { // query takes more than 5mins
+			if (System.currentTimeMillis() - time1 > (300000)) { // query takes more than 5mins
 				break;
 			}
 		}
