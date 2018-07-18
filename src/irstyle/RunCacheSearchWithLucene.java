@@ -70,15 +70,24 @@ public class RunCacheSearchWithLucene {
 					String linkTable = "tbl_link_09";
 					String articleImageTable = "tbl_article_image_09";
 					String articleLinkTable = "tbl_article_link_09";
+					IndexReader articleIndexToUse = articleReader;
+					IndexReader imageIndexToUse = imageReader;
+					IndexReader linkIndexToUse = linkReader;
 					long time1 = System.currentTimeMillis();
 					if (useCache(query.getText(), articleCacheReader, articleReader, articleRestReader)) {
+						System.out.println(" using cache for articles");
 						articleTable = "sub_wiki13_1";
+						articleIndexToUse = articleCacheReader;
 					}
 					if (useCache(query.getText(), imageCacheReader, imageReader, imageRestReader)) {
+						System.out.println(" using cache for images");
 						imageTable = "sub_image_10";
+						imageIndexToUse = imageCacheReader;
 					}
 					if (useCache(query.getText(), linkCacheReader, linkReader, linkRestReader)) {
+						System.out.println(" using cache for links");
 						linkTable = "sub_link_6";
+						linkIndexToUse = linkCacheReader;
 					}
 					long time2 = System.currentTimeMillis();
 					System.out.println(" Time to select cache: " + (time2 - time1) + " (ms)");
@@ -89,9 +98,12 @@ public class RunCacheSearchWithLucene {
 					Schema sch = new Schema(schemaDescription);
 					Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable,
 							linkTable, jdbcacc.conn);
-					List<String> articleIds = RunBaselineWithLucene.executeLuceneQuery(articleReader, query.getText());
-					List<String> imageIds = RunBaselineWithLucene.executeLuceneQuery(imageReader, query.getText());
-					List<String> linkIds = RunBaselineWithLucene.executeLuceneQuery(linkReader, query.getText());
+					List<String> articleIds = RunBaselineWithLucene.executeLuceneQuery(articleIndexToUse,
+							query.getText());
+					List<String> imageIds = RunBaselineWithLucene.executeLuceneQuery(imageIndexToUse, query.getText());
+					List<String> linkIds = RunBaselineWithLucene.executeLuceneQuery(linkIndexToUse, query.getText());
+					System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
+							imageIds.size(), linkIds.size());
 					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 					relnamesValues.put(articleTable, articleIds);
 					relnamesValues.put(imageTable, imageIds);
@@ -102,7 +114,8 @@ public class RunCacheSearchWithLucene {
 					queryResults.add(result);
 				}
 			}
-			System.out.println("time = " + (time / RunBaselineWithLucene.numExecutions));
+			System.out.println(
+					"average time per query = " + (time / (queries.size() * RunBaselineWithLucene.numExecutions)));
 			// IRStyleMain.printResults(queryResults, "cs_result.csv");
 		}
 	}

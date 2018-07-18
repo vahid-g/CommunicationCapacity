@@ -38,10 +38,10 @@ import wiki13.WikiRelationalEfficiencyExperiment;
 public class RunBaselineWithLucene {
 
 	static int maxCNsize = 5;
-	static int numExecutions = 3;
+	static int numExecutions = 1;
 	static int N = 100;
 	static boolean allKeywInResults = false;
-	static int tupleSetSize = 1000;
+	static int tupleSetSize = 100000;
 
 	public static void main(String[] args) throws Exception {
 		JDBCaccess jdbcacc = jdbcAccess();
@@ -81,6 +81,8 @@ public class RunBaselineWithLucene {
 					List<String> articleIds = executeLuceneQuery(articleReader, query.getText());
 					List<String> imageIds = executeLuceneQuery(imageReader, query.getText());
 					List<String> linkIds = executeLuceneQuery(linkReader, query.getText());
+					System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
+							imageIds.size(), linkIds.size());
 					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 					relnamesValues.put(articleTable, articleIds);
 					relnamesValues.put(imageTable, imageIds);
@@ -90,7 +92,7 @@ public class RunBaselineWithLucene {
 					queryResults.add(result);
 				}
 			}
-			System.out.println("time = " + (time / numExecutions));
+			System.out.println("average time per query = " + (time / (queries.size() * numExecutions)));
 			// printResults(queryResults, "ir_result.csv");
 		}
 	}
@@ -126,11 +128,7 @@ public class RunBaselineWithLucene {
 		exectime += time4 - time3;
 		System.out.println(" Time to create tuple sets: " + (time4 - time3) + " (ms)");
 		time3 = System.currentTimeMillis();
-		/** returns a vector of instances (tuple sets) */ // P1
 		Vector<?> CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx);
-		for (Object v : CNs) {
-			System.out.println(v);
-		}
 		time4 = System.currentTimeMillis();
 		exectime += time4 - time3;
 		System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
