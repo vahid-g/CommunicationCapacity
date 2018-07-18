@@ -566,13 +566,12 @@ public class ExecPrepared {
 		for (int i = 0; i < numCNs; i++)
 			if (nfreeTSs.length > maxnfreeTSsize)
 				maxnfreeTSsize = nfreeTSs.length;
-		ArrayList[][] S = new ArrayList[numCNs][maxnfreeTSsize]; // array (for each CN) of arrays (for each nfreeTS,
-																	// size of max chosen for width, so some useless i,j
-																	// combinations in S) of Arraylists (of tuple ids)
-		ArrayList[][] scoresS = new ArrayList[numCNs][maxnfreeTSsize]; // array (for each CN) of arrays (for each
-																		// nfreeTS, size of max chosen for width, so
-																		// some useless i,j combinations in S) of
-																		// Arraylists (of tuple ids)
+		// array (for each CN) of arrays (for each nfreeTS, size of max chosen for
+		// width, so some useless i,j combinations in S) of Arraylists (of tuple ids)
+		ArrayList[][] S = new ArrayList[numCNs][maxnfreeTSsize];
+		// array (for each CN) of arrays (for each nfreeTS, size of max chosen for
+		// width, so some useless i,j combinations in S) of Arraylists (of tuple ids)
+		ArrayList[][] scoresS = new ArrayList[numCNs][maxnfreeTSsize];
 		// ArrayList[] S=new ArrayList[numnfreeTSs]; //keep the ids retrieved so far
 		// from nfree TS[i]
 		// ResultSet[] rs=new ResultSet[numnfreeTSs];
@@ -638,7 +637,7 @@ public class ExecPrepared {
 					if (lookaheadscores[c][i] < 0) // no lookahead
 					{
 						// if finished will return -1
-						lookahead[c][i] = jdbcacc.getNextID((ResultSet) resultSets[c].get(i)); 
+						lookahead[c][i] = jdbcacc.getNextID((ResultSet) resultSets[c].get(i));
 						if (lookahead[c][i] < 0)
 							lookaheadscores[c][i] = -1;
 						if (lookahead[c][i] > -1) {
