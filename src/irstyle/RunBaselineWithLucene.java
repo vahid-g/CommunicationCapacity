@@ -127,6 +127,8 @@ public class RunBaselineWithLucene {
 		long time4 = System.currentTimeMillis();
 		exectime += time4 - time3;
 		System.out.println(" Time to create tuple sets: " + (time4 - time3) + " (ms)");
+		for (Relation rel : relations)
+			System.out.println(DatabaseHelper.tableSize("TS_" + rel.getName(), jdbcacc.conn));
 		time3 = System.currentTimeMillis();
 		Vector<?> CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx);
 		time4 = System.currentTimeMillis();

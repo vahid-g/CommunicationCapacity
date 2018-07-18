@@ -35,7 +35,7 @@ public class RunCacheSearchWithLucene {
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
 				paths.getMsnQrelFilePath());
 		Collections.shuffle(queries, new Random(1));
-		queries = queries.subList(0, 10);
+		queries = queries.subList(0, 50);
 		List<QueryResult> queryResults = new ArrayList<QueryResult>();
 		String baseDir = "/data/ghadakcv/wikipedia/";
 		try (IndexReader articleReader = DirectoryReader
@@ -116,7 +116,7 @@ public class RunCacheSearchWithLucene {
 			}
 			System.out.println(
 					"average time per query = " + (time / (queries.size() * RunBaselineWithLucene.numExecutions)));
-			// IRStyleMain.printResults(queryResults, "cs_result.csv");
+			IRStyleKeywordSearch.printResults(queryResults, "cs_result.csv");
 		}
 	}
 
