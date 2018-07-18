@@ -89,7 +89,7 @@ public class CacheSelectionLuceneMain {
 							+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 							+ articleLinkTable + " " + linkTable;
 					Schema sch = new Schema(schemaDescription);
-					Vector<Relation> relations = IRStyleMain.createRelations(articleTable, imageTable, linkTable);
+					Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable);
 					List<String> articleIds = IRStyleLuceneMain.executeLuceneQuery(articleReader, query.getText());
 					List<String> imageIds = IRStyleLuceneMain.executeLuceneQuery(imageReader, query.getText());
 					List<String> linkIds = IRStyleLuceneMain.executeLuceneQuery(linkReader, query.getText());

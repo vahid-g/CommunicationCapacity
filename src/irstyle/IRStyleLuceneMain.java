@@ -60,8 +60,8 @@ public class IRStyleLuceneMain {
 					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
-			Vector<Relation> relations = IRStyleMain.createRelations(articleTable, imageTable, linkTable);
-			IRStyleMain.dropTupleSets(jdbcacc, relations);
+			Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable);
+			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 			WikiFilesPaths paths = null;
 			paths = WikiFilesPaths.getMaplePaths();
 			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
@@ -142,9 +142,9 @@ public class IRStyleLuceneMain {
 		exectime += time4 - time3;
 		System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 		ArrayList<Result> results = new ArrayList<Result>(1);
-		exectime += IRStyleMain.methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
-		IRStyleMain.dropTupleSets(jdbcacc, relations);
-		double rrank = IRStyleMain.rrank(results, query);
+		exectime += IRStyleKeywordSearch.methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
+		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
+		double rrank = IRStyleKeywordSearch.rrank(results, query);
 		System.out.println(" R-rank = " + rrank);
 		QueryResult result = new QueryResult(query, rrank, exectime);
 		return result;

@@ -87,7 +87,7 @@ public class CacheSelectionMain {
 						+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 						+ articleLinkTable + " " + linkTable;
 				Schema sch = new Schema(schemaDescription);
-				Vector<Relation> relations = IRStyleMain.createRelations(articleTable, imageTable, linkTable);
+				Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable);
 
 				List<String> articleIds = IRStyleLuceneMain.executeLuceneQuery(articleReader, query.getText());
 				List<String> imageIds = IRStyleLuceneMain.executeLuceneQuery(imageReader, query.getText());
@@ -100,7 +100,7 @@ public class CacheSelectionMain {
 						relnamesValues);
 				queryResults.add(result);
 			}
-			IRStyleMain.printResults(queryResults, "cs_result.csv");
+			IRStyleKeywordSearch.printResults(queryResults, "cs_result.csv");
 
 		}
 	}
