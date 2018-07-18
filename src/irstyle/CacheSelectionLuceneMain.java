@@ -5,7 +5,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
@@ -25,7 +27,7 @@ import wiki13.WikiFilesPaths;
 
 public class CacheSelectionLuceneMain {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
 
 		JDBCaccess jdbcacc = IRStyleMain.jdbcAccess();
 		WikiFilesPaths paths = null;
@@ -88,7 +90,14 @@ public class CacheSelectionLuceneMain {
 							+ articleLinkTable + " " + linkTable;
 					Schema sch = new Schema(schemaDescription);
 					Vector<Relation> relations = IRStyleMain.createRelations(articleTable, imageTable, linkTable);
-					QueryResult result = IRStyleMain.executeIRStyleQuery(jdbcacc, sch, relations, query);
+					List<String> articleIds = IRStyleLuceneMain.executeLuceneQuery(articleReader, query.getText());
+					List<String> imageIds = IRStyleLuceneMain.executeLuceneQuery(imageReader, query.getText());
+					List<String> linkIds = IRStyleLuceneMain.executeLuceneQuery(linkReader, query.getText());
+					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
+					relnamesValues.put(articleTable, articleIds);
+					relnamesValues.put(imageTable, imageIds);
+					relnamesValues.put(linkTable, linkIds);
+					QueryResult result = IRStyleLuceneMain.executeIRStyleQuery(jdbcacc, sch, relations, query, relnamesValues);
 					time += result.execTime;
 					queryResults.add(result);
 				}
