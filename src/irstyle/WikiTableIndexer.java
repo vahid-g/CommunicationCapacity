@@ -67,7 +67,7 @@ public class WikiTableIndexer {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
 			for (int i = 1; i <= 100; i += 1) {
-				double count = wti.tableSize(tableName);
+				double count = DatabaseHelper.tableSize(tableName, wti.conn);
 				int limit = (int) Math.floor((i * count) / 100.0);
 				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
 				wti.indexTable(indexPath, tableName, "id", new String[] { "url" }, limit, "pop", false);
@@ -80,7 +80,7 @@ public class WikiTableIndexer {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
 			for (int i = 1; i <= 100; i += 1) {
-				double count = wti.tableSize(tableName);
+				double count = DatabaseHelper.tableSize(tableName, wti.conn);
 				int limit = (int) Math.floor((i * count) / 100.0);
 				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
 				wti.indexTable(indexPath, tableName, "id", new String[] { "src" }, limit, "pop", false);
@@ -93,7 +93,7 @@ public class WikiTableIndexer {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
 			for (int i = 1; i <= 100; i += 1) {
-				double count = wti.tableSize(tableName);
+				double count = DatabaseHelper.tableSize(tableName, wti.conn);
 				int limit = (int) Math.floor((i * count) / 100.0);
 				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
 				wti.indexTable(indexPath, tableName, "id", new String[] { "title", "text" }, limit, "popularity",
@@ -107,22 +107,10 @@ public class WikiTableIndexer {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			WikiTableIndexer wti = new WikiTableIndexer(new StandardAnalyzer(), dc);
 			String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/c" + percentage;
-			double count = wti.tableSize(tableName);
+			double count = DatabaseHelper.tableSize(tableName, wti.conn);
 			int limit = (int) Math.floor(count - ((percentage * count) / 100.0));
 			wti.indexTable(indexPath, tableName, "id", textAttribs, limit, popularityAttrib, true);
 		}
-	}
-
-	private int tableSize(String tableName) throws SQLException {
-		int count = -1;
-		try (Statement stmt = conn.createStatement()) {
-			String sql = "select count(*) count from " + tableName + ";";
-			ResultSet rs = stmt.executeQuery(sql);
-			while (rs.next()) {
-				count = rs.getInt("count");
-			}
-		}
-		return count;
 	}
 
 	private void indexTable(String indexPath, String table, String idAttrib, String[] textAttribs, int limit,
