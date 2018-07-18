@@ -37,8 +37,6 @@ public class CacheSelectionLuceneMain {
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 10);
 		List<QueryResult> queryResults = new ArrayList<QueryResult>();
-		// queries = new ArrayList<ExperimentQuery>();
-		// queries.add(new ExperimentQuery(1, "angela y. davis", 1));
 		String baseDir = "/data/ghadakcv/wikipedia/";
 		try (IndexReader articleReader = DirectoryReader
 				.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/100")));

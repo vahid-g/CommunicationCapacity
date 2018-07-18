@@ -1,6 +1,5 @@
 package irstyle;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -26,15 +25,12 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
-import irstyle_core.ExecPrepared;
-import irstyle_core.Instance;
 import irstyle_core.JDBCaccess;
 import irstyle_core.MIndexAccess;
 import irstyle_core.Relation;
 import irstyle_core.Result;
 import irstyle_core.Schema;
 import query.ExperimentQuery;
-import query.Qrel;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
 import wiki13.WikiRelationalEfficiencyExperiment;
@@ -70,10 +66,6 @@ public class IRStyleLuceneMain {
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 10);
 			List<QueryResult> queryResults = new ArrayList<QueryResult>();
-			// queries = new ArrayList<ExperimentQuery>();
-			// ExperimentQuery eq = new ExperimentQuery(1, "Nero", 1);
-			// eq.addRelevantAnswer(new Qrel(1, "21632", 1));
-			// queries.add(eq);
 			String baseDir = "/data/ghadakcv/wikipedia/";
 			try (IndexReader articleReader = DirectoryReader
 					.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/100")));

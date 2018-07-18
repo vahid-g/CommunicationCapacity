@@ -14,7 +14,6 @@ import java.util.Vector;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.store.FSDirectory;
 
 import cache_selection.FeatureExtraction;
@@ -38,8 +37,6 @@ public class CacheSelectionMain {
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 50);
 		List<QueryResult> queryResults = new ArrayList<QueryResult>();
-		// queries = new ArrayList<ExperimentQuery>();
-		// queries.add(new ExperimentQuery(1, "angela y. davis", 1));
 		String baseDir = "/data/ghadakcv/wikipedia/";
 		try (IndexReader articleReader = DirectoryReader
 				.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/100")));
@@ -87,7 +84,8 @@ public class CacheSelectionMain {
 						+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 						+ articleLinkTable + " " + linkTable;
 				Schema sch = new Schema(schemaDescription);
-				Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable);
+				Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
+						jdbcacc.conn);
 
 				List<String> articleIds = IRStyleLuceneMain.executeLuceneQuery(articleReader, query.getText());
 				List<String> imageIds = IRStyleLuceneMain.executeLuceneQuery(imageReader, query.getText());
