@@ -60,8 +60,8 @@ public class IRStyleLuceneMain {
 					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
-			Vector<Relation> relations = createRelations(articleTable, imageTable, linkTable);
-			dropTupleSets(jdbcacc, relations);
+			Vector<Relation> relations = IRStyleMain.createRelations(articleTable, imageTable, linkTable);
+			IRStyleMain.dropTupleSets(jdbcacc, relations);
 			WikiFilesPaths paths = null;
 			paths = WikiFilesPaths.getMaplePaths();
 			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
@@ -120,54 +120,6 @@ public class IRStyleLuceneMain {
 		return jdbcacc;
 	}
 
-	static Vector<Relation> createRelations(String articleTable, String imageTable, String linkTable) {
-		// Note that to be able to match qrels with answers, the main table should be
-		// the first relation and
-		// the first attrib should be its ID
-		Vector<Relation> relations = new Vector<Relation>();
-		Relation rel = new Relation(articleTable);
-		rel.addAttribute("id", false, "INTEGER");
-		rel.addAttribute("title", true, "VARCHAR2(256)");
-		rel.addAttribute("text", true, "VARCHAR2(32000)");
-		// rel.addAttribute("popularity", false, "INTEGER");
-		rel.addAttr4Rel("id", "tbl_article_image_09");
-		rel.addAttr4Rel("id", "tbl_article_link_09");
-		rel.setSize(233909);
-		relations.addElement(rel);
-
-		rel = new Relation("tbl_article_image_09");
-		rel.addAttribute("article_id", false, "INTEGER");
-		rel.addAttribute("image_id", false, "INTEGER");
-		rel.addAttr4Rel("article_id", articleTable);
-		rel.addAttr4Rel("image_id", imageTable);
-		rel.setSize(3840433);
-		relations.addElement(rel);
-
-		rel = new Relation(imageTable);
-		rel.addAttribute("id", false, "INTEGER");
-		rel.addAttribute("src", true, "VARCHAR(256)");
-		rel.addAttr4Rel("id", "tbl_article_image_09");
-		rel.setSize(1183070);
-		relations.addElement(rel);
-
-		rel = new Relation("tbl_article_link_09");
-		rel.addAttribute("link_id", false, "INTEGER");
-		rel.addAttribute("article_id", false, "INTEGER");
-		rel.addAttr4Rel("link_id", linkTable);
-		rel.addAttr4Rel("article_id", articleTable);
-		rel.setSize(120916125);
-		relations.addElement(rel);
-
-		rel = new Relation(linkTable);
-		rel.addAttribute("id", false, "INTEGER");
-		rel.addAttribute("url", true, "VARCHAR(255)");
-		rel.addAttr4Rel("id", "tbl_article_link_09");
-		rel.setSize(9766351);
-		relations.addElement(rel);
-
-		return relations;
-	}
-
 	static QueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,
 			ExperimentQuery query, Map<String, List<String>> relnameValues) throws Exception {
 		MIndexAccess MIndx = new MIndexAccess(relations);
@@ -190,60 +142,12 @@ public class IRStyleLuceneMain {
 		exectime += time4 - time3;
 		System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 		ArrayList<Result> results = new ArrayList<Result>(1);
-		exectime += methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
-		dropTupleSets(jdbcacc, relations);
-		double rrank = rrank(results, query);
+		exectime += IRStyleMain.methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
+		IRStyleMain.dropTupleSets(jdbcacc, relations);
+		double rrank = IRStyleMain.rrank(results, query);
 		System.out.println(" R-rank = " + rrank);
 		QueryResult result = new QueryResult(query, rrank, exectime);
 		return result;
-	}
-
-	static int methodC(int N, boolean allKeywInResults, Vector<Relation> relations, Vector<String> allkeyw,
-			Vector<?> CNs, ArrayList<Result> results, JDBCaccess jdbcacc) {
-		// Method C: parallel execution
-		int exectime = 0;
-		ArrayList[] nfreeTSs = new ArrayList[CNs.size()];
-		String[] sqls = new String[CNs.size()];
-		int[] CNsize = new int[CNs.size()];
-		for (int i = 0; i < CNs.size(); i++) {
-			CNsize[i] = ((Instance) CNs.elementAt(i)).getsize() + 1;
-			nfreeTSs[i] = new ArrayList<String>();
-			sqls[i] = ((Instance) CNs.elementAt(i)).getSQLstatementParameterized(relations, allkeyw, nfreeTSs[i]);
-		}
-		ExecPrepared execprepared2 = new ExecPrepared();
-		exectime = execprepared2.ExecuteParallel(jdbcacc, sqls, nfreeTSs, new ArrayList<String>(allkeyw), N, CNsize,
-				results, allKeywInResults);
-		System.out.println(" Exec CNs in parallel: total exec time = " + exectime + " (ms) " + allKeywInResults
-				+ " #results==" + results.size());
-		return exectime;
-	}
-
-	static double rrank(List<Result> results, ExperimentQuery query) {
-		for (int i = 0; i < results.size(); i++) {
-			String resultText = results.get(i).getStr();
-			String resultId = resultText.substring(0, resultText.indexOf(" - "));
-			if (query.getQrelScoreMap().keySet().contains(resultId)) {
-				return 1.0 / (i + 1);
-			}
-		}
-		return 0;
-	}
-
-	static void dropTupleSets(JDBCaccess jdbcacc, Vector<Relation> relations) {
-		for (Relation rel : relations) {
-			jdbcacc.dropTable("TS_" + rel.getName());
-		}
-	}
-
-	static void printResults(List<QueryResult> queryResults, String filename) throws IOException {
-		try (FileWriter fw = new FileWriter(filename)) {
-			for (QueryResult result : queryResults) {
-				ExperimentQuery query = result.query;
-				fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + result.rrank + ","
-						+ result.execTime + "\n");
-				fw.flush();
-			}
-		}
 	}
 
 	static List<String> executeLuceneQuery(IndexReader reader, String queryText) throws ParseException, IOException {
