@@ -28,7 +28,7 @@ public class IRStyleMain {
 	static int N = 100;
 	static boolean allKeywInResults = false;
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
 		JDBCaccess jdbcacc = jdbcAccess();
 		for (int exec = 0; exec < numExecutions; exec++) {
 			String articleTable = "tbl_article_09";
@@ -40,7 +40,8 @@ public class IRStyleMain {
 					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
-			Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable);
+			Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
+					jdbcacc.conn);
 			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 			WikiFilesPaths paths = null;
 			paths = WikiFilesPaths.getMaplePaths();
@@ -49,10 +50,10 @@ public class IRStyleMain {
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 50);
 			List<QueryResult> queryResults = new ArrayList<QueryResult>();
-//			queries = new ArrayList<ExperimentQuery>();
-//			ExperimentQuery eq = new ExperimentQuery(1, "Nero", 1);
-//			eq.addRelevantAnswer(new Qrel(1, "21632", 1));
-//			queries.add(eq);
+			// queries = new ArrayList<ExperimentQuery>();
+			// ExperimentQuery eq = new ExperimentQuery(1, "Nero", 1);
+			// eq.addRelevantAnswer(new Qrel(1, "21632", 1));
+			// queries.add(eq);
 			int loop = 1;
 			for (ExperimentQuery query : queries) {
 				System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());

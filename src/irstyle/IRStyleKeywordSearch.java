@@ -3,6 +3,7 @@ package irstyle;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,7 +20,8 @@ import query.ExperimentQuery;
 
 public class IRStyleKeywordSearch {
 
-	static Vector<Relation> createRelations(String articleTable, String imageTable, String linkTable) {
+	static Vector<Relation> createRelations(String articleTable, String imageTable, String linkTable, Connection conn)
+			throws SQLException {
 		// Note that to be able to match qrels with answers, the main table should be
 		// the first relation and
 		// the first attrib should be its ID
@@ -31,9 +33,9 @@ public class IRStyleKeywordSearch {
 		// rel.addAttribute("popularity", false, "INTEGER");
 		rel.addAttr4Rel("id", "tbl_article_image_09");
 		rel.addAttr4Rel("id", "tbl_article_link_09");
-		rel.setSize(233909);
+		rel.setSize(DatabaseHelper.tableSize(articleTable, conn));
 		relations.addElement(rel);
-	
+
 		rel = new Relation("tbl_article_image_09");
 		rel.addAttribute("article_id", false, "INTEGER");
 		rel.addAttribute("image_id", false, "INTEGER");
@@ -41,14 +43,14 @@ public class IRStyleKeywordSearch {
 		rel.addAttr4Rel("image_id", imageTable);
 		rel.setSize(3840433);
 		relations.addElement(rel);
-	
+
 		rel = new Relation(imageTable);
 		rel.addAttribute("id", false, "INTEGER");
 		rel.addAttribute("src", true, "VARCHAR(256)");
 		rel.addAttr4Rel("id", "tbl_article_image_09");
-		rel.setSize(1183070);
+		rel.setSize(DatabaseHelper.tableSize(imageTable, conn));
 		relations.addElement(rel);
-	
+
 		rel = new Relation("tbl_article_link_09");
 		rel.addAttribute("link_id", false, "INTEGER");
 		rel.addAttribute("article_id", false, "INTEGER");
@@ -56,14 +58,14 @@ public class IRStyleKeywordSearch {
 		rel.addAttr4Rel("article_id", articleTable);
 		rel.setSize(120916125);
 		relations.addElement(rel);
-	
+
 		rel = new Relation(linkTable);
 		rel.addAttribute("id", false, "INTEGER");
 		rel.addAttribute("url", true, "VARCHAR(255)");
 		rel.addAttr4Rel("id", "tbl_article_link_09");
-		rel.setSize(9766351);
+		rel.setSize(DatabaseHelper.tableSize(linkTable, conn));
 		relations.addElement(rel);
-	
+
 		return relations;
 	}
 

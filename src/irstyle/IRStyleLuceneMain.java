@@ -60,7 +60,8 @@ public class IRStyleLuceneMain {
 					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
-			Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable);
+			Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
+					jdbcacc.conn);
 			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 			WikiFilesPaths paths = null;
 			paths = WikiFilesPaths.getMaplePaths();
@@ -69,14 +70,14 @@ public class IRStyleLuceneMain {
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 10);
 			List<QueryResult> queryResults = new ArrayList<QueryResult>();
-//			queries = new ArrayList<ExperimentQuery>();
-//			ExperimentQuery eq = new ExperimentQuery(1, "Nero", 1);
-//			eq.addRelevantAnswer(new Qrel(1, "21632", 1));
-//			queries.add(eq);
+			// queries = new ArrayList<ExperimentQuery>();
+			// ExperimentQuery eq = new ExperimentQuery(1, "Nero", 1);
+			// eq.addRelevantAnswer(new Qrel(1, "21632", 1));
+			// queries.add(eq);
 			String baseDir = "/data/ghadakcv/wikipedia/";
 			try (IndexReader articleReader = DirectoryReader
 					.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/100")));
-					//.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/100")));
+					// .open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/100")));
 					IndexReader imageReader = DirectoryReader
 							.open(FSDirectory.open(Paths.get(baseDir + "tbl_image_pop/100")));
 					IndexReader linkReader = DirectoryReader
