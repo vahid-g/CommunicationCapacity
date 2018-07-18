@@ -624,7 +624,9 @@ public class ExecPrepared {
 									// //lookaheadscores[i]=-1 at this point
 		if (Flags.DEBUG_INFO2)
 			printResults(R, scoresR);
+		int loop = 0;
 		while (!foundtopn) {
+			loop++;
 			// get CN with max score
 			double CNtopScore = -1;
 			int CNindexOfTopScore = -1;
@@ -713,6 +715,8 @@ public class ExecPrepared {
 			// break;
 			// replace S[indexOfTopScore] by lookahead[indexOfTopScore] (=topScore). Replace
 			// it back later
+			if (Flags.DEBUG_INFO)
+				System.out.print(CNindexOfTopScore + "," + indexOfTopScore + " ");
 			S[CNindexOfTopScore][indexOfTopScore].add(new Integer(lookahead[CNindexOfTopScore][indexOfTopScore]));
 			scoresS[CNindexOfTopScore][indexOfTopScore]
 					.add(new Integer(lookaheadscores[CNindexOfTopScore][indexOfTopScore]));
@@ -754,16 +758,30 @@ public class ExecPrepared {
 					// break;
 				}
 			}
-			if (foundtopn)
-				break;
-			long time = System.currentTimeMillis();
-			if (time - time1 > (300000)) { // query takes more than 5mins
-				break;
-			}
 			S[CNindexOfTopScore][indexOfTopScore] = temp;
 			scoresS[CNindexOfTopScore][indexOfTopScore] = scorestemp;
+			if (foundtopn)
+				break;
+			if (System.currentTimeMillis() - time1 > (60000)) { // query takes more than 5mins
+				break;
+			}
 		}
-
+		if (Flags.DEBUG_INFO) {
+			System.out.println("  #loop" + loop);
+			for (int i = 0; i < S.length; i++) {
+				String str = "CN #" + i;
+				for (int k = 0; k < nfreeTSs[i].size(); k++)
+					str += " " + (String) nfreeTSs[i].get(k);
+				System.out.println(str);
+				for (int j = 0; j < S[0].length; j++) {
+					if (S[i][j] != null)
+						System.out.print(S[i][j].size() + " ");
+					else
+						break;
+				}
+				System.out.println();
+			}
+		}
 		long time2 = System.currentTimeMillis();
 		System.out.println("Parallel algor: results output = " + resultsSoFar + " numPreparedQueries = "
 				+ numPreparedQueries + "  in time = " + (time2 - time1));

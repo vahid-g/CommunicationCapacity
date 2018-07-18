@@ -3,7 +3,9 @@ package irstyle;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -142,6 +144,21 @@ public class IRStyleKeywordSearch {
 		for (Relation rel : relations) {
 			jdbcacc.dropTable("TS_" + rel.getName());
 		}
+	}
+
+	static void dropAllTuplesets(JDBCaccess jdbcacc) throws SQLException {
+		String sql = "SELECT CONCAT( 'DROP TABLE ', GROUP_CONCAT(table_name) , ';' ) AS statement FROM "
+				+ "information_schema.tables WHERE table_name LIKE 'TS_%';";
+		try (Statement stmt = jdbcacc.conn.createStatement()) {
+			ResultSet rs = stmt.executeQuery(sql);
+			if (rs.next()) {
+				String dropQuery = rs.getString("statement");
+				if (dropQuery != null && !dropQuery.equals("")) {
+					stmt.executeUpdate(dropQuery);
+				}
+			}
+		}
+
 	}
 
 	static void printResults(List<QueryResult> queryResults, String filename) throws IOException {

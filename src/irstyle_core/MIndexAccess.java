@@ -58,7 +58,7 @@ public class MIndexAccess {
 		}
 	}
 
-	private boolean hasTextAttr(Relation rel) {
+	public boolean hasTextAttr(Relation rel) {
 		for (int i = 0; i < rel.getNumAttributes(); i++)
 			if (rel.isInMasterIndex(rel.getAttribute(i)))
 				return true;

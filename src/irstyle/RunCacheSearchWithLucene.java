@@ -28,14 +28,15 @@ import wiki13.WikiFilesPaths;
 public class RunCacheSearchWithLucene {
 
 	public static void main(String[] args) throws Exception {
-
 		JDBCaccess jdbcacc = RunBaseline.jdbcAccess();
+		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		WikiFilesPaths paths = null;
 		paths = WikiFilesPaths.getMaplePaths();
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
 				paths.getMsnQrelFilePath());
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 50);
+		// queries = queries.subList(1, 2);
 		List<QueryResult> queryResults = new ArrayList<QueryResult>();
 		String baseDir = "/data/ghadakcv/wikipedia/";
 		try (IndexReader articleReader = DirectoryReader
@@ -130,6 +131,7 @@ public class RunCacheSearchWithLucene {
 		ql_rest = fe.queryLikelihood(restIndexReader, query, RunTableIndexer.TEXT_FIELD, globalIndexReader,
 				new StandardAnalyzer());
 		return (ql_cache >= ql_rest);
+		// return false;
 	}
 
 }
