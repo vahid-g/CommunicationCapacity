@@ -39,7 +39,7 @@ public class RunBaselineWithLucene {
 
 	static int maxCNsize = 5;
 	static int numExecutions = 1;
-	static int N = 20;
+	static int N = 100;
 	static boolean allKeywInResults = false;
 	static int tupleSetSize = 100000;
 
@@ -150,7 +150,7 @@ public class RunBaselineWithLucene {
 		IndexSearcher searcher = new IndexSearcher(reader);
 		searcher.setSimilarity(new BM25Similarity());
 		QueryParser qp = new QueryParser(RunTableIndexer.TEXT_FIELD, new StandardAnalyzer());
-		Query query = qp.parse(queryText);
+		Query query = qp.parse(QueryParser.escape(queryText));
 		ScoreDoc[] scoreDocHits = searcher.search(query, tupleSetSize).scoreDocs;
 		List<String> results = new ArrayList<String>();
 		for (int j = 0; j < scoreDocHits.length; j++) {

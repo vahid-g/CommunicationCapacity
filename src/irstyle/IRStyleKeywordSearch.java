@@ -167,6 +167,7 @@ public class IRStyleKeywordSearch {
 		try (FileWriter fw = new FileWriter(filename)) {
 			for (QueryResult result : queryResults) {
 				ExperimentQuery query = result.query;
+				String queryText = query.getText();
 				fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + result.rrank() + ","
 						+ result.p20() + "," + result.recall() + "," + result.execTime + "\n");
 				fw.flush();
