@@ -28,15 +28,19 @@ import wiki13.WikiFilesPaths;
 public class RunCacheSearchWithLucene {
 
 	public static void main(String[] args) throws Exception {
+		List<String> argsList = Arrays.asList(args);
 		JDBCaccess jdbcacc = RunBaseline.jdbcAccess();
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		WikiFilesPaths paths = null;
 		paths = WikiFilesPaths.getMaplePaths();
-		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
-				paths.getMsnQrelFilePath());
-		Collections.shuffle(queries, new Random(1));
-		queries = queries.subList(0, 10);
-		// queries = queries.subList(1, 2);
+		List<ExperimentQuery> queries = null;
+		if (argsList.contains("-inex")) {
+			queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath());
+		} else {
+			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
+			Collections.shuffle(queries, new Random(1));
+			queries = queries.subList(0, 10);
+		}
 		List<QueryResult> queryResults = new ArrayList<QueryResult>();
 		String baseDir = "/data/ghadakcv/wikipedia/";
 		try (IndexReader articleReader = DirectoryReader

@@ -46,39 +46,39 @@ public class RunBaselineWithLucene {
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
 		JDBCaccess jdbcacc = jdbcAccess();
-		int time = 0;
-		for (int exec = 0; exec < numExecutions; exec++) {
-			String articleTable = "tbl_article_wiki13";
-			String imageTable = "tbl_image_09_tk";
-			String linkTable = "tbl_link_09";
-			String articleImageTable = "tbl_article_image_09";
-			String articleLinkTable = "tbl_article_link_09";
-			String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
-					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
-					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
-					+ articleLinkTable + " " + linkTable;
-			Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
-					jdbcacc.conn);
-			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
-			WikiFilesPaths paths = null;
-			paths = WikiFilesPaths.getMaplePaths();
-			List<ExperimentQuery> queries = null;
-			if (argsList.contains("-inex")) {
-				queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath());
-			} else {
-				queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
-				Collections.shuffle(queries, new Random(1));
-				queries = queries.subList(0, 10);
-			}
-			List<QueryResult> queryResults = new ArrayList<QueryResult>();
-			String baseDir = "/data/ghadakcv/wikipedia/";
-			try (IndexReader articleReader = DirectoryReader
-					.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/100")));
-					// .open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/100")));
-					IndexReader imageReader = DirectoryReader
-							.open(FSDirectory.open(Paths.get(baseDir + "tbl_image_pop/100")));
-					IndexReader linkReader = DirectoryReader
-							.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/100")))) {
+		String articleTable = "tbl_article_wiki13";
+		String imageTable = "tbl_image_09_tk";
+		String linkTable = "tbl_link_09";
+		String articleImageTable = "tbl_article_image_09";
+		String articleLinkTable = "tbl_article_link_09";
+		String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
+				+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
+				+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
+				+ articleLinkTable + " " + linkTable;
+		Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
+				jdbcacc.conn);
+		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
+		WikiFilesPaths paths = null;
+		paths = WikiFilesPaths.getMaplePaths();
+		List<ExperimentQuery> queries = null;
+		if (argsList.contains("-inex")) {
+			queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath());
+		} else {
+			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
+			Collections.shuffle(queries, new Random(1));
+			queries = queries.subList(0, 10);
+		}
+		List<QueryResult> queryResults = new ArrayList<QueryResult>();
+		String baseDir = "/data/ghadakcv/wikipedia/";
+		try (IndexReader articleReader = DirectoryReader
+				.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/100")));
+				// .open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/100")));
+				IndexReader imageReader = DirectoryReader
+						.open(FSDirectory.open(Paths.get(baseDir + "tbl_image_pop/100")));
+				IndexReader linkReader = DirectoryReader
+						.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/100")))) {
+			int time = 0;
+			for (int exec = 0; exec < numExecutions; exec++) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
 					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
