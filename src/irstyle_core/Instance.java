@@ -4,8 +4,6 @@ package irstyle_core;
 import java.math.*;
 import java.util.*;
 
-import irstyle.IRStyleParams;
-
 //import com.ms.wfc.ui.*;
 
 //Instance is the Tuple Set of the paper

@@ -22,6 +22,8 @@ import query.ExperimentQuery;
 
 public class IRStyleKeywordSearch {
 
+	public static int MAX_GENERATED_CNS = 50;
+
 	static Vector<Relation> createRelations(String articleTable, String imageTable, String linkTable, Connection conn)
 			throws SQLException {
 		// Note that to be able to match qrels with answers, the main table should be
