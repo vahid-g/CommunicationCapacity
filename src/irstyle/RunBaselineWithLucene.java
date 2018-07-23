@@ -39,11 +39,12 @@ public class RunBaselineWithLucene {
 
 	static int maxCNsize = 5;
 	static int numExecutions = 1;
-	static int N = 10;
+	static int N = 20;
 	static boolean allKeywInResults = false;
 	static int tupleSetSize = 100000;
 
 	public static void main(String[] args) throws Exception {
+		List<String> argsList = Arrays.asList(args);
 		JDBCaccess jdbcacc = jdbcAccess();
 		int time = 0;
 		for (int exec = 0; exec < numExecutions; exec++) {
@@ -61,10 +62,14 @@ public class RunBaselineWithLucene {
 			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 			WikiFilesPaths paths = null;
 			paths = WikiFilesPaths.getMaplePaths();
-			List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
-					paths.getMsnQrelFilePath());
-			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 10);
+			List<ExperimentQuery> queries = null;
+			if (argsList.contains("-inex")) {
+				queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath());
+			} else {
+				queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
+				Collections.shuffle(queries, new Random(1));
+				queries = queries.subList(0, 10);
+			}
 			List<QueryResult> queryResults = new ArrayList<QueryResult>();
 			String baseDir = "/data/ghadakcv/wikipedia/";
 			try (IndexReader articleReader = DirectoryReader
@@ -132,12 +137,12 @@ public class RunBaselineWithLucene {
 		time4 = System.currentTimeMillis();
 		exectime += time4 - time3;
 		System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
-		ArrayList<Result> results = new ArrayList<Result>(1);
+		ArrayList<Result> results = new ArrayList<Result>();
 		exectime += IRStyleKeywordSearch.methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
-		double rrank = IRStyleKeywordSearch.rrank(results, query);
-		System.out.println(" R-rank = " + rrank);
-		QueryResult result = new QueryResult(query, rrank, exectime);
+		QueryResult result = new QueryResult(query, exectime);
+		result.addIRStyleResults(results);
+		System.out.println(" R-rank = " + result.rrank());
 		return result;
 	}
 

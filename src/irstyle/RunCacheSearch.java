@@ -98,7 +98,7 @@ public class RunCacheSearch {
 						relnamesValues);
 				queryResults.add(result);
 			}
-			IRStyleKeywordSearch.printResults(queryResults, "cs_result.csv");
+			IRStyleKeywordSearch.printRrankResults(queryResults, "cs_result.csv");
 
 		}
 	}

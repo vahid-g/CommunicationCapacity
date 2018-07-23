@@ -56,7 +56,7 @@ public class RunBaseline {
 				QueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query);
 				queryResults.add(result);
 			}
-			IRStyleKeywordSearch.printResults(queryResults, "ir_result.csv");
+			IRStyleKeywordSearch.printRrankResults(queryResults, "ir_result.csv");
 		}
 	}
 
@@ -102,9 +102,9 @@ public class RunBaseline {
 		ArrayList<Result> results = new ArrayList<Result>(1);
 		exectime += IRStyleKeywordSearch.methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
-		double rrank = IRStyleKeywordSearch.rrank(results, query);
-		System.out.println(" R-rank = " + rrank);
-		QueryResult result = new QueryResult(query, rrank, exectime);
+		QueryResult result = new QueryResult(query, exectime);
+		result.addIRStyleResults(results);
+		System.out.println(" R-rank = " + result.rrank());
 		return result;
 	}
 

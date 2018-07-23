@@ -131,17 +131,6 @@ public class IRStyleKeywordSearch {
 		return exectime;
 	}
 
-	static double rrank(List<Result> results, ExperimentQuery query) {
-		for (int i = 0; i < results.size(); i++) {
-			String resultText = results.get(i).getStr();
-			String resultId = resultText.substring(0, resultText.indexOf(" - "));
-			if (query.getQrelScoreMap().keySet().contains(resultId)) {
-				return 1.0 / (i + 1);
-			}
-		}
-		return 0;
-	}
-
 	static void dropTupleSets(JDBCaccess jdbcacc, Vector<Relation> relations) {
 		for (Relation rel : relations) {
 			jdbcacc.dropTable("TS_" + rel.getName());
@@ -163,12 +152,23 @@ public class IRStyleKeywordSearch {
 
 	}
 
+	static void printRrankResults(List<QueryResult> queryResults, String filename) throws IOException {
+		try (FileWriter fw = new FileWriter(filename)) {
+			for (QueryResult result : queryResults) {
+				ExperimentQuery query = result.query;
+				fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + result.rrank() + ","
+						+ result.execTime + "\n");
+				fw.flush();
+			}
+		}
+	}
+
 	static void printResults(List<QueryResult> queryResults, String filename) throws IOException {
 		try (FileWriter fw = new FileWriter(filename)) {
 			for (QueryResult result : queryResults) {
 				ExperimentQuery query = result.query;
-				fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + result.rrank + ","
-						+ result.execTime + "\n");
+				fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + result.rrank() + ","
+						+ result.p20() + "," + result.recall() + "," + result.execTime + "\n");
 				fw.flush();
 			}
 		}
