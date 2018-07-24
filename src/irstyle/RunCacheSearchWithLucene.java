@@ -121,7 +121,7 @@ public class RunCacheSearchWithLucene {
 			}
 			System.out.println(
 					"average time per query = " + (time / (queries.size() * RunBaselineWithLucene.numExecutions)));
-			IRStyleKeywordSearch.printRrankResults(queryResults, "cs_result.csv");
+			IRStyleKeywordSearch.printResults(queryResults, "cs_result.csv");
 		}
 	}
 
