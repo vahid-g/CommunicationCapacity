@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -36,52 +37,47 @@ public class RunFindCache {
 	private static int TOPDOC_COUNTS = 100;
 
 	public static void main(String[] args) throws IOException, SQLException, ParseException {
-		if (args[0].equals("articles")) {
-			findArticleCache();
-		} else if (args[0].equals("images")) {
-			findOtherCache("tbl_image_pop", "tbl_article_image_09", "image_id");
-		} else if (args[0].equals("links")) {
-			findOtherCache("tbl_link_pop", "tbl_article_link_09", "link_id");
+		List<String> argsList = Arrays.asList(args);
+		WikiFilesPaths paths = WikiFilesPaths.getMaplePaths();
+
+		List<ExperimentQuery> queries = null;
+		if (argsList.contains("msn")) {
+			QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
+		} else if (argsList.contains("inex")) {
+			queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath());
+		}
+		Collections.shuffle(queries, new Random(1));
+		queries = queries.subList(0, 20);
+		if (argsList.contains("articles")) {
+			findCache(queries, "tbl_article_wiki13");
+		} else if (argsList.contains("images")) {
+			updateQrelsForOtherTables(queries, "tbl_article_image_09", "image_id");
+			findCache(queries, "tbl_image_pop");
+		} else if (argsList.contains("links")) {
+			updateQrelsForOtherTables(queries, "tbl_article_link_09", "link_id");
+			findCache(queries, "tbl_link_pop");
 		} else {
 			System.out.println("Wrong input args!");
 		}
 	}
 
-	public static void findArticleCache() throws IOException, ParseException {
-		String tableName = "tbl_article_wiki13";
-		WikiFilesPaths paths = WikiFilesPaths.getMaplePaths();
-		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
-				paths.getMsnQrelFilePath());
-		Collections.shuffle(queries, new Random(1));
-		queries = queries.subList(0, 50);
+	public static void findCache(List<ExperimentQuery> queries, String tableName) throws IOException, ParseException {
+		double prevAcc = 0;
+		double acc = 0;
 		for (int i = 1; i <= 100; i += 1) {
+			prevAcc = acc;
 			List<QueryResult> queryResults = runQueriesOnIndex(tableName, queries, i);
-			double mrr = 0;
+			acc = 0;
 			for (QueryResult qr : queryResults) {
-				mrr += qr.mrr();
+//				acc += qr.precisionAtK(20);
+//				acc += qr.recallAtK(100);
+				acc += qr.mrr();
 			}
-			mrr /= queryResults.size();
-			System.out.println("index: " + i + " mrr = " + mrr);
-		}
-
-	}
-
-	public static void findOtherCache(String tableName, String joinTableName, String idAttrib)
-			throws IOException, SQLException, ParseException {
-		WikiFilesPaths paths = WikiFilesPaths.getMaplePaths();
-		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
-				paths.getMsnQrelFilePath());
-		Collections.shuffle(queries, new Random(1));
-		queries = queries.subList(0, 50);
-		updateQrelsForOtherTables(queries, joinTableName, idAttrib);
-		for (int i = 1; i <= 100; i += 1) {
-			List<QueryResult> queryResults = runQueriesOnIndex(tableName, queries, i);
-			double mrr = 0;
-			for (QueryResult qr : queryResults) {
-				mrr += qr.mrr();
+			acc /= queryResults.size();
+			System.out.printf("index size = %d%% eff = %.2f\n", i, acc);
+			if (prevAcc > acc) {
+				break;
 			}
-			mrr /= queryResults.size();
-			System.out.println("index: " + i + " mrr = " + mrr);
 		}
 	}
 
@@ -114,7 +110,7 @@ public class RunFindCache {
 			QueryParser qp = new QueryParser(RunTableIndexer.TEXT_FIELD, new StandardAnalyzer());
 			for (ExperimentQuery q : queries) {
 				QueryResult result = new QueryResult(q);
-				Query query = qp.parse(q.getText());
+				Query query = qp.parse(QueryParser.escape(q.getText()));
 				ScoreDoc[] scoreDocHits = searcher.search(query, TOPDOC_COUNTS).scoreDocs;
 				for (int j = 0; j < Math.min(TOPDOC_COUNTS, scoreDocHits.length); j++) {
 					Document doc = reader.document(scoreDocHits[j].doc);
