@@ -19,7 +19,7 @@ public class RunBuildCache {
 			String textAttrib = args[2];
 			int limit = (DatabaseHelper.tableSize(tableName, dc.getConnection()) * percent) / 100;
 			String selectStatement = "SELECT * FROM " + tableName + " ORDER BY popularity LIMIT " + limit;
-			String newTableName = "sub_" + tableName + "_" + percent;
+			String newTableName = "sub__" + tableName.substring(3) + "_" + percent;
 			String createStatement = "CREATE TABLE " + newTableName + " AS " + selectStatement + ";";
 			System.out.println("Creating table..");
 			try (Statement stmt = dc.getConnection().createStatement()) {
@@ -33,7 +33,7 @@ public class RunBuildCache {
 			System.out.println("Creating fulltext index..");
 			String createFulltextIndex = "CREATE FULLTEXT INDEX fdx ON " + newTableName + "(" + textAttrib + ")";
 			try (Statement stmt = dc.getConnection().createStatement()) {
-				stmt.executeQuery(createFulltextIndex);
+				stmt.executeUpdate(createFulltextIndex);
 			}
 		}
 	}
