@@ -42,7 +42,7 @@ public class RunFindCache {
 
 		List<ExperimentQuery> queries = null;
 		if (argsList.contains("msn")) {
-			QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
+			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
 		} else if (argsList.contains("inex")) {
 			queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath());
 		}
