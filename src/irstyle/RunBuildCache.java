@@ -1,11 +1,9 @@
 package irstyle;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,21 +13,15 @@ import java.util.Vector;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.BM25Similarity;
-import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 import database.DatabaseConnection;
@@ -133,8 +125,6 @@ public class RunBuildCache {
 					}
 				}
 				System.out.println("Iteration " + loop++);
-				selectSt[m].setInt(1, offset[m]);
-				offset[m] += pageSize;
 				List<Document> docs = docsList.get(m);
 				System.out.println("  reading new cache data..");
 				for (Document doc : docs) {
@@ -149,7 +139,7 @@ public class RunBuildCache {
 				indexWriters[m].commit();
 				// test partition!
 				System.out.println("  testing new cache..");
-				List<QueryResult> queryResults = new ArrayList<QueryResult>();
+				List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 				try (IndexReader articleReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPaths[0])));
 						IndexReader imageReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPaths[1])));
 						IndexReader linkReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPaths[2])))) {
@@ -167,10 +157,9 @@ public class RunBuildCache {
 						relnamesValues.put(articleTable, articleIds);
 						relnamesValues.put(imageTable, imageIds);
 						relnamesValues.put(linkTable, linkIds);
-						irstyle.IRStyleQueryResult result = RunBaselineWithLucene.executeIRStyleQuery(jdbcacc, sch, relations,
+						IRStyleQueryResult result = RunBaselineWithLucene.executeIRStyleQuery(jdbcacc, sch, relations,
 								query, relnamesValues);
-						// queryResults.add(result);
-						// TODO uncomment
+						queryResults.add(result);
 					}
 
 					// DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
@@ -189,7 +178,7 @@ public class RunBuildCache {
 					// queryResults.add(result);
 					// }
 					// }
-					acc = effectiveness(queryResults);
+					acc = effectiveness2(queryResults);
 					System.out.println("  new accuracy = " + acc);
 
 				}
@@ -197,7 +186,25 @@ public class RunBuildCache {
 					break;
 				}
 				prevAcc = acc;
-				// TODO update docLists
+
+				// update buffer
+				selectSt[m].setInt(1, offset[m]);
+				offset[m] += pageSize;
+				ResultSet rs = selectSt[m].executeQuery();
+				while (rs.next()) {
+					int id = rs.getInt("id");
+					String text = "";
+					for (String attrib : textAttribs[m]) {
+						text += rs.getString(attrib);
+					}
+					Document doc = new Document();
+					doc.add(new StoredField("id", id));
+					doc.add(new TextField("text", text, Store.NO));
+					docs.add(doc);
+					lastPopularity[m] = rs.getInt("popularity");
+				}
+				docsList.remove(m);
+				docsList.add(m, docs);
 			}
 			for (int i = 0; i < tableNames.length; i++) {
 				indexWriters[i].close();
@@ -212,6 +219,15 @@ public class RunBuildCache {
 		double acc = 0;
 		for (QueryResult qr : queryResults) {
 			acc += qr.mrr();
+		}
+		acc /= queryResults.size();
+		return acc;
+	}
+
+	public static double effectiveness2(List<IRStyleQueryResult> queryResults) {
+		double acc = 0;
+		for (IRStyleQueryResult qr : queryResults) {
+			acc += qr.rrank();
 		}
 		acc /= queryResults.size();
 		return acc;
