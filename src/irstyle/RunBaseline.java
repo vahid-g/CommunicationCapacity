@@ -1,12 +1,9 @@
 package irstyle;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
@@ -18,7 +15,6 @@ import irstyle_core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
-import wiki13.WikiRelationalEfficiencyExperiment;
 
 public class RunBaseline {
 
@@ -28,7 +24,7 @@ public class RunBaseline {
 	static boolean allKeywInResults = false;
 
 	public static void main(String[] args) throws Exception {
-		JDBCaccess jdbcacc = jdbcAccess();
+		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 		for (int exec = 0; exec < numExecutions; exec++) {
 			String articleTable = "tbl_article_09";
 			String imageTable = "tbl_image_09_tk";
@@ -58,24 +54,6 @@ public class RunBaseline {
 			}
 			IRStyleKeywordSearch.printRrankResults(queryResults, "ir_result.csv");
 		}
-	}
-
-	static JDBCaccess jdbcAccess() throws IOException {
-		// JDBC input
-		// Server = "localhost";
-		String Server = "vm-maple.eecs.oregonstate.edu";
-		String Database_name = "wikipedia";
-		String Port = "3306";
-		// end input
-		Properties config = new Properties();
-		try (InputStream in = WikiRelationalEfficiencyExperiment.class
-				.getResourceAsStream("/config/config.properties")) {
-			config.load(in);
-		}
-		String Username = config.getProperty("username");
-		String Password = config.getProperty("password");
-		JDBCaccess jdbcacc = new JDBCaccess(Server, Port, Database_name, Username, Password);
-		return jdbcacc;
 	}
 
 	static QueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,

@@ -45,7 +45,7 @@ public class RunBaselineWithLucene {
 
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
-		JDBCaccess jdbcacc = jdbcAccess();
+		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 		String articleTable = "tbl_article_wiki13";
 		String imageTable = "tbl_image_09_tk";
 		String linkTable = "tbl_link_09";
@@ -100,24 +100,6 @@ public class RunBaselineWithLucene {
 			System.out.println("average time per query = " + (time / (queries.size() * numExecutions)));
 			IRStyleKeywordSearch.printResults(queryResults, "ir_result.csv");
 		}
-	}
-
-	static JDBCaccess jdbcAccess() throws IOException {
-		// JDBC input
-		// Server = "localhost";
-		String Server = "vm-maple.eecs.oregonstate.edu";
-		String Database_name = "wikipedia";
-		String Port = "3306";
-		// end input
-		Properties config = new Properties();
-		try (InputStream in = WikiRelationalEfficiencyExperiment.class
-				.getResourceAsStream("/config/config.properties")) {
-			config.load(in);
-		}
-		String Username = config.getProperty("username");
-		String Password = config.getProperty("password");
-		JDBCaccess jdbcacc = new JDBCaccess(Server, Port, Database_name, Username, Password);
-		return jdbcacc;
 	}
 
 	static QueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,

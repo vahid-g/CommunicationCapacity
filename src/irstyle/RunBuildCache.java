@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -31,6 +32,8 @@ import org.apache.lucene.store.FSDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
+import irstyle_core.JDBCaccess;
+import irstyle_core.Relation;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;
@@ -48,8 +51,7 @@ public class RunBuildCache {
 			Connection conn = dc.getConnection();
 			try (Statement stmt = conn.createStatement()) {
 				stmt.execute("drop table if exists " + cacheTable + ";");
-				stmt.execute("create table " + cacheTable + " as select id from " + tableName
-						+ " order by popularity desc limit " + pageSize + ";");
+				stmt.execute("create table " + cacheTable + " as select id from " + tableName + " limit 0;");
 				stmt.execute("create index id on " + cacheTable + "(id);");
 			}
 			String selectTemplate = "select * from " + tableName + " order by popularity desc limit ?, " + pageSize
@@ -70,8 +72,21 @@ public class RunBuildCache {
 						PreparedStatement insertStmt = conn.prepareStatement(insertTemplate)) {
 					double prevAcc = 0;
 					double acc = 0;
-					int offset = pageSize;
+					int offset = 0;
 					int loop = 1;
+					JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
+					String articleTable = "sub_article_wiki13";
+					String imageTable = "tbl_image_09_tk";
+					String linkTable = "tbl_link_09";
+					String articleImageTable = "tbl_article_image_09";
+					String articleLinkTable = "tbl_article_link_09";
+					String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
+							+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
+							+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
+							+ articleLinkTable + " " + linkTable;
+					Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable,
+							linkTable, jdbcacc.conn);
+					IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 					while (true) {
 						System.out.println("Iteration " + loop++);
 						selectStmt.setInt(1, offset);
@@ -98,7 +113,7 @@ public class RunBuildCache {
 						System.out.println("  updating cache index..");
 						indexWriter.addDocuments(docs);
 						indexWriter.flush();
-						// indexWriter.commit();
+						indexWriter.commit();
 						// test partition!
 						System.out.println("  testing new cache..");
 						List<QueryResult> queryResults = new ArrayList<QueryResult>();
@@ -121,7 +136,8 @@ public class RunBuildCache {
 						acc = effectiveness(queryResults);
 						System.out.println("  new accuracy = " + acc);
 						if (acc < prevAcc) {
-							break;
+							// break;
+							System.out.println("-------------");
 						}
 						prevAcc = acc;
 					}

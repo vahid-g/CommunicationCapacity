@@ -2,6 +2,7 @@ package irstyle;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,6 +10,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 import java.util.Vector;
 
 import irstyle_core.ExecPrepared;
@@ -19,6 +21,7 @@ import irstyle_core.JDBCaccess;
 import irstyle_core.Relation;
 import irstyle_core.Result;
 import query.ExperimentQuery;
+import wiki13.WikiRelationalEfficiencyExperiment;
 
 public class IRStyleKeywordSearch {
 
@@ -173,6 +176,24 @@ public class IRStyleKeywordSearch {
 				fw.flush();
 			}
 		}
+	}
+
+	static JDBCaccess jdbcAccess() throws IOException {
+		// JDBC input
+		// Server = "localhost";
+		String Server = "vm-maple.eecs.oregonstate.edu";
+		String Database_name = "wikipedia";
+		String Port = "3306";
+		// end input
+		Properties config = new Properties();
+		try (InputStream in = WikiRelationalEfficiencyExperiment.class
+				.getResourceAsStream("/config/config.properties")) {
+			config.load(in);
+		}
+		String Username = config.getProperty("username");
+		String Password = config.getProperty("password");
+		JDBCaccess jdbcacc = new JDBCaccess(Server, Port, Database_name, Username, Password);
+		return jdbcacc;
 	}
 
 }

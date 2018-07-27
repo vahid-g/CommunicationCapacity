@@ -29,7 +29,7 @@ public class RunCacheSearchWithLucene {
 
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
-		JDBCaccess jdbcacc = RunBaseline.jdbcAccess();
+		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		WikiFilesPaths paths = null;
 		paths = WikiFilesPaths.getMaplePaths();

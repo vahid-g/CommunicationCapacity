@@ -29,7 +29,7 @@ public class RunCacheSearch {
 
 	public static void main(String[] args) throws Exception {
 
-		JDBCaccess jdbcacc = RunBaseline.jdbcAccess();
+		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 		WikiFilesPaths paths = null;
 		paths = WikiFilesPaths.getMaplePaths();
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
