@@ -44,19 +44,19 @@ public class RunBaseline {
 					paths.getMsnQrelFilePath());
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 50);
-			List<QueryResult> queryResults = new ArrayList<QueryResult>();
+			List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 			int loop = 1;
 			for (ExperimentQuery query : queries) {
 				System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
 				Schema sch = new Schema(schemaDescription);
-				QueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query);
+				IRStyleQueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query);
 				queryResults.add(result);
 			}
 			IRStyleKeywordSearch.printRrankResults(queryResults, "ir_result.csv");
 		}
 	}
 
-	static QueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,
+	static IRStyleQueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,
 			ExperimentQuery query) {
 		MIndexAccess MIndx = new MIndexAccess(relations);
 		Vector<String> allkeyw = new Vector<String>();
@@ -80,7 +80,7 @@ public class RunBaseline {
 		ArrayList<Result> results = new ArrayList<Result>(1);
 		exectime += IRStyleKeywordSearch.methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
-		QueryResult result = new QueryResult(query, exectime);
+		IRStyleQueryResult result = new IRStyleQueryResult(query, exectime);
 		result.addIRStyleResults(results);
 		System.out.println(" R-rank = " + result.rrank());
 		return result;

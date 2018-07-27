@@ -155,9 +155,9 @@ public class IRStyleKeywordSearch {
 
 	}
 
-	static void printRrankResults(List<QueryResult> queryResults, String filename) throws IOException {
+	static void printRrankResults(List<IRStyleQueryResult> queryResults, String filename) throws IOException {
 		try (FileWriter fw = new FileWriter(filename)) {
-			for (QueryResult result : queryResults) {
+			for (IRStyleQueryResult result : queryResults) {
 				ExperimentQuery query = result.query;
 				fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + result.rrank() + ","
 						+ result.execTime + "\n");
@@ -166,9 +166,9 @@ public class IRStyleKeywordSearch {
 		}
 	}
 
-	static void printResults(List<QueryResult> queryResults, String filename) throws IOException {
+	static void printResults(List<IRStyleQueryResult> queryResults, String filename) throws IOException {
 		try (FileWriter fw = new FileWriter(filename)) {
-			for (QueryResult result : queryResults) {
+			for (IRStyleQueryResult result : queryResults) {
 				ExperimentQuery query = result.query;
 				String queryText = query.getText();
 				fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + result.rrank() + ","

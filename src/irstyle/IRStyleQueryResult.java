@@ -6,12 +6,12 @@ import java.util.List;
 import irstyle_core.Result;
 import query.ExperimentQuery;
 
-class QueryResult {
+class IRStyleQueryResult {
 	ExperimentQuery query;
 	long execTime = 0;
 	List<String> resultIDs = new ArrayList<String>();
 
-	public QueryResult(ExperimentQuery query, long execTime) {
+	public IRStyleQueryResult(ExperimentQuery query, long execTime) {
 		this.query = query;
 		this.execTime = execTime;
 	}

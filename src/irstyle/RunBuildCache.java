@@ -167,7 +167,7 @@ public class RunBuildCache {
 						relnamesValues.put(articleTable, articleIds);
 						relnamesValues.put(imageTable, imageIds);
 						relnamesValues.put(linkTable, linkIds);
-						irstyle.QueryResult result = RunBaselineWithLucene.executeIRStyleQuery(jdbcacc, sch, relations,
+						irstyle.IRStyleQueryResult result = RunBaselineWithLucene.executeIRStyleQuery(jdbcacc, sch, relations,
 								query, relnamesValues);
 						// queryResults.add(result);
 						// TODO uncomment

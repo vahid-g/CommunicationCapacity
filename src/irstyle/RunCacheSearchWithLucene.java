@@ -41,7 +41,7 @@ public class RunCacheSearchWithLucene {
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 10);
 		}
-		List<QueryResult> queryResults = new ArrayList<QueryResult>();
+		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		String baseDir = "/data/ghadakcv/wikipedia/";
 		try (IndexReader articleReader = DirectoryReader
 				.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/100")));
@@ -113,7 +113,7 @@ public class RunCacheSearchWithLucene {
 					relnamesValues.put(articleTable, articleIds);
 					relnamesValues.put(imageTable, imageIds);
 					relnamesValues.put(linkTable, linkIds);
-					QueryResult result = RunBaselineWithLucene.executeIRStyleQuery(jdbcacc, sch, relations, query,
+					IRStyleQueryResult result = RunBaselineWithLucene.executeIRStyleQuery(jdbcacc, sch, relations, query,
 							relnamesValues);
 					time += result.execTime;
 					queryResults.add(result);

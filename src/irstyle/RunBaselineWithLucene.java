@@ -68,7 +68,7 @@ public class RunBaselineWithLucene {
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 10);
 		}
-		List<QueryResult> queryResults = new ArrayList<QueryResult>();
+		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		String baseDir = "/data/ghadakcv/wikipedia/";
 		try (IndexReader articleReader = DirectoryReader
 				.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/100")));
@@ -91,7 +91,7 @@ public class RunBaselineWithLucene {
 					relnamesValues.put(articleTable, articleIds);
 					relnamesValues.put(imageTable, imageIds);
 					relnamesValues.put(linkTable, linkIds);
-					QueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query, relnamesValues);
+					IRStyleQueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query, relnamesValues);
 					time += result.execTime;
 					queryResults.add(result);
 				}
@@ -101,7 +101,7 @@ public class RunBaselineWithLucene {
 		}
 	}
 
-	static QueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,
+	static IRStyleQueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,
 			ExperimentQuery query, Map<String, List<String>> relnameValues) throws Exception {
 		MIndexAccess MIndx = new MIndexAccess(relations);
 		Vector<String> allkeyw = new Vector<String>();
@@ -121,7 +121,7 @@ public class RunBaselineWithLucene {
 		ArrayList<Result> results = new ArrayList<Result>();
 		exectime += IRStyleKeywordSearch.methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
-		QueryResult result = new QueryResult(query, exectime);
+		IRStyleQueryResult result = new IRStyleQueryResult(query, exectime);
 		result.addIRStyleResults(results);
 		System.out.println(" R-rank = " + result.rrank());
 		return result;
