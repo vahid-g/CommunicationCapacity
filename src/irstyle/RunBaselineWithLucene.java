@@ -72,7 +72,6 @@ public class RunBaselineWithLucene {
 		String baseDir = "/data/ghadakcv/wikipedia/";
 		try (IndexReader articleReader = DirectoryReader
 				.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/100")));
-				// .open(FSDirectory.open(Paths.get(baseDir + "tbl_article_09/100")));
 				IndexReader imageReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(baseDir + "tbl_image_pop/100")));
 				IndexReader linkReader = DirectoryReader
