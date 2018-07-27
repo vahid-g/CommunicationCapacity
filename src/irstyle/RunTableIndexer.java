@@ -10,10 +10,6 @@ import java.sql.Statement;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.similarities.BM25Similarity;
@@ -24,10 +20,6 @@ import database.DatabaseConnection;
 import database.DatabaseType;
 
 public class RunTableIndexer {
-
-	public static String ID_FIELD = "id";
-
-	public static String TEXT_FIELD = "text";
 
 	Connection conn;
 
@@ -136,18 +128,7 @@ public class RunTableIndexer {
 				System.out.println(sql);
 				ResultSet rs = stmt.executeQuery(sql);
 				while (rs.next()) {
-					String id = rs.getString(idAttrib);
-					StringBuilder answerBuilder = new StringBuilder();
-					for (String s : textAttribs) {
-						answerBuilder.append(rs.getString(s));
-					}
-					String answer = answerBuilder.toString();
-					Document doc = new Document();
-					doc.add(new StoredField(ID_FIELD, id));
-					// answer = StringEscapeUtils.unescapeHtml4(answer); // convert html encoded
-					// characters to unicode
-					doc.add(new TextField(TEXT_FIELD, answer, Store.NO));
-					iwriter.addDocument(doc);
+					IndexerHelper.indexRS(idAttrib, textAttribs, iwriter, rs);
 				}
 			}
 		}
