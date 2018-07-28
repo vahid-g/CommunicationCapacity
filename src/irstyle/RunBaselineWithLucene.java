@@ -39,6 +39,8 @@ public class RunBaselineWithLucene {
 	static int N = 5;
 	static boolean allKeywInResults = false;
 	static int tupleSetSize = 10000;
+	
+	static boolean DEBUG = false;
 
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
@@ -109,18 +111,19 @@ public class RunBaselineWithLucene {
 		MIndx.createTupleSets3(sch, allkeyw, jdbcacc.conn, relnameValues);
 		long time4 = System.currentTimeMillis();
 		exectime += time4 - time3;
-		System.out.println(" Time to create tuple sets: " + (time4 - time3) + " (ms)");
+		if (DEBUG)
+			System.out.println(" Time to create tuple sets: " + (time4 - time3) + " (ms)");
 		time3 = System.currentTimeMillis();
 		Vector<?> CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx);
 		time4 = System.currentTimeMillis();
 		exectime += time4 - time3;
-		System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
+		if (DEBUG) System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 		ArrayList<Result> results = new ArrayList<Result>();
 		exectime += IRStyleKeywordSearch.methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 		IRStyleQueryResult result = new IRStyleQueryResult(query, exectime);
 		result.addIRStyleResults(results);
-		System.out.println(" R-rank = " + result.rrank());
+		if (DEBUG) System.out.println(" R-rank = " + result.rrank());
 		return result;
 	}
 

@@ -150,8 +150,8 @@ public class RunBuildCache {
 								query.getText());
 						List<String> imageIds = RunBaselineWithLucene.executeLuceneQuery(imageReader, query.getText());
 						List<String> linkIds = RunBaselineWithLucene.executeLuceneQuery(linkReader, query.getText());
-						System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
-								imageIds.size(), linkIds.size());
+						//System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
+								// imageIds.size(), linkIds.size());
 						Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 						relnamesValues.put(articleTable, articleIds);
 						relnamesValues.put(imageTable, imageIds);
