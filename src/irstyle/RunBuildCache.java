@@ -86,7 +86,9 @@ public class RunBuildCache {
 			}
 			double prevAcc = 0;
 			double acc = 0;
+			double bestAcc = 0;
 			int[] offset = { 0, 0, 0 };
+			int[] bestOffset = {0, 0, 0};
 			int loop = 1;
 			JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 			String articleTable = cacheTables[0];
@@ -189,14 +191,17 @@ public class RunBuildCache {
 					System.out.println("  new accuracy = " + acc);
 
 				}
-				if (acc < prevAcc) {
-					break;
-				} else if (lastPopularity[0] == -1 && lastPopularity[1] == -1 && lastPopularity[-2] == -1) {
+				if (acc > bestAcc) {
+					bestAcc = acc;
+					bestOffset = offset.clone();
+				}
+				prevAcc = acc;
+//				if (acc < prevAcc) {
+//					break;
+//				} 
+				if (lastPopularity[0] == -1 && lastPopularity[1] == -1 && lastPopularity[-2] == -1) {
 					break;
 				}
-
-				prevAcc = acc;
-
 				// update buffer
 				selectSt[m].setInt(1, offset[m]);
 				offset[m] += pageSize;
