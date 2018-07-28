@@ -6,9 +6,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Vector;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -47,7 +50,8 @@ public class RunBuildCache {
 			String[] selectTemplates = new String[tableNames.length];
 			String[] insertTemplates = new String[tableNames.length];
 			String[] indexPaths = new String[tableNames.length];
-			int pageSize = 100000;
+			int pageSize = 10000;
+			int[] sizes = { 11945034, 1183070, 9766351 };
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
 				cacheTables[i] = "sub_" + tableNames[i].substring(4);
@@ -69,6 +73,7 @@ public class RunBuildCache {
 			WikiFilesPaths paths = WikiFilesPaths.getMaplePaths();
 			List<ExperimentQuery> queries = null;
 			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
+			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 50);
 			IndexWriter indexWriters[] = new IndexWriter[tableNames.length];
 			PreparedStatement selectSt[] = new PreparedStatement[tableNames.length];
@@ -186,13 +191,17 @@ public class RunBuildCache {
 				}
 				if (acc < prevAcc) {
 					break;
+				} else if (lastPopularity[0] == -1 && lastPopularity[1] == -1 && lastPopularity[-2] == -1) {
+					break;
 				}
+
 				prevAcc = acc;
 
 				// update buffer
 				selectSt[m].setInt(1, offset[m]);
 				offset[m] += pageSize;
 				ResultSet rs = selectSt[m].executeQuery();
+				lastPopularity[m] = -1;
 				while (rs.next()) {
 					int id = rs.getInt("id");
 					String text = "";
@@ -208,6 +217,7 @@ public class RunBuildCache {
 				docsList.remove(m);
 				docsList.add(m, docs);
 			}
+			System.out.println("Offsets for articles, images, links = " + Arrays.toString(offset));
 			for (int i = 0; i < tableNames.length; i++) {
 				indexWriters[i].close();
 				selectSt[i].close();
