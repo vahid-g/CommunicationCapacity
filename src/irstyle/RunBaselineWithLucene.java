@@ -1,7 +1,6 @@
 package irstyle;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,7 +8,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
@@ -33,15 +31,14 @@ import irstyle_core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
-import wiki13.WikiRelationalEfficiencyExperiment;
 
 public class RunBaselineWithLucene {
 
 	static int maxCNsize = 5;
 	static int numExecutions = 1;
-	static int N = 100;
+	static int N = 5;
 	static boolean allKeywInResults = false;
-	static int tupleSetSize = 100000;
+	static int tupleSetSize = 10000;
 
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);

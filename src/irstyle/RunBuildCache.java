@@ -46,23 +46,24 @@ public class RunBuildCache {
 			String[] insertTemplates = new String[tableNames.length];
 			String[] indexPaths = new String[tableNames.length];
 			int pageSize = 100000;
+			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
 				cacheTables[i] = "sub_" + tableNames[i].substring(4);
 				try (Statement stmt = conn.createStatement()) {
 					stmt.execute("drop table if exists " + cacheTables[i] + ";");
-					stmt.execute("create table " + cacheTables[i] + " as select id from " + tableNames + " limit 0;");
+					stmt.execute(
+							"create table " + cacheTables[i] + " as select id from " + tableNames[i] + " limit 0;");
 					stmt.execute("create index id on " + cacheTables[i] + "(id);");
 				}
 				selectTemplates[i] = "select * from " + tableNames[i] + " order by popularity desc limit ?, " + pageSize
 						+ ";";
 				insertTemplates[i] = "insert into " + cacheTables[i] + " (id) values (?);";
 				indexPaths[i] = "/data/ghadakcv/wikipedia/" + cacheTables[i];
+				config[i] = new IndexWriterConfig(new StandardAnalyzer());
+				config[i].setSimilarity(new BM25Similarity());
+				config[i].setRAMBufferSizeMB(1024);
+				config[i].setOpenMode(OpenMode.CREATE);
 			}
-
-			IndexWriterConfig config = new IndexWriterConfig(new StandardAnalyzer());
-			config.setSimilarity(new BM25Similarity());
-			config.setRAMBufferSizeMB(1024);
-			config.setOpenMode(OpenMode.CREATE);
 			WikiFilesPaths paths = WikiFilesPaths.getMaplePaths();
 			List<ExperimentQuery> queries = null;
 			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
@@ -72,10 +73,10 @@ public class RunBuildCache {
 			PreparedStatement selectSt[] = new PreparedStatement[tableNames.length];
 			PreparedStatement insertSt[] = new PreparedStatement[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
-				indexWriters[i] = new IndexWriter(FSDirectory.open(Paths.get(indexPaths[i])), config);
+				indexWriters[i] = new IndexWriter(FSDirectory.open(Paths.get(indexPaths[i])), config[i]);
+				indexWriters[i].commit();
 				selectSt[i] = conn.prepareStatement(selectTemplates[i]);
 				insertSt[i] = conn.prepareStatement(insertTemplates[i]);
-
 			}
 			double prevAcc = 0;
 			double acc = 0;
@@ -144,8 +145,6 @@ public class RunBuildCache {
 						IndexReader imageReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPaths[1])));
 						IndexReader linkReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPaths[2])))) {
 					for (ExperimentQuery query : queries) {
-						System.out
-								.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
 						Schema sch = new Schema(schemaDescription);
 						List<String> articleIds = RunBaselineWithLucene.executeLuceneQuery(articleReader,
 								query.getText());
