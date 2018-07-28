@@ -36,6 +36,8 @@ import wiki13.WikiFilesPaths;
 
 public class RunBuildCache {
 
+	private static final double popSum[] = { 15440314886.0, 52716653460.0, 1407925741807.0 };
+
 	public static void main(String[] args) throws Exception {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			String[] tableNames = new String[] { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
@@ -68,7 +70,6 @@ public class RunBuildCache {
 			List<ExperimentQuery> queries = null;
 			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
 			queries = queries.subList(0, 50);
-			int topDocs = 100;
 			IndexWriter indexWriters[] = new IndexWriter[tableNames.length];
 			PreparedStatement selectSt[] = new PreparedStatement[tableNames.length];
 			PreparedStatement insertSt[] = new PreparedStatement[tableNames.length];
@@ -117,15 +118,16 @@ public class RunBuildCache {
 				docsList.add(docs);
 			}
 			while (true) {
-				int mPopularity = 0;
+				System.out.println("Iteration " + loop++);
+				double mPopularity = 0;
 				int m = -1;
 				for (int i = 0; i < lastPopularity.length; i++) {
-					if (lastPopularity[i] > mPopularity) {
-						mPopularity = lastPopularity[i];
+					if (lastPopularity[i] / popSum[i] > mPopularity) {
+						mPopularity = lastPopularity[i] / popSum[i];
 						m = i;
 					}
 				}
-				System.out.println("Iteration " + loop++);
+				System.out.println("  Selected table = " + tableNames[m] + " with popularity = " + mPopularity);
 				List<Document> docs = docsList.get(m);
 				System.out.println("  reading new cache data..");
 				for (Document doc : docs) {
@@ -150,8 +152,9 @@ public class RunBuildCache {
 								query.getText());
 						List<String> imageIds = RunBaselineWithLucene.executeLuceneQuery(imageReader, query.getText());
 						List<String> linkIds = RunBaselineWithLucene.executeLuceneQuery(linkReader, query.getText());
-						//System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
-								// imageIds.size(), linkIds.size());
+						// System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d",
+						// articleIds.size(),
+						// imageIds.size(), linkIds.size());
 						Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 						relnamesValues.put(articleTable, articleIds);
 						relnamesValues.put(imageTable, imageIds);
