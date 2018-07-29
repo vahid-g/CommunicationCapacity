@@ -50,7 +50,7 @@ public class RunBuildCache {
 			String[] selectTemplates = new String[tableNames.length];
 			String[] insertTemplates = new String[tableNames.length];
 			String[] indexPaths = new String[tableNames.length];
-			int pageSize = 10000;
+			int pageSize = 100000;
 			int[] sizes = { 11945034, 1183070, 9766351 };
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
@@ -88,7 +88,7 @@ public class RunBuildCache {
 			double acc = 0;
 			double bestAcc = 0;
 			int[] offset = { 0, 0, 0 };
-			int[] bestOffset = {0, 0, 0};
+			int[] bestOffset = { 0, 0, 0 };
 			int loop = 1;
 			JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 			String articleTable = cacheTables[0];
@@ -196,9 +196,9 @@ public class RunBuildCache {
 					bestOffset = offset.clone();
 				}
 				prevAcc = acc;
-//				if (acc < prevAcc) {
-//					break;
-//				} 
+				// if (acc < prevAcc) {
+				// break;
+				// }
 				if (lastPopularity[0] == -1 && lastPopularity[1] == -1 && lastPopularity[-2] == -1) {
 					break;
 				}
@@ -222,7 +222,7 @@ public class RunBuildCache {
 				docsList.remove(m);
 				docsList.add(m, docs);
 			}
-			System.out.println("Offsets for articles, images, links = " + Arrays.toString(offset));
+			System.out.println("Offsets for articles, images, links = " + Arrays.toString(bestOffset));
 			for (int i = 0; i < tableNames.length; i++) {
 				indexWriters[i].close();
 				selectSt[i].close();
