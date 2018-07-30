@@ -50,7 +50,7 @@ public class RunBuildCache {
 			String[] selectTemplates = new String[tableNames.length];
 			String[] insertTemplates = new String[tableNames.length];
 			String[] indexPaths = new String[tableNames.length];
-			int pageSize = 100000;
+			int[] pageSize = { 119450, 11830, 97663 };
 			int[] sizes = { 11945034, 1183070, 9766351 };
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
@@ -61,7 +61,7 @@ public class RunBuildCache {
 							"create table " + cacheTables[i] + " as select id from " + tableNames[i] + " limit 0;");
 					stmt.execute("create index id on " + cacheTables[i] + "(id);");
 				}
-				selectTemplates[i] = "select * from " + tableNames[i] + " order by popularity desc limit ?, " + pageSize
+				selectTemplates[i] = "select * from " + tableNames[i] + " order by popularity desc limit ?, " + pageSize[i]
 						+ ";";
 				insertTemplates[i] = "insert into " + cacheTables[i] + " (id) values (?);";
 				indexPaths[i] = "/data/ghadakcv/wikipedia/" + cacheTables[i];
@@ -107,7 +107,7 @@ public class RunBuildCache {
 			int[] lastPopularity = new int[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
 				selectSt[i].setInt(1, offset[i]);
-				offset[i] += pageSize;
+				offset[i] += pageSize[i];
 				ResultSet rs = selectSt[i].executeQuery();
 				List<Document> docs = new ArrayList<Document>();
 				while (rs.next()) {
@@ -170,7 +170,6 @@ public class RunBuildCache {
 								query, relnamesValues);
 						queryResults.add(result);
 					}
-
 					// DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
 					// System.out.println(" index size: " + reader.numDocs());
 					// IndexSearcher searcher = new IndexSearcher(reader);
@@ -191,6 +190,7 @@ public class RunBuildCache {
 					System.out.println("  new accuracy = " + acc);
 
 				}
+				System.out.println("  current offsets: " + Arrays.toString(offset));
 				if (acc > bestAcc) {
 					bestAcc = acc;
 					bestOffset = offset.clone();
@@ -204,9 +204,10 @@ public class RunBuildCache {
 				}
 				// update buffer
 				selectSt[m].setInt(1, offset[m]);
-				offset[m] += pageSize;
+				offset[m] += pageSize[m];
 				ResultSet rs = selectSt[m].executeQuery();
 				lastPopularity[m] = -1;
+				docs = new ArrayList<Document>();
 				while (rs.next()) {
 					int id = rs.getInt("id");
 					String text = "";

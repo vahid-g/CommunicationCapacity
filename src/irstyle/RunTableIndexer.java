@@ -12,6 +12,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -21,20 +22,13 @@ import database.DatabaseType;
 
 public class RunTableIndexer {
 
+	private static final String DATA_WIKIPEDIA = "/data/ghadakcv/wikipedia/";
 	Connection conn;
 
 	public RunTableIndexer(Analyzer analyzer, DatabaseConnection dc) throws IOException, SQLException {
 
 		conn = dc.getConnection();
 		conn.setAutoCommit(false);
-	}
-
-	public IndexWriterConfig getIndexWriterConfig() {
-		IndexWriterConfig config;
-		config = new IndexWriterConfig(new StandardAnalyzer());
-		config.setSimilarity(new BM25Similarity());
-		config.setRAMBufferSizeMB(1024);
-		return config;
 	}
 
 	public static void main(String[] args) throws IOException, SQLException {
@@ -49,6 +43,30 @@ public class RunTableIndexer {
 			RunTableIndexer.indexCompTable("tbl_link_pop", 6, new String[] { "url" }, "pop");
 			RunTableIndexer.indexCompTable("tbl_image_pop", 10, new String[] { "src" }, "pop");
 			RunTableIndexer.indexCompTable("tbl_article_wiki13", 1, new String[] { "title", "text" }, "popularity");
+		} else if (args[0].equals("union")) {
+			IndexWriterConfig config = getIndexWriterConfig();
+			config.setOpenMode(OpenMode.APPEND);
+			String indexPath = DATA_WIKIPEDIA + "union";
+			String[] tableNames = new String[] { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
+			String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
+			int[] limit = { 10, 10, 10 };
+			int[] sizes = { 11945034, 1183070, 9766351 };
+			String[] popularity = { "popularity", "popularity", "popularity" };
+			try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
+				System.out.println("indexing union..");
+				for (int i = 0; i < tableNames.length; i++) {
+					RunTableIndexer rti = new RunTableIndexer(new StandardAnalyzer(), dc);
+					rti.indexTable(indexPath, tableNames[i], textAttribs[i], limit[i], popularity[i], false, config);
+				}
+				System.out.println("indexing comp..");
+				indexPath = DATA_WIKIPEDIA + "union_comp";
+				for (int i = 0; i < tableNames.length; i++) {
+					RunTableIndexer rti = new RunTableIndexer(new StandardAnalyzer(), dc);
+					rti.indexTable(indexPath, tableNames[i], textAttribs[i], sizes[i] - limit[i], popularity[i], true,
+							config);
+				}
+			}
+
 		} else {
 			System.out.println("Wrong input args!");
 		}
@@ -61,8 +79,9 @@ public class RunTableIndexer {
 			for (int i = 1; i <= 100; i += 1) {
 				double count = DatabaseHelper.tableSize(tableName, wti.conn);
 				int limit = (int) Math.floor((i * count) / 100.0);
-				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, "id", new String[] { "url" }, limit, "pop", false);
+				String indexPath = DATA_WIKIPEDIA + tableName + "/" + i;
+				wti.indexTable(indexPath, tableName, new String[] { "url" }, limit, "pop", false,
+						getIndexWriterConfig());
 			}
 		}
 	}
@@ -74,8 +93,9 @@ public class RunTableIndexer {
 			for (int i = 1; i <= 100; i += 1) {
 				double count = DatabaseHelper.tableSize(tableName, wti.conn);
 				int limit = (int) Math.floor((i * count) / 100.0);
-				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, "id", new String[] { "src" }, limit, "pop", false);
+				String indexPath = DATA_WIKIPEDIA + tableName + "/" + i;
+				wti.indexTable(indexPath, tableName, new String[] { "src" }, limit, "pop", false,
+						getIndexWriterConfig());
 			}
 		}
 	}
@@ -87,9 +107,9 @@ public class RunTableIndexer {
 			for (int i = 1; i <= 100; i += 1) {
 				double count = DatabaseHelper.tableSize(tableName, wti.conn);
 				int limit = (int) Math.floor((i * count) / 100.0);
-				String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, "id", new String[] { "title", "text" }, limit, "popularity",
-						false);
+				String indexPath = DATA_WIKIPEDIA + tableName + "/" + i;
+				wti.indexTable(indexPath, tableName, new String[] { "title", "text" }, limit, "popularity", false,
+						getIndexWriterConfig());
 			}
 		}
 	}
@@ -98,24 +118,32 @@ public class RunTableIndexer {
 			throws IOException, SQLException {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			RunTableIndexer wti = new RunTableIndexer(new StandardAnalyzer(), dc);
-			String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/c" + percentage;
+			String indexPath = DATA_WIKIPEDIA + tableName + "/c" + percentage;
 			double count = DatabaseHelper.tableSize(tableName, wti.conn);
 			int limit = (int) Math.floor(count - ((percentage * count) / 100.0));
-			wti.indexTable(indexPath, tableName, "id", textAttribs, limit, popularityAttrib, true);
+			wti.indexTable(indexPath, tableName, textAttribs, limit, popularityAttrib, true, getIndexWriterConfig());
 		}
 	}
 
-	private void indexTable(String indexPath, String table, String idAttrib, String[] textAttribs, int limit,
-			String popularity, boolean ascending) throws IOException, SQLException {
+	private static IndexWriterConfig getIndexWriterConfig() {
+		IndexWriterConfig config;
+		config = new IndexWriterConfig(new StandardAnalyzer());
+		config.setSimilarity(new BM25Similarity());
+		config.setRAMBufferSizeMB(1024);
+		return config;
+	}
+
+	private void indexTable(String indexPath, String table, String[] textAttribs, int limit, String popularity,
+			boolean ascending, IndexWriterConfig config) throws IOException, SQLException {
 		File indexFile = new File(indexPath);
 		if (!indexFile.exists()) {
 			indexFile.mkdirs();
 		}
 		Directory directory = FSDirectory.open(Paths.get(indexFile.getAbsolutePath()));
-		try (IndexWriter iwriter = new IndexWriter(directory, getIndexWriterConfig())) {
+		try (IndexWriter iwriter = new IndexWriter(directory, config)) {
 			try (Statement stmt = conn.createStatement()) {
 				stmt.setFetchSize(Integer.MIN_VALUE);
-				String attribs = idAttrib;
+				String attribs = "id";
 				for (String s : textAttribs) {
 					attribs += "," + s;
 				}
@@ -128,7 +156,7 @@ public class RunTableIndexer {
 				System.out.println(sql);
 				ResultSet rs = stmt.executeQuery(sql);
 				while (rs.next()) {
-					IndexerHelper.indexRS(idAttrib, textAttribs, iwriter, rs);
+					IndexerHelper.indexRS("id", textAttribs, iwriter, rs);
 				}
 			}
 		}
