@@ -51,7 +51,7 @@ public class RunBuildCache {
 			String[] insertTemplates = new String[tableNames.length];
 			String[] indexPaths = new String[tableNames.length];
 			int[] pageSize = { 119450, 11830, 97663 };
-			int[] sizes = { 11945034, 1183070, 9766351 };
+			// int[] sizes = { 11945034, 1183070, 9766351 };
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
 				cacheTables[i] = "sub_" + tableNames[i].substring(4);
