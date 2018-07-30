@@ -8,8 +8,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -22,106 +25,104 @@ import database.DatabaseType;
 
 public class RunTableIndexer {
 
-	private static final String DATA_WIKIPEDIA = "/data/ghadakcv/wikipedia/";
-	Connection conn;
-
-	public RunTableIndexer(Analyzer analyzer, DatabaseConnection dc) throws IOException, SQLException {
-
-		conn = dc.getConnection();
-		conn.setAutoCommit(false);
-	}
+	public static final String DATA_WIKIPEDIA = "/data/ghadakcv/wikipedia/";
+	public static final String ID_FIELD = "id";
+	public static final String TEXT_FIELD = "text";
 
 	public static void main(String[] args) throws IOException, SQLException {
-		if (args[0].equals("articles")) {
-			RunTableIndexer.indexArticles();
-		} else if (args[0].equals("images")) {
-			RunTableIndexer.indexImages();
-		} else if (args[0].equals("links")) {
-			RunTableIndexer.indexLinks();
-		} else if (args[0].equals("rest")) {
-			RunTableIndexer.indexCompTable("tbl_article_09", 3, new String[] { "title", "text" }, "popularity");
-			RunTableIndexer.indexCompTable("tbl_link_pop", 6, new String[] { "url" }, "pop");
-			RunTableIndexer.indexCompTable("tbl_image_pop", 10, new String[] { "src" }, "pop");
-			RunTableIndexer.indexCompTable("tbl_article_wiki13", 1, new String[] { "title", "text" }, "popularity");
-		} else if (args[0].equals("union")) {
-			IndexWriterConfig config = getIndexWriterConfig();
-			config.setOpenMode(OpenMode.APPEND);
-			String indexPath = DATA_WIKIPEDIA + "union";
-			String[] tableNames = new String[] { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
-			String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
-			int[] limit = { 10, 10, 10 };
-			int[] sizes = { 11945034, 1183070, 9766351 };
-			String[] popularity = { "popularity", "popularity", "popularity" };
-			try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-				System.out.println("indexing union..");
-				for (int i = 0; i < tableNames.length; i++) {
-					RunTableIndexer rti = new RunTableIndexer(new StandardAnalyzer(), dc);
-					rti.indexTable(indexPath, tableNames[i], textAttribs[i], limit[i], popularity[i], false, config);
-				}
-				System.out.println("indexing comp..");
-				indexPath = DATA_WIKIPEDIA + "union_comp";
-				for (int i = 0; i < tableNames.length; i++) {
-					RunTableIndexer rti = new RunTableIndexer(new StandardAnalyzer(), dc);
-					rti.indexTable(indexPath, tableNames[i], textAttribs[i], sizes[i] - limit[i], popularity[i], true,
-							config);
-				}
-			}
-
-		} else {
-			System.out.println("Wrong input args!");
-		}
-	}
-
-	public static void indexLinks() throws IOException, SQLException {
-		String tableName = "tbl_link_pop";
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			RunTableIndexer wti = new RunTableIndexer(new StandardAnalyzer(), dc);
-			for (int i = 1; i <= 100; i += 1) {
-				double count = DatabaseHelper.tableSize(tableName, wti.conn);
-				int limit = (int) Math.floor((i * count) / 100.0);
-				String indexPath = DATA_WIKIPEDIA + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, new String[] { "url" }, limit, "pop", false,
-						getIndexWriterConfig());
+			if (args[0].equals("articles")) {
+				RunTableIndexer.indexArticles(dc);
+			} else if (args[0].equals("images")) {
+				RunTableIndexer.indexImages(dc);
+			} else if (args[0].equals("links")) {
+				RunTableIndexer.indexLinks(dc);
+			} else if (args[0].equals("rest")) {
+				RunTableIndexer.indexCompTable(dc, "tbl_article_09", 3, new String[] { "title", "text" }, "popularity");
+				RunTableIndexer.indexCompTable(dc, "tbl_link_pop", 6, new String[] { "url" }, "pop");
+				RunTableIndexer.indexCompTable(dc, "tbl_image_pop", 10, new String[] { "src" }, "pop");
+				RunTableIndexer.indexCompTable(dc, "tbl_article_wiki13", 1, new String[] { "title", "text" },
+						"popularity");
+			} else if (args[0].equals("union")) {
+
+			} else {
+				System.out.println("Wrong input args!");
 			}
 		}
 	}
 
-	public static void indexImages() throws IOException, SQLException {
-		String tableName = "tbl_image_pop";
-		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			RunTableIndexer wti = new RunTableIndexer(new StandardAnalyzer(), dc);
-			for (int i = 1; i <= 100; i += 1) {
-				double count = DatabaseHelper.tableSize(tableName, wti.conn);
-				int limit = (int) Math.floor((i * count) / 100.0);
-				String indexPath = DATA_WIKIPEDIA + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, new String[] { "src" }, limit, "pop", false,
-						getIndexWriterConfig());
-			}
-		}
-	}
-
-	public static void indexArticles() throws IOException, SQLException {
+	public static void indexArticles(DatabaseConnection dc) throws IOException, SQLException {
 		String tableName = "tbl_article_wiki13";
-		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			RunTableIndexer wti = new RunTableIndexer(new StandardAnalyzer(), dc);
-			for (int i = 1; i <= 100; i += 1) {
-				double count = DatabaseHelper.tableSize(tableName, wti.conn);
-				int limit = (int) Math.floor((i * count) / 100.0);
-				String indexPath = DATA_WIKIPEDIA + tableName + "/" + i;
-				wti.indexTable(indexPath, tableName, new String[] { "title", "text" }, limit, "popularity", false,
-						getIndexWriterConfig());
-			}
+		for (int i = 1; i <= 100; i += 1) {
+			double count = DatabaseHelper.tableSize(tableName, dc.getConnection());
+			int limit = (int) Math.floor((i * count) / 100.0);
+			String indexPath = DATA_WIKIPEDIA + tableName + "/" + i;
+			indexTable(dc, indexPath, tableName, new String[] { "title", "text" }, limit, "popularity", false,
+					getIndexWriterConfig());
 		}
 	}
 
-	public static void indexCompTable(String tableName, int percentage, String[] textAttribs, String popularityAttrib)
-			throws IOException, SQLException {
-		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			RunTableIndexer wti = new RunTableIndexer(new StandardAnalyzer(), dc);
-			String indexPath = DATA_WIKIPEDIA + tableName + "/c" + percentage;
-			double count = DatabaseHelper.tableSize(tableName, wti.conn);
-			int limit = (int) Math.floor(count - ((percentage * count) / 100.0));
-			wti.indexTable(indexPath, tableName, textAttribs, limit, popularityAttrib, true, getIndexWriterConfig());
+	public static void indexLinks(DatabaseConnection dc) throws IOException, SQLException {
+		String tableName = "tbl_link_pop";
+		for (int i = 1; i <= 100; i += 1) {
+			double count = DatabaseHelper.tableSize(tableName, dc.getConnection());
+			int limit = (int) Math.floor((i * count) / 100.0);
+			String indexPath = DATA_WIKIPEDIA + tableName + "/" + i;
+			indexTable(dc, indexPath, tableName, new String[] { "url" }, limit, "pop", false, getIndexWriterConfig());
+		}
+	}
+
+	public static void indexImages(DatabaseConnection dc) throws IOException, SQLException {
+		String tableName = "tbl_image_pop";
+		for (int i = 1; i <= 100; i += 1) {
+			double count = DatabaseHelper.tableSize(tableName, dc.getConnection());
+			int limit = (int) Math.floor((i * count) / 100.0);
+			String indexPath = DATA_WIKIPEDIA + tableName + "/" + i;
+			indexTable(dc, indexPath, tableName, new String[] { "src" }, limit, "pop", false, getIndexWriterConfig());
+		}
+	}
+
+	public static void indexCompTable(DatabaseConnection dc, String tableName, int percentage, String[] textAttribs,
+			String popularityAttrib) throws IOException, SQLException {
+		String indexPath = DATA_WIKIPEDIA + tableName + "/c" + percentage;
+		double count = DatabaseHelper.tableSize(tableName, dc.getConnection());
+		int limit = (int) Math.floor(count - ((percentage * count) / 100.0));
+		indexTable(dc, indexPath, tableName, textAttribs, limit, popularityAttrib, true, getIndexWriterConfig());
+	}
+
+	public static void indexRS(String idAttrib, String[] textAttribs, IndexWriter iwriter, ResultSet rs)
+			throws SQLException, IOException {
+		String id = rs.getString(idAttrib);
+		StringBuilder answerBuilder = new StringBuilder();
+		for (String s : textAttribs) {
+			answerBuilder.append(rs.getString(s));
+		}
+		String answer = answerBuilder.toString();
+		Document doc = new Document();
+		doc.add(new StoredField(ID_FIELD, id));
+		// answer = StringEscapeUtils.unescapeHtml4(answer); // convert html encoded
+		// characters to unicode
+		doc.add(new TextField(TEXT_FIELD, answer, Store.NO));
+		iwriter.addDocument(doc);
+	}
+
+	static void indexUnion(DatabaseConnection dc) throws IOException, SQLException {
+		IndexWriterConfig config = getIndexWriterConfig();
+		config.setOpenMode(OpenMode.APPEND);
+		String indexPath = DATA_WIKIPEDIA + "union";
+		String[] tableNames = new String[] { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
+		String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
+		int[] limit = { 10, 10, 10 };
+		int[] sizes = { 11945034, 1183070, 9766351 };
+		String[] popularity = { "popularity", "popularity", "popularity" };
+		System.out.println("indexing union..");
+		for (int i = 0; i < tableNames.length; i++) {
+			indexTable(dc, indexPath, tableNames[i], textAttribs[i], limit[i], popularity[i], false, config);
+		}
+		System.out.println("indexing comp..");
+		indexPath = DATA_WIKIPEDIA + "union_comp";
+		for (int i = 0; i < tableNames.length; i++) {
+			indexTable(dc, indexPath, tableNames[i], textAttribs[i], sizes[i] - limit[i], popularity[i], true, config);
 		}
 	}
 
@@ -133,15 +134,16 @@ public class RunTableIndexer {
 		return config;
 	}
 
-	private void indexTable(String indexPath, String table, String[] textAttribs, int limit, String popularity,
-			boolean ascending, IndexWriterConfig config) throws IOException, SQLException {
+	private static void indexTable(DatabaseConnection dc, String indexPath, String table, String[] textAttribs,
+			int limit, String popularity, boolean ascending, IndexWriterConfig config)
+			throws IOException, SQLException {
 		File indexFile = new File(indexPath);
 		if (!indexFile.exists()) {
 			indexFile.mkdirs();
 		}
 		Directory directory = FSDirectory.open(Paths.get(indexFile.getAbsolutePath()));
 		try (IndexWriter iwriter = new IndexWriter(directory, config)) {
-			try (Statement stmt = conn.createStatement()) {
+			try (Statement stmt = dc.getConnection().createStatement()) {
 				stmt.setFetchSize(Integer.MIN_VALUE);
 				String attribs = "id";
 				for (String s : textAttribs) {
@@ -156,7 +158,7 @@ public class RunTableIndexer {
 				System.out.println(sql);
 				ResultSet rs = stmt.executeQuery(sql);
 				while (rs.next()) {
-					IndexerHelper.indexRS("id", textAttribs, iwriter, rs);
+					RunTableIndexer.indexRS("id", textAttribs, iwriter, rs);
 				}
 			}
 		}

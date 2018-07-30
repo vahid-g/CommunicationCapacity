@@ -130,13 +130,13 @@ public class RunBaselineWithLucene {
 	static List<String> executeLuceneQuery(IndexReader reader, String queryText) throws ParseException, IOException {
 		IndexSearcher searcher = new IndexSearcher(reader);
 		searcher.setSimilarity(new BM25Similarity());
-		QueryParser qp = new QueryParser(IndexerHelper.TEXT_FIELD, new StandardAnalyzer());
+		QueryParser qp = new QueryParser(RunTableIndexer.TEXT_FIELD, new StandardAnalyzer());
 		Query query = qp.parse(QueryParser.escape(queryText));
 		ScoreDoc[] scoreDocHits = searcher.search(query, tupleSetSize).scoreDocs;
 		List<String> results = new ArrayList<String>();
 		for (int j = 0; j < scoreDocHits.length; j++) {
 			Document doc = reader.document(scoreDocHits[j].doc);
-			String docId = doc.get(IndexerHelper.ID_FIELD);
+			String docId = doc.get(RunTableIndexer.ID_FIELD);
 			results.add("(" + docId + "," + scoreDocHits[j].score + ")");
 		}
 		return results;
