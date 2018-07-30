@@ -37,13 +37,12 @@ public class RunTableIndexer {
 			} else if (args[0].equals("links")) {
 				RunTableIndexer.indexLinks(dc);
 			} else if (args[0].equals("rest")) {
-				RunTableIndexer.indexCompTable(dc, "tbl_article_09", 3, new String[] { "title", "text" }, "popularity");
-				RunTableIndexer.indexCompTable(dc, "tbl_link_pop", 6, new String[] { "url" }, "pop");
-				RunTableIndexer.indexCompTable(dc, "tbl_image_pop", 10, new String[] { "src" }, "pop");
-				RunTableIndexer.indexCompTable(dc, "tbl_article_wiki13", 1, new String[] { "title", "text" },
-						"popularity");
+				indexCompTable(dc, "tbl_article_09", 3, new String[] { "title", "text" }, "popularity");
+				indexCompTable(dc, "tbl_link_pop", 6, new String[] { "url" }, "pop");
+				indexCompTable(dc, "tbl_image_pop", 10, new String[] { "src" }, "pop");
+				indexCompTable(dc, "tbl_article_wiki13", 1, new String[] { "title", "text" }, "popularity");
 			} else if (args[0].equals("union")) {
-
+				indexForLM(dc);
 			} else {
 				System.out.println("Wrong input args!");
 			}
@@ -105,7 +104,7 @@ public class RunTableIndexer {
 		iwriter.addDocument(doc);
 	}
 
-	static void indexUnion(DatabaseConnection dc) throws IOException, SQLException {
+	static void indexForLM(DatabaseConnection dc) throws IOException, SQLException {
 		IndexWriterConfig config = getIndexWriterConfig();
 		config.setOpenMode(OpenMode.APPEND);
 		String indexPath = DATA_WIKIPEDIA + "union";
