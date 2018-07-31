@@ -14,7 +14,6 @@ import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -29,8 +28,6 @@ public class Indexer {
 	public static final String TEXT_FIELD = "text";
 
 	public static void main(String[] args) throws IOException, SQLException {
-		// int[] limit = { 200000, 100000, 200000 };
-		int[] limit = { 238900, 106470, 195326 };
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			if (args[0].equals("articles")) {
 				Indexer.indexArticles(dc);
@@ -141,8 +138,8 @@ public class Indexer {
 		}
 	}
 
-	static void indexTable(DatabaseConnection dc, IndexWriter indexWriter, String table, String[] textAttribs, int limit,
-			String popularity, boolean ascending) throws IOException, SQLException {
+	static void indexTable(DatabaseConnection dc, IndexWriter indexWriter, String table, String[] textAttribs,
+			int limit, String popularity, boolean ascending) throws IOException, SQLException {
 		try (Statement stmt = dc.getConnection().createStatement()) {
 			stmt.setFetchSize(Integer.MIN_VALUE);
 			String attribs = "id";
