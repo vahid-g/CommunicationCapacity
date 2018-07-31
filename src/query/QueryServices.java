@@ -36,12 +36,15 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import indexing.GeneralIndexer;
+import wiki13.WikiFilesPaths;
 
 public class QueryServices {
 
 	static final Logger LOGGER = Logger.getLogger(QueryServices.class.getName());
 
 	private static final int DEFAULT_TOPDOC_COUNTS = 200;
+
+	private static WikiFilesPaths defaultPaths = WikiFilesPaths.getMaplePaths();
 
 	public static void main(String[] args) {
 		loadInexQueries("inex14sbs.topics.xml", "inex14sbs.qrels", "title");
@@ -171,6 +174,10 @@ public class QueryServices {
 			return 0;
 	}
 
+	public static List<ExperimentQuery> loadMsnQueries() {
+		return loadMsnQueries(defaultPaths.getMsnQueryFilePath(), defaultPaths.getMsnQrelFilePath());
+	}
+
 	public static List<ExperimentQuery> loadMsnQueries(String queryPath, String qrelPath) {
 		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
 		try (FileInputStream fis = new FileInputStream(qrelPath);
@@ -222,6 +229,10 @@ public class QueryServices {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 		return queryList;
+	}
+
+	public static List<ExperimentQuery> loadInexQueries() {
+		return loadInexQueries(defaultPaths.getInexQueryFilePath(), defaultPaths.getInexQrelFilePath());
 	}
 
 	public static List<ExperimentQuery> loadInexQueries(String path, String qrelPath) {
