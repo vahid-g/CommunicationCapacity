@@ -30,6 +30,9 @@ public class RunCacheSearch_V2 {
 		WikiFilesPaths paths = null;
 		paths = WikiFilesPaths.getMaplePaths();
 		List<ExperimentQuery> queries = null;
+		if (argsList.contains("--debug") || argsList.contains("-d")) {
+			Params.DEBUG = true;
+		}
 		if (argsList.contains("-inex")) {
 			queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath());
 		} else {
@@ -89,8 +92,7 @@ public class RunCacheSearch_V2 {
 					Schema sch = new Schema(schemaDescription);
 					Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable,
 							linkTable, jdbcacc.conn);
-					List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleIndexToUse,
-							query.getText());
+					List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleIndexToUse, query.getText());
 					List<String> imageIds = RunBaseline_Lucene.executeLuceneQuery(imageIndexToUse, query.getText());
 					List<String> linkIds = RunBaseline_Lucene.executeLuceneQuery(linkIndexToUse, query.getText());
 					System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
@@ -99,8 +101,8 @@ public class RunCacheSearch_V2 {
 					relnamesValues.put(articleTable, articleIds);
 					relnamesValues.put(imageTable, imageIds);
 					relnamesValues.put(linkTable, linkIds);
-					IRStyleQueryResult result = RunBaseline_Lucene.executeIRStyleQuery(jdbcacc, sch, relations,
-							query, relnamesValues);
+					IRStyleQueryResult result = RunBaseline_Lucene.executeIRStyleQuery(jdbcacc, sch, relations, query,
+							relnamesValues);
 					time += result.execTime;
 					queryResults.add(result);
 				}
@@ -111,6 +113,5 @@ public class RunCacheSearch_V2 {
 		}
 
 	}
-
 
 }
