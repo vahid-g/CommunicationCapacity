@@ -26,6 +26,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.RAMDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
@@ -33,15 +34,22 @@ import irstyle_core.JDBCaccess;
 import irstyle_core.Relation;
 import irstyle_core.Schema;
 import query.ExperimentQuery;
-import query.QueryResult;
 import query.QueryServices;
-import wiki13.WikiFilesPaths;
 
 public class FindCache_V2 {
 
 	private static final double popSum[] = { 15440314886.0, 52716653460.0, 1407925741807.0 };
 
 	public static void main(String[] args) throws Exception {
+		List<String> argList = Arrays.asList(args);
+		List<ExperimentQuery> queries = null;
+		if (argList.contains("-inex")) {
+			queries = QueryServices.loadInexQueries();
+		} else {
+			queries = QueryServices.loadMsnQueries();
+		}
+		Collections.shuffle(queries, new Random(1));
+		queries = queries.subList(0, 50);
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			String[] tableNames = new String[] { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
 			String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
@@ -54,7 +62,7 @@ public class FindCache_V2 {
 			// int[] sizes = { 11945034, 1183070, 9766351 };
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
-				cacheTables[i] = "sub_" + tableNames[i].substring(4);
+				cacheTables[i] = "tmp_" + tableNames[i].substring(4);
 				try (Statement stmt = conn.createStatement()) {
 					stmt.execute("drop table if exists " + cacheTables[i] + ";");
 					stmt.execute(
@@ -70,21 +78,18 @@ public class FindCache_V2 {
 				config[i].setRAMBufferSizeMB(1024);
 				config[i].setOpenMode(OpenMode.CREATE);
 			}
-			WikiFilesPaths paths = WikiFilesPaths.getMaplePaths();
-			List<ExperimentQuery> queries = null;
-			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
-			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 50);
 			IndexWriter indexWriters[] = new IndexWriter[tableNames.length];
 			PreparedStatement selectSt[] = new PreparedStatement[tableNames.length];
 			PreparedStatement insertSt[] = new PreparedStatement[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
-				indexWriters[i] = new IndexWriter(FSDirectory.open(Paths.get(indexPaths[i])), config[i]);
-				indexWriters[i].commit();
+				// indexWriters[i] = new IndexWriter(FSDirectory.open(Paths.get(indexPaths[i])),
+				// config[i]);
+				indexWriters[i] = new IndexWriter(new RAMDirectory(), config[i]);
+				// indexWriters[i].commit();
 				selectSt[i] = conn.prepareStatement(selectTemplates[i]);
 				insertSt[i] = conn.prepareStatement(insertTemplates[i]);
 			}
-			// double prevAcc = 0;
+			double prevAcc = 0;
 			double acc = 0;
 			double bestAcc = 0;
 			int[] offset = { 0, 0, 0 };
@@ -107,7 +112,6 @@ public class FindCache_V2 {
 			int[] lastPopularity = new int[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
 				selectSt[i].setInt(1, offset[i]);
-				offset[i] += pageSize[i];
 				ResultSet rs = selectSt[i].executeQuery();
 				List<Document> docs = new ArrayList<Document>();
 				while (rs.next()) {
@@ -155,13 +159,9 @@ public class FindCache_V2 {
 						IndexReader linkReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPaths[2])))) {
 					for (ExperimentQuery query : queries) {
 						Schema sch = new Schema(schemaDescription);
-						List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleReader,
-								query.getText());
+						List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleReader, query.getText());
 						List<String> imageIds = RunBaseline_Lucene.executeLuceneQuery(imageReader, query.getText());
 						List<String> linkIds = RunBaseline_Lucene.executeLuceneQuery(linkReader, query.getText());
-						// System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d",
-						// articleIds.size(),
-						// imageIds.size(), linkIds.size());
 						Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 						relnamesValues.put(articleTable, articleIds);
 						relnamesValues.put(imageTable, imageIds);
@@ -170,23 +170,7 @@ public class FindCache_V2 {
 								query, relnamesValues);
 						queryResults.add(result);
 					}
-					// DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
-					// System.out.println(" index size: " + reader.numDocs());
-					// IndexSearcher searcher = new IndexSearcher(reader);
-					// QueryParser qp = new QueryParser("text", new StandardAnalyzer());
-					// for (ExperimentQuery q : queries) {
-					// QueryResult result = new QueryResult(q);
-					// Query query = qp.parse(QueryParser.escape(q.getText()));
-					// ScoreDoc[] scoreDocHits = searcher.search(query, topDocs).scoreDocs;
-					// for (int j = 0; j < Math.min(topDocs, scoreDocHits.length); j++) {
-					// Document doc = reader.document(scoreDocHits[j].doc);
-					// String docId = doc.get("id");
-					// result.addResult(docId, "no title");
-					// }
-					// queryResults.add(result);
-					// }
-					// }
-					acc = effectiveness2(queryResults);
+					acc = effectiveness(queryResults);
 					System.out.println("  new accuracy = " + acc);
 
 				}
@@ -195,16 +179,16 @@ public class FindCache_V2 {
 					bestAcc = acc;
 					bestOffset = offset.clone();
 				}
-				// prevAcc = acc;
-				// if (acc < prevAcc) {
-				// break;
-				// }
+				prevAcc = acc;
+				if ((acc - prevAcc) < 0.05) {
+					break;
+				}
 				if (lastPopularity[0] == -1 && lastPopularity[1] == -1 && lastPopularity[-2] == -1) {
 					break;
 				}
 				// update buffer
-				selectSt[m].setInt(1, offset[m]);
 				offset[m] += pageSize[m];
+				selectSt[m].setInt(1, offset[m]);
 				ResultSet rs = selectSt[m].executeQuery();
 				lastPopularity[m] = -1;
 				docs = new ArrayList<Document>();
@@ -228,21 +212,11 @@ public class FindCache_V2 {
 				indexWriters[i].close();
 				selectSt[i].close();
 				insertSt[i].close();
-
 			}
 		}
 	}
 
-	public static double effectiveness(List<QueryResult> queryResults) {
-		double acc = 0;
-		for (QueryResult qr : queryResults) {
-			acc += qr.mrr();
-		}
-		acc /= queryResults.size();
-		return acc;
-	}
-
-	public static double effectiveness2(List<IRStyleQueryResult> queryResults) {
+	public static double effectiveness(List<IRStyleQueryResult> queryResults) {
 		double acc = 0;
 		for (IRStyleQueryResult qr : queryResults) {
 			acc += qr.rrank();
