@@ -39,7 +39,7 @@ public class RunCacheSearchWithLucene {
 		} else {
 			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
 			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 10);
+			queries = queries.subList(0, 50);
 		}
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		String baseDir = "/data/ghadakcv/wikipedia/";
