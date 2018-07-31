@@ -32,7 +32,7 @@ import query.QueryResult;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
 
-public class RunFindCache {
+public class RunFindCache_Simple {
 
 	private static int TOPDOC_COUNTS = 100;
 
