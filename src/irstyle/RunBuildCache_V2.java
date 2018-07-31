@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+
 import database.DatabaseConnection;
 import database.DatabaseType;
 
@@ -28,6 +31,7 @@ public class RunBuildCache_V2 {
 		String createStatement = "CREATE TABLE " + cacheName + " AS " + selectStatement + ";";
 		System.out.println("Creating table..");
 		try (Statement stmt = dc.getConnection().createStatement()) {
+			stmt.execute("drop table if exists " + cacheName);
 			stmt.execute(createStatement);
 		}
 		System.out.println("Creating id index..");
@@ -36,6 +40,8 @@ public class RunBuildCache_V2 {
 			stmt.executeUpdate(createIndex);
 		}
 
+		IndexWriterConfig config = RunTableIndexer.getIndexWriterConfig();
+		config.setOpenMode(OpenMode.CREATE);
 		RunTableIndexer.indexTable(dc, RunTableIndexer.DATA_WIKIPEDIA + cacheName, tableName, textAttribs, limit,
 				"popularity", false, RunTableIndexer.getIndexWriterConfig());
 	}
