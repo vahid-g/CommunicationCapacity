@@ -1,6 +1,5 @@
 package irstyle;
 
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,7 +24,6 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.similarities.BM25Similarity;
-import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 
 import database.DatabaseConnection;
@@ -58,8 +56,9 @@ public class FindCache_V2 {
 			String[] selectTemplates = new String[tableNames.length];
 			String[] insertTemplates = new String[tableNames.length];
 			String[] indexPaths = new String[tableNames.length];
+			RAMDirectory[] ramDir = new RAMDirectory[tableNames.length];
 			int[] pageSize = { 119450, 11830, 97663 };
-			// int[] sizes = { 11945034, 1183070, 9766351 };
+			double[] sizes = { 11945034, 1183070, 9766351 };
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
 				cacheTables[i] = "tmp_" + tableNames[i].substring(4);
@@ -84,8 +83,9 @@ public class FindCache_V2 {
 			for (int i = 0; i < tableNames.length; i++) {
 				// indexWriters[i] = new IndexWriter(FSDirectory.open(Paths.get(indexPaths[i])),
 				// config[i]);
-				indexWriters[i] = new IndexWriter(new RAMDirectory(), config[i]);
-				// indexWriters[i].commit();
+				ramDir[i] = new RAMDirectory();
+				indexWriters[i] = new IndexWriter(ramDir[i], config[i]);
+				indexWriters[i].commit();
 				selectSt[i] = conn.prepareStatement(selectTemplates[i]);
 				insertSt[i] = conn.prepareStatement(insertTemplates[i]);
 			}
@@ -154,9 +154,9 @@ public class FindCache_V2 {
 				// test partition!
 				System.out.println("  testing new cache..");
 				List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
-				try (IndexReader articleReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPaths[0])));
-						IndexReader imageReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPaths[1])));
-						IndexReader linkReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPaths[2])))) {
+				try (IndexReader articleReader = DirectoryReader.open(ramDir[0]);
+						IndexReader imageReader = DirectoryReader.open(ramDir[1]);
+						IndexReader linkReader = DirectoryReader.open(ramDir[2])) {
 					for (ExperimentQuery query : queries) {
 						Schema sch = new Schema(schemaDescription);
 						List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleReader, query.getText());
@@ -208,6 +208,11 @@ public class FindCache_V2 {
 				docsList.add(m, docs);
 			}
 			System.out.println("Offsets for articles, images, links = " + Arrays.toString(bestOffset));
+			double[] percent = new double[bestOffset.length];
+			for (int i = 0; i < bestOffset.length; i++) {
+				percent[i] = bestOffset[i] / sizes[i];
+			}
+			System.out.println("Best found sizes = " + Arrays.toString(percent));
 			for (int i = 0; i < tableNames.length; i++) {
 				indexWriters[i].close();
 				selectSt[i].close();
