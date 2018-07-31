@@ -58,6 +58,7 @@ public class RunCacheSearch_V2 {
 				IndexReader restReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_rest")))) {
 			long time = 0;
+			int cacheUseCount = 0;
 			for (int exec = 0; exec < Params.numExecutions; exec++) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
@@ -75,6 +76,7 @@ public class RunCacheSearch_V2 {
 					IndexReader linkIndexToUse = linkReader;
 					long time1 = System.currentTimeMillis();
 					if (CacheLanguageModel.useCache(query.getText(), cacheReader, articleReader, restReader)) {
+						cacheUseCount++;
 						System.out.println(" using cache for everything..");
 						articleTable = "sub_article_wiki13";
 						articleIndexToUse = cacheReader;
@@ -107,8 +109,8 @@ public class RunCacheSearch_V2 {
 					queryResults.add(result);
 				}
 			}
-			System.out.println(
-					"average time per query = " + (time / (queries.size() * Params.numExecutions)));
+			System.out.println("average time per query = " + (time / (queries.size() * Params.numExecutions)));
+			System.out.println("number of cache uses: " + cacheUseCount + "/" + queries.size());
 			IRStyleKeywordSearch.printResults(queryResults, "cs_result.csv");
 		}
 
