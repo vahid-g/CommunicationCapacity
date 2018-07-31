@@ -18,14 +18,9 @@ import wiki13.WikiFilesPaths;
 
 public class RunBaseline_MySQL {
 
-	static int maxCNsize = 5;
-	static int numExecutions = 1;
-	static int N = 100;
-	static boolean allKeywInResults = false;
-
 	public static void main(String[] args) throws Exception {
 		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
-		for (int exec = 0; exec < numExecutions; exec++) {
+		for (int exec = 0; exec < Params.numExecutions; exec++) {
 			String articleTable = "tbl_article_09";
 			String imageTable = "tbl_image_09_tk";
 			String linkTable = "tbl_link_09";
@@ -70,7 +65,7 @@ public class RunBaseline_MySQL {
 		System.out.println(" Time to create tuple sets: " + (time4 - time3) + " (ms)");
 		time3 = System.currentTimeMillis();
 		/** returns a vector of instances (tuple sets) */ // P1
-		Vector<?> CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx);
+		Vector<?> CNs = sch.getCNs(Params.maxCNsize, allkeyw, sch, MIndx);
 		for (Object v : CNs) {
 			System.out.println(v);
 		}
@@ -78,7 +73,7 @@ public class RunBaseline_MySQL {
 		exectime += time4 - time3;
 		System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 		ArrayList<Result> results = new ArrayList<Result>(1);
-		exectime += IRStyleKeywordSearch.methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
+		exectime += IRStyleKeywordSearch.methodC(Params.N, Params.allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 		IRStyleQueryResult result = new IRStyleQueryResult(query, exectime);
 		result.addIRStyleResults(results);

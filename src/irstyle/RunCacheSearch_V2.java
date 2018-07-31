@@ -58,7 +58,7 @@ public class RunCacheSearch_V2 {
 				IndexReader restReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_rest")))) {
 			long time = 0;
-			for (int exec = 0; exec < RunBaseline_Lucene.numExecutions; exec++) {
+			for (int exec = 0; exec < Params.numExecutions; exec++) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
 					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
@@ -108,7 +108,7 @@ public class RunCacheSearch_V2 {
 				}
 			}
 			System.out.println(
-					"average time per query = " + (time / (queries.size() * RunBaseline_Lucene.numExecutions)));
+					"average time per query = " + (time / (queries.size() * Params.numExecutions)));
 			IRStyleKeywordSearch.printResults(queryResults, "cs_result.csv");
 		}
 

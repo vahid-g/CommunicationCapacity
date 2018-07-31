@@ -58,7 +58,7 @@ public class RunCacheSearch_Lucene {
 				IndexReader linkRestReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/c6")))) {
 			long time = 0;
-			for (int exec = 0; exec < RunBaseline_Lucene.numExecutions; exec++) {
+			for (int exec = 0; exec < Params.numExecutions; exec++) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
 					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
@@ -116,7 +116,7 @@ public class RunCacheSearch_Lucene {
 				}
 			}
 			System.out.println(
-					"average time per query = " + (time / (queries.size() * RunBaseline_Lucene.numExecutions)));
+					"average time per query = " + (time / (queries.size() * Params.numExecutions)));
 			IRStyleKeywordSearch.printResults(queryResults, "cs_result.csv");
 		}
 	}

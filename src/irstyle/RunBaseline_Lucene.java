@@ -34,10 +34,6 @@ import wiki13.WikiFilesPaths;
 
 public class RunBaseline_Lucene {
 
-	static int maxCNsize = 5;
-	static int numExecutions = 1;
-	static int N = 5;
-	static boolean allKeywInResults = false;
 	static int tupleSetSize = 10000;
 	
 	public static void main(String[] args) throws Exception {
@@ -74,7 +70,7 @@ public class RunBaseline_Lucene {
 				IndexReader linkReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/100")))) {
 			int time = 0;
-			for (int exec = 0; exec < numExecutions; exec++) {
+			for (int exec = 0; exec < Params.numExecutions; exec++) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
 					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
@@ -93,7 +89,7 @@ public class RunBaseline_Lucene {
 					queryResults.add(result);
 				}
 			}
-			System.out.println("average time per query = " + (time / (queries.size() * numExecutions)));
+			System.out.println("average time per query = " + (time / (queries.size() * Params.numExecutions)));
 			IRStyleKeywordSearch.printResults(queryResults, "ir_result.csv");
 		}
 	}
@@ -112,12 +108,12 @@ public class RunBaseline_Lucene {
 		if (Params.DEBUG)
 			System.out.println(" Time to create tuple sets: " + (time4 - time3) + " (ms)");
 		time3 = System.currentTimeMillis();
-		Vector<?> CNs = sch.getCNs(maxCNsize, allkeyw, sch, MIndx);
+		Vector<?> CNs = sch.getCNs(Params.maxCNsize, allkeyw, sch, MIndx);
 		time4 = System.currentTimeMillis();
 		exectime += time4 - time3;
 		if (Params.DEBUG) System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 		ArrayList<Result> results = new ArrayList<Result>();
-		exectime += IRStyleKeywordSearch.methodC(N, allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
+		exectime += IRStyleKeywordSearch.methodC(Params.N, Params.allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 		IRStyleQueryResult result = new IRStyleQueryResult(query, exectime);
 		result.addIRStyleResults(results);
