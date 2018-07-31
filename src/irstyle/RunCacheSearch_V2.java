@@ -1,6 +1,5 @@
 package irstyle;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,18 +10,15 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
-import cache_selection.FeatureExtraction;
 import irstyle_core.JDBCaccess;
 import irstyle_core.Relation;
 import irstyle_core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
-import wiki13.WikiFileIndexer;
 import wiki13.WikiFilesPaths;
 
 public class RunCacheSearch_V2 {
