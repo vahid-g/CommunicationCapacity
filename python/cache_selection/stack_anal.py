@@ -7,17 +7,15 @@ def main(argv):
     analyze(c, '18', '100', 'TestViewCount')
 
 def analyze(c, subset, db, popularity):
-    zero_count = c['ml'].value_counts()[0]
     query_count = c.shape[0]
     print('distinct query count: %d' % query_count)
-    print('%d queries submitted to the subset (%.2f %%)' %
-          (zero_count, zero_count * 100 / query_count))
     print('average mrr:')
     if popularity not in c:
         print('warning: TestViewCount not found')
         c[popularity] = 1
     #c[popularity] = 1
     s = c[popularity].sum()
+    db_queries = (c['Pred'] * c[popularity]).sum()
     r1 = c[subset] * c[popularity]
     r2 = c[db] * c[popularity]
     r3 = c['ql'] * c[popularity]
