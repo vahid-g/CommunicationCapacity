@@ -108,9 +108,9 @@ public class RunCacheSearch {
 		FeatureExtraction fe = new FeatureExtraction(WikiFileIndexer.WEIGHT_ATTRIB);
 		double ql_cache = 0;
 		double ql_rest = 0;
-		ql_cache = fe.queryLikelihood(cacheIndexReader, query, IndexTable.TEXT_FIELD, globalIndexReader,
+		ql_cache = fe.queryLikelihood(cacheIndexReader, query, Indexer.TEXT_FIELD, globalIndexReader,
 				new StandardAnalyzer());
-		ql_rest = fe.queryLikelihood(restIndexReader, query, IndexTable.TEXT_FIELD, globalIndexReader,
+		ql_rest = fe.queryLikelihood(restIndexReader, query, Indexer.TEXT_FIELD, globalIndexReader,
 				new StandardAnalyzer());
 		return (ql_cache >= ql_rest);
 	}

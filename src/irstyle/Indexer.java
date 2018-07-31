@@ -22,7 +22,7 @@ import org.apache.lucene.store.FSDirectory;
 import database.DatabaseConnection;
 import database.DatabaseType;
 
-public class IndexTable {
+public class Indexer {
 
 	public static final String DATA_WIKIPEDIA = "/data/ghadakcv/wikipedia/";
 	public static final String ID_FIELD = "id";
@@ -33,11 +33,11 @@ public class IndexTable {
 		int[] limit = { 238900, 106470, 195326 };
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			if (args[0].equals("articles")) {
-				IndexTable.indexArticles(dc);
+				Indexer.indexArticles(dc);
 			} else if (args[0].equals("images")) {
-				IndexTable.indexImages(dc);
+				Indexer.indexImages(dc);
 			} else if (args[0].equals("links")) {
-				IndexTable.indexLinks(dc);
+				Indexer.indexLinks(dc);
 			} else if (args[0].equals("rest")) {
 				indexCompTable(dc, "tbl_article_09", 3, new String[] { "title", "text" }, "popularity");
 				indexCompTable(dc, "tbl_link_pop", 6, new String[] { "url" }, "pop");
@@ -156,7 +156,7 @@ public class IndexTable {
 				System.out.println(sql);
 				ResultSet rs = stmt.executeQuery(sql);
 				while (rs.next()) {
-					IndexTable.indexRS("id", textAttribs, iwriter, rs);
+					Indexer.indexRS("id", textAttribs, iwriter, rs);
 				}
 			}
 		}

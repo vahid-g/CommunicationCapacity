@@ -40,9 +40,9 @@ public class BuildCache_V2 {
 			stmt.executeUpdate(createIndex);
 		}
 
-		IndexWriterConfig config = IndexTable.getIndexWriterConfig();
+		IndexWriterConfig config = Indexer.getIndexWriterConfig();
 		config.setOpenMode(OpenMode.CREATE);
-		IndexTable.indexTable(dc, IndexTable.DATA_WIKIPEDIA + cacheName, tableName, textAttribs, limit,
-				"popularity", false, IndexTable.getIndexWriterConfig());
+		Indexer.indexTable(dc, Indexer.DATA_WIKIPEDIA + cacheName, tableName, textAttribs, limit,
+				"popularity", false, Indexer.getIndexWriterConfig());
 	}
 }
