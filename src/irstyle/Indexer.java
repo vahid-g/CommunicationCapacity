@@ -43,8 +43,6 @@ public class Indexer {
 				indexCompTable(dc, "tbl_link_pop", 6, new String[] { "url" }, "pop");
 				indexCompTable(dc, "tbl_image_pop", 10, new String[] { "src" }, "pop");
 				indexCompTable(dc, "tbl_article_wiki13", 1, new String[] { "title", "text" }, "popularity");
-			} else if (args[0].equals("union")) {
-				indexForLM(dc, limit);
 			} else {
 				System.out.println("Wrong input args!");
 			}
@@ -104,25 +102,6 @@ public class Indexer {
 		// characters to unicode
 		doc.add(new TextField(TEXT_FIELD, answer, Store.NO));
 		iwriter.addDocument(doc);
-	}
-
-	static void indexForLM(DatabaseConnection dc, int[] limit) throws IOException, SQLException {
-		IndexWriterConfig config = getIndexWriterConfig();
-		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
-		String indexPath = DATA_WIKIPEDIA + "union";
-		String[] tableNames = new String[] { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
-		String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
-		int[] sizes = { 11945034, 1183070, 9766351 };
-		String[] popularity = { "popularity", "popularity", "popularity" };
-		System.out.println("indexing union..");
-		for (int i = 0; i < tableNames.length; i++) {
-			indexTable(dc, indexPath, tableNames[i], textAttribs[i], limit[i], popularity[i], false, config);
-		}
-		System.out.println("indexing comp..");
-		indexPath = DATA_WIKIPEDIA + "union_comp";
-		for (int i = 0; i < tableNames.length; i++) {
-			indexTable(dc, indexPath, tableNames[i], textAttribs[i], sizes[i] - limit[i], popularity[i], true, config);
-		}
 	}
 
 	static IndexWriterConfig getIndexWriterConfig() {
