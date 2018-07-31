@@ -7,7 +7,7 @@ import java.sql.Statement;
 import database.DatabaseConnection;
 import database.DatabaseType;
 
-public class RunBuildCache {
+public class RunBuildCache_Simple {
 	public static void main(String[] args) throws SQLException, IOException {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			if (args.length < 3) {

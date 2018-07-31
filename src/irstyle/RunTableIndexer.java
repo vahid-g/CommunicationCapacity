@@ -43,16 +43,6 @@ public class RunTableIndexer {
 				indexCompTable(dc, "tbl_link_pop", 6, new String[] { "url" }, "pop");
 				indexCompTable(dc, "tbl_image_pop", 10, new String[] { "src" }, "pop");
 				indexCompTable(dc, "tbl_article_wiki13", 1, new String[] { "title", "text" }, "popularity");
-			} else if (args[0].equals("cache")) {
-				System.out.println("indexing caches..");
-				String[] tableName = { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
-				String[] cacheName = { "sub_article_wiki13", "sub_image_pop", "sub_link_pop" };
-				String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
-				for (int i = 0; i < tableName.length; i++) {
-					System.out.println("  indexing table " + tableName[i]);
-					indexTable(dc, DATA_WIKIPEDIA + cacheName[i], tableName[i], textAttribs[i], limit[i], "popularity",
-							false, getIndexWriterConfig());
-				}
 			} else if (args[0].equals("union")) {
 				indexForLM(dc, limit);
 			} else {
@@ -135,7 +125,7 @@ public class RunTableIndexer {
 		}
 	}
 
-	private static IndexWriterConfig getIndexWriterConfig() {
+	static IndexWriterConfig getIndexWriterConfig() {
 		IndexWriterConfig config;
 		config = new IndexWriterConfig(new StandardAnalyzer());
 		config.setSimilarity(new BM25Similarity());
@@ -143,9 +133,8 @@ public class RunTableIndexer {
 		return config;
 	}
 
-	private static void indexTable(DatabaseConnection dc, String indexPath, String table, String[] textAttribs,
-			int limit, String popularity, boolean ascending, IndexWriterConfig config)
-			throws IOException, SQLException {
+	static void indexTable(DatabaseConnection dc, String indexPath, String table, String[] textAttribs, int limit,
+			String popularity, boolean ascending, IndexWriterConfig config) throws IOException, SQLException {
 		File indexFile = new File(indexPath);
 		if (!indexFile.exists()) {
 			indexFile.mkdirs();
