@@ -155,10 +155,10 @@ public class FindCache_V2 {
 						IndexReader linkReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPaths[2])))) {
 					for (ExperimentQuery query : queries) {
 						Schema sch = new Schema(schemaDescription);
-						List<String> articleIds = RunBaselineWithLucene.executeLuceneQuery(articleReader,
+						List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleReader,
 								query.getText());
-						List<String> imageIds = RunBaselineWithLucene.executeLuceneQuery(imageReader, query.getText());
-						List<String> linkIds = RunBaselineWithLucene.executeLuceneQuery(linkReader, query.getText());
+						List<String> imageIds = RunBaseline_Lucene.executeLuceneQuery(imageReader, query.getText());
+						List<String> linkIds = RunBaseline_Lucene.executeLuceneQuery(linkReader, query.getText());
 						// System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d",
 						// articleIds.size(),
 						// imageIds.size(), linkIds.size());
@@ -166,7 +166,7 @@ public class FindCache_V2 {
 						relnamesValues.put(articleTable, articleIds);
 						relnamesValues.put(imageTable, imageIds);
 						relnamesValues.put(linkTable, linkIds);
-						IRStyleQueryResult result = RunBaselineWithLucene.executeIRStyleQuery(jdbcacc, sch, relations,
+						IRStyleQueryResult result = RunBaseline_Lucene.executeIRStyleQuery(jdbcacc, sch, relations,
 								query, relnamesValues);
 						queryResults.add(result);
 					}

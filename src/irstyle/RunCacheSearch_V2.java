@@ -25,7 +25,7 @@ import query.QueryServices;
 import wiki13.WikiFileIndexer;
 import wiki13.WikiFilesPaths;
 
-public class RunCacheSearchWithLucene_V2 {
+public class RunCacheSearch_V2 {
 
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
@@ -59,7 +59,7 @@ public class RunCacheSearchWithLucene_V2 {
 				IndexReader restReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_rest")))) {
 			long time = 0;
-			for (int exec = 0; exec < RunBaselineWithLucene.numExecutions; exec++) {
+			for (int exec = 0; exec < RunBaseline_Lucene.numExecutions; exec++) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
 					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
@@ -93,24 +93,24 @@ public class RunCacheSearchWithLucene_V2 {
 					Schema sch = new Schema(schemaDescription);
 					Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable,
 							linkTable, jdbcacc.conn);
-					List<String> articleIds = RunBaselineWithLucene.executeLuceneQuery(articleIndexToUse,
+					List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleIndexToUse,
 							query.getText());
-					List<String> imageIds = RunBaselineWithLucene.executeLuceneQuery(imageIndexToUse, query.getText());
-					List<String> linkIds = RunBaselineWithLucene.executeLuceneQuery(linkIndexToUse, query.getText());
+					List<String> imageIds = RunBaseline_Lucene.executeLuceneQuery(imageIndexToUse, query.getText());
+					List<String> linkIds = RunBaseline_Lucene.executeLuceneQuery(linkIndexToUse, query.getText());
 					System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
 							imageIds.size(), linkIds.size());
 					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 					relnamesValues.put(articleTable, articleIds);
 					relnamesValues.put(imageTable, imageIds);
 					relnamesValues.put(linkTable, linkIds);
-					IRStyleQueryResult result = RunBaselineWithLucene.executeIRStyleQuery(jdbcacc, sch, relations,
+					IRStyleQueryResult result = RunBaseline_Lucene.executeIRStyleQuery(jdbcacc, sch, relations,
 							query, relnamesValues);
 					time += result.execTime;
 					queryResults.add(result);
 				}
 			}
 			System.out.println(
-					"average time per query = " + (time / (queries.size() * RunBaselineWithLucene.numExecutions)));
+					"average time per query = " + (time / (queries.size() * RunBaseline_Lucene.numExecutions)));
 			IRStyleKeywordSearch.printResults(queryResults, "cs_result.csv");
 		}
 

@@ -16,7 +16,7 @@ import query.ExperimentQuery;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
 
-public class RunBaseline {
+public class RunBaseline_MySQL {
 
 	static int maxCNsize = 5;
 	static int numExecutions = 1;

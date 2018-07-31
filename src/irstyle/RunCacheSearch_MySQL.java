@@ -25,7 +25,7 @@ import query.QueryServices;
 import wiki13.WikiFileIndexer;
 import wiki13.WikiFilesPaths;
 
-public class RunCacheSearch {
+public class RunCacheSearch_MySQL {
 
 	public static void main(String[] args) throws Exception {
 
@@ -87,14 +87,14 @@ public class RunCacheSearch {
 				Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
 						jdbcacc.conn);
 
-				List<String> articleIds = RunBaselineWithLucene.executeLuceneQuery(articleReader, query.getText());
-				List<String> imageIds = RunBaselineWithLucene.executeLuceneQuery(imageReader, query.getText());
-				List<String> linkIds = RunBaselineWithLucene.executeLuceneQuery(linkReader, query.getText());
+				List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleReader, query.getText());
+				List<String> imageIds = RunBaseline_Lucene.executeLuceneQuery(imageReader, query.getText());
+				List<String> linkIds = RunBaseline_Lucene.executeLuceneQuery(linkReader, query.getText());
 				Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 				relnamesValues.put(articleTable, articleIds);
 				relnamesValues.put(imageTable, imageIds);
 				relnamesValues.put(linkTable, linkIds);
-				IRStyleQueryResult result = RunBaselineWithLucene.executeIRStyleQuery(jdbcacc, sch, relations, query,
+				IRStyleQueryResult result = RunBaseline_Lucene.executeIRStyleQuery(jdbcacc, sch, relations, query,
 						relnamesValues);
 				queryResults.add(result);
 			}

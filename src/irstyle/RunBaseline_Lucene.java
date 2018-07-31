@@ -32,7 +32,7 @@ import query.ExperimentQuery;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
 
-public class RunBaselineWithLucene {
+public class RunBaseline_Lucene {
 
 	static int maxCNsize = 5;
 	static int numExecutions = 1;
