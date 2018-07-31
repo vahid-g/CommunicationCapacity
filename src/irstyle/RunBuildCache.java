@@ -61,8 +61,8 @@ public class RunBuildCache {
 							"create table " + cacheTables[i] + " as select id from " + tableNames[i] + " limit 0;");
 					stmt.execute("create index id on " + cacheTables[i] + "(id);");
 				}
-				selectTemplates[i] = "select * from " + tableNames[i] + " order by popularity desc limit ?, " + pageSize[i]
-						+ ";";
+				selectTemplates[i] = "select * from " + tableNames[i] + " order by popularity desc limit ?, "
+						+ pageSize[i] + ";";
 				insertTemplates[i] = "insert into " + cacheTables[i] + " (id) values (?);";
 				indexPaths[i] = "/data/ghadakcv/wikipedia/" + cacheTables[i];
 				config[i] = new IndexWriterConfig(new StandardAnalyzer());
@@ -84,7 +84,7 @@ public class RunBuildCache {
 				selectSt[i] = conn.prepareStatement(selectTemplates[i]);
 				insertSt[i] = conn.prepareStatement(insertTemplates[i]);
 			}
-			double prevAcc = 0;
+			// double prevAcc = 0;
 			double acc = 0;
 			double bestAcc = 0;
 			int[] offset = { 0, 0, 0 };
@@ -195,7 +195,7 @@ public class RunBuildCache {
 					bestAcc = acc;
 					bestOffset = offset.clone();
 				}
-				prevAcc = acc;
+				// prevAcc = acc;
 				// if (acc < prevAcc) {
 				// break;
 				// }
