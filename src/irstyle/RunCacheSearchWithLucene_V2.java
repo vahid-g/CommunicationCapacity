@@ -42,21 +42,22 @@ public class RunCacheSearchWithLucene_V2 {
 			queries = queries.subList(0, 50);
 		}
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
-		String baseDir = "/data/ghadakcv/wikipedia/";
 		try (IndexReader articleReader = DirectoryReader
-				.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/100")));
+				.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100")));
 				IndexReader articleCacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(baseDir + "sub_article_wiki13")));
+						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "sub_article_wiki13")));
 				IndexReader imageReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(baseDir + "tbl_image_pop/100")));
+						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "tbl_image_pop/100")));
 				IndexReader imageCacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(baseDir + "sub_image_pop")));
+						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "sub_image_pop")));
 				IndexReader linkReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/100")));
+						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "tbl_link_pop/100")));
 				IndexReader linkCacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(baseDir + "sub_link_pop")));
-				IndexReader cacheReader = DirectoryReader.open(FSDirectory.open(Paths.get(baseDir + "cache")));
-				IndexReader restReader = DirectoryReader.open(FSDirectory.open(Paths.get(baseDir + "rest")))) {
+						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "sub_link_pop")));
+				IndexReader cacheReader = DirectoryReader
+						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_cache")));
+				IndexReader restReader = DirectoryReader
+						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_rest")))) {
 			long time = 0;
 			for (int exec = 0; exec < RunBaselineWithLucene.numExecutions; exec++) {
 				int loop = 1;
@@ -65,7 +66,6 @@ public class RunCacheSearchWithLucene_V2 {
 					Vector<String> allkeyw = new Vector<String>();
 					// escaping single quotes
 					allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
-					// String articleTable = "tbl_article_09";
 					String articleTable = "tbl_article_wiki13";
 					String imageTable = "tbl_image_pop";
 					String linkTable = "tbl_link_pop";
@@ -75,7 +75,7 @@ public class RunCacheSearchWithLucene_V2 {
 					IndexReader imageIndexToUse = imageReader;
 					IndexReader linkIndexToUse = linkReader;
 					long time1 = System.currentTimeMillis();
-					if (useCache(query.getText(), cacheReader, articleReader, restReader)) {
+					if (CacheLanguageModel.useCache(query.getText(), cacheReader, articleReader, restReader)) {
 						System.out.println(" using cache for everything..");
 						articleTable = "sub_article_wiki13";
 						articleIndexToUse = cacheReader;
@@ -116,17 +116,5 @@ public class RunCacheSearchWithLucene_V2 {
 
 	}
 
-	static boolean useCache(String query, IndexReader cacheIndexReader, IndexReader globalIndexReader,
-			IndexReader restIndexReader) throws IOException {
-		FeatureExtraction fe = new FeatureExtraction(WikiFileIndexer.WEIGHT_ATTRIB);
-		double ql_cache = 0;
-		double ql_rest = 0;
-		ql_cache = fe.queryLikelihood(cacheIndexReader, query, Indexer.TEXT_FIELD, globalIndexReader,
-				new StandardAnalyzer());
-		ql_rest = fe.queryLikelihood(restIndexReader, query, Indexer.TEXT_FIELD, globalIndexReader,
-				new StandardAnalyzer());
-		return (ql_cache >= ql_rest);
-		// return false;
-	}
 
 }
