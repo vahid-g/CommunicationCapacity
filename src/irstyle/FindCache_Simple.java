@@ -32,7 +32,7 @@ import query.QueryResult;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
 
-public class RunFindCache_Simple {
+public class FindCache_Simple {
 
 	private static int TOPDOC_COUNTS = 100;
 
@@ -107,14 +107,14 @@ public class RunFindCache_Simple {
 		List<QueryResult> queryResults = new ArrayList<QueryResult>();
 		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)))) {
 			IndexSearcher searcher = new IndexSearcher(reader);
-			QueryParser qp = new QueryParser(RunTableIndexer.TEXT_FIELD, new StandardAnalyzer());
+			QueryParser qp = new QueryParser(IndexTable.TEXT_FIELD, new StandardAnalyzer());
 			for (ExperimentQuery q : queries) {
 				QueryResult result = new QueryResult(q);
 				Query query = qp.parse(QueryParser.escape(q.getText()));
 				ScoreDoc[] scoreDocHits = searcher.search(query, TOPDOC_COUNTS).scoreDocs;
 				for (int j = 0; j < Math.min(TOPDOC_COUNTS, scoreDocHits.length); j++) {
 					Document doc = reader.document(scoreDocHits[j].doc);
-					String docId = doc.get(RunTableIndexer.ID_FIELD);
+					String docId = doc.get(IndexTable.ID_FIELD);
 					result.addResult(docId, "no title");
 				}
 				queryResults.add(result);

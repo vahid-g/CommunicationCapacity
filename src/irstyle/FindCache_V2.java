@@ -37,7 +37,7 @@ import query.QueryResult;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
 
-public class RunFindCache_V2 {
+public class FindCache_V2 {
 
 	private static final double popSum[] = { 15440314886.0, 52716653460.0, 1407925741807.0 };
 

@@ -10,7 +10,7 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import database.DatabaseConnection;
 import database.DatabaseType;
 
-public class RunBuildCache_V2 {
+public class BuildCache_V2 {
 	public static void main(String[] args) throws SQLException, IOException {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			String[] tableName = { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
@@ -40,9 +40,9 @@ public class RunBuildCache_V2 {
 			stmt.executeUpdate(createIndex);
 		}
 
-		IndexWriterConfig config = RunTableIndexer.getIndexWriterConfig();
+		IndexWriterConfig config = IndexTable.getIndexWriterConfig();
 		config.setOpenMode(OpenMode.CREATE);
-		RunTableIndexer.indexTable(dc, RunTableIndexer.DATA_WIKIPEDIA + cacheName, tableName, textAttribs, limit,
-				"popularity", false, RunTableIndexer.getIndexWriterConfig());
+		IndexTable.indexTable(dc, IndexTable.DATA_WIKIPEDIA + cacheName, tableName, textAttribs, limit,
+				"popularity", false, IndexTable.getIndexWriterConfig());
 	}
 }
