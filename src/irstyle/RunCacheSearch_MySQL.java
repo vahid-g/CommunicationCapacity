@@ -1,6 +1,5 @@
 package irstyle;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,18 +10,15 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
-import cache_selection.FeatureExtraction;
 import irstyle_core.JDBCaccess;
 import irstyle_core.Relation;
 import irstyle_core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
-import wiki13.WikiFileIndexer;
 import wiki13.WikiFilesPaths;
 
 public class RunCacheSearch_MySQL {
@@ -68,13 +64,14 @@ public class RunCacheSearch_MySQL {
 				String articleImageTable = "tbl_article_image_09";
 				String articleLinkTable = "tbl_article_link_09";
 				long time1 = System.currentTimeMillis();
-				if (useCache(query.getText(), articleCacheReader, articleReader, articleRestReader)) {
+				if (CacheLanguageModel.useCache(query.getText(), articleCacheReader, articleReader,
+						articleRestReader)) {
 					articleTable = "sub_article_3";
 				}
-				if (useCache(query.getText(), imageCacheReader, imageReader, imageRestReader)) {
+				if (CacheLanguageModel.useCache(query.getText(), imageCacheReader, imageReader, imageRestReader)) {
 					imageTable = "sub_image_10";
 				}
-				if (useCache(query.getText(), linkCacheReader, linkReader, linkRestReader)) {
+				if (CacheLanguageModel.useCache(query.getText(), linkCacheReader, linkReader, linkRestReader)) {
 					linkTable = "sub_link_6";
 				}
 				long time2 = System.currentTimeMillis();
@@ -101,18 +98,6 @@ public class RunCacheSearch_MySQL {
 			IRStyleKeywordSearch.printRrankResults(queryResults, "cs_result.csv");
 
 		}
-	}
-
-	static boolean useCache(String query, IndexReader cacheIndexReader, IndexReader globalIndexReader,
-			IndexReader restIndexReader) throws IOException {
-		FeatureExtraction fe = new FeatureExtraction(WikiFileIndexer.WEIGHT_ATTRIB);
-		double ql_cache = 0;
-		double ql_rest = 0;
-		ql_cache = fe.queryLikelihood(cacheIndexReader, query, Indexer.TEXT_FIELD, globalIndexReader,
-				new StandardAnalyzer());
-		ql_rest = fe.queryLikelihood(restIndexReader, query, Indexer.TEXT_FIELD, globalIndexReader,
-				new StandardAnalyzer());
-		return (ql_cache >= ql_rest);
 	}
 
 }
