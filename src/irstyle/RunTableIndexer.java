@@ -29,6 +29,8 @@ public class RunTableIndexer {
 	public static final String TEXT_FIELD = "text";
 
 	public static void main(String[] args) throws IOException, SQLException {
+		// int[] limit = { 200000, 100000, 200000 };
+		int[] limit = { 238900, 106470, 195326 };
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			if (args[0].equals("articles")) {
 				RunTableIndexer.indexArticles(dc);
@@ -41,8 +43,18 @@ public class RunTableIndexer {
 				indexCompTable(dc, "tbl_link_pop", 6, new String[] { "url" }, "pop");
 				indexCompTable(dc, "tbl_image_pop", 10, new String[] { "src" }, "pop");
 				indexCompTable(dc, "tbl_article_wiki13", 1, new String[] { "title", "text" }, "popularity");
+			} else if (args[0].equals("cache")) {
+				System.out.println("indexing caches..");
+				String[] tableName = { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
+				String[] cacheName = { "sub_article_wiki13", "sub_image_pop", "sub_link_pop" };
+				String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
+				for (int i = 0; i < tableName.length; i++) {
+					System.out.println("  indexing table " + tableName[i]);
+					indexTable(dc, DATA_WIKIPEDIA + cacheName[i], tableName[i], textAttribs[i], limit[i], "popularity",
+							false, getIndexWriterConfig());
+				}
 			} else if (args[0].equals("union")) {
-				indexForLM(dc);
+				indexForLM(dc, limit);
 			} else {
 				System.out.println("Wrong input args!");
 			}
@@ -104,13 +116,12 @@ public class RunTableIndexer {
 		iwriter.addDocument(doc);
 	}
 
-	static void indexForLM(DatabaseConnection dc) throws IOException, SQLException {
+	static void indexForLM(DatabaseConnection dc, int[] limit) throws IOException, SQLException {
 		IndexWriterConfig config = getIndexWriterConfig();
-		config.setOpenMode(OpenMode.APPEND);
+		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
 		String indexPath = DATA_WIKIPEDIA + "union";
 		String[] tableNames = new String[] { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
 		String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
-		int[] limit = { 10, 10, 10 };
 		int[] sizes = { 11945034, 1183070, 9766351 };
 		String[] popularity = { "popularity", "popularity", "popularity" };
 		System.out.println("indexing union..");
