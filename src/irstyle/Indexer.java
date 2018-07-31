@@ -141,4 +141,25 @@ public class Indexer {
 		}
 	}
 
+	static void indexTable(DatabaseConnection dc, IndexWriter indexWriter, String table, String[] textAttribs, int limit,
+			String popularity, boolean ascending) throws IOException, SQLException {
+		try (Statement stmt = dc.getConnection().createStatement()) {
+			stmt.setFetchSize(Integer.MIN_VALUE);
+			String attribs = "id";
+			for (String s : textAttribs) {
+				attribs += "," + s;
+			}
+			String sql = "select " + attribs + " from " + table + " order by " + popularity + " desc limit " + limit
+					+ ";";
+			if (ascending) {
+				sql = "select " + attribs + " from " + table + " order by " + popularity + " asc limit " + limit + ";";
+			}
+			System.out.println(sql);
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				Indexer.indexRS("id", textAttribs, indexWriter, rs);
+			}
+		}
+	}
+
 }
