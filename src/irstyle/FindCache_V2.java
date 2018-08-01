@@ -89,7 +89,7 @@ public class FindCache_V2 {
 				selectSt[i] = conn.prepareStatement(selectTemplates[i]);
 				insertSt[i] = conn.prepareStatement(insertTemplates[i]);
 			}
-			double prevAcc = 0;
+			double prevAcc = -1;
 			double acc = 0;
 			double bestAcc = 0;
 			int[] offset = { 0, 0, 0 };
@@ -179,10 +179,10 @@ public class FindCache_V2 {
 					bestAcc = acc;
 					bestOffset = offset.clone();
 				}
-				prevAcc = acc;
 				if ((acc - prevAcc) < 0.05) {
 					break;
 				}
+				prevAcc = acc;
 				if (lastPopularity[0] == -1 && lastPopularity[1] == -1 && lastPopularity[-2] == -1) {
 					break;
 				}
