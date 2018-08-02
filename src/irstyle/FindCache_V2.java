@@ -46,6 +46,9 @@ public class FindCache_V2 {
 		} else {
 			queries = QueryServices.loadMsnQueries();
 		}
+		if (argList.contains("-debug")) {
+			Params.DEBUG = true;
+		}
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 10);
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
@@ -58,6 +61,7 @@ public class FindCache_V2 {
 			String[] indexPaths = new String[tableNames.length];
 			RAMDirectory[] ramDir = new RAMDirectory[tableNames.length];
 			int[] pageSize = { 119450, 11830, 97663 };
+			// int[] pageSize = { 100000, 100000, 100000 };
 			double[] sizes = { 11945034, 1183070, 9766351 };
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
@@ -157,6 +161,8 @@ public class FindCache_V2 {
 				try (IndexReader articleReader = DirectoryReader.open(ramDir[0]);
 						IndexReader imageReader = DirectoryReader.open(ramDir[1]);
 						IndexReader linkReader = DirectoryReader.open(ramDir[2])) {
+					System.out.println("  index sizes: " + articleReader.numDocs() + "," + imageReader.numDocs() + ","
+							+ linkReader.numDocs());
 					for (ExperimentQuery query : queries) {
 						Schema sch = new Schema(schemaDescription);
 						List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleReader, query.getText());
@@ -174,12 +180,14 @@ public class FindCache_V2 {
 					System.out.println("  new accuracy = " + acc);
 
 				}
+				offset[m] += pageSize[m];
 				System.out.println("  current offsets: " + Arrays.toString(offset));
 				if (acc > bestAcc) {
 					bestAcc = acc;
 					bestOffset = offset.clone();
 				}
 				if ((acc - prevAcc) > 0.05) {
+					System.out.println("  time to break;");
 					break;
 				}
 				prevAcc = acc;
@@ -187,7 +195,6 @@ public class FindCache_V2 {
 					break;
 				}
 				// update buffer
-				offset[m] += pageSize[m];
 				selectSt[m].setInt(1, offset[m]);
 				ResultSet rs = selectSt[m].executeQuery();
 				lastPopularity[m] = -1;
@@ -224,7 +231,7 @@ public class FindCache_V2 {
 	public static double effectiveness(List<IRStyleQueryResult> queryResults) {
 		double acc = 0;
 		for (IRStyleQueryResult qr : queryResults) {
-			acc += qr.rrank();
+			acc += qr.recall();
 		}
 		acc /= queryResults.size();
 		return acc;
