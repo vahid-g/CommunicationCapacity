@@ -27,8 +27,6 @@ public class IRStyleKeywordSearch {
 
 	public static int MAX_GENERATED_CNS = 50;
 
-	static boolean FLAG = false;
-
 	static Vector<Relation> createRelations(String articleTable, String imageTable, String linkTable, Connection conn)
 			throws SQLException {
 		// Note that to be able to match qrels with answers, the main table should be
@@ -131,7 +129,7 @@ public class IRStyleKeywordSearch {
 		ExecPrepared execprepared2 = new ExecPrepared();
 		exectime = execprepared2.ExecuteParallel(jdbcacc, sqls, nfreeTSs, new ArrayList<String>(allkeyw), N, CNsize,
 				results, allKeywInResults);
-		if (FLAG)
+		if (Params.DEBUG)
 			System.out.println(" Exec CNs in parallel: total exec time = " + exectime + " (ms) " + allKeywInResults
 					+ " #results==" + results.size());
 		return exectime;
@@ -173,7 +171,6 @@ public class IRStyleKeywordSearch {
 		try (FileWriter fw = new FileWriter(filename)) {
 			for (IRStyleQueryResult result : queryResults) {
 				ExperimentQuery query = result.query;
-				String queryText = query.getText();
 				fw.write(query.getId() + "," + query.getText().replaceAll(",", " ") + "," + result.rrank() + ","
 						+ result.p20() + "," + result.recall() + "," + result.execTime + "\n");
 				fw.flush();
