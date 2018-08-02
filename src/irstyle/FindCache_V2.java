@@ -47,7 +47,7 @@ public class FindCache_V2 {
 			queries = QueryServices.loadMsnQueries();
 		}
 		Collections.shuffle(queries, new Random(1));
-		queries = queries.subList(0, 50);
+		queries = queries.subList(0, 10);
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			String[] tableNames = new String[] { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
 			String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
@@ -89,7 +89,7 @@ public class FindCache_V2 {
 				selectSt[i] = conn.prepareStatement(selectTemplates[i]);
 				insertSt[i] = conn.prepareStatement(insertTemplates[i]);
 			}
-			double prevAcc = -1;
+			double prevAcc = 0;
 			double acc = 0;
 			double bestAcc = 0;
 			int[] offset = { 0, 0, 0 };
@@ -179,7 +179,7 @@ public class FindCache_V2 {
 					bestAcc = acc;
 					bestOffset = offset.clone();
 				}
-				if ((acc - prevAcc) < 0.05) {
+				if ((acc - prevAcc) > 0.05) {
 					break;
 				}
 				prevAcc = acc;
