@@ -24,14 +24,14 @@ import wiki13.WikiFilesPaths;
 public class RunCacheSearch_V2 {
 
 	public static void main(String[] args) throws Exception {
-		String cacheNameSuffix = "p20";
+		String cacheNameSuffix = args[0];
 		List<String> argsList = Arrays.asList(args);
 		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		WikiFilesPaths paths = null;
 		paths = WikiFilesPaths.getMaplePaths();
 		List<ExperimentQuery> queries = null;
-		if (argsList.contains("--debug") || argsList.contains("-d")) {
+		if (argsList.contains("-debug")) {
 			Params.DEBUG = true;
 		}
 		if (argsList.contains("-inex")) {
@@ -55,9 +55,9 @@ public class RunCacheSearch_V2 {
 				IndexReader linkCacheReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "sub_link_pop_" + cacheNameSuffix)));
 				IndexReader cacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_cache")));
+						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_cache_" + cacheNameSuffix)));
 				IndexReader restReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_rest")))) {
+						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_rest_" + cacheNameSuffix)))) {
 			long time = 0;
 			int cacheUseCount = 0;
 			for (int exec = 0; exec < Params.numExecutions; exec++) {
