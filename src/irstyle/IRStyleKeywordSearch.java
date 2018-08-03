@@ -130,7 +130,7 @@ public class IRStyleKeywordSearch {
 		exectime = execprepared2.ExecuteParallel(jdbcacc, sqls, nfreeTSs, new ArrayList<String>(allkeyw), N, CNsize,
 				results, allKeywInResults);
 		if (Params.DEBUG)
-			System.out.println(" Exec CNs in parallel: total exec time = " + exectime + " (ms) " + allKeywInResults
+			System.out.println(" Proccess CNs in parallel time = " + exectime + " (ms) " + allKeywInResults
 					+ " #results==" + results.size());
 		return exectime;
 	}
