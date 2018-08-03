@@ -11,7 +11,6 @@ package irstyle_core;
  */
 
 public class Flags {
-
         //public static final boolean CREATE_INDX_SHOW_OUTPUT = false;
         public static final boolean RESULTS__SHOW_OUTPUT = false;
         public static final boolean DEBUG_INFO = false;
