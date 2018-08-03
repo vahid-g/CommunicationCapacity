@@ -218,13 +218,15 @@ public class MIndexAccess {
 			if (hasTextAttr((Relation) relations.elementAt(i))) {
 				Relation rel = (Relation) relations.elementAt(i);
 				String tuplesetName = "TS_" + rel.getName();
-				String createTable = "CREATE TABLE  " + tuplesetName + "(id int, score int);";
+				String createTable = "CREATE TABLE  " + tuplesetName + "(id int, score float);";
 				jdbcacc.execute(createTable);
 				List<String> values = relnameValues.get(rel.name);
-				String insertIntoTemplate = "INSERT INTO " + tuplesetName + "(id, score) VALUES ?;";
+				String insertIntoTemplate = "INSERT INTO " + tuplesetName + "(id, score) VALUES (?,?);";
 				PreparedStatement stmt = jdbcacc.createPreparedStatement(insertIntoTemplate);
 				for (String value : values) {
-					stmt.setString(1, value);
+					String[] fields = value.split(",");
+					stmt.setInt(1, Integer.parseInt(fields[0].substring(1)));
+					stmt.setFloat(2, Float.parseFloat(fields[1].substring(0, fields[1].length() - 1)));
 					stmt.addBatch();
 				}
 				stmt.executeBatch();
