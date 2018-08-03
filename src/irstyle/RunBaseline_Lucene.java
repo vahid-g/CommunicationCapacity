@@ -30,20 +30,40 @@ import irstyle_core.Result;
 import irstyle_core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
-import wiki13.WikiFilesPaths;
 
 public class RunBaseline_Lucene {
 
 	static int tupleSetSize = 10000;
-	
+
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
-		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 		String articleTable = "tbl_article_wiki13";
-		String imageTable = "tbl_image_09_tk";
+		String imageTable = "tbl_image_09_pop";
 		String linkTable = "tbl_link_09";
 		String articleImageTable = "tbl_article_image_09";
 		String articleLinkTable = "tbl_article_link_09";
+		if (argsList.contains("-cache")) {
+			articleTable = "sub_article_wiki13";
+			imageTable = "sub_image_09_pop";
+			linkTable = "sub_link_09";
+		}
+		List<ExperimentQuery> queries = null;
+		if (argsList.contains("-inex")) {
+			queries = QueryServices.loadInexQueries();
+		} else {
+			queries = QueryServices.loadMsnQueries();
+		}
+		Collections.shuffle(queries, new Random(1));
+		queries = queries.subList(0, 10);
+		List<IRStyleQueryResult> queryResults = runExperiment(queries, articleTable, articleImageTable, imageTable,
+				articleLinkTable, linkTable);
+		IRStyleKeywordSearch.printResults(queryResults, "ir_result.csv");
+
+	}
+
+	static List<IRStyleQueryResult> runExperiment(List<ExperimentQuery> queries, String articleTable,
+			String articleImageTable, String imageTable, String articleLinkTable, String linkTable) throws Exception {
+		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 		String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
 				+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 				+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
@@ -51,16 +71,7 @@ public class RunBaseline_Lucene {
 		Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
 				jdbcacc.conn);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
-		WikiFilesPaths paths = null;
-		paths = WikiFilesPaths.getMaplePaths();
-		List<ExperimentQuery> queries = null;
-		if (argsList.contains("-inex")) {
-			queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath());
-		} else {
-			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
-			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 50);
-		}
+
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		String baseDir = "/data/ghadakcv/wikipedia/";
 		try (IndexReader articleReader = DirectoryReader
@@ -70,14 +81,17 @@ public class RunBaseline_Lucene {
 				IndexReader linkReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/100")))) {
 			int time = 0;
+			long luceneTime = 0;
 			for (int exec = 0; exec < Params.numExecutions; exec++) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
 					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
 					Schema sch = new Schema(schemaDescription);
+					long start = System.currentTimeMillis();
 					List<String> articleIds = executeLuceneQuery(articleReader, query.getText());
 					List<String> imageIds = executeLuceneQuery(imageReader, query.getText());
 					List<String> linkIds = executeLuceneQuery(linkReader, query.getText());
+					luceneTime += System.currentTimeMillis() - start;
 					System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
 							imageIds.size(), linkIds.size());
 					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
@@ -89,13 +103,16 @@ public class RunBaseline_Lucene {
 					queryResults.add(result);
 				}
 			}
-			System.out.println("average time per query = " + (time / (queries.size() * Params.numExecutions)));
-			IRStyleKeywordSearch.printResults(queryResults, "ir_result.csv");
+			System.out.println(
+					"average lucene time per query = " + (luceneTime / (queries.size() * Params.numExecutions)));
+			System.out.println("average irstyle time per query = " + (time / (queries.size() * Params.numExecutions)));
+
 		}
+		return queryResults;
 	}
 
 	static IRStyleQueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,
-			ExperimentQuery query, Map<String, List<String>> relnameValues) throws Exception {
+			ExperimentQuery query, Map<String, List<String>> relnameValues) {
 		MIndexAccess MIndx = new MIndexAccess(relations);
 		Vector<String> allkeyw = new Vector<String>();
 		// escaping single quotes
@@ -111,13 +128,16 @@ public class RunBaseline_Lucene {
 		Vector<?> CNs = sch.getCNs(Params.maxCNsize, allkeyw, sch, MIndx);
 		time4 = System.currentTimeMillis();
 		exectime += time4 - time3;
-		if (Params.DEBUG) System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
+		if (Params.DEBUG)
+			System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 		ArrayList<Result> results = new ArrayList<Result>();
-		exectime += IRStyleKeywordSearch.methodC(Params.N, Params.allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
+		exectime += IRStyleKeywordSearch.methodC(Params.N, Params.allKeywInResults, relations, allkeyw, CNs, results,
+				jdbcacc);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 		IRStyleQueryResult result = new IRStyleQueryResult(query, exectime);
 		result.addIRStyleResults(results);
-		if (Params.DEBUG) System.out.println(" R-rank = " + result.rrank());
+		if (Params.DEBUG)
+			System.out.println(" R-rank = " + result.rrank());
 		return result;
 	}
 
