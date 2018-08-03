@@ -16,18 +16,22 @@ public class BuildCache_V2 {
 			String[] tableName = { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
 			String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
 			// int[] limit = { 200000, 100000, 200000 };
-			int[] limit = { 238900, 106470, 195326 };
+			// best msn mrr sizes obtained with v2
+			// int[] limit = { 238900, 106470, 195326 };
+			// best inex p20 sizes with v2
+			int[] limit = { 119450, 94640, 97663 };
 			for (int i = 0; i < tableName.length; i++) {
 				System.out.println("  indexing table " + tableName[i]);
-				buildCache(dc, tableName[i], textAttribs[i], limit[i]);
+				buildCache(dc, tableName[i], textAttribs[i], limit[i], "_p20");
+				CacheLanguageModel.indexForLM(dc, limit, "_p20");
 			}
 		}
 	}
 
-	private static void buildCache(DatabaseConnection dc, String tableName, String[] textAttribs, int limit)
-			throws SQLException, IOException {
+	private static void buildCache(DatabaseConnection dc, String tableName, String[] textAttribs, int limit,
+			String suffix) throws SQLException, IOException {
 		String selectStatement = "SELECT * FROM " + tableName + " ORDER BY popularity LIMIT " + limit;
-		String cacheName = "sub_" + tableName.substring(4);
+		String cacheName = "sub_" + tableName.substring(4) + suffix;
 		String createStatement = "CREATE TABLE " + cacheName + " AS " + selectStatement + ";";
 		System.out.println("Creating table..");
 		try (Statement stmt = dc.getConnection().createStatement()) {
@@ -42,7 +46,7 @@ public class BuildCache_V2 {
 
 		IndexWriterConfig config = Indexer.getIndexWriterConfig();
 		config.setOpenMode(OpenMode.CREATE);
-		Indexer.indexTable(dc, Indexer.DATA_WIKIPEDIA + cacheName, tableName, textAttribs, limit,
-				"popularity", false, Indexer.getIndexWriterConfig());
+		Indexer.indexTable(dc, Indexer.DATA_WIKIPEDIA + cacheName, tableName, textAttribs, limit, "popularity", false,
+				Indexer.getIndexWriterConfig());
 	}
 }

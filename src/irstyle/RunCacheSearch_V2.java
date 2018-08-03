@@ -24,6 +24,7 @@ import wiki13.WikiFilesPaths;
 public class RunCacheSearch_V2 {
 
 	public static void main(String[] args) throws Exception {
+		String cacheNameSuffix = "p20";
 		List<String> argsList = Arrays.asList(args);
 		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
@@ -43,16 +44,16 @@ public class RunCacheSearch_V2 {
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		try (IndexReader articleReader = DirectoryReader
 				.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100")));
-				IndexReader articleCacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "sub_article_wiki13")));
+				IndexReader articleCacheReader = DirectoryReader.open(
+						FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "sub_article_wiki13_" + cacheNameSuffix)));
 				IndexReader imageReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "tbl_image_pop/100")));
 				IndexReader imageCacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "sub_image_pop")));
+						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "sub_image_pop_" + cacheNameSuffix)));
 				IndexReader linkReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "tbl_link_pop/100")));
 				IndexReader linkCacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "sub_link_pop")));
+						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "sub_link_pop_" + cacheNameSuffix)));
 				IndexReader cacheReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_cache")));
 				IndexReader restReader = DirectoryReader

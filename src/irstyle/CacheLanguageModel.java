@@ -14,25 +14,17 @@ import org.apache.lucene.store.FSDirectory;
 
 import cache_selection.FeatureExtraction;
 import database.DatabaseConnection;
-import database.DatabaseType;
 import wiki13.WikiFileIndexer;
 
 public class CacheLanguageModel {
 
-	public static void main(String[] args) throws IOException, SQLException {
-		int[] limit = { 238900, 106470, 195326 };
-		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			indexForLM(dc, limit);
-		}
-	}
-
-	static void indexForLM(DatabaseConnection dc, int[] limit) throws IOException, SQLException {
+	static void indexForLM(DatabaseConnection dc, int[] limit, String suffix) throws IOException, SQLException {
 		String[] tableNames = new String[] { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
 		String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
 		int[] sizes = { 11945034, 1183070, 9766351 };
 		String[] popularity = { "popularity", "popularity", "popularity" };
 		System.out.println("indexing cache LM..");
-		Directory directory = FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_cache"));
+		Directory directory = FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_cache_" + suffix));
 		IndexWriterConfig config = Indexer.getIndexWriterConfig();
 		config.setOpenMode(OpenMode.CREATE);
 		try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
@@ -41,7 +33,7 @@ public class CacheLanguageModel {
 			}
 		}
 		System.out.println("indexing comp LM..");
-		directory = FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_rest"));
+		directory = FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_rest_" + suffix));
 		config = Indexer.getIndexWriterConfig();
 		config.setOpenMode(OpenMode.CREATE);
 		try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
