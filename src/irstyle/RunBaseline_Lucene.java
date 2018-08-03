@@ -43,6 +43,9 @@ public class RunBaseline_Lucene {
 		String linkTable = "tbl_link_pop";
 		String articleImageTable = "tbl_article_image_09";
 		String articleLinkTable = "tbl_article_link_09";
+		String articleIndexPath = Indexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100";
+		String imageIndexPath = Indexer.DATA_WIKIPEDIA + "tbl_image_pop/100";
+		String linkIndexPath = Indexer.DATA_WIKIPEDIA + "tbl_link_pop/100";
 		if (argsList.contains("-debug")) {
 			Params.DEBUG = true;
 		}
@@ -50,6 +53,11 @@ public class RunBaseline_Lucene {
 			articleTable = "sub_article_wiki13";
 			imageTable = "sub_image_pop";
 			linkTable = "sub_link_pop";
+			articleImageTable = "sub_article_image_09";
+			articleLinkTable = "sub_article_link_09";
+			articleIndexPath = Indexer.DATA_WIKIPEDIA + "sub_article_wiki13";
+			imageIndexPath = Indexer.DATA_WIKIPEDIA + "sub_image_pop";
+			linkIndexPath = Indexer.DATA_WIKIPEDIA + "sub_link_pop";
 		}
 		List<ExperimentQuery> queries = null;
 		if (argsList.contains("-inex")) {
@@ -60,12 +68,13 @@ public class RunBaseline_Lucene {
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 10);
 		List<IRStyleQueryResult> queryResults = runExperiment(queries, articleTable, articleImageTable, imageTable,
-				articleLinkTable, linkTable);
+				articleLinkTable, linkTable, articleIndexPath, imageIndexPath, linkIndexPath);
 		IRStyleKeywordSearch.printResults(queryResults, "result.csv");
 	}
 
 	static List<IRStyleQueryResult> runExperiment(List<ExperimentQuery> queries, String articleTable,
-			String articleImageTable, String imageTable, String articleLinkTable, String linkTable) throws Exception {
+			String articleImageTable, String imageTable, String articleLinkTable, String linkTable,
+			String articleIndexPath, String imageIndexPath, String linkIndexPath) throws Exception {
 		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 		String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
 				+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
@@ -76,13 +85,9 @@ public class RunBaseline_Lucene {
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
-		String baseDir = "/data/ghadakcv/wikipedia/";
-		try (IndexReader articleReader = DirectoryReader
-				.open(FSDirectory.open(Paths.get(baseDir + "tbl_article_wiki13/100")));
-				IndexReader imageReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(baseDir + "tbl_image_pop/100")));
-				IndexReader linkReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/100")))) {
+		try (IndexReader articleReader = DirectoryReader.open(FSDirectory.open(Paths.get(articleIndexPath)));
+				IndexReader imageReader = DirectoryReader.open(FSDirectory.open(Paths.get(imageIndexPath)));
+				IndexReader linkReader = DirectoryReader.open(FSDirectory.open(Paths.get(linkIndexPath)))) {
 			int time = 0;
 			long luceneTime = 0;
 			long tuplesetTime = 0;
@@ -134,13 +139,13 @@ public class RunBaseline_Lucene {
 		long tuplesetTime = System.currentTimeMillis() - start;
 		exectime += tuplesetTime;
 		if (Params.DEBUG)
-			System.out.println(" Time to create tuple sets: " + (tuplesetTime - start) + " (ms)");
+			System.out.println(" Time to create tuple sets: " + (tuplesetTime) + " (ms)");
 		start = System.currentTimeMillis();
 		Vector<?> CNs = sch.getCNs(Params.maxCNsize, allkeyw, sch, MIndx);
 		long cnTime = System.currentTimeMillis() - start;
 		exectime += cnTime;
 		if (Params.DEBUG)
-			System.out.println(" Time to get CNs=" + (tuplesetTime - start) + " (ms) \n\t #CNs: " + CNs.size());
+			System.out.println(" Time to get CNs=" + (cnTime) + " (ms) \n\t #CNs: " + CNs.size());
 		ArrayList<Result> results = new ArrayList<Result>();
 		int time = IRStyleKeywordSearch.methodC(Params.N, Params.allKeywInResults, relations, allkeyw, CNs, results,
 				jdbcacc);

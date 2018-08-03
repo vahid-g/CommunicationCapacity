@@ -214,6 +214,7 @@ public class MIndexAccess {
 			keywList += keyw + " ";
 		}
 		keywList = keywList.substring(0, keywList.length() - 1);
+		conn.setAutoCommit(false);
 		for (int i = 0; i < relations.size(); i++) {
 			if (hasTextAttr((Relation) relations.elementAt(i))) {
 				Relation rel = (Relation) relations.elementAt(i);
@@ -230,6 +231,7 @@ public class MIndexAccess {
 					stmt.addBatch();
 				}
 				stmt.executeBatch();
+				conn.commit();
 				if (!jdbcacc.isTableEmpty("TS_" + rel.getName())) {// add all or none keywords
 					for (int y = 0; y < allkeywords.size(); y++)
 						sch.getInstance(rel.getName()).addKeyword((String) allkeywords.elementAt(y));
@@ -241,6 +243,7 @@ public class MIndexAccess {
 				}
 			}
 		}
+		conn.setAutoCommit(true);
 	}
 
 	void clearTupleSets(Connection conn) {
