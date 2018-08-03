@@ -9,11 +9,13 @@ import query.ExperimentQuery;
 class IRStyleQueryResult {
 	ExperimentQuery query;
 	long execTime = 0;
+	long tuplesetTime = 0;
 	List<String> resultIDs = new ArrayList<String>();
 
 	public IRStyleQueryResult(ExperimentQuery query, long execTime) {
 		this.query = query;
 		this.execTime = execTime;
+		
 	}
 
 	void addIRStyleResults(ArrayList<Result> results) {
