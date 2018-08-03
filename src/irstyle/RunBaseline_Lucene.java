@@ -2,6 +2,7 @@ package irstyle;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,14 +39,17 @@ public class RunBaseline_Lucene {
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
 		String articleTable = "tbl_article_wiki13";
-		String imageTable = "tbl_image_09_pop";
-		String linkTable = "tbl_link_09";
+		String imageTable = "tbl_image_pop";
+		String linkTable = "tbl_link_pop";
 		String articleImageTable = "tbl_article_image_09";
 		String articleLinkTable = "tbl_article_link_09";
+		if (argsList.contains("-debug")) {
+			Params.DEBUG = true;
+		}
 		if (argsList.contains("-cache")) {
 			articleTable = "sub_article_wiki13";
-			imageTable = "sub_image_09_pop";
-			linkTable = "sub_link_09";
+			imageTable = "sub_image_pop";
+			linkTable = "sub_link_pop";
 		}
 		List<ExperimentQuery> queries = null;
 		if (argsList.contains("-inex")) {
@@ -57,8 +61,7 @@ public class RunBaseline_Lucene {
 		queries = queries.subList(0, 10);
 		List<IRStyleQueryResult> queryResults = runExperiment(queries, articleTable, articleImageTable, imageTable,
 				articleLinkTable, linkTable);
-		IRStyleKeywordSearch.printResults(queryResults, "ir_result.csv");
-
+		IRStyleKeywordSearch.printResults(queryResults, "result.csv");
 	}
 
 	static List<IRStyleQueryResult> runExperiment(List<ExperimentQuery> queries, String articleTable,
@@ -82,6 +85,7 @@ public class RunBaseline_Lucene {
 						.open(FSDirectory.open(Paths.get(baseDir + "tbl_link_pop/100")))) {
 			int time = 0;
 			long luceneTime = 0;
+			long tuplesetTime = 0;
 			for (int exec = 0; exec < Params.numExecutions; exec++) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
@@ -91,51 +95,61 @@ public class RunBaseline_Lucene {
 					List<String> articleIds = executeLuceneQuery(articleReader, query.getText());
 					List<String> imageIds = executeLuceneQuery(imageReader, query.getText());
 					List<String> linkIds = executeLuceneQuery(linkReader, query.getText());
-					luceneTime += System.currentTimeMillis() - start;
-					System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
+					long end = System.currentTimeMillis() - start;
+					luceneTime += end;
+					System.out.println(" Lucene search time: " + end + " (ms)");
+					System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d\n", articleIds.size(),
 							imageIds.size(), linkIds.size());
 					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 					relnamesValues.put(articleTable, articleIds);
 					relnamesValues.put(imageTable, imageIds);
 					relnamesValues.put(linkTable, linkIds);
 					IRStyleQueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query, relnamesValues);
+					System.out.println(" Execute IRstyle time: " + result.execTime + "(ms)");
+					tuplesetTime += result.tuplesetTime;
 					time += result.execTime;
 					queryResults.add(result);
 				}
 			}
-			System.out.println(
-					"average lucene time per query = " + (luceneTime / (queries.size() * Params.numExecutions)));
-			System.out.println("average irstyle time per query = " + (time / (queries.size() * Params.numExecutions)));
-
+			luceneTime /= (queries.size() * Params.numExecutions);
+			tuplesetTime /= (queries.size() * Params.numExecutions);
+			time /= queries.size() * Params.numExecutions;
+			System.out.println("average lucene time per query = " + luceneTime + " (ms)");
+			System.out.println("average tupleset time = " + tuplesetTime + " (ms)");
+			System.out.println("average cn and joint search time = " + (time - tuplesetTime) + " (ms)");
+			System.out.println("average irstyle time  = " + time + " (ms)");
 		}
 		return queryResults;
 	}
 
 	static IRStyleQueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,
-			ExperimentQuery query, Map<String, List<String>> relnameValues) {
+			ExperimentQuery query, Map<String, List<String>> relnameValues) throws SQLException {
 		MIndexAccess MIndx = new MIndexAccess(relations);
 		Vector<String> allkeyw = new Vector<String>();
 		// escaping single quotes
 		allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
 		int exectime = 0;
-		long time3 = System.currentTimeMillis();
-		MIndx.createTupleSets3(sch, allkeyw, jdbcacc.conn, relnameValues);
-		long time4 = System.currentTimeMillis();
-		exectime += time4 - time3;
+		long start = System.currentTimeMillis();
+		MIndx.createTupleSetsFast(sch, allkeyw, jdbcacc.conn, relnameValues);
+		long tuplesetTime = System.currentTimeMillis() - start;
+		exectime += tuplesetTime;
 		if (Params.DEBUG)
-			System.out.println(" Time to create tuple sets: " + (time4 - time3) + " (ms)");
-		time3 = System.currentTimeMillis();
+			System.out.println(" Time to create tuple sets: " + (tuplesetTime - start) + " (ms)");
+		start = System.currentTimeMillis();
 		Vector<?> CNs = sch.getCNs(Params.maxCNsize, allkeyw, sch, MIndx);
-		time4 = System.currentTimeMillis();
-		exectime += time4 - time3;
+		long cnTime = System.currentTimeMillis() - start;
+		exectime += cnTime;
 		if (Params.DEBUG)
-			System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
+			System.out.println(" Time to get CNs=" + (tuplesetTime - start) + " (ms) \n\t #CNs: " + CNs.size());
 		ArrayList<Result> results = new ArrayList<Result>();
-		exectime += IRStyleKeywordSearch.methodC(Params.N, Params.allKeywInResults, relations, allkeyw, CNs, results,
+		int time = IRStyleKeywordSearch.methodC(Params.N, Params.allKeywInResults, relations, allkeyw, CNs, results,
 				jdbcacc);
+		exectime += time;
+		if (Params.DEBUG)
+			System.out.println(" Time to search joint tuplesets: " + time);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 		IRStyleQueryResult result = new IRStyleQueryResult(query, exectime);
-		result.addIRStyleResults(results);
+		result.tuplesetTime = tuplesetTime;
 		if (Params.DEBUG)
 			System.out.println(" R-rank = " + result.rrank());
 		return result;

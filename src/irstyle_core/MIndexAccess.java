@@ -2,6 +2,8 @@ package irstyle_core;
 //package xkeyword;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -188,6 +190,44 @@ public class MIndexAccess {
 					String insertInto = "INSERT INTO " + tuplesetName + "(id, score) VALUES " + value + ";";
 					jdbcacc.execute(insertInto);
 				}
+				if (!jdbcacc.isTableEmpty("TS_" + rel.getName())) {// add all or none keywords
+					for (int y = 0; y < allkeywords.size(); y++)
+						sch.getInstance(rel.getName()).addKeyword((String) allkeywords.elementAt(y));
+					TupleSet ts = new TupleSet();
+					ts.relname = rel.getName();
+					ts.TSname = "TS_" + rel.getName();
+					ts.keywords = (Vector) allkeywords.clone();
+					tuplesets.addElement(ts);
+				}
+			}
+		}
+	}
+
+	public void createTupleSetsFast(Schema sch, Vector allkeywords, Connection conn,
+			Map<String, List<String>> relnameValues) throws SQLException {
+		JDBCaccess jdbcacc = new JDBCaccess(conn);
+		// create non-empty tuple sets and add keywords to schema
+		Vector allInst = sch.getAllInstances();
+		String keywList = "";
+		for (int j = 0; j < allkeywords.size(); j++) {
+			String keyw = (String) allkeywords.elementAt(j);
+			keywList += keyw + " ";
+		}
+		keywList = keywList.substring(0, keywList.length() - 1);
+		for (int i = 0; i < relations.size(); i++) {
+			if (hasTextAttr((Relation) relations.elementAt(i))) {
+				Relation rel = (Relation) relations.elementAt(i);
+				String tuplesetName = "TS_" + rel.getName();
+				String createTable = "CREATE TABLE  " + tuplesetName + "(id int, score int);";
+				jdbcacc.execute(createTable);
+				List<String> values = relnameValues.get(rel.name);
+				String insertIntoTemplate = "INSERT INTO " + tuplesetName + "(id, score) VALUES ?;";
+				PreparedStatement stmt = jdbcacc.createPreparedStatement(insertIntoTemplate);
+				for (String value : values) {
+					stmt.setString(1, value);
+					stmt.addBatch();
+				}
+				stmt.executeBatch();
 				if (!jdbcacc.isTableEmpty("TS_" + rel.getName())) {// add all or none keywords
 					for (int y = 0; y < allkeywords.size(); y++)
 						sch.getInstance(rel.getName()).addKeyword((String) allkeywords.elementAt(y));
