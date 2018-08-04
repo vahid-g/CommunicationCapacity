@@ -34,7 +34,7 @@ import query.QueryServices;
 
 public class RunBaseline_Lucene {
 
-	static int tupleSetSize = 10000;
+	static int tupleSetSize = 100000;
 
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
@@ -112,17 +112,17 @@ public class RunBaseline_Lucene {
 					IRStyleQueryResult result = executeIRStyleQuery(jdbcacc, sch, relations, query, relnamesValues);
 					System.out.println(" Execute IRstyle time: " + result.execTime + "(ms)");
 					tuplesetTime += result.tuplesetTime;
-					time += result.execTime;
+					time += luceneTime + result.execTime;
 					queryResults.add(result);
 				}
 			}
 			luceneTime /= (queries.size() * Params.numExecutions);
 			tuplesetTime /= (queries.size() * Params.numExecutions);
 			time /= queries.size() * Params.numExecutions;
-			System.out.println("average lucene time per query = " + luceneTime + " (ms)");
+			System.out.println("average lucene time = " + luceneTime + " (ms)");
 			System.out.println("average tupleset time = " + tuplesetTime + " (ms)");
-			System.out.println("average cn and joint search time = " + (time - tuplesetTime) + " (ms)");
-			System.out.println("average irstyle time  = " + time + " (ms)");
+			System.out.println("average just search time = " + (time - tuplesetTime) + " (ms)");
+			System.out.println("average total time  = " + time + " (ms)");
 		}
 		return queryResults;
 	}
