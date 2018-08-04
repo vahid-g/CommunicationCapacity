@@ -94,7 +94,7 @@ public class RunCacheSearch_V2 {
 							+ articleLinkTable + " " + linkTable;
 					Schema sch = new Schema(schemaDescription);
 					Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable,
-							linkTable, jdbcacc.conn);
+							linkTable, articleImageTable, articleLinkTable, jdbcacc.conn);
 					List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleIndexToUse, query.getText());
 					List<String> imageIds = RunBaseline_Lucene.executeLuceneQuery(imageIndexToUse, query.getText());
 					List<String> linkIds = RunBaseline_Lucene.executeLuceneQuery(linkIndexToUse, query.getText());

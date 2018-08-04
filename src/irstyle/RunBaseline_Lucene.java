@@ -81,7 +81,7 @@ public class RunBaseline_Lucene {
 				+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 				+ articleLinkTable + " " + linkTable;
 		Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
-				jdbcacc.conn);
+				articleImageTable, articleLinkTable, jdbcacc.conn);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();

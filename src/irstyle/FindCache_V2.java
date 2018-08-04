@@ -110,7 +110,7 @@ public class FindCache_V2 {
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
 			Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
-					jdbcacc.conn);
+					articleImageTable, articleLinkTable, jdbcacc.conn);
 			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 			List<List<Document>> docsList = new ArrayList<List<Document>>();
 			int[] lastPopularity = new int[tableNames.length];

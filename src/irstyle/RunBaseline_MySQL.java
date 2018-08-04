@@ -31,7 +31,7 @@ public class RunBaseline_MySQL {
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
 			Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
-					jdbcacc.conn);
+					articleImageTable, articleLinkTable, jdbcacc.conn);
 			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 			WikiFilesPaths paths = null;
 			paths = WikiFilesPaths.getMaplePaths();
@@ -73,7 +73,8 @@ public class RunBaseline_MySQL {
 		exectime += time4 - time3;
 		System.out.println(" #CNs=" + CNs.size() + " Time to get CNs=" + (time4 - time3) + " (ms)");
 		ArrayList<Result> results = new ArrayList<Result>(1);
-		exectime += IRStyleKeywordSearch.methodC(Params.N, Params.allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
+		exectime += IRStyleKeywordSearch.methodC(Params.N, Params.allKeywInResults, relations, allkeyw, CNs, results,
+				jdbcacc);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 		IRStyleQueryResult result = new IRStyleQueryResult(query, exectime);
 		result.addIRStyleResults(results);
