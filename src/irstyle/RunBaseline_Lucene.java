@@ -34,7 +34,7 @@ import query.QueryServices;
 
 public class RunBaseline_Lucene {
 
-	static int tupleSetSize = 100000;
+	static int tupleSetSize = 10000;
 
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
@@ -154,6 +154,7 @@ public class RunBaseline_Lucene {
 			System.out.println(" Time to search joint tuplesets: " + time);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 		IRStyleQueryResult result = new IRStyleQueryResult(query, exectime);
+		result.addIRStyleResults(results);
 		result.tuplesetTime = tuplesetTime;
 		if (Params.DEBUG)
 			System.out.println(" R-rank = " + result.rrank());
