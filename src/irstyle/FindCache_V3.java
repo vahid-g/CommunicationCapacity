@@ -63,14 +63,15 @@ public class FindCache_V3 {
 			double[] sizes = { 11945034, 1183070, 9766351 };
 			String[] joinMaxSelectTemplate = new String[tableNames.length];
 			String[] joinSelectTemplate = new String[tableNames.length];
-			String from = " from tbl_article_wiki13 a, tbl_article_image_09 ai, tbl_image_pop i, "
-					+ "tbl_article_link_09 al, tbl_link_pop l";
-			String whereTemplate = " where a.id = ai.article_id and ai.image_id = i.id and a.id = al.article_id "
-					+ "and al.link_id = l.id and ID_PLACE_HOLDER = ?";
-			String max = " max(least(a.popularity, i.popularity, l.popularity)) m";
+			String from = " from tbl_article_wiki13 a left join tbl_article_image_09 ai on a.id = ai.article_id "
+					+ "left join tbl_image_pop i on ai.image_id = i.id "
+					+ "left join tbl_article_link_09 al on a.id = al.article_id "
+					+ "left join tbl_link_pop l on al.link_id = l.id";
+			String whereTemplate = " where ID_PLACE_HOLDER = ?";
+			String max = " max(least(a.popularity, ifnull(i.popularity, a.popularity), ifnull(l.popularity, a.popularity))) m";
 			String groupBy = " group by ID_PLACE_HOLDER ;";
 			String joinMaxSelectPrefix = "select ID_PLACE_HOLDER," + max + from + whereTemplate + groupBy;
-			String joinSelectPrefix = "select a.id, a.title, a.text, i.id, i.src, l.id, l.link" + from + whereTemplate;
+			String joinSelectPrefix = "select a.id, a.title, a.text, i.id, i.src, l.id, l.url" + from + whereTemplate;
 			PreparedStatement selectSt[] = new PreparedStatement[tableNames.length];
 			PreparedStatement insertSt[] = new PreparedStatement[tableNames.length];
 			PreparedStatement joinMaxSelectSt[] = new PreparedStatement[tableNames.length];
@@ -91,7 +92,8 @@ public class FindCache_V3 {
 				// TODO: rename popularity column
 				currentTupleSelectSql[i] = "select id from " + tableNames[i] + " order by popularity desc;";
 				insertTemplates[i] = "insert into " + cacheTableNames[i] + " (id) values (?);";
-				joinMaxSelectTemplate[i] = joinMaxSelectPrefix.replaceAll("ID_PLACE_HOLDER", shortTableNames[i] + ".id");
+				joinMaxSelectTemplate[i] = joinMaxSelectPrefix.replaceAll("ID_PLACE_HOLDER",
+						shortTableNames[i] + ".id");
 				joinSelectTemplate[i] = joinSelectPrefix.replaceAll("ID_PLACE_HOLDER", shortTableNames[i] + ".id");
 				selectSt[i] = conn.prepareStatement(currentTupleSelectSql[i]);
 				insertSt[i] = conn.prepareStatement(insertTemplates[i]);
@@ -152,7 +154,7 @@ public class FindCache_V3 {
 				joinSelectSt[m].setInt(1, currentTupleId[m]);
 				ResultSet joinRS = joinSelectSt[m].executeQuery();
 				List<List<Document>> docs = new ArrayList<List<Document>>();
-				for (int i = 0; i < docs.size(); i++) {
+				for (int i = 0; i < tableNames.length; i++) {
 					docs.add(new ArrayList<Document>());
 				}
 				System.out.println("  updating caches..");
@@ -182,7 +184,7 @@ public class FindCache_V3 {
 				}
 				conn.commit();
 				System.out.println("  sizes so far: "
-						+ cachedTuplesList.stream().map(l -> l.size() + "").reduce("", String::concat));
+						+ cachedTuplesList.stream().map(l -> l.size() + " ").reduce("", String::concat));
 				// updating pointers
 				currentTupleRS[m].next();
 				currentTupleId[m] = currentTupleRS[m].getInt("id");
@@ -191,40 +193,44 @@ public class FindCache_V3 {
 				maxPopularityRS.next();
 				currentMaxPopularity[m] = maxPopularityRS.getInt("m");
 				// test partition!
-				System.out.println("  testing new cache..");
-				List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
-				try (IndexReader articleReader = DirectoryReader.open(ramDir[0]);
-						IndexReader imageReader = DirectoryReader.open(ramDir[1]);
-						IndexReader linkReader = DirectoryReader.open(ramDir[2])) {
-					System.out.println("  index sizes: " + articleReader.numDocs() + "," + imageReader.numDocs() + ","
-							+ linkReader.numDocs());
-					for (ExperimentQuery query : queries) {
-						Schema sch = new Schema(schemaDescription);
-						List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleReader, query.getText());
-						List<String> imageIds = RunBaseline_Lucene.executeLuceneQuery(imageReader, query.getText());
-						List<String> linkIds = RunBaseline_Lucene.executeLuceneQuery(linkReader, query.getText());
-						Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
-						relnamesValues.put(articleTable, articleIds);
-						relnamesValues.put(imageTable, imageIds);
-						relnamesValues.put(linkTable, linkIds);
-						IRStyleQueryResult result = RunBaseline_Lucene.executeIRStyleQuery(jdbcacc, sch, relations,
-								query, relnamesValues);
-						queryResults.add(result);
-					}
-					acc = effectiveness(queryResults);
-					System.out.println("  new accuracy = " + acc);
+				if (loop % 10000 == 0) {
+					System.out.println("  testing new cache..");
+					List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
+					try (IndexReader articleReader = DirectoryReader.open(ramDir[0]);
+							IndexReader imageReader = DirectoryReader.open(ramDir[1]);
+							IndexReader linkReader = DirectoryReader.open(ramDir[2])) {
+						System.out.println("  index sizes: " + articleReader.numDocs() + "," + imageReader.numDocs()
+								+ "," + linkReader.numDocs());
+						for (ExperimentQuery query : queries) {
+							Schema sch = new Schema(schemaDescription);
+							List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleReader,
+									query.getText());
+							List<String> imageIds = RunBaseline_Lucene.executeLuceneQuery(imageReader, query.getText());
+							List<String> linkIds = RunBaseline_Lucene.executeLuceneQuery(linkReader, query.getText());
+							Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
+							relnamesValues.put(articleTable, articleIds);
+							relnamesValues.put(imageTable, imageIds);
+							relnamesValues.put(linkTable, linkIds);
+							IRStyleQueryResult result = RunBaseline_Lucene.executeIRStyleQuery(jdbcacc, sch, relations,
+									query, relnamesValues);
+							queryResults.add(result);
+						}
+						acc = effectiveness(queryResults);
+						System.out.println("  new accuracy = " + acc);
 
-				}
-				if (acc > bestAcc) {
-					bestAcc = acc;
-				}
-				if ((acc - prevAcc) > 0.05) {
-					System.out.println("  time to break;");
-					break;
-				}
-				prevAcc = acc;
-				if (currentMaxPopularity[0] == -1 && currentMaxPopularity[1] == -1 && currentMaxPopularity[-2] == -1) {
-					break;
+					}
+					if (acc > bestAcc) {
+						bestAcc = acc;
+					}
+					if ((acc - prevAcc) > 0.05) {
+						System.out.println("  time to break;");
+						break;
+					}
+					prevAcc = acc;
+					if (currentMaxPopularity[0] == -1 && currentMaxPopularity[1] == -1
+							&& currentMaxPopularity[-2] == -1) {
+						break;
+					}
 				}
 			}
 			double[] percent = new double[tableNames.length];
