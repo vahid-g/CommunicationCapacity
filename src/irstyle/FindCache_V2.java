@@ -114,7 +114,6 @@ public class FindCache_V2 {
 			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 			List<List<Document>> docsList = new ArrayList<List<Document>>();
 			int[] lastPopularity = new int[tableNames.length];
-			int[] lastPopularTupleId = new int[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
 				selectSt[i].setInt(1, offset[i]);
 				ResultSet rs = selectSt[i].executeQuery();
@@ -130,7 +129,6 @@ public class FindCache_V2 {
 					doc.add(new TextField("text", text, Store.NO));
 					docs.add(doc);
 					lastPopularity[i] = rs.getInt("popularity");
-					lastPopularTupleId[i] = id;
 				}
 				docsList.add(docs);
 			}
@@ -138,15 +136,12 @@ public class FindCache_V2 {
 				System.out.println("Iteration " + loop++);
 				double mPopularity = 0;
 				int m = -1;
-				for (int i = 0; i < lastPopularTupleId.length; i++) {
-					// compute popularity of the join
-					int pop = 0;
-					if (pop > mPopularity) {
-						mPopularity = pop;
+				for (int i = 0; i < lastPopularity.length; i++) {
+					if (lastPopularity[i] / popSum[i] > mPopularity) {
+						mPopularity = lastPopularity[i] / popSum[i];
 						m = i;
 					}
 				}
-				
 				System.out.println("  Selected table = " + tableNames[m] + " with popularity = " + mPopularity);
 				List<Document> docs = docsList.get(m);
 				System.out.println("  reading new cache data..");
