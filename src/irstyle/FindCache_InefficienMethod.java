@@ -29,7 +29,6 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.store.RAMDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
@@ -39,7 +38,7 @@ import irstyle_core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
 
-public class FindCache_V3 {
+public class FindCache_InefficienMethod {
 
 	public static void main(String[] args) throws Exception {
 		List<String> argList = Arrays.asList(args);
@@ -73,7 +72,8 @@ public class FindCache_V3 {
 			String whereTemplate = " where ID_PLACE_HOLDER = ?";
 			String max = " max(least(a.popularity, ifnull(i.popularity, a.popularity),"
 					+ "ifnull(l.popularity, a.popularity))) m";
-//			String max = " least(a.popularity, ifnull(i.popularity, a.popularity), ifnull(l.popularity, a.popularity)) m";
+			// String max = " least(a.popularity, ifnull(i.popularity, a.popularity),
+			// ifnull(l.popularity, a.popularity)) m";
 			String groupBy = " group by ID_PLACE_HOLDER ;";
 			String joinMaxSelectPrefix = "select ID_PLACE_HOLDER," + max + from + whereTemplate + groupBy;
 			String joinSelectPrefix = "select a.id, a.title, a.text, i.id, i.src, l.id, l.url" + from + whereTemplate;
@@ -183,6 +183,8 @@ public class FindCache_V3 {
 						}
 					}
 				}
+				System.out.println(
+						"  adding docs to index: " + docs.stream().map(l -> l.size() + " ").reduce("", String::concat));
 				for (int i = 0; i < tableNames.length; i++) {
 					insertSt[i].executeBatch();
 					indexWriters[i].addDocuments(docs.get(i));

@@ -34,7 +34,7 @@ import irstyle_core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
 
-public class FindCache_V2 {
+public class FindCache_NaiveTopk {
 
 	private static final double popSum[] = { 15440314886.0, 52716653460.0, 1407925741807.0 };
 
