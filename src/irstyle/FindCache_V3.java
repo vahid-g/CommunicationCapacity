@@ -1,5 +1,6 @@
 package irstyle;
 
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,6 +27,8 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 
 import database.DatabaseConnection;
@@ -68,7 +71,9 @@ public class FindCache_V3 {
 					+ "left join tbl_article_link_09 al on a.id = al.article_id "
 					+ "left join tbl_link_pop l on al.link_id = l.id";
 			String whereTemplate = " where ID_PLACE_HOLDER = ?";
-			String max = " max(least(a.popularity, ifnull(i.popularity, a.popularity), ifnull(l.popularity, a.popularity))) m";
+			String max = " max(least(a.popularity, ifnull(i.popularity, a.popularity),"
+					+ "ifnull(l.popularity, a.popularity))) m";
+//			String max = " least(a.popularity, ifnull(i.popularity, a.popularity), ifnull(l.popularity, a.popularity)) m";
 			String groupBy = " group by ID_PLACE_HOLDER ;";
 			String joinMaxSelectPrefix = "select ID_PLACE_HOLDER," + max + from + whereTemplate + groupBy;
 			String joinSelectPrefix = "select a.id, a.title, a.text, i.id, i.src, l.id, l.url" + from + whereTemplate;
@@ -76,7 +81,8 @@ public class FindCache_V3 {
 			PreparedStatement insertSt[] = new PreparedStatement[tableNames.length];
 			PreparedStatement joinMaxSelectSt[] = new PreparedStatement[tableNames.length];
 			PreparedStatement joinSelectSt[] = new PreparedStatement[tableNames.length];
-			RAMDirectory[] ramDir = new RAMDirectory[tableNames.length];
+			// RAMDirectory[] indexDir = new RAMDirectory[tableNames.length];
+			Directory[] indexDir = new Directory[tableNames.length];
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			IndexWriter indexWriters[] = new IndexWriter[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
@@ -104,8 +110,9 @@ public class FindCache_V3 {
 				config[i].setSimilarity(new BM25Similarity());
 				config[i].setRAMBufferSizeMB(1024);
 				config[i].setOpenMode(OpenMode.CREATE);
-				ramDir[i] = new RAMDirectory();
-				indexWriters[i] = new IndexWriter(ramDir[i], config[i]);
+				// indexDir[i] = new RAMDirectory();
+				indexDir[i] = FSDirectory.open(Paths.get("/data/ghadakcv/wikipedia/" + cacheTableNames[i]));
+				indexWriters[i] = new IndexWriter(indexDir[i], config[i]);
 				indexWriters[i].commit();
 			}
 			double prevAcc = 0;
@@ -196,9 +203,9 @@ public class FindCache_V3 {
 				if (loop % 10000 == 0) {
 					System.out.println("  testing new cache..");
 					List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
-					try (IndexReader articleReader = DirectoryReader.open(ramDir[0]);
-							IndexReader imageReader = DirectoryReader.open(ramDir[1]);
-							IndexReader linkReader = DirectoryReader.open(ramDir[2])) {
+					try (IndexReader articleReader = DirectoryReader.open(indexDir[0]);
+							IndexReader imageReader = DirectoryReader.open(indexDir[1]);
+							IndexReader linkReader = DirectoryReader.open(indexDir[2])) {
 						System.out.println("  index sizes: " + articleReader.numDocs() + "," + imageReader.numDocs()
 								+ "," + linkReader.numDocs());
 						for (ExperimentQuery query : queries) {
