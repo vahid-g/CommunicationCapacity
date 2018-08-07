@@ -1,4 +1,4 @@
-package cache_selection_ml;
+package stackoverflow;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -25,11 +25,9 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
+import cache_selection_ml.FeatureExtraction;
 import indexing.BiwordAnalyzer;
 import indexing.popularity.TokenPopularity;
-import stackoverflow.QuestionDAO;
-import stackoverflow.StackIndexer;
-import stackoverflow.StackQueryingExperiment;
 
 public class RunFeatureExtractionForStack {
 

@@ -1,4 +1,4 @@
-package cache_selection_ml;
+package wiki13;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -24,12 +24,11 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
+import cache_selection_ml.FeatureExtraction;
 import indexing.BiwordAnalyzer;
 import indexing.popularity.TokenPopularity;
 import query.ExperimentQuery;
 import query.QueryServices;
-import wiki13.WikiFileIndexer;
-import wiki13.WikiFilesPaths;
 
 public class RunFeatureExtractionForWiki {
 
