@@ -46,6 +46,7 @@ public class CacheLanguageModel {
 
 	static boolean useCache(String query, IndexReader cacheIndexReader, IndexReader globalIndexReader,
 			IndexReader restIndexReader) throws IOException {
+		System.out.println("  chacking cache selection..");
 		FeatureExtraction fe = new FeatureExtraction(WikiFileIndexer.WEIGHT_ATTRIB);
 		double ql_cache = 0;
 		double ql_rest = 0;

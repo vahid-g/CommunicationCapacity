@@ -40,6 +40,10 @@ public class RunCacheSearch_V2 {
 			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 50);
+		} 
+		boolean alwaysUseCache = false;
+		if (argsList.contains("-cache")) {
+			alwaysUseCache = true;
 		}
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		try (IndexReader articleReader = DirectoryReader
@@ -76,9 +80,8 @@ public class RunCacheSearch_V2 {
 					IndexReader imageIndexToUse = imageReader;
 					IndexReader linkIndexToUse = linkReader;
 					long time1 = System.currentTimeMillis();
-					if (CacheLanguageModel.useCache(query.getText(), cacheReader, articleReader, restReader)) {
+					if (alwaysUseCache || CacheLanguageModel.useCache(query.getText(), cacheReader, articleReader, restReader)) {
 						cacheUseCount++;
-						System.out.println(" using cache for everything..");
 						articleTable = "sub_article_wiki13";
 						articleIndexToUse = cacheReader;
 						imageTable = "sub_image_pop";
@@ -112,7 +115,7 @@ public class RunCacheSearch_V2 {
 			}
 			System.out.println("average time per query = " + (time / (queries.size() * Params.numExecutions)));
 			System.out.println("number of cache uses: " + cacheUseCount + "/" + queries.size());
-			IRStyleKeywordSearch.printResults(queryResults, "cs_result.csv");
+			IRStyleKeywordSearch.printResults(queryResults, "result.csv");
 		}
 
 	}
