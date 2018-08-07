@@ -132,7 +132,7 @@ public class FindCache_NaiveTopk {
 				}
 				docsList.add(docs);
 			}
-			while (true) {	
+			while (true) {
 				System.out.println("Iteration " + loop++);
 				double mPopularity = 0;
 				int m = -1;
