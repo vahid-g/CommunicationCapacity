@@ -19,7 +19,9 @@ public class BuildCache_V2 {
 			// best msn mrr sizes obtained with v2
 			// int[] limit = { 238900, 106470, 195326 };
 			// best inex p20 sizes with v2
-			int[] limit = { 119450, 94640, 97663 };
+			// int[] limit = { 119450, 94640, 97663 };
+			// best inex recall sizes wth v2
+			int[] limit = { 400000, 200000, 500000 };
 			for (int i = 0; i < tableName.length; i++) {
 				System.out.println("  indexing table " + tableName[i]);
 				buildCache(dc, tableName[i], textAttribs[i], limit[i], "_p20");
