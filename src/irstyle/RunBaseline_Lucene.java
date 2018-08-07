@@ -34,7 +34,7 @@ import query.QueryServices;
 
 public class RunBaseline_Lucene {
 
-	private static final int MAX_TS = 10000;
+	private static final int LUCENE_N = 10;
 
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
@@ -166,7 +166,7 @@ public class RunBaseline_Lucene {
 		searcher.setSimilarity(new BM25Similarity());
 		QueryParser qp = new QueryParser(RelationalWikiIndexer.TEXT_FIELD, new StandardAnalyzer());
 		Query query = qp.parse(QueryParser.escape(queryText));
-		ScoreDoc[] scoreDocHits = searcher.search(query, MAX_TS).scoreDocs;
+		ScoreDoc[] scoreDocHits = searcher.search(query, LUCENE_N).scoreDocs;
 		List<String> results = new ArrayList<String>();
 		for (int j = 0; j < scoreDocHits.length; j++) {
 			Document doc = reader.document(scoreDocHits[j].doc);
