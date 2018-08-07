@@ -40,11 +40,15 @@ public class RunCacheSearch_V2 {
 			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 50);
-		} 
-		boolean alwaysUseCache = false;
-		if (argsList.contains("-cache")) {
-			alwaysUseCache = true;
 		}
+		boolean justUseCache = false;
+		boolean useQueryLikelihood = false;
+		if (argsList.contains("-cache")) {
+			justUseCache = true;
+		} else if (argsList.contains("-ql")) {
+			useQueryLikelihood = true;
+		}
+
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		try (IndexReader articleReader = DirectoryReader
 				.open(FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100")));
@@ -80,7 +84,8 @@ public class RunCacheSearch_V2 {
 					IndexReader imageIndexToUse = imageReader;
 					IndexReader linkIndexToUse = linkReader;
 					long time1 = System.currentTimeMillis();
-					if (alwaysUseCache || CacheLanguageModel.useCache(query.getText(), cacheReader, articleReader, restReader)) {
+					if (justUseCache || (useQueryLikelihood
+							&& CacheLanguageModel.useCache(query.getText(), cacheReader, articleReader, restReader))) {
 						cacheUseCount++;
 						articleTable = "sub_article_wiki13";
 						articleIndexToUse = cacheReader;
