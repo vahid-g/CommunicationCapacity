@@ -26,6 +26,7 @@ public class Indexer {
 	public static final String DATA_WIKIPEDIA = "/data/ghadakcv/wikipedia/";
 	public static final String ID_FIELD = "id";
 	public static final String TEXT_FIELD = "text";
+	public static final String WEIGHT_FIELD = "weight";
 
 	public static void main(String[] args) throws IOException, SQLException {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
@@ -87,17 +88,17 @@ public class Indexer {
 
 	public static void indexRS(String idAttrib, String[] textAttribs, IndexWriter iwriter, ResultSet rs)
 			throws SQLException, IOException {
-		String id = rs.getString(idAttrib);
 		StringBuilder answerBuilder = new StringBuilder();
 		for (String s : textAttribs) {
 			answerBuilder.append(rs.getString(s));
 		}
 		String answer = answerBuilder.toString();
 		Document doc = new Document();
-		doc.add(new StoredField(ID_FIELD, id));
+		doc.add(new StoredField(ID_FIELD, rs.getString(idAttrib)));
 		// answer = StringEscapeUtils.unescapeHtml4(answer); // convert html encoded
 		// characters to unicode
 		doc.add(new TextField(TEXT_FIELD, answer, Store.NO));
+		doc.add(new StoredField(WEIGHT_FIELD, rs.getInt("popularity")));
 		iwriter.addDocument(doc);
 	}
 
@@ -123,6 +124,7 @@ public class Indexer {
 				for (String s : textAttribs) {
 					attribs += "," + s;
 				}
+				attribs += ", popularity ";
 				String sql = "select " + attribs + " from " + table + " order by " + popularity + " desc limit " + limit
 						+ ";";
 				if (ascending) {
@@ -146,6 +148,7 @@ public class Indexer {
 			for (String s : textAttribs) {
 				attribs += "," + s;
 			}
+			attribs += ", popularity ";
 			String sql = "select " + attribs + " from " + table + " order by " + popularity + " desc limit " + limit
 					+ ";";
 			if (ascending) {
