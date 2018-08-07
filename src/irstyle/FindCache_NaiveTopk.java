@@ -60,8 +60,8 @@ public class FindCache_NaiveTopk {
 			String[] insertTemplates = new String[tableNames.length];
 			String[] indexPaths = new String[tableNames.length];
 			RAMDirectory[] ramDir = new RAMDirectory[tableNames.length];
-			int[] pageSize = { 119450, 11830, 97663 };
-			// int[] pageSize = { 100000, 100000, 100000 };
+			// int[] pageSize = { 26000, 12000, 98000 }; // based on 2009
+			int[] pageSize = { 100000, 100000, 100000 };
 			double[] sizes = { 11945034, 1183070, 9766351 };
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
@@ -134,6 +134,12 @@ public class FindCache_NaiveTopk {
 			}
 			while (true) {
 				System.out.println("Iteration " + loop++);
+				System.out.println("  current offsets: " + Arrays.toString(offset));
+				System.out.println("  current limits: " + (offset[0] + pageSize[0]) + " " + (offset[1] + pageSize[1])
+						+ " " + (offset[2] + pageSize[2]));
+				System.out.println("  current popularities: " + Arrays.toString(lastPopularity));
+				System.out.println("  normalized popularities: " + lastPopularity[0] / popSum[0] + " "
+						+ lastPopularity[1] / popSum[1] + " " + lastPopularity[2] / popSum[2]);
 				double mPopularity = 0;
 				int m = -1;
 				for (int i = 0; i < lastPopularity.length; i++) {

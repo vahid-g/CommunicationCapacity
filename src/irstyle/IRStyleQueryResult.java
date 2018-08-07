@@ -15,7 +15,7 @@ class IRStyleQueryResult {
 	public IRStyleQueryResult(ExperimentQuery query, long execTime) {
 		this.query = query;
 		this.execTime = execTime;
-		
+
 	}
 
 	void addIRStyleResults(ArrayList<Result> results) {
@@ -37,6 +37,9 @@ class IRStyleQueryResult {
 
 	double recall() {
 		double relCount = 0.0;
+		if (resultIDs.size() > 0) {
+			System.out.println("\t" + resultIDs.get(0));
+		}
 		for (String id : resultIDs) {
 			if (query.getQrelScoreMap().keySet().contains(id)) {
 				relCount++;
