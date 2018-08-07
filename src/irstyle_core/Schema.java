@@ -5,6 +5,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import irstyle.IRStyleKeywordSearch;
+import irstyle.Params;
 
 /**
  * Each relation has exactly one instance for schema.
@@ -282,7 +283,7 @@ public class Schema extends Instance {
 		// contain lfkeyw //9/30/02
 		while (!Q.isEmpty()) {
 			// 6/8/2002. produce at most 50 CNs
-			if (CNs.size() > IRStyleKeywordSearch.MAX_GENERATED_CNS)
+			if (CNs.size() > Params.MAX_GENERATED_CN)
 				break;
 			// end 6/8/2002
 			Instance JNTS = (Instance) Q.firstElement(); // I is current active instance(joining net. of tuple sets)
