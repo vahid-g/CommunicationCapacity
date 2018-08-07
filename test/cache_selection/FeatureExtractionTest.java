@@ -19,6 +19,7 @@ import org.apache.lucene.store.RAMDirectory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import cache_selection_ml.FeatureExtraction;
 import indexing.BiwordAnalyzer;
 
 public class FeatureExtractionTest {

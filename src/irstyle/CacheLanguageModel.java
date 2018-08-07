@@ -12,7 +12,7 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-import cache_selection.FeatureExtraction;
+import cache_selection_ml.FeatureExtraction;
 import database.DatabaseConnection;
 import wiki13.WikiFileIndexer;
 
