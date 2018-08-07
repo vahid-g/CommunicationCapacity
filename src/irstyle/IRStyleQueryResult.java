@@ -37,9 +37,6 @@ class IRStyleQueryResult {
 
 	double recall() {
 		double relCount = 0.0;
-		if (resultIDs.size() > 0) {
-			System.out.println("\t" + resultIDs.get(0));
-		}
 		for (String id : resultIDs) {
 			if (query.getQrelScoreMap().keySet().contains(id)) {
 				relCount++;
