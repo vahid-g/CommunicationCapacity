@@ -12,7 +12,7 @@ public class Params {
 
 	static int numExecutions = 1;
 
-	static int N = 100;
+	static int N = 20;
 
 	static boolean allKeywInResults = false;
 
