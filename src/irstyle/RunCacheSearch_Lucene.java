@@ -75,18 +75,18 @@ public class RunCacheSearch_Lucene {
 					IndexReader imageIndexToUse = imageReader;
 					IndexReader linkIndexToUse = linkReader;
 					long time1 = System.currentTimeMillis();
-					if (CacheLanguageModel.useCache(query.getText(), articleCacheReader, articleReader,
+					if (CacheSelectionQL.useCache(query.getText(), articleCacheReader, articleReader,
 							articleRestReader)) {
 						System.out.println(" using cache for articles");
 						articleTable = "sub_wiki13_1";
 						articleIndexToUse = articleCacheReader;
 					}
-					if (CacheLanguageModel.useCache(query.getText(), imageCacheReader, imageReader, imageRestReader)) {
+					if (CacheSelectionQL.useCache(query.getText(), imageCacheReader, imageReader, imageRestReader)) {
 						System.out.println(" using cache for images");
 						imageTable = "sub_image_10";
 						imageIndexToUse = imageCacheReader;
 					}
-					if (CacheLanguageModel.useCache(query.getText(), linkCacheReader, linkReader, linkRestReader)) {
+					if (CacheSelectionQL.useCache(query.getText(), linkCacheReader, linkReader, linkRestReader)) {
 						System.out.println(" using cache for links");
 						linkTable = "sub_link_6";
 						linkIndexToUse = linkCacheReader;

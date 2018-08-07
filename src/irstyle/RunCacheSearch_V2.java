@@ -85,7 +85,7 @@ public class RunCacheSearch_V2 {
 					IndexReader linkIndexToUse = linkReader;
 					long time1 = System.currentTimeMillis();
 					if (justUseCache || (useQueryLikelihood
-							&& CacheLanguageModel.useCache(query.getText(), cacheReader, articleReader, restReader))) {
+							&& CacheSelectionQL.useCache(query.getText(), cacheReader, articleReader, restReader))) {
 						cacheUseCount++;
 						articleTable = "sub_article_wiki13";
 						articleIndexToUse = cacheReader;

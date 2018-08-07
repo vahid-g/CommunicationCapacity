@@ -64,14 +64,14 @@ public class RunCacheSearch_MySQL {
 				String articleImageTable = "tbl_article_image_09";
 				String articleLinkTable = "tbl_article_link_09";
 				long time1 = System.currentTimeMillis();
-				if (CacheLanguageModel.useCache(query.getText(), articleCacheReader, articleReader,
+				if (CacheSelectionQL.useCache(query.getText(), articleCacheReader, articleReader,
 						articleRestReader)) {
 					articleTable = "sub_article_3";
 				}
-				if (CacheLanguageModel.useCache(query.getText(), imageCacheReader, imageReader, imageRestReader)) {
+				if (CacheSelectionQL.useCache(query.getText(), imageCacheReader, imageReader, imageRestReader)) {
 					imageTable = "sub_image_10";
 				}
-				if (CacheLanguageModel.useCache(query.getText(), linkCacheReader, linkReader, linkRestReader)) {
+				if (CacheSelectionQL.useCache(query.getText(), linkCacheReader, linkReader, linkRestReader)) {
 					linkTable = "sub_link_6";
 				}
 				long time2 = System.currentTimeMillis();

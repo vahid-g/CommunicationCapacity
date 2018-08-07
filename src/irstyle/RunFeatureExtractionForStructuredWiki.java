@@ -37,20 +37,21 @@ public class RunFeatureExtractionForStructuredWiki {
 		// popularity indices
 		// query log
 		List<String> argList = Arrays.asList(args);
-		String baseDataDir = "/data/ghadakcv/wikipedia/";
-		Path indexPath = Paths.get(baseDataDir + "sub_article_wik13");
-		Path globalIndexPath = Paths.get(baseDataDir + "tbl_article_wiki13/100");
-		Path biwordIndexPath = Paths.get("???");
-		Path globalBiwordIndexPath = Paths.get("???");
 		List<ExperimentQuery> queries;
 		if (argList.contains("-inex")) {
 			queries = QueryServices.loadInexQueries();
 		} else {
 			queries = QueryServices.loadMsnQueries();
-
 		}
-
-		FeatureExtraction wqde = new FeatureExtraction(WikiFileIndexer.WEIGHT_ATTRIB);
+		
+		
+		String baseDataDir = "/data/ghadakcv/wikipedia/";
+		Path indexPath = Paths.get(baseDataDir + "sub_article_wik13");
+		Path globalIndexPath = Paths.get(baseDataDir + "tbl_article_wiki13/100");
+		Path biwordIndexPath = Paths.get("???");
+		Path globalBiwordIndexPath = Paths.get("???");
+		
+		FeatureExtraction wqde = new FeatureExtraction(RelationalWikiIndexer.WEIGHT_FIELD);
 		LOGGER.log(Level.INFO, "loading popularity indices..");
 		Map<String, TokenPopularity> termTitlePopularity = TokenPopularity
 				.loadTokenPopularities(indexPath + "_title_pop_fast_tokens" + ".csv");
