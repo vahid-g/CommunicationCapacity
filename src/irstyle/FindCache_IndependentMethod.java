@@ -66,7 +66,7 @@ public class FindCache_IndependentMethod {
 		double acc = 0;
 		for (int i = 1; i <= 100; i += 1) {
 			prevAcc = acc;
-			List<QueryResult> queryResults = runQueriesOnIndex(tableName, queries, i);
+			List<QueryResult> queryResults = runQueriesOnLuceneIndex(tableName, queries, i);
 			acc = 0;
 			for (QueryResult qr : queryResults) {
 //				acc += qr.precisionAtK(20);
@@ -101,7 +101,7 @@ public class FindCache_IndependentMethod {
 		}
 	}
 
-	private static List<QueryResult> runQueriesOnIndex(String tableName, List<ExperimentQuery> queries, int i)
+	private static List<QueryResult> runQueriesOnLuceneIndex(String tableName, List<ExperimentQuery> queries, int i)
 			throws ParseException, IOException {
 		String indexPath = "/data/ghadakcv/wikipedia/" + tableName + "/" + i;
 		List<QueryResult> queryResults = new ArrayList<QueryResult>();

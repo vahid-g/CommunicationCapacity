@@ -4,6 +4,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
+import irstyle.Params;
+
 public class ExecPrepared {
 
 	private double[] maxScores; // max scores possible so far for each CN
@@ -762,7 +764,7 @@ public class ExecPrepared {
 			scoresS[CNindexOfTopScore][indexOfTopScore] = scorestemp;
 			if (foundtopn)
 				break;
-			if (System.currentTimeMillis() - time1 > (300000)) { // query takes more than 5mins
+			if (System.currentTimeMillis() - time1 > (Params.MAX_ALLOWED_TIME)) { // query takes more than 5mins
 				break;
 			}
 		}
