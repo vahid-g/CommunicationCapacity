@@ -21,7 +21,7 @@ import org.apache.lucene.store.FSDirectory;
 import database.DatabaseConnection;
 import database.DatabaseType;
 
-public class Indexer {
+public class RelationalWikiIndexer {
 
 	public static final String DATA_WIKIPEDIA = "/data/ghadakcv/wikipedia/";
 	public static final String ID_FIELD = "id";
@@ -31,11 +31,11 @@ public class Indexer {
 	public static void main(String[] args) throws IOException, SQLException {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			if (args[0].equals("articles")) {
-				Indexer.indexArticles(dc);
+				RelationalWikiIndexer.indexArticles(dc);
 			} else if (args[0].equals("images")) {
-				Indexer.indexImages(dc);
+				RelationalWikiIndexer.indexImages(dc);
 			} else if (args[0].equals("links")) {
-				Indexer.indexLinks(dc);
+				RelationalWikiIndexer.indexLinks(dc);
 			} else if (args[0].equals("rest")) {
 				indexCompTable(dc, "tbl_article_09", 3, new String[] { "title", "text" }, "popularity");
 				indexCompTable(dc, "tbl_link_pop", 6, new String[] { "url" }, "pop");
@@ -134,7 +134,7 @@ public class Indexer {
 				System.out.println(sql);
 				ResultSet rs = stmt.executeQuery(sql);
 				while (rs.next()) {
-					Indexer.indexRS("id", textAttribs, iwriter, rs);
+					RelationalWikiIndexer.indexRS("id", textAttribs, iwriter, rs);
 				}
 			}
 		}
@@ -157,7 +157,7 @@ public class Indexer {
 			System.out.println(sql);
 			ResultSet rs = stmt.executeQuery(sql);
 			while (rs.next()) {
-				Indexer.indexRS("id", textAttribs, indexWriter, rs);
+				RelationalWikiIndexer.indexRS("id", textAttribs, indexWriter, rs);
 			}
 		}
 	}

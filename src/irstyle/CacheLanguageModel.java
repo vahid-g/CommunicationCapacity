@@ -24,21 +24,21 @@ public class CacheLanguageModel {
 		int[] sizes = { 11945034, 1183070, 9766351 };
 		String[] popularity = { "popularity", "popularity", "popularity" };
 		System.out.println("indexing cache LM..");
-		Directory directory = FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_cache_" + suffix));
-		IndexWriterConfig config = Indexer.getIndexWriterConfig();
+		Directory directory = FSDirectory.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_cache_" + suffix));
+		IndexWriterConfig config = RelationalWikiIndexer.getIndexWriterConfig();
 		config.setOpenMode(OpenMode.CREATE);
 		try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
 			for (int i = 0; i < tableNames.length; i++) {
-				Indexer.indexTable(dc, indexWriter, tableNames[i], textAttribs[i], limit[i], popularity[i], false);
+				RelationalWikiIndexer.indexTable(dc, indexWriter, tableNames[i], textAttribs[i], limit[i], popularity[i], false);
 			}
 		}
 		System.out.println("indexing comp LM..");
-		directory = FSDirectory.open(Paths.get(Indexer.DATA_WIKIPEDIA + "lm_rest_" + suffix));
-		config = Indexer.getIndexWriterConfig();
+		directory = FSDirectory.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_rest_" + suffix));
+		config = RelationalWikiIndexer.getIndexWriterConfig();
 		config.setOpenMode(OpenMode.CREATE);
 		try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
 			for (int i = 0; i < tableNames.length; i++) {
-				Indexer.indexTable(dc, indexWriter, tableNames[i], textAttribs[i], sizes[i] - limit[i], popularity[i],
+				RelationalWikiIndexer.indexTable(dc, indexWriter, tableNames[i], textAttribs[i], sizes[i] - limit[i], popularity[i],
 						true);
 			}
 		}
@@ -50,9 +50,9 @@ public class CacheLanguageModel {
 		FeatureExtraction fe = new FeatureExtraction(WikiFileIndexer.WEIGHT_ATTRIB);
 		double ql_cache = 0;
 		double ql_rest = 0;
-		ql_cache = fe.queryLikelihood(cacheIndexReader, query, Indexer.TEXT_FIELD, globalIndexReader,
+		ql_cache = fe.queryLikelihood(cacheIndexReader, query, RelationalWikiIndexer.TEXT_FIELD, globalIndexReader,
 				new StandardAnalyzer());
-		ql_rest = fe.queryLikelihood(restIndexReader, query, Indexer.TEXT_FIELD, globalIndexReader,
+		ql_rest = fe.queryLikelihood(restIndexReader, query, RelationalWikiIndexer.TEXT_FIELD, globalIndexReader,
 				new StandardAnalyzer());
 		return (ql_cache >= ql_rest);
 		// return false;

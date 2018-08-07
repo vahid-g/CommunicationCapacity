@@ -43,9 +43,9 @@ public class RunBaseline_Lucene {
 		String linkTable = "tbl_link_pop";
 		String articleImageTable = "tbl_article_image_09";
 		String articleLinkTable = "tbl_article_link_09";
-		String articleIndexPath = Indexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100";
-		String imageIndexPath = Indexer.DATA_WIKIPEDIA + "tbl_image_pop/100";
-		String linkIndexPath = Indexer.DATA_WIKIPEDIA + "tbl_link_pop/100";
+		String articleIndexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100";
+		String imageIndexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_image_pop/100";
+		String linkIndexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_link_pop/100";
 		if (argsList.contains("-debug")) {
 			Params.DEBUG = true;
 		}
@@ -55,9 +55,9 @@ public class RunBaseline_Lucene {
 			linkTable = "sub_link_pop";
 			articleImageTable = "sub_article_image_09";
 			articleLinkTable = "sub_article_link_09";
-			articleIndexPath = Indexer.DATA_WIKIPEDIA + "sub_article_wiki13";
-			imageIndexPath = Indexer.DATA_WIKIPEDIA + "sub_image_pop";
-			linkIndexPath = Indexer.DATA_WIKIPEDIA + "sub_link_pop";
+			articleIndexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_article_wiki13";
+			imageIndexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_image_pop";
+			linkIndexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_link_pop";
 		}
 		List<ExperimentQuery> queries = null;
 		if (argsList.contains("-inex")) {
@@ -164,13 +164,13 @@ public class RunBaseline_Lucene {
 	static List<String> executeLuceneQuery(IndexReader reader, String queryText) throws ParseException, IOException {
 		IndexSearcher searcher = new IndexSearcher(reader);
 		searcher.setSimilarity(new BM25Similarity());
-		QueryParser qp = new QueryParser(Indexer.TEXT_FIELD, new StandardAnalyzer());
+		QueryParser qp = new QueryParser(RelationalWikiIndexer.TEXT_FIELD, new StandardAnalyzer());
 		Query query = qp.parse(QueryParser.escape(queryText));
 		ScoreDoc[] scoreDocHits = searcher.search(query, MAX_TS).scoreDocs;
 		List<String> results = new ArrayList<String>();
 		for (int j = 0; j < scoreDocHits.length; j++) {
 			Document doc = reader.document(scoreDocHits[j].doc);
-			String docId = doc.get(Indexer.ID_FIELD);
+			String docId = doc.get(RelationalWikiIndexer.ID_FIELD);
 			results.add("(" + docId + "," + scoreDocHits[j].score + ")");
 		}
 		return results;

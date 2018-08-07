@@ -46,9 +46,9 @@ public class BuildCache_V2 {
 			stmt.executeUpdate(createIndex);
 		}
 
-		IndexWriterConfig config = Indexer.getIndexWriterConfig();
+		IndexWriterConfig config = RelationalWikiIndexer.getIndexWriterConfig();
 		config.setOpenMode(OpenMode.CREATE);
-		Indexer.indexTable(dc, Indexer.DATA_WIKIPEDIA + cacheName, tableName, textAttribs, limit, "popularity", false,
-				Indexer.getIndexWriterConfig());
+		RelationalWikiIndexer.indexTable(dc, RelationalWikiIndexer.DATA_WIKIPEDIA + cacheName, tableName, textAttribs, limit, "popularity", false,
+				RelationalWikiIndexer.getIndexWriterConfig());
 	}
 }
