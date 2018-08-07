@@ -192,7 +192,7 @@ public class FindCache_NaiveTopk {
 					bestAcc = acc;
 					bestOffset = offset.clone();
 				}
-				if ((acc - prevAcc) > 0.05) {
+				if ((prevAcc - acc) > 0.05) {
 					System.out.println("  time to break;");
 					break;
 				}
