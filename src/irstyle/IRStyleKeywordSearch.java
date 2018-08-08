@@ -112,7 +112,7 @@ public class IRStyleKeywordSearch {
 		return exectime;
 	}
 
-	static int methodC(int N, boolean allKeywInResults, Vector<Relation> relations, Vector<String> allkeyw,
+	public static int methodC(int N, boolean allKeywInResults, Vector<Relation> relations, Vector<String> allkeyw,
 			Vector<?> CNs, ArrayList<Result> results, JDBCaccess jdbcacc) {
 		// Method C: parallel execution
 		int exectime = 0;
@@ -133,7 +133,7 @@ public class IRStyleKeywordSearch {
 		return exectime;
 	}
 
-	static void dropTupleSets(JDBCaccess jdbcacc, Vector<Relation> relations) {
+	public static void dropTupleSets(JDBCaccess jdbcacc, Vector<Relation> relations) {
 		for (Relation rel : relations) {
 			jdbcacc.dropTable("TS_" + rel.getName());
 		}
@@ -154,7 +154,7 @@ public class IRStyleKeywordSearch {
 
 	}
 
-	static void printRrankResults(List<IRStyleQueryResult> queryResults, String filename) throws IOException {
+	public static void printRrankResults(List<IRStyleQueryResult> queryResults, String filename) throws IOException {
 		try (FileWriter fw = new FileWriter(filename)) {
 			for (IRStyleQueryResult result : queryResults) {
 				ExperimentQuery query = result.query;

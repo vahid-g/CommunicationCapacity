@@ -18,14 +18,14 @@ public class IRStyleQueryResult {
 
 	}
 
-	void addIRStyleResults(ArrayList<Result> results) {
+	public void addIRStyleResults(ArrayList<Result> results) {
 		for (Result result : results) {
 			String resultText = result.getStr();
 			resultIDs.add(resultText.substring(0, resultText.indexOf(" - ")));
 		}
 	}
 
-	double rrank() {
+	public double rrank() {
 		for (int i = 0; i < resultIDs.size(); i++) {
 			String resultId = resultIDs.get(i);
 			if (query.getQrelScoreMap().keySet().contains(resultId)) {

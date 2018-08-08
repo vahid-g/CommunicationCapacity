@@ -8,12 +8,12 @@ public class Params {
 
 	static boolean DEBUG = false;
 
-	static int maxCNsize = 5;
+	public static int maxCNsize = 5;
 
 	public static int numExecutions = 1;
 
-	static int N = 20;
+	public static int N = 20;
 
-	static boolean allKeywInResults = false;
+	public static boolean allKeywInResults = false;
 
 }
