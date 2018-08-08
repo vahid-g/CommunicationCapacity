@@ -35,6 +35,8 @@ import wiki13.WikiFilesPaths;
 
 public class RunCacheSearch {
 
+	static final int MAX_TS_SIZE = 1000;
+
 	public static void main(String[] args) throws Exception {
 		String cacheNameSuffix = args[0];
 		if (cacheNameSuffix.equals("rec")) {
@@ -190,7 +192,8 @@ public class RunCacheSearch {
 		return result;
 	}
 
-	public static List<String> executeLuceneQuery(IndexReader reader, String queryText) throws ParseException, IOException {
+	public static List<String> executeLuceneQuery(IndexReader reader, String queryText)
+			throws ParseException, IOException {
 		IndexSearcher searcher = new IndexSearcher(reader);
 		searcher.setSimilarity(new BM25Similarity());
 		QueryParser qp = new QueryParser(RelationalWikiIndexer.TEXT_FIELD, new StandardAnalyzer());
@@ -204,7 +207,5 @@ public class RunCacheSearch {
 		}
 		return results;
 	}
-
-	static final int MAX_TS_SIZE = 1000;
 
 }
