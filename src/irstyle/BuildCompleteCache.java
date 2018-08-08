@@ -16,7 +16,7 @@ import org.apache.lucene.store.FSDirectory;
 import database.DatabaseConnection;
 import database.DatabaseType;
 
-public class BuildCache_V2 {
+public class BuildCompleteCache {
 	public static void main(String[] args) throws SQLException, IOException {
 		List<String> argsList = Arrays.asList(args);
 		// best inex p20 sizes with v2
@@ -50,8 +50,10 @@ public class BuildCache_V2 {
 			String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
 			int[] size = { 11945034, 1183070, 9766351 };
 			for (int i = 0; i < tableName.length; i++) {
-				System.out.println("  indexing table " + tableName[i]);
-				buildCacheTable(dc, tableName[i], textAttribs[i], limit[i], suffix);
+				System.out.println("Indexing table " + tableName[i]);
+				String cacheName = "sub_" + tableName[i].substring(4) + "_" + suffix;
+				buildCacheTable(dc, tableName[i], textAttribs[i], cacheName, limit[i]);
+				buildCacheIndex(dc, tableName[i], textAttribs[i], cacheName, limit[i]);
 				RelationalWikiIndexer.indexTable(dc, cacheWriter, tableName[i], textAttribs[i], limit[i], "popularity",
 						false);
 				RelationalWikiIndexer.indexTable(dc, restWriter, tableName[i], textAttribs[i], size[i] - limit[i],
@@ -60,10 +62,9 @@ public class BuildCache_V2 {
 		}
 	}
 
-	private static void buildCacheTable(DatabaseConnection dc, String tableName, String[] textAttribs, int limit,
-			String suffix) throws SQLException, IOException {
+	private static void buildCacheTable(DatabaseConnection dc, String tableName, String[] textAttribs, String cacheName,
+			int limit) throws SQLException, IOException {
 		String selectStatement = "SELECT * FROM " + tableName + " ORDER BY popularity LIMIT " + limit;
-		String cacheName = "sub_" + tableName.substring(4) + "_" + suffix;
 		String createStatement = "CREATE TABLE " + cacheName + " AS " + selectStatement + ";";
 		System.out.println("Creating table..");
 		try (Statement stmt = dc.getConnection().createStatement()) {
@@ -75,10 +76,13 @@ public class BuildCache_V2 {
 		try (Statement stmt = dc.getConnection().createStatement()) {
 			stmt.executeUpdate(createIndex);
 		}
+	}
 
+	private static void buildCacheIndex(DatabaseConnection dc, String tableName, String[] textAttribs, String cacheName,
+			int limit) throws IOException, SQLException {
 		IndexWriterConfig config = RelationalWikiIndexer.getIndexWriterConfig();
 		config.setOpenMode(OpenMode.CREATE);
 		RelationalWikiIndexer.indexTable(dc, RelationalWikiIndexer.DATA_WIKIPEDIA + cacheName, tableName, textAttribs,
-				limit, "popularity", false, RelationalWikiIndexer.getIndexWriterConfig());
+				limit, "popularity", false, config);
 	}
 }

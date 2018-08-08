@@ -7,13 +7,9 @@ import java.sql.Statement;
 import database.DatabaseConnection;
 import database.DatabaseType;
 
-public class BuildCache_Simple {
+public class BuildTableCache {
 	public static void main(String[] args) throws SQLException, IOException {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			if (args.length < 3) {
-				System.out.println("Usage: \n\t java -jar runbuildcache.jar table_name percent text_attribs\n\t"
-						+ " java -jar runbuildcache.jar tbl_article_09 10 title,text");
-			}
 			String tableName = args[0];
 			int percent = Integer.parseInt(args[1]);
 			String textAttrib = args[2];
