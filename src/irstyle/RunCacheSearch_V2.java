@@ -14,9 +14,9 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
-import irstyle_core.JDBCaccess;
-import irstyle_core.Relation;
-import irstyle_core.Schema;
+import irstyle.core.JDBCaccess;
+import irstyle.core.Relation;
+import irstyle.core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
@@ -72,6 +72,9 @@ public class RunCacheSearch_V2 {
 						.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_rest_" + cacheNameSuffix)))) {
 			long time = 0;
 			int cacheUseCount = 0;
+			long selectionTime = 0;
+			long luceneTime = 0;
+			long tuplesetTime = 0;
 			for (int exec = 0; exec < Params.numExecutions; exec++) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
@@ -87,19 +90,20 @@ public class RunCacheSearch_V2 {
 					IndexReader articleIndexToUse = articleReader;
 					IndexReader imageIndexToUse = imageReader;
 					IndexReader linkIndexToUse = linkReader;
-					long time1 = System.currentTimeMillis();
+					long start = System.currentTimeMillis();
 					if (justUseCache || (useQueryLikelihood
 							&& CacheSelectionQL.useCache(query.getText(), cacheReader, articleReader, restReader))) {
 						cacheUseCount++;
 						articleTable = "sub_article_wiki13";
-						articleIndexToUse = cacheReader;
+						articleImageTable = "sub_article_image_09";
 						imageTable = "sub_image_pop";
-						imageIndexToUse = imageCacheReader;
+						articleLinkTable = "sub_article_link_09";
 						linkTable = "sub_link_pop";
+						articleIndexToUse = cacheReader;
+						imageIndexToUse = imageCacheReader;
 						linkIndexToUse = linkCacheReader;
 					}
-					long time2 = System.currentTimeMillis();
-					System.out.println(" Time to select cache: " + (time2 - time1) + " (ms)");
+					selectionTime += System.currentTimeMillis() - start;
 					String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
 							+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 							+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
@@ -107,9 +111,11 @@ public class RunCacheSearch_V2 {
 					Schema sch = new Schema(schemaDescription);
 					Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable,
 							linkTable, articleImageTable, articleLinkTable, jdbcacc.conn);
+					start = System.currentTimeMillis();
 					List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleIndexToUse, query.getText());
 					List<String> imageIds = RunBaseline_Lucene.executeLuceneQuery(imageIndexToUse, query.getText());
 					List<String> linkIds = RunBaseline_Lucene.executeLuceneQuery(linkIndexToUse, query.getText());
+					luceneTime += (System.currentTimeMillis() - start);
 					System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
 							imageIds.size(), linkIds.size());
 					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
@@ -118,12 +124,21 @@ public class RunCacheSearch_V2 {
 					relnamesValues.put(linkTable, linkIds);
 					IRStyleQueryResult result = RunBaseline_Lucene.executeIRStyleQuery(jdbcacc, sch, relations, query,
 							relnamesValues);
-					time += result.execTime;
+					tuplesetTime += result.tuplesetTime;
+					time += luceneTime + result.execTime;
 					queryResults.add(result);
 				}
 			}
-			System.out.println("average time per query = " + (time / (queries.size() * Params.numExecutions)));
-			System.out.println("number of cache uses: " + cacheUseCount + "/" + queries.size());
+			selectionTime /= (queries.size() * Params.numExecutions);
+			luceneTime /= (queries.size() * Params.numExecutions);
+			tuplesetTime /= (queries.size() * Params.numExecutions);
+			time /= queries.size() * Params.numExecutions;
+			System.out.println("average cache selection time = " + selectionTime + " (ms)");
+			System.out.println("average lucene time = " + luceneTime + " (ms)");
+			System.out.println("average tupleset time = " + tuplesetTime + " (ms)");
+			System.out.println("average just search time = " + (time - tuplesetTime) + " (ms)");
+			System.out.println("average total time  = " + time + " (ms)");
+			System.out.println("number of cache hits: " + cacheUseCount + "/" + queries.size());
 			IRStyleKeywordSearch.printResults(queryResults, "result.csv");
 		}
 

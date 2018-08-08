@@ -1,4 +1,4 @@
-package irstyle;
+package irstyle.independent;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -14,14 +14,19 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
-import irstyle_core.JDBCaccess;
-import irstyle_core.Relation;
-import irstyle_core.Schema;
+import irstyle.CacheSelectionQL;
+import irstyle.IRStyleKeywordSearch;
+import irstyle.IRStyleQueryResult;
+import irstyle.Params;
+import irstyle.RunBaseline_Lucene;
+import irstyle.core.JDBCaccess;
+import irstyle.core.Relation;
+import irstyle.core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;
 
-public class RunCacheSearch_Lucene {
+public class RunCacheSearch_IndependentMethod {
 
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);

@@ -24,17 +24,17 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
-import irstyle_core.JDBCaccess;
-import irstyle_core.MIndexAccess;
-import irstyle_core.Relation;
-import irstyle_core.Result;
-import irstyle_core.Schema;
+import irstyle.core.JDBCaccess;
+import irstyle.core.MIndexAccess;
+import irstyle.core.Relation;
+import irstyle.core.Result;
+import irstyle.core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
 
 public class RunBaseline_Lucene {
 
-	private static final int MAX_TS_SIZE = 100000;
+	private static final int MAX_TS_SIZE = 1000;
 
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);

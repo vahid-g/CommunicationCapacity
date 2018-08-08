@@ -1,4 +1,4 @@
-package irstyle;
+package irstyle.independent;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -27,6 +27,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
+import irstyle.RelationalWikiIndexer;
 import query.ExperimentQuery;
 import query.QueryResult;
 import query.QueryServices;

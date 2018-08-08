@@ -3,7 +3,7 @@ package irstyle;
 import java.util.ArrayList;
 import java.util.List;
 
-import irstyle_core.Result;
+import irstyle.core.Result;
 import query.ExperimentQuery;
 
 class IRStyleQueryResult {

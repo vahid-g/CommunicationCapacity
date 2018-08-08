@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
 
-import irstyle_core.ExecPrepared;
-import irstyle_core.Flags;
-import irstyle_core.InitialMain;
-import irstyle_core.Instance;
-import irstyle_core.JDBCaccess;
-import irstyle_core.Relation;
-import irstyle_core.Result;
+import irstyle.core.ExecPrepared;
+import irstyle.core.Flags;
+import irstyle.core.InitialMain;
+import irstyle.core.Instance;
+import irstyle.core.JDBCaccess;
+import irstyle.core.Relation;
+import irstyle.core.Result;
 import query.ExperimentQuery;
 import wiki13.WikiRelationalEfficiencyExperiment;
 

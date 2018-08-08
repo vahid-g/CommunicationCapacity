@@ -32,9 +32,9 @@ import org.apache.lucene.store.FSDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
-import irstyle_core.JDBCaccess;
-import irstyle_core.Relation;
-import irstyle_core.Schema;
+import irstyle.core.JDBCaccess;
+import irstyle.core.Relation;
+import irstyle.core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
 

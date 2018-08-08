@@ -14,9 +14,9 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
-import irstyle_core.JDBCaccess;
-import irstyle_core.Relation;
-import irstyle_core.Schema;
+import irstyle.core.JDBCaccess;
+import irstyle.core.Relation;
+import irstyle.core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;

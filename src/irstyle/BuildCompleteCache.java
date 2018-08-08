@@ -19,11 +19,11 @@ import database.DatabaseType;
 public class BuildCompleteCache {
 	public static void main(String[] args) throws SQLException, IOException {
 		List<String> argsList = Arrays.asList(args);
-		// best inex p20 sizes with v2
+		// best inex p20 sizes with v2 1%, 8%, 1%
 		int[] precisionLimit = { 119450, 94640, 97663 };
-		// best inex recall sizes wth v2
+		// best inex recall sizes wth v2 3%, 16%, 55
 		int[] recallLimit = { 400000, 200000, 500000 };
-		// best msn mrr sizes obtained with v2
+		// best msn mrr sizes obtained with v2 
 		int[] mrrLimit = { 238900, 106470, 195326 };
 		String suffix;
 		int[] limit;

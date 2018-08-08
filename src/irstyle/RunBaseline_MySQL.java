@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
-import irstyle_core.JDBCaccess;
-import irstyle_core.MIndexAccess;
-import irstyle_core.Relation;
-import irstyle_core.Result;
-import irstyle_core.Schema;
+import irstyle.core.JDBCaccess;
+import irstyle.core.MIndexAccess;
+import irstyle.core.Relation;
+import irstyle.core.Result;
+import irstyle.core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
 import wiki13.WikiFilesPaths;

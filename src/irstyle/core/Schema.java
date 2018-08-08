@@ -1,4 +1,4 @@
-package irstyle_core;
+package irstyle.core;
 //package xkeyword;
 
 import java.util.StringTokenizer;
