@@ -37,27 +37,34 @@ public class BuildCompleteCache {
 			limit = mrrLimit;
 			suffix = "mrr";
 		}
-		Directory cacheDirectory = FSDirectory
-				.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_cache_" + suffix));
-		IndexWriterConfig cacheConfig = RelationalWikiIndexer.getIndexWriterConfig().setOpenMode(OpenMode.CREATE);
-		Directory restDirectory = FSDirectory
-				.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_rest_" + suffix));
-		IndexWriterConfig restConfig = RelationalWikiIndexer.getIndexWriterConfig().setOpenMode(OpenMode.CREATE);
-		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA);
-				IndexWriter cacheWriter = new IndexWriter(cacheDirectory, cacheConfig);
-				IndexWriter restWriter = new IndexWriter(restDirectory, restConfig)) {
-			String[] tableName = { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
-			String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
-			int[] size = { 11945034, 1183070, 9766351 };
+		String[] tableName = { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
+		String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
+		int[] size = { 11945034, 1183070, 9766351 };
+		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
+			// building the cache
 			for (int i = 0; i < tableName.length; i++) {
 				System.out.println("Indexing table " + tableName[i]);
 				String cacheName = "sub_" + tableName[i].substring(4) + "_" + suffix;
 				buildCacheTable(dc, tableName[i], textAttribs[i], cacheName, limit[i]);
 				buildCacheIndex(dc, tableName[i], textAttribs[i], cacheName, limit[i]);
-				RelationalWikiIndexer.indexTable(dc, cacheWriter, tableName[i], textAttribs[i], limit[i], "popularity",
-						false);
-				RelationalWikiIndexer.indexTable(dc, restWriter, tableName[i], textAttribs[i], size[i] - limit[i],
-						"popularity", true);
+			}
+			System.out.println("finished building cache");
+			// building index for LM
+			Directory cacheDirectory = FSDirectory
+					.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_cache_" + suffix));
+			IndexWriterConfig cacheConfig = RelationalWikiIndexer.getIndexWriterConfig().setOpenMode(OpenMode.CREATE);
+			Directory restDirectory = FSDirectory
+					.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_rest_" + suffix));
+			IndexWriterConfig restConfig = RelationalWikiIndexer.getIndexWriterConfig().setOpenMode(OpenMode.CREATE);
+			try (IndexWriter cacheWriter = new IndexWriter(cacheDirectory, cacheConfig);
+					IndexWriter restWriter = new IndexWriter(restDirectory, restConfig)) {
+				for (int i = 0; i < tableName.length; i++) {
+					System.out.println("Indexing table " + tableName[i]);
+					RelationalWikiIndexer.indexTable(dc, cacheWriter, tableName[i], textAttribs[i], limit[i],
+							"popularity", false);
+					RelationalWikiIndexer.indexTable(dc, restWriter, tableName[i], textAttribs[i], size[i] - limit[i],
+							"popularity", true);
+				}
 			}
 		}
 	}
