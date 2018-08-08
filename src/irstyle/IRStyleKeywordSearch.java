@@ -25,7 +25,7 @@ import wiki13.WikiRelationalEfficiencyExperiment;
 
 public class IRStyleKeywordSearch {
 
-	static Vector<Relation> createRelations(String articleTable, String imageTable, String linkTable,
+	public static Vector<Relation> createRelations(String articleTable, String imageTable, String linkTable,
 			String articleImageTable, String articleLinkTable, Connection conn) throws SQLException {
 		// Note that to be able to match qrels with answers, the main table should be
 		// the first relation and
@@ -139,7 +139,7 @@ public class IRStyleKeywordSearch {
 		}
 	}
 
-	static void dropAllTuplesets(JDBCaccess jdbcacc) throws SQLException {
+	public static void dropAllTuplesets(JDBCaccess jdbcacc) throws SQLException {
 		String sql = "SELECT CONCAT( 'DROP TABLE ', GROUP_CONCAT(table_name) , ';' ) AS statement FROM "
 				+ "information_schema.tables WHERE table_name LIKE 'TS_%';";
 		try (Statement stmt = jdbcacc.conn.createStatement()) {
@@ -165,7 +165,7 @@ public class IRStyleKeywordSearch {
 		}
 	}
 
-	static void printResults(List<IRStyleQueryResult> queryResults, String filename) throws IOException {
+	public static void printResults(List<IRStyleQueryResult> queryResults, String filename) throws IOException {
 		try (FileWriter fw = new FileWriter(filename)) {
 			for (IRStyleQueryResult result : queryResults) {
 				ExperimentQuery query = result.query;
@@ -176,7 +176,7 @@ public class IRStyleKeywordSearch {
 		}
 	}
 
-	static JDBCaccess jdbcAccess() throws IOException {
+	public static JDBCaccess jdbcAccess() throws IOException {
 		// JDBC input
 		// Server = "localhost";
 		String Server = "vm-maple.eecs.oregonstate.edu";

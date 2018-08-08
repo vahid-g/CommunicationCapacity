@@ -6,9 +6,9 @@ import java.util.List;
 import irstyle.core.Result;
 import query.ExperimentQuery;
 
-class IRStyleQueryResult {
+public class IRStyleQueryResult {
 	ExperimentQuery query;
-	long execTime = 0;
+	public long execTime = 0;
 	long tuplesetTime = 0;
 	List<String> resultIDs = new ArrayList<String>();
 

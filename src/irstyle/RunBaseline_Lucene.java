@@ -127,7 +127,7 @@ public class RunBaseline_Lucene {
 		return queryResults;
 	}
 
-	static IRStyleQueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,
+	public static IRStyleQueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,
 			ExperimentQuery query, Map<String, List<String>> relnameValues) throws SQLException {
 		MIndexAccess MIndx = new MIndexAccess(relations);
 		Vector<String> allkeyw = new Vector<String>();
@@ -161,7 +161,7 @@ public class RunBaseline_Lucene {
 		return result;
 	}
 
-	static List<String> executeLuceneQuery(IndexReader reader, String queryText) throws ParseException, IOException {
+	public static List<String> executeLuceneQuery(IndexReader reader, String queryText) throws ParseException, IOException {
 		IndexSearcher searcher = new IndexSearcher(reader);
 		searcher.setSimilarity(new BM25Similarity());
 		QueryParser qp = new QueryParser(RelationalWikiIndexer.TEXT_FIELD, new StandardAnalyzer());

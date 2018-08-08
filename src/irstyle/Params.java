@@ -10,7 +10,7 @@ public class Params {
 
 	static int maxCNsize = 5;
 
-	static int numExecutions = 1;
+	public static int numExecutions = 1;
 
 	static int N = 20;
 

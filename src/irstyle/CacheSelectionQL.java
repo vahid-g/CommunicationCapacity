@@ -10,7 +10,7 @@ import wiki13.WikiFileIndexer;
 
 public class CacheSelectionQL {
 
-	static boolean useCache(String query, IndexReader cacheIndexReader, IndexReader globalIndexReader,
+	public static boolean useCache(String query, IndexReader cacheIndexReader, IndexReader globalIndexReader,
 			IndexReader restIndexReader) throws IOException {
 		System.out.println("  chacking cache selection..");
 		FeatureExtraction fe = new FeatureExtraction(WikiFileIndexer.WEIGHT_ATTRIB);
