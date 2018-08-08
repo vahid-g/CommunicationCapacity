@@ -25,6 +25,9 @@ public class RunCacheSearch_V2 {
 
 	public static void main(String[] args) throws Exception {
 		String cacheNameSuffix = args[0];
+		if (cacheNameSuffix.equals("rec")) {
+			Params.N = 100;
+		}
 		List<String> argsList = Arrays.asList(args);
 		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
