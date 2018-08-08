@@ -35,7 +35,7 @@ import wiki13.WikiFilesPaths;
 
 public class RunCacheSearch {
 
-	static final int MAX_TS_SIZE = 1000;
+	static final int MAX_TS_SIZE = 10000;
 
 	public static void main(String[] args) throws Exception {
 		String cacheNameSuffix = args[0];
@@ -53,7 +53,6 @@ public class RunCacheSearch {
 		}
 		if (argsList.contains("-inex")) {
 			queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath());
-			queries = queries.subList(0, 10);
 		} else {
 			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
 			Collections.shuffle(queries, new Random(1));
