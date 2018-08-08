@@ -18,7 +18,7 @@ import irstyle.CacheSelectionQL;
 import irstyle.IRStyleKeywordSearch;
 import irstyle.IRStyleQueryResult;
 import irstyle.Params;
-import irstyle.RunBaseline_Lucene;
+import irstyle.RunCacheSearch;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
 import irstyle.core.Schema;
@@ -105,16 +105,16 @@ public class RunCacheSearch_IndependentMethod {
 					Schema sch = new Schema(schemaDescription);
 					Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable,
 							linkTable, articleImageTable, articleLinkTable, jdbcacc.conn);
-					List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleIndexToUse, query.getText());
-					List<String> imageIds = RunBaseline_Lucene.executeLuceneQuery(imageIndexToUse, query.getText());
-					List<String> linkIds = RunBaseline_Lucene.executeLuceneQuery(linkIndexToUse, query.getText());
+					List<String> articleIds = RunCacheSearch.executeLuceneQuery(articleIndexToUse, query.getText());
+					List<String> imageIds = RunCacheSearch.executeLuceneQuery(imageIndexToUse, query.getText());
+					List<String> linkIds = RunCacheSearch.executeLuceneQuery(linkIndexToUse, query.getText());
 					System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
 							imageIds.size(), linkIds.size());
 					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 					relnamesValues.put(articleTable, articleIds);
 					relnamesValues.put(imageTable, imageIds);
 					relnamesValues.put(linkTable, linkIds);
-					IRStyleQueryResult result = RunBaseline_Lucene.executeIRStyleQuery(jdbcacc, sch, relations, query,
+					IRStyleQueryResult result = RunCacheSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
 							relnamesValues);
 					time += result.execTime;
 					queryResults.add(result);

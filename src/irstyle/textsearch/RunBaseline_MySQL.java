@@ -1,4 +1,4 @@
-package irstyle;
+package irstyle.textsearch;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
+import irstyle.IRStyleKeywordSearch;
+import irstyle.IRStyleQueryResult;
+import irstyle.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.MIndexAccess;
 import irstyle.core.Relation;

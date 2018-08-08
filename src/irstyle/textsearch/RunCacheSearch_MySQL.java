@@ -1,4 +1,4 @@
-package irstyle;
+package irstyle.textsearch;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -14,6 +14,10 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
+import irstyle.CacheSelectionQL;
+import irstyle.IRStyleKeywordSearch;
+import irstyle.IRStyleQueryResult;
+import irstyle.RunCacheSearch;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
 import irstyle.core.Schema;
@@ -84,14 +88,14 @@ public class RunCacheSearch_MySQL {
 				Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
 						articleImageTable, articleLinkTable, jdbcacc.conn);
 
-				List<String> articleIds = RunBaseline_Lucene.executeLuceneQuery(articleReader, query.getText());
-				List<String> imageIds = RunBaseline_Lucene.executeLuceneQuery(imageReader, query.getText());
-				List<String> linkIds = RunBaseline_Lucene.executeLuceneQuery(linkReader, query.getText());
+				List<String> articleIds = RunCacheSearch.executeLuceneQuery(articleReader, query.getText());
+				List<String> imageIds = RunCacheSearch.executeLuceneQuery(imageReader, query.getText());
+				List<String> linkIds = RunCacheSearch.executeLuceneQuery(linkReader, query.getText());
 				Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 				relnamesValues.put(articleTable, articleIds);
 				relnamesValues.put(imageTable, imageIds);
 				relnamesValues.put(linkTable, linkIds);
-				IRStyleQueryResult result = RunBaseline_Lucene.executeIRStyleQuery(jdbcacc, sch, relations, query,
+				IRStyleQueryResult result = RunCacheSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
 						relnamesValues);
 				queryResults.add(result);
 			}
