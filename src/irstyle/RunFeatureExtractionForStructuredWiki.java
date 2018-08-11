@@ -31,9 +31,9 @@ public class RunFeatureExtractionForStructuredWiki {
 
 	public static void main(String[] args) throws IOException {
 		// inputs
-		// index and biword index of cache
-		// index and biword index of rest
-		// index and biword index of all
+		// + index and biword index of cache
+		// + index and biword index of rest
+		// + index and biword index of all
 		// popularity indices
 		// query log
 		List<String> argList = Arrays.asList(args);
