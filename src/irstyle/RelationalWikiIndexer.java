@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
@@ -103,8 +104,12 @@ public class RelationalWikiIndexer {
 	}
 
 	static IndexWriterConfig getIndexWriterConfig() {
+		return getIndexWriterConfig(new StandardAnalyzer());
+	}
+
+	static IndexWriterConfig getIndexWriterConfig(Analyzer analyzer) {
 		IndexWriterConfig config;
-		config = new IndexWriterConfig(new StandardAnalyzer());
+		config = new IndexWriterConfig(analyzer);
 		config.setSimilarity(new BM25Similarity());
 		config.setRAMBufferSizeMB(1024);
 		return config;
