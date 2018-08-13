@@ -51,8 +51,8 @@ public class BuildPopIndexFast {
 		Option weightFieldOption = new Option("weight", true, "Weight field"); // WikiFileIndexer.Weight
 		weightFieldOption.setRequired(true);
 		options.addOption(weightFieldOption);
-		Option queriesOption = new Option("queryset", true, "query log");
-		options.addOption(queriesOption);
+		Option wikiOption = new Option("wiki", true, "generating index for wiki query tokens");
+		options.addOption(wikiOption);
 		Option biwordOption = new Option("bi", false, "Biword");
 		options.addOption(biwordOption);
 		Option parallelOption = new Option("parallel", false, "Parallelize the process");
@@ -67,18 +67,14 @@ public class BuildPopIndexFast {
 			if (cl.hasOption("parallel")) {
 				LOGGER.log(Level.INFO, "parallel..");
 				parallelBuildPopIndex(indexPath, field, weightFieldName);
-			} else if (cl.hasOption("queryset")) {
+			} else if (cl.hasOption("wiki")) {
 				LOGGER.log(Level.INFO, "querylog based filtering..");
-				String queryLog = cl.getOptionValue("queryset");
-				List<String> queries = new ArrayList<String>();
 				WikiFilesPaths paths = WikiFilesPaths.getMaplePaths();
-				if (queryLog.equals("msn")) {
-					queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath())
-							.stream().map(q -> q.getText()).collect(Collectors.toList());
-				} else if (queryLog.equals("inex")) {
-					queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath())
-							.stream().map(q -> q.getText()).collect(Collectors.toList());
-				}
+				List<String> queries = QueryServices
+						.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath()).stream()
+						.map(q -> q.getText()).collect(Collectors.toList());
+				queries.addAll(QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath())
+						.stream().map(q -> q.getText()).collect(Collectors.toList()));
 				Set<String> tokens = new HashSet<String>();
 				if (cl.hasOption("bi")) {
 					tokens = buildBiwordsOfQueries(queries);
@@ -138,7 +134,7 @@ public class BuildPopIndexFast {
 			Set<String> tokens) {
 		try (FSDirectory directory = FSDirectory.open(Paths.get(indexPath));
 				IndexReader reader = DirectoryReader.open(directory);
-				FileWriter fw = new FileWriter(indexPath + "_" + field + "_pop_fast_tokens" + ".csv")) {
+				FileWriter fw = new FileWriter(indexPath + "_" + field + "_pop_index" + ".csv")) {
 			Terms terms = MultiFields.getTerms(reader, field);
 			final TermsEnum it = terms.iterator();
 			int counter = 0;
