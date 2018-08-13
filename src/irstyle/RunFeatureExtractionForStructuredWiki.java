@@ -44,17 +44,16 @@ public class RunFeatureExtractionForStructuredWiki {
 		Path cacheIndexPath = Paths.get(baseDataDir + "lm_cache_mrr");
 		Path restIndexPath = Paths.get(baseDataDir + "lm_rest_mrr");
 		Path allIndexPath = Paths.get(baseDataDir + "lm_all_mrr");
-		Path biwordIndexPath = Paths.get("lm_cache_mrr_bi");
-		Path biwordRestIndexPath = Paths.get("lm_rest_mrr_bi");
-		Path globalBiwordIndexPath = Paths.get("lm_all_mrr_bi");
+		Path biwordIndexPath = Paths.get(baseDataDir + "lm_cache_mrr_bi");
+		Path biwordRestIndexPath = Paths.get(baseDataDir + "lm_rest_mrr_bi");
+		Path allBiwordIndexPath = Paths.get(baseDataDir + "lm_all_mrr_bi");
 
 		FeatureExtraction wqde = new FeatureExtraction(RelationalWikiIndexer.WEIGHT_FIELD);
 		LOGGER.log(Level.INFO, "loading popularity indices..");
-		//TODO
 		Map<String, TokenPopularity> termPopularity = TokenPopularity
-				.loadTokenPopularities(cacheIndexPath + "_title_pop_fast_tokens" + ".csv");
+				.loadTokenPopularities(allIndexPath + "_text_pop_index" + ".csv");
 		Map<String, TokenPopularity> biwordPopularity = TokenPopularity
-				.loadTokenPopularities(biwordIndexPath + "_title_pop_fast_tokens" + ".csv");
+				.loadTokenPopularities(allBiwordIndexPath + "_text_pop_index" + ".csv");
 		LOGGER.log(Level.INFO, "loading done!");
 		List<String> data = new ArrayList<String>();
 		String[] featureNames = { "query", "covered", "covered_rest", "mean_df", "mean_df_rest", "min_df",
@@ -68,7 +67,7 @@ public class RunFeatureExtractionForStructuredWiki {
 				IndexReader globalIndexReader = DirectoryReader.open(FSDirectory.open(allIndexPath));
 				IndexReader biwordIndexReader = DirectoryReader.open(FSDirectory.open(biwordIndexPath));
 				IndexReader biwordRestIndexReader = DirectoryReader.open(FSDirectory.open(biwordRestIndexPath));
-				IndexReader globalBiwordIndexReader = DirectoryReader.open(FSDirectory.open(globalBiwordIndexPath));
+				IndexReader globalBiwordIndexReader = DirectoryReader.open(FSDirectory.open(allBiwordIndexPath));
 				Analyzer biwordAnalyzer = new BiwordAnalyzer();
 				Analyzer analyzer = new StandardAnalyzer()) {
 			long start = System.currentTimeMillis();
