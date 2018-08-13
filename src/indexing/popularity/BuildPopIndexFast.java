@@ -51,7 +51,7 @@ public class BuildPopIndexFast {
 		Option weightFieldOption = new Option("weight", true, "Weight field"); // WikiFileIndexer.Weight
 		weightFieldOption.setRequired(true);
 		options.addOption(weightFieldOption);
-		Option wikiOption = new Option("wiki", true, "generating index for wiki query tokens");
+		Option wikiOption = new Option("wiki", false, "generating index for wiki query tokens");
 		options.addOption(wikiOption);
 		Option biwordOption = new Option("bi", false, "Biword");
 		options.addOption(biwordOption);
