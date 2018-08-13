@@ -18,7 +18,7 @@ import database.DatabaseConnection;
 import database.DatabaseType;
 import indexing.BiwordAnalyzer;
 
-public class BuildSecondaryIndex {
+public class BuildIndexForLM {
 	public static void main(String[] args) throws SQLException, IOException {
 		List<String> argsList = Arrays.asList(args);
 		// best inex p20 sizes with v2 1%, 8%, 1%
