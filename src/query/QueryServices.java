@@ -204,6 +204,10 @@ public class QueryServices {
 		return queryList;
 	}
 
+	public static List<ExperimentQuery> loadMsnQueriesAll() {
+		return loadMsnQueriesAll(defaultPaths.getMsnAllFilePath());
+	}
+
 	public static List<ExperimentQuery> loadMsnQueriesAll(String path) {
 		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
 		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
