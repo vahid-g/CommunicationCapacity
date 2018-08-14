@@ -210,17 +210,19 @@ public class QueryServices {
 
 	public static List<ExperimentQuery> loadMsnQueriesAll(String path) {
 		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
+		int lineCounter = 0;
 		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
 			String line;
 			br.readLine(); // to skip the headers
 			while ((line = br.readLine()) != null) {
+				lineCounter++;
 				String[] fields = line.split("\t");
 				if (fields.length < 6) {
-					LOGGER.log(Level.WARNING, "Skipping query that doesn't have enough fields at line: {0}", line);
+					LOGGER.log(Level.WARNING, "Skipping query that doesn't have enough fields at line: " + line);
 					continue;
 				}
 				if (fields[5].equals("NULL")) {
-					LOGGER.log(Level.WARNING, "Skipping query that doesn't have a relevant answer in the dataset!");
+					LOGGER.log(Level.WARNING, "Skipping query that doesn't have a qrel at line: " + line);
 					continue;
 				}
 				Integer qid = Integer.parseInt(fields[0]);
@@ -232,11 +234,10 @@ public class QueryServices {
 				ExperimentQuery iq = new ExperimentQuery(qid, text, freq, qrelSet);
 				queryList.add(iq);
 			}
-		} catch (
-
-		IOException e) {
+		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
+		LOGGER.log(Level.INFO, "Loaded queries: " + queryList.size() + "/" + lineCounter);
 		return queryList;
 	}
 
