@@ -222,7 +222,7 @@ public class QueryServices {
 					continue;
 				}
 				if (fields[5].equals("NULL")) {
-					LOGGER.log(Level.WARNING, "Skipping query that doesn't have a qrel at line: " + line);
+					// LOGGER.log(Level.WARNING, "Skipping query that doesn't have a qrel at line: " + line);
 					continue;
 				}
 				Integer qid = Integer.parseInt(fields[0]);
