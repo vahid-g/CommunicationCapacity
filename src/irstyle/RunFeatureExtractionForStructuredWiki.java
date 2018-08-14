@@ -36,7 +36,7 @@ public class RunFeatureExtractionForStructuredWiki {
 		if (argList.contains("-inex")) {
 			queries = QueryServices.loadInexQueries();
 		} else {
-			queries = QueryServices.loadMsnQueries();
+			queries = QueryServices.loadMsnQueriesAll();
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 150);
 		}
@@ -61,7 +61,7 @@ public class RunFeatureExtractionForStructuredWiki {
 				.loadTokenPopularities(biwordRestIndexPath + "_text_pop_index" + ".csv");
 		LOGGER.log(Level.INFO, "loading done!");
 		List<String> data = new ArrayList<String>();
-		String[] featureNames = { "query", "covered", "covered_rest", "mean_df", "mean_df_rest", "min_df",
+		String[] featureNames = { "query", "freq", "covered", "covered_rest", "mean_df", "mean_df_rest", "min_df",
 				"min_df_rest", "mean_mean_pop", "mean_min_pop", "min_mean_pop", "min_min_pop", "mean_mean_pop_rest",
 				"mean_min_pop_rest", "min_mean_pop_rest", "min_min_pop_rest", "ql", "ql_rest", "qll", "qll_rest",
 				"covered_bi", "covered_bi_rest", "mean_df_bi", "mean_df_bi_rest", "min_df_bi", "min_df_bi_rest",
@@ -131,7 +131,7 @@ public class RunFeatureExtractionForStructuredWiki {
 						globalBiwordIndexReader, biwordAnalyzer));
 				f.add(wqde.queryLogLikelihood(biwordRestIndexReader, queryText, RelationalWikiIndexer.TEXT_FIELD,
 						globalBiwordIndexReader, biwordAnalyzer));
-				data.add(queryText + "," + f.stream().map(ft -> ft + ",").collect(Collectors.joining()));
+				data.add(queryText + "," + query.getFreq() + "," + f.stream().map(ft -> ft + ",").collect(Collectors.joining()));
 			}
 			long end = System.currentTimeMillis();
 			double time = end - start;
