@@ -29,9 +29,6 @@ public class RunFeatureExtractionForStructuredWiki {
 	public static final Logger LOGGER = Logger.getLogger(RunFeatureExtractionForStructuredWiki.class.getName());
 
 	public static void main(String[] args) throws IOException {
-		// inputs
-		// popularity indices
-		// query log
 		List<String> argList = Arrays.asList(args);
 		List<ExperimentQuery> queries;
 		if (argList.contains("-inex")) {
