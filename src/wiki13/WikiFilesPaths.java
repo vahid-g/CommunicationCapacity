@@ -70,10 +70,10 @@ public class WikiFilesPaths {
 	private final String indexBase;
 	private final String accessCountsPath;
 	private final String accessCounts09Path;
-	private final String inexQueryFilePath = "/data/khodadaa/analysis/2013-adhoc.xml"; //"/nfs/stak/users/ghadakcv/workspace/queries/2013-adhoc.xml";
-	private final String inexQrelFilePath = "/data/khodadaa/analysis/2013-adhoc.qrels";//"/nfs/stak/users/ghadakcv/workspace/queries/2013-adhoc.qrels";
-	private final String msnQueryFilePath = "/data/khodadaa/lucene-index/msn_query_qid.csv";//"/nfs/stak/users/ghadakcv/workspace/queries/msn_query_qid.csv";
-	private final String msnQrelFilePath = "/data/khodadaa/lucene-index/msn.qrels";//"/nfs/stak/users/ghadakcv/workspace/queries/msn.qrels";
+	private final String inexQueryFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/2013-adhoc.xml";
+	private final String inexQrelFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/2013-adhoc.qrels";
+	private final String msnQueryFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/msn_query_qid.csv";
+	private final String msnQrelFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/msn.qrels";
 	private final String biwordIndexBase;
 
 	private WikiFilesPaths(String dataFolder, String indexBase, String accessCountsPath, String accessCounts09Path,
