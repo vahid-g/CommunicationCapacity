@@ -12,21 +12,22 @@ from stack_anal import analyze
 
 def main(argv):
     filename = argv[0]
-    df = pd.read_csv('../../data/cache_selection/' + filename)
+    df = pd.read_csv('../../data/cache_selection_strcutured/' + filename)
     t = float(argv[1])
     df = df.fillna(0)
+    df['label'] = np.where(df['full'] > df['cache'], 1, 0)
     labels = df['label']
     size = 0.33
     X, X_test, y, y_test = train_test_split(df.drop(['label'], axis=1), labels, stratify=labels,
                                             test_size=size, random_state=1)
-    X = X.drop(['query', 'TrainFreq', 'TestFreq', '2', '100'], axis=1)
+    X = X.drop(['query', 'freq', '2', '100'], axis=1)
     test_queries = X_test['query']
-    subset_mrr = X_test['2']
-    db_mrr = X_test['100']
-    test_freq = X_test['TestFreq']
-    X_test = X_test.drop(['TrainFreq', 'TestFreq', 'query', '2', '100'], axis=1)
+    subset_mrr = X_test['cache']
+    db_mrr = X_test['full']
+    test_freq = X_test['freq']
+    X_test = X_test.drop(['freq', 'query', 'cache', 'full'], axis=1)
     ql = subset_mrr.copy()
-    ql_pred = X_test['ql_c'] < X_test['ql_c.1']
+    ql_pred = X_test['ql'] < X_test['ql_rest']
     ql.loc[ql_pred == 1] = db_mrr[ql_pred == 1]
     #print(df.corr()['label'].sort_values())
     print("train set size and ones: %d, %d" % (y.shape[0], np.sum(y)))
@@ -57,11 +58,11 @@ def main(argv):
     output['100'] = db_mrr
     output['Label'] = y_test
     output['ql'] = ql
-    output['ql_label'] = ql
+    #output['ql_label'] = ql
     ml = subset_mrr.copy()
     ml.loc[y_pred == 1] = db_mrr[y_pred == 1]
     output['ml'] = ml
-    output['Pred'] = pd.Series(y_pred, index=output.index)
+    #output['Pred'] = pd.Series(y_pred, index=output.index)
     best = subset_mrr.copy()
     print(best.mean())
     best[y_test == 1] = db_mrr[y_test == 1]

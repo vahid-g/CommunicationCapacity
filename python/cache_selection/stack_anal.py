@@ -15,7 +15,7 @@ def analyze(c, subset, db, popularity):
         c[popularity] = 1
     #c[popularity] = 1
     s = c[popularity].sum()
-    db_queries = (c['Pred'] * c[popularity]).sum()
+    #db_queries = (c['Pred'] * c[popularity]).sum()
     r1 = c[subset] * c[popularity]
     r2 = c[db] * c[popularity]
     r3 = c['ql'] * c[popularity]
