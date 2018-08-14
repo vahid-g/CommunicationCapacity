@@ -212,6 +212,7 @@ public class QueryServices {
 		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
 		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
 			String line;
+			br.readLine(); // to skip the headers
 			while ((line = br.readLine()) != null) {
 				String[] fields = line.split("\t");
 				if (fields.length < 6) {
