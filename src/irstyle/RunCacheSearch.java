@@ -56,7 +56,7 @@ public class RunCacheSearch {
 		if (argsList.contains("-inex")) {
 			queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath());
 		} else {
-			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
+			queries = QueryServices.loadMsnQueriesAll();
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 150);
 		}
