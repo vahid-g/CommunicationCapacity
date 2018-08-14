@@ -47,17 +47,23 @@ public class RunFeatureExtractionForStructuredWiki {
 
 		FeatureExtraction wqde = new FeatureExtraction(RelationalWikiIndexer.WEIGHT_FIELD);
 		LOGGER.log(Level.INFO, "loading popularity indices..");
-		Map<String, TokenPopularity> termPopularity = TokenPopularity
-				.loadTokenPopularities(allIndexPath + "_text_pop_index" + ".csv");
-		Map<String, TokenPopularity> biwordPopularity = TokenPopularity
-				.loadTokenPopularities(allBiwordIndexPath + "_text_pop_index" + ".csv");
+		Map<String, TokenPopularity> cacheTermPopularity = TokenPopularity
+				.loadTokenPopularities(cacheIndexPath + "_text_pop_index" + ".csv");
+		Map<String, TokenPopularity> restTermPopularity = TokenPopularity
+				.loadTokenPopularities(restIndexPath + "_text_pop_index" + ".csv");
+		Map<String, TokenPopularity> biwordCachePopularity = TokenPopularity
+				.loadTokenPopularities(biwordIndexPath + "_text_pop_index" + ".csv");
+		Map<String, TokenPopularity> biwordRestPopularity = TokenPopularity
+				.loadTokenPopularities(biwordRestIndexPath + "_text_pop_index" + ".csv");
 		LOGGER.log(Level.INFO, "loading done!");
 		List<String> data = new ArrayList<String>();
 		String[] featureNames = { "query", "covered", "covered_rest", "mean_df", "mean_df_rest", "min_df",
-				"min_df_rest", "mean_mean_pop", "mean_min_pop", "min_mean_pop", "min_min_pop", "ql", "ql_rest", "qll",
-				"qll_rest", "covered_bi", "covered_bi_rest", "mean_df_bi", "mean_df_bi_rest", "min_df_bi",
-				"min_df_bi_rest", "mean_mean_pop_bi", "mean_min_pop_bi", "min_mean_pop_bi", "min_min_pop_bi", "ql_bi",
-				"ql_bi_rest", "qll_bi", "qll_bi_rest" };
+				"min_df_rest", "mean_mean_pop", "mean_min_pop", "min_mean_pop", "min_min_pop", "mean_mean_pop_rest",
+				"mean_min_pop_rest", "min_mean_pop_rest", "min_min_pop_rest", "ql", "ql_rest", "qll", "qll_rest",
+				"covered_bi", "covered_bi_rest", "mean_df_bi", "mean_df_bi_rest", "min_df_bi", "min_df_bi_rest",
+				"mean_mean_pop_bi", "mean_min_pop_bi", "min_mean_pop_bi", "min_min_pop_bi", "mean_mean_pop_bi_rest",
+				"mean_min_pop_bi_rest", "min_mean_pop_bi_rest", "min_min_pop_bi_rest", "ql_bi", "ql_bi_rest", "qll_bi",
+				"qll_bi_rest" };
 		data.add(Arrays.asList(featureNames).stream().map(ft -> ft + ",").collect(Collectors.joining()));
 		try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(cacheIndexPath));
 				IndexReader restIndexReader = DirectoryReader.open(FSDirectory.open(restIndexPath));
@@ -81,7 +87,10 @@ public class RunFeatureExtractionForStructuredWiki {
 						analyzer));
 				f.add(wqde.minNormalizedTokenDocumentFrequency(restIndexReader, queryText,
 						RelationalWikiIndexer.TEXT_FIELD, analyzer));
-				List<Double> averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(termPopularity, queryText,
+				List<Double> averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(cacheTermPopularity,
+						queryText, RelationalWikiIndexer.TEXT_FIELD, analyzer);
+				f.addAll(averageTokenDocPopularity);
+				averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(restTermPopularity, queryText,
 						RelationalWikiIndexer.TEXT_FIELD, analyzer);
 				f.addAll(averageTokenDocPopularity);
 				f.add(wqde.queryLikelihood(indexReader, queryText, RelationalWikiIndexer.TEXT_FIELD, globalIndexReader,
@@ -104,7 +113,10 @@ public class RunFeatureExtractionForStructuredWiki {
 						RelationalWikiIndexer.TEXT_FIELD, biwordAnalyzer));
 				f.add(wqde.minNormalizedTokenDocumentFrequency(biwordRestIndexReader, queryText,
 						RelationalWikiIndexer.TEXT_FIELD, biwordAnalyzer));
-				averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(biwordPopularity, queryText,
+				averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(biwordCachePopularity, queryText,
+						RelationalWikiIndexer.TEXT_FIELD, biwordAnalyzer);
+				f.addAll(averageTokenDocPopularity);
+				averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(biwordRestPopularity, queryText,
 						RelationalWikiIndexer.TEXT_FIELD, biwordAnalyzer);
 				f.addAll(averageTokenDocPopularity);
 				f.add(wqde.queryLikelihood(biwordIndexReader, queryText, RelationalWikiIndexer.TEXT_FIELD,
