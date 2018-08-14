@@ -62,6 +62,10 @@ public class WikiFilesPaths {
 		return msnQrelFilePath;
 	}
 
+	public String getMsnAllFilePath() {
+		return msnAllFilePath;
+	}
+
 	public String getBiwordIndexBase() {
 		return biwordIndexBase;
 	}
@@ -74,6 +78,7 @@ public class WikiFilesPaths {
 	private final String inexQrelFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/2013-adhoc.qrels";
 	private final String msnQueryFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/msn_query_qid.csv";
 	private final String msnQrelFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/msn.qrels";
+	private final String msnAllFilePath = "/nfs/stak/users/ghadakcv/workspace/queries/msn_all.csv";
 	private final String biwordIndexBase;
 
 	private WikiFilesPaths(String dataFolder, String indexBase, String accessCountsPath, String accessCounts09Path,
