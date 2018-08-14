@@ -58,7 +58,6 @@ public class RunCacheSearch {
 		} else {
 			queries = QueryServices.loadMsnQueriesAll();
 			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 150);
 		}
 		boolean justUseCache = false;
 		boolean useQueryLikelihood = false;
