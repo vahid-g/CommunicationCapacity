@@ -204,6 +204,37 @@ public class QueryServices {
 		return queryList;
 	}
 
+	public static List<ExperimentQuery> loadMsnQueriesAll(String path) {
+		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
+		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+			String line;
+			while ((line = br.readLine()) != null) {
+				String[] fields = line.split("\t");
+				if (fields.length < 6) {
+					LOGGER.log(Level.WARNING, "Skipping query that doesn't have enough fields at line: {0}", line);
+					continue;
+				}
+				if (fields[5].equals("NULL")) {
+					LOGGER.log(Level.WARNING, "Skipping query that doesn't have a relevant answer in the dataset!");
+					continue;
+				}
+				Integer qid = Integer.parseInt(fields[0]);
+				String text = fields[1];
+				int freq = Integer.parseInt(fields[2]);
+				Qrel qrel = new Qrel(qid, fields[3], 1);
+				Set<Qrel> qrelSet = new HashSet<Qrel>();
+				qrelSet.add(qrel);
+				ExperimentQuery iq = new ExperimentQuery(qid, text, freq, qrelSet);
+				queryList.add(iq);
+			}
+		} catch (
+
+		IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		return queryList;
+	}
+
 	public static List<ExperimentQuery> loadMsnQueriesWithFreqs(String queryPath, String qrelPath) {
 		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
 		try (FileInputStream fis = new FileInputStream(qrelPath);
