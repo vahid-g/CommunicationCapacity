@@ -35,12 +35,14 @@ import wiki13.WikiFilesPaths;
 
 public class RunCacheSearch {
 
-	static final int MAX_TS_SIZE = 10000;
+	static final int MAX_TS_SIZE = 1000;
 
 	public static void main(String[] args) throws Exception {
 		String cacheNameSuffix = args[0];
 		if (cacheNameSuffix.equals("rec")) {
 			Params.N = 100;
+		} else if (cacheNameSuffix.equals("mrr")) {
+			Params.N = 5;
 		}
 		List<String> argsList = Arrays.asList(args);
 		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
@@ -56,7 +58,7 @@ public class RunCacheSearch {
 		} else {
 			queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(), paths.getMsnQrelFilePath());
 			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 50);
+			queries = queries.subList(0, 150);
 		}
 		boolean justUseCache = false;
 		boolean useQueryLikelihood = false;
