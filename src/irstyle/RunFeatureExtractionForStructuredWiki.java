@@ -6,8 +6,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -35,6 +37,8 @@ public class RunFeatureExtractionForStructuredWiki {
 			queries = QueryServices.loadInexQueries();
 		} else {
 			queries = QueryServices.loadMsnQueries();
+			Collections.shuffle(queries, new Random(1));
+			queries = queries.subList(0, 150);
 		}
 
 		String baseDataDir = "/data/ghadakcv/wikipedia/";
