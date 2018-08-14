@@ -92,7 +92,7 @@ public class RunFeatureExtractionForWiki {
 					"qll_c", "covered_t_bi", "covered_c_bi", "mean_df_t_bi", "mean_df_c_bi", "min_df_t_bi",
 					"min_df_c_bi", "mean_mean_pop_t_bi", "mean_min_pop_t_bi", "min_mean_pop_t_bi", "min_min_pop_t_bi",
 					"mean_mean_pop_c_bi", "mean_min_pop_c_bi", "min_mean_pop_c_bi", "min_min_pop_c_bi", "ql_t_bi",
-					"ql_c_bi", "qll_t_bi", "qll_c_bi", "scs_t", "scs_c", "maxSCQ_t", "maxSCQ_c", "maxVAR_t", "maxVAR_c"};
+					"ql_c_bi", "qll_t_bi", "qll_c_bi", "scs_t", "scs_c", "maxSCQ_t", "maxSCQ_c"};
 			data.add(Arrays.asList(featureNames).stream().map(ft -> ft + ",").collect(Collectors.joining()));
 			try (IndexReader indexReader = DirectoryReader.open(FSDirectory.open(indexPath));
 					IndexReader globalIndexReader = DirectoryReader.open(FSDirectory.open(globalIndexPath));
@@ -158,8 +158,6 @@ public class RunFeatureExtractionForWiki {
 					f.add(wqde.specificity(indexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB, analyzer));
 					f.add(wqde.similarity(indexReader, queryText, WikiFileIndexer.TITLE_ATTRIB, analyzer));
 					f.add(wqde.similarity(indexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB, analyzer));
-					f.add(wqde.maxVar(indexReader, queryText, WikiFileIndexer.TITLE_ATTRIB, analyzer));
-					f.add(wqde.maxVar(indexReader, queryText, WikiFileIndexer.CONTENT_ATTRIB, analyzer));
 					data.add(queryText + "," + f.stream().map(ft -> ft + ",").collect(Collectors.joining()));
 				}
 				long end = System.currentTimeMillis();
