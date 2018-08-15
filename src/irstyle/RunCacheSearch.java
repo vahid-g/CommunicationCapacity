@@ -31,35 +31,31 @@ import irstyle.core.Result;
 import irstyle.core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
-import wiki13.WikiFilesPaths;
 
 public class RunCacheSearch {
 
 	static final int MAX_TS_SIZE = 1000;
 
 	public static void main(String[] args) throws Exception {
-		String cacheNameSuffix = args[0];
-		if (cacheNameSuffix.equals("rec")) {
-			Params.N = 100;
-		} else if (cacheNameSuffix.equals("mrr")) {
-			Params.N = 5;
-		} else if (cacheNameSuffix.equals("p20")) {
-			Params.N = 20;
-		}
 		List<String> argsList = Arrays.asList(args);
-		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
-		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
-		WikiFilesPaths paths = null;
-		paths = WikiFilesPaths.getMaplePaths();
-		List<ExperimentQuery> queries = null;
-		if (argsList.contains("-debug")) {
-			Params.DEBUG = true;
-		}
-		if (argsList.contains("-inex")) {
-			queries = QueryServices.loadInexQueries(paths.getInexQueryFilePath(), paths.getInexQrelFilePath());
+		String cacheNameSuffix;
+		List<ExperimentQuery> queries;
+		if (argsList.contains("-inexp")) {
+			Params.N = 20;
+			cacheNameSuffix = "p20";
+			queries = QueryServices.loadInexQueries();
+		} else if (argsList.contains("-inexr")) {
+			Params.N = 100;
+			cacheNameSuffix = "rec";
+			queries = QueryServices.loadInexQueries();
 		} else {
+			Params.N = 5;
+			cacheNameSuffix = "mrr";
 			queries = QueryServices.loadMsnQueriesAll();
 			Collections.shuffle(queries, new Random(1));
+		}
+		if (argsList.contains("-debug")) {
+			Params.DEBUG = true;
 		}
 		boolean justUseCache = false;
 		boolean useQueryLikelihood = false;
@@ -68,7 +64,8 @@ public class RunCacheSearch {
 		} else if (argsList.contains("-ql")) {
 			useQueryLikelihood = true;
 		}
-
+		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
+		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		try (IndexReader articleReader = DirectoryReader
 				.open(FSDirectory.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100")));
