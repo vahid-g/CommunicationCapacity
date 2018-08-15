@@ -38,9 +38,7 @@ public class RunFeatureExtractionForStructuredWiki {
 		} else {
 			queries = QueryServices.loadMsnQueriesAll();
 			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 150);
 		}
-
 		String baseDataDir = "/data/ghadakcv/wikipedia/";
 		Path cacheIndexPath = Paths.get(baseDataDir + "lm_cache_mrr");
 		Path restIndexPath = Paths.get(baseDataDir + "lm_rest_mrr");
@@ -131,7 +129,8 @@ public class RunFeatureExtractionForStructuredWiki {
 						globalBiwordIndexReader, biwordAnalyzer));
 				f.add(wqde.queryLogLikelihood(biwordRestIndexReader, queryText, RelationalWikiIndexer.TEXT_FIELD,
 						globalBiwordIndexReader, biwordAnalyzer));
-				data.add(queryText + "," + query.getFreq() + "," + f.stream().map(ft -> ft + ",").collect(Collectors.joining()));
+				data.add(queryText + "," + query.getFreq() + ","
+						+ f.stream().map(ft -> ft + ",").collect(Collectors.joining()));
 			}
 			long end = System.currentTimeMillis();
 			double time = end - start;
