@@ -219,10 +219,11 @@ public class MIndexAccess {
 			if (hasTextAttr((Relation) relations.elementAt(i))) {
 				Relation rel = (Relation) relations.elementAt(i);
 				String tuplesetName = "TS_" + rel.getName();
-				String createTable = "CREATE TABLE  " + tuplesetName + "(id int, score float);";
-//				if (relnameValues.get(rel.name).size() <= 1000) {
-//				String createTable = "CREATE TABLE  " + tuplesetName + "(id int, score float) ENGINE=MEMORY;";
-//				}
+				// String createTable = "CREATE TABLE " + tuplesetName + "(id int, score
+				// float);";
+				// if (relnameValues.get(rel.name).size() <= 1000) {
+				String createTable = "CREATE TABLE  " + tuplesetName + "(id int, score float) ENGINE=MEMORY;";
+				// }
 				jdbcacc.execute(createTable);
 				List<String> values = relnameValues.get(rel.name);
 				String insertIntoTemplate = "INSERT INTO " + tuplesetName + "(id, score) VALUES (?,?);";

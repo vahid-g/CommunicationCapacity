@@ -139,6 +139,7 @@ public class RunCacheSearch {
 							relnamesValues);
 					tuplesetTime += result.tuplesetTime;
 					time += luceneTime + result.execTime;
+					System.out.println("rrank=" + result.rrank());
 					queryResults.add(result);
 				}
 			}
