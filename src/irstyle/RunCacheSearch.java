@@ -43,6 +43,8 @@ public class RunCacheSearch {
 			Params.N = 100;
 		} else if (cacheNameSuffix.equals("mrr")) {
 			Params.N = 5;
+		} else if (cacheNameSuffix.equals("p20")) {
+			Params.N = 20;
 		}
 		List<String> argsList = Arrays.asList(args);
 		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
