@@ -33,19 +33,32 @@ public class RunFeatureExtractionForStructuredWiki {
 	public static void main(String[] args) throws IOException {
 		List<String> argList = Arrays.asList(args);
 		List<ExperimentQuery> queries;
-		if (argList.contains("-inex")) {
+		String baseDataDir = "/data/ghadakcv/wikipedia/";
+		Path cacheIndexPath;
+		Path restIndexPath;
+		Path allIndexPath;
+		Path biwordIndexPath;
+		Path biwordRestIndexPath;
+		Path allBiwordIndexPath;
+
+		if (argList.contains("-inexp")) {
 			queries = QueryServices.loadInexQueries();
+			cacheIndexPath = Paths.get(baseDataDir + "lm_cache_p20");
+			restIndexPath = Paths.get(baseDataDir + "lm_rest_p20");
+			allIndexPath = Paths.get(baseDataDir + "lm_all_p20");
+			biwordIndexPath = Paths.get(baseDataDir + "lm_cache_p20_bi");
+			biwordRestIndexPath = Paths.get(baseDataDir + "lm_rest_p20_bi");
+			allBiwordIndexPath = Paths.get(baseDataDir + "lm_all_p20_bi");
 		} else {
 			queries = QueryServices.loadMsnQueriesAll();
 			Collections.shuffle(queries, new Random(1));
+			cacheIndexPath = Paths.get(baseDataDir + "lm_cache_mrr");
+			restIndexPath = Paths.get(baseDataDir + "lm_rest_mrr");
+			allIndexPath = Paths.get(baseDataDir + "lm_all_mrr");
+			biwordIndexPath = Paths.get(baseDataDir + "lm_cache_mrr_bi");
+			biwordRestIndexPath = Paths.get(baseDataDir + "lm_rest_mrr_bi");
+			allBiwordIndexPath = Paths.get(baseDataDir + "lm_all_mrr_bi");
 		}
-		String baseDataDir = "/data/ghadakcv/wikipedia/";
-		Path cacheIndexPath = Paths.get(baseDataDir + "lm_cache_mrr");
-		Path restIndexPath = Paths.get(baseDataDir + "lm_rest_mrr");
-		Path allIndexPath = Paths.get(baseDataDir + "lm_all_mrr");
-		Path biwordIndexPath = Paths.get(baseDataDir + "lm_cache_mrr_bi");
-		Path biwordRestIndexPath = Paths.get(baseDataDir + "lm_rest_mrr_bi");
-		Path allBiwordIndexPath = Paths.get(baseDataDir + "lm_all_mrr_bi");
 
 		FeatureExtraction wqde = new FeatureExtraction(RelationalWikiIndexer.WEIGHT_FIELD);
 		LOGGER.log(Level.INFO, "loading popularity indices..");
