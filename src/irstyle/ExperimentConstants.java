@@ -17,4 +17,6 @@ public class ExperimentConstants {
 
 	static int[] size = { 11945034, 1183070, 9766351 };
 
+	static String baseDataDir = "/data/ghadakcv/wikipedia/";
+
 }
