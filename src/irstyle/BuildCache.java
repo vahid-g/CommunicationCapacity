@@ -17,33 +17,28 @@ import database.DatabaseType;
 public class BuildCache {
 	public static void main(String[] args) throws SQLException, IOException {
 		List<String> argsList = Arrays.asList(args);
-		// best inex p20 sizes with v2 1%, 8%, 1%
-		int[] precisionLimit = { 119450, 94640, 97663 };
-		// best inex recall sizes wth v2 3%, 16%, 55
-		int[] recallLimit = { 400000, 200000, 500000 };
-		// best msn mrr sizes obtained with v2
-		int[] mrrLimit = { 238900, 106470, 195326 };
 		String suffix;
 		int[] limit;
 		if (argsList.contains("-inexp")) {
-			limit = precisionLimit;
+			limit = ExperimentConstants.precisionLimit;
 			suffix = "p20";
 		} else if (argsList.contains("-inexr")) {
-			limit = recallLimit;
+			limit = ExperimentConstants.recallLimit;
 			suffix = "rec";
 		} else {
-			limit = mrrLimit;
+			limit = ExperimentConstants.mrrLimit;
 			suffix = "mrr";
 		}
-		String[] tableName = { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
-		String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
+
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			// building the cache
-			for (int i = 0; i < tableName.length; i++) {
-				System.out.println("Indexing table " + tableName[i]);
-				String cacheName = "sub_" + tableName[i].substring(4) + "_" + suffix;
-				buildCacheTable(dc, tableName[i], textAttribs[i], cacheName, limit[i]);
-				buildCacheIndex(dc, tableName[i], textAttribs[i], cacheName, limit[i]);
+			for (int i = 0; i < ExperimentConstants.tableName.length; i++) {
+				System.out.println("Indexing table " + ExperimentConstants.tableName[i]);
+				String cacheName = "sub_" + ExperimentConstants.tableName[i].substring(4) + "_" + suffix;
+				buildCacheTable(dc, ExperimentConstants.tableName[i], ExperimentConstants.textAttribs[i], cacheName,
+						limit[i]);
+				buildCacheIndex(dc, ExperimentConstants.tableName[i], ExperimentConstants.textAttribs[i], cacheName,
+						limit[i]);
 			}
 			System.out.println("finished building cache");
 		}

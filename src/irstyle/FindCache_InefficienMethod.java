@@ -54,9 +54,9 @@ public class FindCache_InefficienMethod {
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 10);
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			String[] tableNames = new String[] { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
+			String[] tableNames = ExperimentConstants.tableName;
 			String[] shortTableNames = new String[] { "a", "i", "l" };
-			String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
+			String[][] textAttribs = ExperimentConstants.textAttribs;
 			Connection conn = dc.getConnection();
 			conn.setAutoCommit(false);
 			String[] cacheTableNames = new String[tableNames.length];
@@ -212,8 +212,7 @@ public class FindCache_InefficienMethod {
 								+ "," + linkReader.numDocs());
 						for (ExperimentQuery query : queries) {
 							Schema sch = new Schema(schemaDescription);
-							List<String> articleIds = RunCacheSearch.executeLuceneQuery(articleReader,
-									query.getText());
+							List<String> articleIds = RunCacheSearch.executeLuceneQuery(articleReader, query.getText());
 							List<String> imageIds = RunCacheSearch.executeLuceneQuery(imageReader, query.getText());
 							List<String> linkIds = RunCacheSearch.executeLuceneQuery(linkReader, query.getText());
 							Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();

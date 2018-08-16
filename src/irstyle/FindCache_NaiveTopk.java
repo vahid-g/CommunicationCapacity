@@ -52,8 +52,7 @@ public class FindCache_NaiveTopk {
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 10);
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			String[] tableNames = new String[] { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
-			String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
+			String[] tableNames = ExperimentConstants.tableName;
 			Connection conn = dc.getConnection();
 			String[] cacheTables = new String[tableNames.length];
 			String[] selectTemplates = new String[tableNames.length];
@@ -121,7 +120,7 @@ public class FindCache_NaiveTopk {
 				while (rs.next()) {
 					int id = rs.getInt("id");
 					String text = "";
-					for (String attrib : textAttribs[i]) {
+					for (String attrib : ExperimentConstants.textAttribs[i]) {
 						text += rs.getString(attrib);
 					}
 					Document doc = new Document();
@@ -208,7 +207,7 @@ public class FindCache_NaiveTopk {
 				while (rs.next()) {
 					int id = rs.getInt("id");
 					String text = "";
-					for (String attrib : textAttribs[m]) {
+					for (String attrib : ExperimentConstants.textAttribs[m]) {
 						text += rs.getString(attrib);
 					}
 					Document doc = new Document();

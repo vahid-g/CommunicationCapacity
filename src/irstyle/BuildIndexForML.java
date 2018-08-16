@@ -22,23 +22,16 @@ public class BuildIndexForML {
 	public static void main(String[] args) throws SQLException, IOException {
 		int tableNo = Integer.parseInt(args[0]); // this parameter is to select the table
 		List<String> argsList = Arrays.asList(args);
-		// best inex p20 sizes with v2 1%, 8%, 1%
-		int[] precisionLimit = { 119450, 94640, 97663 };
-		// best inex recall sizes wth v2 3%, 16%, 55
-		int[] recallLimit = { 400000, 200000, 500000 };
-		// best msn mrr sizes obtained with v2
-		int[] mrrLimit = { 238900, 106470, 195326 };
-		int[] size = { 11945034, 1183070, 9766351 };
 		String suffix;
 		int[] limit;
 		if (argsList.contains("-inexp")) {
-			limit = precisionLimit;
+			limit = ExperimentConstants.precisionLimit;
 			suffix = "p20";
 		} else if (argsList.contains("-inexr")) {
-			limit = recallLimit;
+			limit = ExperimentConstants.recallLimit;
 			suffix = "rec";
 		} else {
-			limit = mrrLimit;
+			limit = ExperimentConstants.mrrLimit;
 			suffix = "mrr";
 		}
 		Analyzer analyzer = null;
@@ -66,7 +59,7 @@ public class BuildIndexForML {
 					.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_" + suffix));
 			try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
 				RelationalWikiIndexer.indexTableAttribs(dc, indexWriter, table, textAttribs[tableNo],
-						size[tableNo] - limit[tableNo], "popularity", true);
+						ExperimentConstants.size[tableNo] - limit[tableNo], "popularity", true);
 			}
 		}
 		analyzer.close();
