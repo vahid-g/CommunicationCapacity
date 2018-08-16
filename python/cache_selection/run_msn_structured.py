@@ -13,20 +13,19 @@ from stack_anal import analyze
 def main(argv):
     filename = argv[0]
     df = pd.read_csv('../../data/cache_selection_structured/' + filename)
-    prtin('df size: %d' % df.shape)
+    print('df size: ' + str(df.shape))
     t = float(argv[1])
     df = df.fillna(0)
     labels = np.where(df['full'] > df['cache'], 1, 0)
     print("onez ratio: %.2f" % (100 * np.sum(labels) / labels.shape[0]))
     size = 0.33
-    X, X_test, y, y_test = train_test_split(df.drop(['label'], axis=1), labels, stratify=labels,
+    X, X_test, y, y_test = train_test_split(df, labels, stratify=labels,
                                             test_size=size, random_state=1)
     X = X.drop(['query', 'freq', 'cache', 'full'], axis=1)
-    prtin('df size after drops: %d' % df.shape)
     test_queries = X_test['query']
+    test_freq = X_test['freq']
     subset_mrr = X_test['cache']
     db_mrr = X_test['full']
-    test_freq = X_test['freq']
     X_test = X_test.drop(['query', 'freq', 'cache', 'full'], axis=1)
     ql = subset_mrr.copy()
     ql_pred = X_test['ql'] < X_test['ql_rest']
@@ -56,8 +55,8 @@ def main(argv):
     output = pd.DataFrame()
     output['Query'] = test_queries
     output['TestFreq'] = test_freq
-    output['2'] = subset_mrr
-    output['100'] = db_mrr
+    output['cache'] = subset_mrr
+    output['full'] = db_mrr
     output['Label'] = y_test
     output['ql'] = ql
     #output['ql_label'] = ql
@@ -70,12 +69,13 @@ def main(argv):
     best[y_test == 1] = db_mrr[y_test == 1]
     print(best.mean())
     output['best'] = best
-    r = np.random.randint(0, 2, output['2'].size)
-    output['rand'] = output['2'].copy()
-    output['rand'][r == 1] = output['100'][r == 1].copy()
-    analyze(output, '2', '100','TestFreq')
+    r = np.random.randint(0, 2, output['cache'].size)
+    output['rand'] = np.where(r == 1, output['full'], output['cache'])
+    # output['rand'] = output['cache'].copy()
+    # output['rand'][r == 1] = output['full'][r == 1].copy()
+    analyze(output, 'cache', 'full','TestFreq')
     if (argv[2]):
-        df.to_csv('%s%s_result.csv' % ('../../data/python_data/',
+        output.to_csv('%s%s_result.csv' % ('../../data/cache_selection_structured/',
                                        filename[:-4]), index=False)
 
 if __name__ == "__main__":
