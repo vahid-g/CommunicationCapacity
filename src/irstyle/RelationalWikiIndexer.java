@@ -87,22 +87,6 @@ public class RelationalWikiIndexer {
 		indexTable(dc, indexPath, tableName, textAttribs, limit, popularityAttrib, true, getIndexWriterConfig());
 	}
 
-	public static void indexRS(String idAttrib, String[] textAttribs, IndexWriter iwriter, ResultSet rs)
-			throws SQLException, IOException {
-		StringBuilder answerBuilder = new StringBuilder();
-		for (String s : textAttribs) {
-			answerBuilder.append(rs.getString(s));
-		}
-		String answer = answerBuilder.toString();
-		Document doc = new Document();
-		doc.add(new StoredField(ID_FIELD, rs.getString(idAttrib)));
-		// answer = StringEscapeUtils.unescapeHtml4(answer); // convert html encoded
-		// characters to unicode
-		doc.add(new TextField(TEXT_FIELD, answer, Store.NO));
-		doc.add(new StoredField(WEIGHT_FIELD, rs.getInt("popularity")));
-		iwriter.addDocument(doc);
-	}
-
 	static IndexWriterConfig getIndexWriterConfig() {
 		return getIndexWriterConfig(new StandardAnalyzer());
 	}
@@ -165,6 +149,58 @@ public class RelationalWikiIndexer {
 				RelationalWikiIndexer.indexRS("id", textAttribs, indexWriter, rs);
 			}
 		}
+	}
+
+	// Make an index on table considering each text attrib as a field
+	static void indexTableAttribs(DatabaseConnection dc, IndexWriter indexWriter, String table, String[] textAttribs,
+			int limit, String popularity, boolean ascending) throws IOException, SQLException {
+		try (Statement stmt = dc.getConnection().createStatement()) {
+			stmt.setFetchSize(Integer.MIN_VALUE);
+			String attribs = "id";
+			for (String s : textAttribs) {
+				attribs += "," + s;
+			}
+			attribs += ", popularity ";
+			String sql = "select " + attribs + " from " + table + " order by " + popularity + " desc limit " + limit
+					+ ";";
+			if (ascending) {
+				sql = "select " + attribs + " from " + table + " order by " + popularity + " asc limit " + limit + ";";
+			}
+			System.out.println(sql);
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				RelationalWikiIndexer.indexRS("id", textAttribs, indexWriter, rs);
+			}
+		}
+	}
+
+	public static void indexRS(String idAttrib, String[] textAttribs, IndexWriter iwriter, ResultSet rs)
+			throws SQLException, IOException {
+		StringBuilder answerBuilder = new StringBuilder();
+		for (String s : textAttribs) {
+			answerBuilder.append(rs.getString(s));
+		}
+		String answer = answerBuilder.toString();
+		Document doc = new Document();
+		doc.add(new StoredField(ID_FIELD, rs.getString(idAttrib)));
+		// answer = StringEscapeUtils.unescapeHtml4(answer); // convert html encoded
+		// characters to unicode
+		doc.add(new TextField(TEXT_FIELD, answer, Store.NO));
+		doc.add(new StoredField(WEIGHT_FIELD, rs.getInt("popularity")));
+		iwriter.addDocument(doc);
+	}
+
+	public static void indexRSWithAttribs(String idAttrib, String[] textAttribs, IndexWriter iwriter, ResultSet rs)
+			throws SQLException, IOException {
+		Document doc = new Document();
+		doc.add(new StoredField(ID_FIELD, rs.getString(idAttrib)));
+		doc.add(new StoredField(WEIGHT_FIELD, rs.getInt("popularity")));
+		for (String attrib : textAttribs) {
+			doc.add(new TextField(attrib, rs.getString(attrib), Store.NO));
+
+		}
+		iwriter.addDocument(doc);
+
 	}
 
 }
