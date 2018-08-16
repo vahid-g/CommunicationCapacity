@@ -71,7 +71,7 @@ public class RunFeatureExtractionForMultiTables {
 			for (ExperimentQuery query : queries) {
 				String queryText = query.getText();
 				List<Double> f = new ArrayList<Double>();
-				
+				wqde.coveredTokenRatio()
 				f.add(wqde.coveredTokenRatio(indexReader, queryText, RelationalWikiIndexer.TEXT_FIELD, analyzer));
 				f.add(wqde.coveredTokenRatio(restIndexReader, queryText, RelationalWikiIndexer.TEXT_FIELD, analyzer));
 				f.add(wqde.meanNormalizedTokenDocumentFrequency(indexReader, queryText,
