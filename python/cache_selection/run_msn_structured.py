@@ -12,20 +12,22 @@ from stack_anal import analyze
 
 def main(argv):
     filename = argv[0]
-    df = pd.read_csv('../../data/cache_selection_strcutured/' + filename)
+    df = pd.read_csv('../../data/cache_selection_structured/' + filename)
+    prtin('df size: %d' % df.shape)
     t = float(argv[1])
     df = df.fillna(0)
-    df['label'] = np.where(df['full'] > df['cache'], 1, 0)
-    labels = df['label']
+    labels = np.where(df['full'] > df['cache'], 1, 0)
+    print("onez ratio: %.2f" % (100 * np.sum(labels) / labels.shape[0]))
     size = 0.33
     X, X_test, y, y_test = train_test_split(df.drop(['label'], axis=1), labels, stratify=labels,
                                             test_size=size, random_state=1)
-    X = X.drop(['query', 'freq', '2', '100'], axis=1)
+    X = X.drop(['query', 'freq', 'cache', 'full'], axis=1)
+    prtin('df size after drops: %d' % df.shape)
     test_queries = X_test['query']
     subset_mrr = X_test['cache']
     db_mrr = X_test['full']
     test_freq = X_test['freq']
-    X_test = X_test.drop(['freq', 'query', 'cache', 'full'], axis=1)
+    X_test = X_test.drop(['query', 'freq', 'cache', 'full'], axis=1)
     ql = subset_mrr.copy()
     ql_pred = X_test['ql'] < X_test['ql_rest']
     ql.loc[ql_pred == 1] = db_mrr[ql_pred == 1]
