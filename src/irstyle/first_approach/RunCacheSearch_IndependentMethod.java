@@ -1,4 +1,4 @@
-package irstyle.independent;
+package irstyle.first_approach;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;

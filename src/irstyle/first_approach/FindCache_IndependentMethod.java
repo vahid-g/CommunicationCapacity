@@ -1,4 +1,4 @@
-package irstyle.independent;
+package irstyle.first_approach;
 
 import java.io.IOException;
 import java.nio.file.Paths;
