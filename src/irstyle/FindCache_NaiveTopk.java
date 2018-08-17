@@ -41,11 +41,19 @@ public class FindCache_NaiveTopk {
 	public static void main(String[] args) throws Exception {
 		List<String> argList = Arrays.asList(args);
 		List<ExperimentQuery> queries = null;
+		int effectivenessMetric;
 		if (argList.contains("-inexp")) {
 			queries = QueryServices.loadInexQueries();
 			Params.N = 20;
+			effectivenessMetric = 1;
+		} else if (argList.contains("-inexr")) {
+			queries = QueryServices.loadInexQueries();
+			Params.N = 100;
+			effectivenessMetric = 2;
 		} else {
 			queries = QueryServices.loadMsnQueries();
+			Params.N = 5;
+			effectivenessMetric = 0;
 		}
 		if (argList.contains("-debug")) {
 			Params.DEBUG = true;
@@ -183,7 +191,7 @@ public class FindCache_NaiveTopk {
 								relnamesValues);
 						queryResults.add(result);
 					}
-					acc = effectiveness(queryResults);
+					acc = effectiveness(queryResults, effectivenessMetric);
 					System.out.println("  new accuracy = " + acc);
 
 				}
@@ -236,10 +244,16 @@ public class FindCache_NaiveTopk {
 		}
 	}
 
-	public static double effectiveness(List<IRStyleQueryResult> queryResults) {
+	public static double effectiveness(List<IRStyleQueryResult> queryResults, int mode) {
 		double acc = 0;
 		for (IRStyleQueryResult qr : queryResults) {
-			acc += qr.p20();
+			if (mode == 0) {
+				acc += qr.rrank();
+			} else if (mode == 1) {
+				acc += qr.p20();
+			} else {
+				acc += qr.recall();
+			}
 		}
 		acc /= queryResults.size();
 		return acc;
