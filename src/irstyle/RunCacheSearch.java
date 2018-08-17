@@ -34,7 +34,7 @@ import query.QueryServices;
 
 public class RunCacheSearch {
 
-	static final int MAX_TS_SIZE = 1000;
+	static int MAX_TS_SIZE = 1000;
 
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);

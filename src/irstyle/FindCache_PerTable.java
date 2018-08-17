@@ -39,6 +39,7 @@ import query.QueryServices;
 public class FindCache_PerTable {
 
 	public static void main(String[] args) throws Exception {
+		RunCacheSearch.MAX_TS_SIZE = 100;
 		List<String> argList = Arrays.asList(args);
 		List<ExperimentQuery> queries = null;
 		if (argList.contains("-inex")) {
@@ -104,7 +105,6 @@ public class FindCache_PerTable {
 				indexReader[0] = articleReader;
 				indexReader[1] = imageReader;
 				indexReader[2] = linkReader;
-				indexReader[i] = DirectoryReader.open(ramDir[i]);
 
 				String usedTable[] = new String[tableNames.length];
 				usedTable[0] = tableNames[0];
@@ -149,8 +149,9 @@ public class FindCache_PerTable {
 					indexWriters[i].commit();
 					System.out.println("  testing new cache..");
 					List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
-					System.out.println("  index sizes: " + indexReader[0].numDocs() + "," + indexReader[0].numDocs()
-							+ "," + indexReader[i].numDocs());
+					indexReader[i] = DirectoryReader.open(ramDir[i]);
+					System.out.println("  index sizes: " + indexReader[0].numDocs() + "," + indexReader[1].numDocs()
+							+ "," + indexReader[2].numDocs());
 					for (ExperimentQuery query : queries) {
 						Schema sch = new Schema(schemaDescription);
 						List<String> articleIds = RunCacheSearch.executeLuceneQuery(indexReader[0], query.getText());
@@ -171,10 +172,10 @@ public class FindCache_PerTable {
 						break;
 					}
 					prevAcc = acc;
+					indexReader[i].close();
 					System.out.println("Iteration " + loop++);
 					System.out.println("  current offsets: " + Arrays.toString(offset));
 				}
-				indexReader[i].close();
 			}
 			articleReader.close();
 			imageReader.close();
