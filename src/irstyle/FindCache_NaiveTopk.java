@@ -41,8 +41,9 @@ public class FindCache_NaiveTopk {
 	public static void main(String[] args) throws Exception {
 		List<String> argList = Arrays.asList(args);
 		List<ExperimentQuery> queries = null;
-		if (argList.contains("-inex")) {
+		if (argList.contains("-inexp")) {
 			queries = QueryServices.loadInexQueries();
+			Params.N = 20;
 		} else {
 			queries = QueryServices.loadMsnQueries();
 		}
@@ -59,7 +60,11 @@ public class FindCache_NaiveTopk {
 			String[] insertTemplates = new String[tableNames.length];
 			String[] indexPaths = new String[tableNames.length];
 			RAMDirectory[] ramDir = new RAMDirectory[tableNames.length];
-			int[] pageSize = { 100000, 100000, 100000 };
+			// int[] pageSize = { 500000, 500000, 500000 };
+			int[] pageSize = new int[tableNames.length];
+			for (int i = 0; i < pageSize.length; i++) {
+				pageSize[i] = (ExperimentConstants.size[i] / 20);
+			}
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
 				cacheTables[i] = "tmp_" + tableNames[i].substring(4);
@@ -72,7 +77,7 @@ public class FindCache_NaiveTopk {
 				selectTemplates[i] = "select * from " + tableNames[i] + " order by popularity desc limit ?, "
 						+ pageSize[i] + ";";
 				insertTemplates[i] = "insert into " + cacheTables[i] + " (id) values (?);";
-				indexPaths[i] =ExperimentConstants.MAPLE_DATA_DIR + cacheTables[i];
+				indexPaths[i] = ExperimentConstants.MAPLE_DATA_DIR + cacheTables[i];
 				config[i] = new IndexWriterConfig(new StandardAnalyzer());
 				config[i].setSimilarity(new BM25Similarity());
 				config[i].setRAMBufferSizeMB(1024);
@@ -90,7 +95,6 @@ public class FindCache_NaiveTopk {
 				selectSt[i] = conn.prepareStatement(selectTemplates[i]);
 				insertSt[i] = conn.prepareStatement(insertTemplates[i]);
 			}
-			double prevAcc = 0;
 			double acc = 0;
 			double bestAcc = 0;
 			int[] offset = { 0, 0, 0 };
@@ -175,8 +179,8 @@ public class FindCache_NaiveTopk {
 						relnamesValues.put(articleTable, articleIds);
 						relnamesValues.put(imageTable, imageIds);
 						relnamesValues.put(linkTable, linkIds);
-						IRStyleQueryResult result = RunCacheSearch.executeIRStyleQuery(jdbcacc, sch, relations,
-								query, relnamesValues);
+						IRStyleQueryResult result = RunCacheSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
+								relnamesValues);
 						queryResults.add(result);
 					}
 					acc = effectiveness(queryResults);
@@ -189,12 +193,13 @@ public class FindCache_NaiveTopk {
 					bestAcc = acc;
 					bestOffset = offset.clone();
 				}
-				if ((prevAcc - acc) > 0.05) {
-					System.out.println("  time to break;");
-					break;
+				if ((bestAcc - acc) > 0.005 && (m == 0)) {
+					System.out.println("  time to break");
+					System.out.println("======================================");
+					// break;
 				}
-				prevAcc = acc;
-				if (lastPopularity[0] == -1 && lastPopularity[1] == -1 && lastPopularity[-2] == -1) {
+				if (lastPopularity[0] == -1 && lastPopularity[1] == -1 && lastPopularity[2] == -1) {
+					System.out.println("  breaking due negative popularity");
 					break;
 				}
 				// update buffer
@@ -234,7 +239,7 @@ public class FindCache_NaiveTopk {
 	public static double effectiveness(List<IRStyleQueryResult> queryResults) {
 		double acc = 0;
 		for (IRStyleQueryResult qr : queryResults) {
-			acc += qr.recall();
+			acc += qr.p20();
 		}
 		acc /= queryResults.size();
 		return acc;

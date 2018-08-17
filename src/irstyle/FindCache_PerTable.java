@@ -39,7 +39,7 @@ import query.QueryServices;
 public class FindCache_PerTable {
 
 	public static void main(String[] args) throws Exception {
-		RunCacheSearch.MAX_TS_SIZE = 100;
+		Params.MAX_TS_SIZE = 100;
 		List<String> argList = Arrays.asList(args);
 		List<ExperimentQuery> queries = null;
 		if (argList.contains("-inex")) {

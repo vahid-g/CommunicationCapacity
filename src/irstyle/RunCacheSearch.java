@@ -34,8 +34,6 @@ import query.QueryServices;
 
 public class RunCacheSearch {
 
-	static int MAX_TS_SIZE = 1000;
-
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
 		String cacheNameSuffix;
@@ -200,7 +198,7 @@ public class RunCacheSearch {
 		searcher.setSimilarity(new BM25Similarity());
 		QueryParser qp = new QueryParser(RelationalWikiIndexer.TEXT_FIELD, new StandardAnalyzer());
 		Query query = qp.parse(QueryParser.escape(queryText));
-		ScoreDoc[] scoreDocHits = searcher.search(query, RunCacheSearch.MAX_TS_SIZE).scoreDocs;
+		ScoreDoc[] scoreDocHits = searcher.search(query, Params.MAX_TS_SIZE).scoreDocs;
 		List<String> results = new ArrayList<String>();
 		for (int j = 0; j < scoreDocHits.length; j++) {
 			Document doc = reader.document(scoreDocHits[j].doc);
