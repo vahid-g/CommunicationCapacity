@@ -149,8 +149,8 @@ public class FindCache_PerTable {
 					indexWriters[i].commit();
 					System.out.println("  testing new cache..");
 					List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
-					System.out.println("  index sizes: " + articleReader.numDocs() + "," + imageReader.numDocs() + ","
-							+ linkReader.numDocs());
+					System.out.println("  index sizes: " + indexReader[0].numDocs() + "," + indexReader[0].numDocs()
+							+ "," + indexReader[i].numDocs());
 					for (ExperimentQuery query : queries) {
 						Schema sch = new Schema(schemaDescription);
 						List<String> articleIds = RunCacheSearch.executeLuceneQuery(indexReader[0], query.getText());
@@ -174,6 +174,7 @@ public class FindCache_PerTable {
 					System.out.println("Iteration " + loop++);
 					System.out.println("  current offsets: " + Arrays.toString(offset));
 				}
+				indexReader[i].close();
 			}
 			articleReader.close();
 			imageReader.close();
