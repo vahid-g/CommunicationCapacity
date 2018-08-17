@@ -60,7 +60,10 @@ public class FindCache_PerTable {
 			String[] insertTemplates = new String[tableNames.length];
 			String[] indexPaths = new String[tableNames.length];
 			RAMDirectory[] ramDir = new RAMDirectory[tableNames.length];
-			int[] pageSize = { 100000, 100000, 100000 };
+			int[] pageSize = new int[tableNames.length];
+			for (int i = 0; i < pageSize.length; i++) {
+				pageSize[i] = ExperimentConstants.size[i] / 10;
+			}
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
 				cacheTables[i] = "tmp_" + tableNames[i].substring(4);
@@ -91,6 +94,7 @@ public class FindCache_PerTable {
 			}
 			double prevAcc = 0;
 			double acc = 0;
+			double bestAcc = 0;
 			int[] offset = { 0, 0, 0 };
 			int loop = 1;
 			JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
@@ -102,6 +106,8 @@ public class FindCache_PerTable {
 					.open(FSDirectory.open(Paths.get(ExperimentConstants.MAPLE_DATA_DIR + "tbl_link_pop/100")));
 			IndexReader[] indexReader = new IndexReader[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
+				System.out.println("================================");
+				System.out.println("processing table: " + tableNames[i]);
 				indexReader[0] = articleReader;
 				indexReader[1] = imageReader;
 				indexReader[2] = linkReader;
@@ -122,6 +128,10 @@ public class FindCache_PerTable {
 				IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 				while (true) {
 					System.out.println("Iteration " + loop++);
+					if (offset[i] + pageSize[i] > ExperimentConstants.size[i]) {
+						System.out.println("Scanned all table");
+						break;
+					}
 					selectSt[i].setInt(1, offset[i]);
 					offset[i] += pageSize[i];
 					ResultSet rs = selectSt[i].executeQuery();
@@ -170,7 +180,10 @@ public class FindCache_PerTable {
 					acc = effectiveness(queryResults);
 					System.out.println("  new accuracy = " + acc);
 					System.out.println("  current offsets: " + offset[i]);
-					if ((prevAcc - acc) > 0.05) {
+					if (acc > bestAcc) {
+						bestAcc = acc;
+					}
+					if ((prevAcc - bestAcc) > 0.005) {
 						break;
 					}
 					prevAcc = acc;

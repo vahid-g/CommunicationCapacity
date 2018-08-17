@@ -129,8 +129,10 @@ public class RunCacheSearch {
 					List<String> imageIds = RunCacheSearch.executeLuceneQuery(imageIndexToUse, query.getText());
 					List<String> linkIds = RunCacheSearch.executeLuceneQuery(linkIndexToUse, query.getText());
 					luceneTime += (System.currentTimeMillis() - start);
-					System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
-							imageIds.size(), linkIds.size());
+					if (Params.DEBUG) {
+						System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
+								imageIds.size(), linkIds.size());
+					}
 					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 					relnamesValues.put(articleTable, articleIds);
 					relnamesValues.put(imageTable, imageIds);
