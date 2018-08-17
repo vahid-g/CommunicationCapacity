@@ -77,12 +77,11 @@ public class RunFeatureExtractionForMultiTables {
 						.collect(Collectors.joining()));
 			}
 		}
-		data.add("query, freq," + fileHeader);
+		data.add("query,freq," + fileHeader);
 		Analyzer biwordAnalyzer = new BiwordAnalyzer();
 		Analyzer analyzer = new StandardAnalyzer();
 		for (ExperimentQuery query : queries) {
 			String queryText = query.getText();
-			List<Double> f = new ArrayList<Double>();
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < cacheIndexReaderList.size(); i++) {
 				IndexReader indexReader = cacheIndexReaderList.get(i);
@@ -90,6 +89,7 @@ public class RunFeatureExtractionForMultiTables {
 				IndexReader biwordIndexReader = biCacheIndexReaderList.get(i);
 				IndexReader biwordRestIndexReader = biRestIndexReaderList.get(i);
 				for (String attrib : ExperimentConstants.textAttribs[i]) {
+					List<Double> f = new ArrayList<Double>();
 					f.add(wqde.coveredTokenRatio(indexReader, queryText, attrib, analyzer));
 					f.add(wqde.coveredTokenRatio(restIndexReader, queryText, attrib, analyzer));
 					f.add(wqde.meanNormalizedTokenDocumentFrequency(indexReader, queryText, attrib, analyzer));
