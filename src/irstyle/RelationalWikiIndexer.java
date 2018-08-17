@@ -169,7 +169,7 @@ public class RelationalWikiIndexer {
 			System.out.println(sql);
 			ResultSet rs = stmt.executeQuery(sql);
 			while (rs.next()) {
-				RelationalWikiIndexer.indexRS("id", textAttribs, indexWriter, rs);
+				RelationalWikiIndexer.indexRSWithAttribs("id", textAttribs, indexWriter, rs);
 			}
 		}
 	}
