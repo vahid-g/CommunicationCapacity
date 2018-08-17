@@ -71,7 +71,7 @@ public class RunFeatureExtractionForMultiTables {
 				"qll_bi_rest" };
 		StringBuilder fileHeader = new StringBuilder();
 		for (int i = 0; i < cacheIndexReaderList.size(); i++) {
-			for (int j = 0; j < ExperimentConstants.textAttribs.length; j++) {
+			for (int j = 0; j < ExperimentConstants.textAttribs[i].length; j++) {
 				final String suffix = i + "_" + j;
 				fileHeader.append(Arrays.asList(featureNames).stream().map(ft -> ft + "_" + suffix + ",")
 						.collect(Collectors.joining()));
