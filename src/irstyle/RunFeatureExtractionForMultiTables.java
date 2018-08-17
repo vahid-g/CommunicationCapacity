@@ -29,37 +29,66 @@ public class RunFeatureExtractionForMultiTables {
 
 	public static final Logger LOGGER = Logger.getLogger(RunFeatureExtractionForMultiTables.class.getName());
 
+	// TODO: remove popularity features are duplicated
 	public static void main(String[] args) throws IOException {
-		// TODO: remove popularity features are duplicated
-		List<ExperimentQuery> queries;
-		queries = QueryServices.loadMsnQueriesAll();
-		Collections.shuffle(queries, new Random(1));
+		List<String> argList = Arrays.asList(args);
 
+		List<ExperimentQuery> queries;
 		List<IndexReader> cacheIndexReaderList = new ArrayList<IndexReader>();
 		List<IndexReader> restIndexReaderList = new ArrayList<IndexReader>();
 		List<IndexReader> biCacheIndexReaderList = new ArrayList<IndexReader>();
 		List<IndexReader> biRestIndexReaderList = new ArrayList<IndexReader>();
-		for (String table : ExperimentConstants.tableName) {
-			String indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_mrr";
-			cacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_mrr";
-			restIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_mrr_bi";
-			biCacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_mrr_bi";
-			biRestIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
+		LOGGER.log(Level.INFO, "loading popularity indices..");
+		Map<String, TokenPopularity> cacheTermPopularity;
+		Map<String, TokenPopularity> restTermPopularity;
+		Map<String, TokenPopularity> biwordCachePopularity;
+		Map<String, TokenPopularity> biwordRestPopularity;
+		if (argList.contains("-inexp")) {
+			queries = QueryServices.loadInexQueries();
+			for (String table : ExperimentConstants.tableName) {
+				String indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_p20";
+				cacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
+				indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_p20";
+				restIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
+				indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_p20_bi";
+				biCacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
+				indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_p20_bi";
+				biRestIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
+			}
+			LOGGER.log(Level.INFO, "loading popularity indices..");
+			cacheTermPopularity = TokenPopularity.loadTokenPopularities(
+					ExperimentConstants.baseDataDir + "lm_cache_p20" + "_text_pop_index" + ".csv");
+			restTermPopularity = TokenPopularity.loadTokenPopularities(
+					ExperimentConstants.baseDataDir + "lm_rest_p20" + "_text_pop_index" + ".csv");
+			biwordCachePopularity = TokenPopularity.loadTokenPopularities(
+					ExperimentConstants.baseDataDir + "lm_cache_p20_bi" + "_text_pop_index" + ".csv");
+			biwordRestPopularity = TokenPopularity.loadTokenPopularities(
+					ExperimentConstants.baseDataDir + "lm_rest_p20_bi" + "_text_pop_index" + ".csv");
+		} else {
+			queries = QueryServices.loadMsnQueriesAll();
+			Collections.shuffle(queries, new Random(1));
+			for (String table : ExperimentConstants.tableName) {
+				String indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_mrr";
+				cacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
+				indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_mrr";
+				restIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
+				indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_mrr_bi";
+				biCacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
+				indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_mrr_bi";
+				biRestIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
+			}
+			LOGGER.log(Level.INFO, "loading popularity indices..");
+			cacheTermPopularity = TokenPopularity.loadTokenPopularities(
+					ExperimentConstants.baseDataDir + "lm_cache_mrr" + "_text_pop_index" + ".csv");
+			restTermPopularity = TokenPopularity.loadTokenPopularities(
+					ExperimentConstants.baseDataDir + "lm_rest_mrr" + "_text_pop_index" + ".csv");
+			biwordCachePopularity = TokenPopularity.loadTokenPopularities(
+					ExperimentConstants.baseDataDir + "lm_cache_mrr_bi" + "_text_pop_index" + ".csv");
+			biwordRestPopularity = TokenPopularity.loadTokenPopularities(
+					ExperimentConstants.baseDataDir + "lm_rest_mrr_bi" + "_text_pop_index" + ".csv");
 		}
 
 		FeatureExtraction wqde = new FeatureExtraction(RelationalWikiIndexer.WEIGHT_FIELD);
-		LOGGER.log(Level.INFO, "loading popularity indices..");
-		Map<String, TokenPopularity> cacheTermPopularity = TokenPopularity
-				.loadTokenPopularities(ExperimentConstants.baseDataDir + "lm_cache_mrr" + "_text_pop_index" + ".csv");
-		Map<String, TokenPopularity> restTermPopularity = TokenPopularity
-				.loadTokenPopularities(ExperimentConstants.baseDataDir + "lm_rest_mrr" + "_text_pop_index" + ".csv");
-		Map<String, TokenPopularity> biwordCachePopularity = TokenPopularity.loadTokenPopularities(
-				ExperimentConstants.baseDataDir + "lm_cache_mrr_bi" + "_text_pop_index" + ".csv");
-		Map<String, TokenPopularity> biwordRestPopularity = TokenPopularity
-				.loadTokenPopularities(ExperimentConstants.baseDataDir + "lm_rest_mrr_bi" + "_text_pop_index" + ".csv");
 		LOGGER.log(Level.INFO, "loading done!");
 		List<String> data = new ArrayList<String>();
 		String[] featureNames = { "covered", "covered_rest", "mean_df", "mean_df_rest", "min_df", "min_df_rest",
