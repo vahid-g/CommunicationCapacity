@@ -34,12 +34,9 @@ import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
 import irstyle.core.Schema;
 import query.ExperimentQuery;
-import query.QueryResult;
 import query.QueryServices;
 
 public class FindCache_PerTable {
-
-	private static final double popSum[] = { 15440314886.0, 52716653460.0, 1407925741807.0 };
 
 	public static void main(String[] args) throws Exception {
 		List<String> argList = Arrays.asList(args);
@@ -93,36 +90,37 @@ public class FindCache_PerTable {
 			}
 			double prevAcc = 0;
 			double acc = 0;
-			double bestAcc = 0;
 			int[] offset = { 0, 0, 0 };
-			int[] bestOffset = { 0, 0, 0 };
 			int loop = 1;
 			JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
-			String articleTable = cacheTables[0];
-			String imageTable = cacheTables[1];
-			String linkTable = cacheTables[2];
-			String articleImageTable = "tbl_article_image_09";
-			String articleLinkTable = "tbl_article_link_09";
-			String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
-					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
-					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
-					+ articleLinkTable + " " + linkTable;
-			Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
-					articleImageTable, articleLinkTable, jdbcacc.conn);
-			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 			IndexReader articleReader = DirectoryReader
-					.open(FSDirectory.open(Paths.get(ExperimentConstants.MAPLE_DATA_DIR + "tbl_article_wiki13")));
+					.open(FSDirectory.open(Paths.get(ExperimentConstants.MAPLE_DATA_DIR + "tbl_article_wiki13/100")));
 			IndexReader imageReader = DirectoryReader
-					.open(FSDirectory.open(Paths.get(ExperimentConstants.MAPLE_DATA_DIR + "tbl_image_pop")));
+					.open(FSDirectory.open(Paths.get(ExperimentConstants.MAPLE_DATA_DIR + "tbl_image_pop/100")));
 			IndexReader linkReader = DirectoryReader
-					.open(FSDirectory.open(Paths.get(ExperimentConstants.MAPLE_DATA_DIR + "tbl_link_pop")));
+					.open(FSDirectory.open(Paths.get(ExperimentConstants.MAPLE_DATA_DIR + "tbl_link_pop/100")));
 			IndexReader[] indexReader = new IndexReader[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
 				indexReader[0] = articleReader;
 				indexReader[1] = imageReader;
 				indexReader[2] = linkReader;
 				indexReader[i] = DirectoryReader.open(ramDir[i]);
-				for (int j = 1; j <= 100; j += 1) {
+
+				String usedTable[] = new String[tableNames.length];
+				usedTable[0] = tableNames[0];
+				usedTable[1] = tableNames[1];
+				usedTable[2] = tableNames[2];
+				usedTable[i] = cacheTables[i];
+				String articleImageTable = "tbl_article_image_09";
+				String articleLinkTable = "tbl_article_link_09";
+				String schemaDescription = "5 " + usedTable[0] + " " + articleImageTable + " " + usedTable[1] + " "
+						+ articleLinkTable + " " + usedTable[2] + " " + usedTable[0] + " " + articleImageTable + " "
+						+ articleImageTable + " " + usedTable[1] + " " + usedTable[0] + " " + articleLinkTable + " "
+						+ articleLinkTable + " " + usedTable[2];
+				Vector<Relation> relations = IRStyleKeywordSearch.createRelations(usedTable[0], usedTable[1],
+						usedTable[2], articleImageTable, articleLinkTable, jdbcacc.conn);
+				IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
+				while (true) {
 					selectSt[i].setInt(1, offset[i]);
 					offset[i] += pageSize[i];
 					ResultSet rs = selectSt[i].executeQuery();
@@ -155,43 +153,38 @@ public class FindCache_PerTable {
 							+ linkReader.numDocs());
 					for (ExperimentQuery query : queries) {
 						Schema sch = new Schema(schemaDescription);
-						List<String> articleIds = RunCacheSearch.executeLuceneQuery(articleReader, query.getText());
-						List<String> imageIds = RunCacheSearch.executeLuceneQuery(imageReader, query.getText());
-						List<String> linkIds = RunCacheSearch.executeLuceneQuery(linkReader, query.getText());
+						List<String> articleIds = RunCacheSearch.executeLuceneQuery(indexReader[0], query.getText());
+						List<String> imageIds = RunCacheSearch.executeLuceneQuery(indexReader[1], query.getText());
+						List<String> linkIds = RunCacheSearch.executeLuceneQuery(indexReader[2], query.getText());
 						Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
-						relnamesValues.put(articleTable, articleIds);
-						relnamesValues.put(imageTable, imageIds);
-						relnamesValues.put(linkTable, linkIds);
+						relnamesValues.put(usedTable[0], articleIds);
+						relnamesValues.put(usedTable[1], imageIds);
+						relnamesValues.put(usedTable[2], linkIds);
 						IRStyleQueryResult result = RunCacheSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
 								relnamesValues);
 						queryResults.add(result);
 					}
 					acc = effectiveness(queryResults);
 					System.out.println("  new accuracy = " + acc);
+					System.out.println("  current offsets: " + offset[i]);
+					if ((prevAcc - acc) > 0.05) {
+						break;
+					}
+					prevAcc = acc;
+					System.out.println("Iteration " + loop++);
+					System.out.println("  current offsets: " + Arrays.toString(offset));
 				}
-				System.out.println("  current offsets: " + Arrays.toString(offset));
-				if (acc > bestAcc) {
-					bestAcc = acc;
-					bestOffset = offset.clone();
-				}
-				if ((prevAcc - acc) > 0.05) {
-					System.out.println("  time to break;");
-					break;
-				}
-				prevAcc = acc;
-				System.out.println("Iteration " + loop++);
-				System.out.println("  current offsets: " + Arrays.toString(offset));
-				System.out.println("  current limits: " + (offset[0] + pageSize[0]) + " " + (offset[1] + pageSize[1])
-						+ " " + (offset[2] + pageSize[2]));
 			}
-
+			articleReader.close();
+			imageReader.close();
+			linkReader.close();
 		}
 	}
 
 	public static double effectiveness(List<IRStyleQueryResult> queryResults) {
 		double acc = 0;
 		for (IRStyleQueryResult qr : queryResults) {
-			acc += qr.recall();
+			acc += qr.p20();
 		}
 		acc /= queryResults.size();
 		return acc;
