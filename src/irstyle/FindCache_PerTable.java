@@ -121,6 +121,7 @@ public class FindCache_PerTable {
 						usedTable[2], articleImageTable, articleLinkTable, jdbcacc.conn);
 				IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 				while (true) {
+					System.out.println("Iteration " + loop++);
 					selectSt[i].setInt(1, offset[i]);
 					offset[i] += pageSize[i];
 					ResultSet rs = selectSt[i].executeQuery();
@@ -165,6 +166,7 @@ public class FindCache_PerTable {
 								relnamesValues);
 						queryResults.add(result);
 					}
+					indexReader[i].close();
 					acc = effectiveness(queryResults);
 					System.out.println("  new accuracy = " + acc);
 					System.out.println("  current offsets: " + offset[i]);
@@ -172,9 +174,6 @@ public class FindCache_PerTable {
 						break;
 					}
 					prevAcc = acc;
-					indexReader[i].close();
-					System.out.println("Iteration " + loop++);
-					System.out.println("  current offsets: " + Arrays.toString(offset));
 				}
 			}
 			articleReader.close();
