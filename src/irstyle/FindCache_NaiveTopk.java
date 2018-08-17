@@ -59,9 +59,7 @@ public class FindCache_NaiveTopk {
 			String[] insertTemplates = new String[tableNames.length];
 			String[] indexPaths = new String[tableNames.length];
 			RAMDirectory[] ramDir = new RAMDirectory[tableNames.length];
-			// int[] pageSize = { 26000, 12000, 98000 }; // based on 2009
 			int[] pageSize = { 100000, 100000, 100000 };
-			double[] sizes = { 11945034, 1183070, 9766351 };
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
 				cacheTables[i] = "tmp_" + tableNames[i].substring(4);
@@ -74,7 +72,7 @@ public class FindCache_NaiveTopk {
 				selectTemplates[i] = "select * from " + tableNames[i] + " order by popularity desc limit ?, "
 						+ pageSize[i] + ";";
 				insertTemplates[i] = "insert into " + cacheTables[i] + " (id) values (?);";
-				indexPaths[i] = "/data/ghadakcv/wikipedia/" + cacheTables[i];
+				indexPaths[i] =ExperimentConstants.MAPLE_DATA_DIR + cacheTables[i];
 				config[i] = new IndexWriterConfig(new StandardAnalyzer());
 				config[i].setSimilarity(new BM25Similarity());
 				config[i].setRAMBufferSizeMB(1024);
@@ -222,7 +220,7 @@ public class FindCache_NaiveTopk {
 			System.out.println("Offsets for articles, images, links = " + Arrays.toString(bestOffset));
 			double[] percent = new double[bestOffset.length];
 			for (int i = 0; i < bestOffset.length; i++) {
-				percent[i] = bestOffset[i] / sizes[i];
+				percent[i] = bestOffset[i] / ExperimentConstants.size[i];
 			}
 			System.out.println("Best found sizes = " + Arrays.toString(percent));
 			for (int i = 0; i < tableNames.length; i++) {

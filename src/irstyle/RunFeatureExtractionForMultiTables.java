@@ -57,13 +57,13 @@ public class RunFeatureExtractionForMultiTables {
 			}
 			LOGGER.log(Level.INFO, "loading popularity indices..");
 			cacheTermPopularity = TokenPopularity.loadTokenPopularities(
-					ExperimentConstants.baseDataDir + "lm_cache_p20" + "_text_pop_index" + ".csv");
+					ExperimentConstants.MAPLE_DATA_DIR + "lm_cache_p20" + "_text_pop_index" + ".csv");
 			restTermPopularity = TokenPopularity.loadTokenPopularities(
-					ExperimentConstants.baseDataDir + "lm_rest_p20" + "_text_pop_index" + ".csv");
+					ExperimentConstants.MAPLE_DATA_DIR + "lm_rest_p20" + "_text_pop_index" + ".csv");
 			biwordCachePopularity = TokenPopularity.loadTokenPopularities(
-					ExperimentConstants.baseDataDir + "lm_cache_p20_bi" + "_text_pop_index" + ".csv");
+					ExperimentConstants.MAPLE_DATA_DIR + "lm_cache_p20_bi" + "_text_pop_index" + ".csv");
 			biwordRestPopularity = TokenPopularity.loadTokenPopularities(
-					ExperimentConstants.baseDataDir + "lm_rest_p20_bi" + "_text_pop_index" + ".csv");
+					ExperimentConstants.MAPLE_DATA_DIR + "lm_rest_p20_bi" + "_text_pop_index" + ".csv");
 		} else {
 			queries = QueryServices.loadMsnQueriesAll();
 			Collections.shuffle(queries, new Random(1));
@@ -79,13 +79,13 @@ public class RunFeatureExtractionForMultiTables {
 			}
 			LOGGER.log(Level.INFO, "loading popularity indices..");
 			cacheTermPopularity = TokenPopularity.loadTokenPopularities(
-					ExperimentConstants.baseDataDir + "lm_cache_mrr" + "_text_pop_index" + ".csv");
+					ExperimentConstants.MAPLE_DATA_DIR + "lm_cache_mrr" + "_text_pop_index" + ".csv");
 			restTermPopularity = TokenPopularity.loadTokenPopularities(
-					ExperimentConstants.baseDataDir + "lm_rest_mrr" + "_text_pop_index" + ".csv");
+					ExperimentConstants.MAPLE_DATA_DIR + "lm_rest_mrr" + "_text_pop_index" + ".csv");
 			biwordCachePopularity = TokenPopularity.loadTokenPopularities(
-					ExperimentConstants.baseDataDir + "lm_cache_mrr_bi" + "_text_pop_index" + ".csv");
+					ExperimentConstants.MAPLE_DATA_DIR + "lm_cache_mrr_bi" + "_text_pop_index" + ".csv");
 			biwordRestPopularity = TokenPopularity.loadTokenPopularities(
-					ExperimentConstants.baseDataDir + "lm_rest_mrr_bi" + "_text_pop_index" + ".csv");
+					ExperimentConstants.MAPLE_DATA_DIR + "lm_rest_mrr_bi" + "_text_pop_index" + ".csv");
 		}
 
 		FeatureExtraction wqde = new FeatureExtraction(RelationalWikiIndexer.WEIGHT_FIELD);
