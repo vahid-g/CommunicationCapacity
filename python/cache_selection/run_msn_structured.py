@@ -28,7 +28,7 @@ def main(argv):
     db_mrr = X_test['full']
     X_test = X_test.drop(['query', 'freq', 'cache', 'full'], axis=1)
     ql = subset_mrr.copy()
-    ql_pred = X_test['ql'] < X_test['ql_rest']
+    ql_pred = X_test['ql_0_0'] < X_test['ql_rest_0_0']
     ql.loc[ql_pred == 1] = db_mrr[ql_pred == 1]
     #print(df.corr()['label'].sort_values())
     print("train set size and ones: %d, %d" % (y.shape[0], np.sum(y)))
