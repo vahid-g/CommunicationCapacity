@@ -1,5 +1,6 @@
 package irstyle;
 
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,6 +25,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 
 import database.DatabaseConnection;
@@ -95,10 +97,9 @@ public class FindCache_NaiveTopk {
 			PreparedStatement selectSt[] = new PreparedStatement[tableNames.length];
 			PreparedStatement insertSt[] = new PreparedStatement[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
-				// indexWriters[i] = new IndexWriter(FSDirectory.open(Paths.get(indexPaths[i])),
-				// config[i]);
-				ramDir[i] = new RAMDirectory();
-				indexWriters[i] = new IndexWriter(ramDir[i], config[i]);
+				indexWriters[i] = new IndexWriter(FSDirectory.open(Paths.get(indexPaths[i])), config[i]);
+				// ramDir[i] = new RAMDirectory();
+				// indexWriters[i] = new IndexWriter(ramDir[i], config[i]);
 				indexWriters[i].commit();
 				selectSt[i] = conn.prepareStatement(selectTemplates[i]);
 				insertSt[i] = conn.prepareStatement(insertTemplates[i]);
