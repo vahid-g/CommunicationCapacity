@@ -7,6 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 from sklearn import linear_model
 from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import LeaveOneOut 
 from sklearn.model_selection import RepeatedStratifiedKFold
 from utils import print_results
 
@@ -14,20 +15,21 @@ def main(argv):
     filename = argv[0] # the file containing features + precision of cache +
     # precision of db 
     t = float(argv[1]) # threshold for logistic regression (default=0.5)
-    subset = argv[2] # column title for precision of cache
-    full = '100' # column title for precision of full db
-    split = 5
-    df = pd.read_csv('../../data/python_data/' + filename)
-    df = df.drop(['query'], axis = 1)
-    print('bad queries ratio = %.2f' % (df['label'].sum() / df['label'].size))
-    skf = StratifiedKFold(n_splits=split, random_state = 1)
+    subset = 'cache' # column title for precision of cache
+    full = 'full' # column title for precision of full db
+    split = int(argv[2])
+    df = pd.read_csv('../../data/cache_selection_structured/' + filename)
+    df = df.drop(['query', 'freq'], axis = 1)
+    df = df.fillna(0)
+    df['label'] = np.where(df['full'] > df['cache'], 1, 0)
     X = df.drop(['label'], axis = 1)
     y = df['label']
-    p20_mean = np.zeros([1, 5])
-    bad_mean = np.zeros([1, 5])
+    p20_mean = np.zeros([1, 6])
+    bad_mean = np.zeros([1, 6])
     ml_average_rare = 0
     ql_average_rare = 0
     best_average_rare = 0
+    skf = StratifiedKFold(n_splits=split, random_state = 1)
     for train_index, test_index in skf.split(X, y):
         X_train, X_test = X.iloc[train_index], X.iloc[test_index]
         y_train, y_test = y.iloc[train_index], y.iloc[test_index]
@@ -37,7 +39,7 @@ def main(argv):
         bad_index = p100 > p12
         X_test = X_test.drop([subset, full], axis=1)
         # compute query likelihood based effectiveness
-        ql_pred = X_test['ql_c'] < X_test['ql_c.1']
+        ql_pred = X_test['ql_0_0'] < X_test['ql_rest_0_0']
         ql = p12.copy()
         ql.loc[ql_pred == 1] = p100[ql_pred == 1]
         ql_average_rare += (ql_pred.sum() / ql_pred.size)
@@ -57,14 +59,15 @@ def main(argv):
         y_prob = lr.predict_proba(X_test)
         y_pred = y_prob[:, 1] > t
         y_pred = y_pred.astype('uint8')
-        print('\t t = %.2f results:' % t)
-        print_results(y_test, y_pred)
+        # print('\t t = %.2f results:' % t)
+        # print_results(y_test, y_pred)
         # compute ML based effectiveness
         ml = p12.copy()
         ml.loc[y_pred == 1] = p100[y_pred == 1]
         best = p12.copy()
         best.loc[y_test == 1] = p100[y_test == 1]
-        print('\t---')
+        r = np.random.randint(0, 2, p12.size)
+        rnd = np.where(r == 1, p100, p12)
         print('\tsubset mean p@20 = %.2f %.2f' % (p12.mean(),
                                                   p12[bad_index].mean()))
         print('\tdb mean p@20 = %.2f %.2f' % (p100.mean(),
@@ -73,15 +76,18 @@ def main(argv):
         print('\tql mean p@20 = %.2f %.2f' % (ql.mean(), ql[bad_index].mean()))
         print('\tbest mean p@20 = %.2f %.2f' %
               (best.mean(),best[bad_index].mean()))
-        p20_mean += [p12.mean(), p100.mean(), ml.mean(), ql.mean(), best.mean()]
+        p20_mean += [p12.mean(), p100.mean(), ml.mean(), ql.mean(),
+                     best.mean(), rnd.mean()]
         bad_mean += [p12[bad_index].mean(), p100[bad_index].mean(),
                      ml[bad_index].mean(), ql[bad_index].mean(),
-                    best[bad_index].mean()]
+                    best[bad_index].mean(), rnd[bad_index].mean()]
         ml_average_rare += (y_pred.sum() / y_pred.size)
+        print('\t---')
     print('final results:')
-    print([['subset', 'database', 'ml', 'ql', 'best']])
-    print(bad_mean / split)
-    print(p20_mean / split)
+    print('\t'.join(map(str,['cache', 'db', 'ml', 'ql', 'best',
+                              'rand'])))
+    print('\t'.join(map(str, np.round(bad_mean[0] / split, 2))))
+    print('\t'.join(map(str, np.round(p20_mean[0] / split, 2))))
     print('average rare query count ml: %.2f ql: %.2f' %
           (ml_average_rare /split, ql_average_rare / split))
 
