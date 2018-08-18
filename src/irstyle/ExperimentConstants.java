@@ -6,12 +6,13 @@ public class ExperimentConstants {
 
 	public static String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
 
-	// best inex p20 sizes with v2 1%, 8%, 1%
-	static int[] precisionLimit = { 119450, 94640, 97663 };
+	// best inex p20 sizes. p20 = 0.43 4%, 34%, 4%
+	static int[] precisionLimit = { 597251, 414071, 488317 };
 
-	// best inex recall sizes wth v2 3%, 16%, 55
-	static int[] recallLimit = { 400000, 200000, 500000 };
-
+	// best inex recall sizes wth v2 3%, 16%, 55%
+	//static int[] recallLimit = { 400000, 200000, 500000 };
+	static int[] recallLimit = { 597251, 414071, 976634 };
+	
 	// best msn mrr sizes obtained with v2
 	static int[] mrrLimit = { 238900, 106470, 195326 };
 
