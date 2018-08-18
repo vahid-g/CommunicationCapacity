@@ -26,7 +26,6 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.store.RAMDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
@@ -152,7 +151,7 @@ public class FindCache_NaiveTopk {
 				System.out.println("  current popularities: " + Arrays.toString(lastPopularity));
 				System.out.println("  normalized popularities: " + lastPopularity[0] / popSum[0] + " "
 						+ lastPopularity[1] / popSum[1] + " " + lastPopularity[2] / popSum[2]);
-				double mPopularity = 0;
+				double mPopularity = -1;
 				int m = -1;
 				for (int i = 0; i < lastPopularity.length; i++) {
 					if (lastPopularity[i] / popSum[i] > mPopularity) {
