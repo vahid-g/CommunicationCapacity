@@ -237,7 +237,7 @@ public class FindCache_NaiveTopk {
 			System.out.println("Offsets for articles, images, links = " + Arrays.toString(bestOffset));
 			double[] percent = new double[bestOffset.length];
 			for (int i = 0; i < bestOffset.length; i++) {
-				percent[i] = bestOffset[i] / ExperimentConstants.size[i];
+				percent[i] = bestOffset[i] / (double)ExperimentConstants.size[i];
 			}
 			System.out.println("Best found sizes = " + Arrays.toString(percent));
 			for (int i = 0; i < tableNames.length; i++) {

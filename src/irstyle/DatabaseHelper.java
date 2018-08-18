@@ -23,8 +23,8 @@ public class DatabaseHelper {
 
 	static int relCounts(Connection conn, Set<String> ids) throws SQLException {
 		int count = 0;
-		String sql = " select count(*) as count from tbl_article_wiki13 a join table_article_image_09 ai on"
-				+ " a.id = ai.article_id join table_article_link_09 al on a.id = al.article_id" + " where a.id = ?;";
+		String sql = " select count(*) as count from tbl_article_wiki13 a join tbl_article_image_09 ai on"
+				+ " a.id = ai.article_id join tbl_article_link_09 al on a.id = al.article_id" + " where a.id = ?;";
 		try (PreparedStatement stmt = conn.prepareStatement(sql)) {
 			for (String id : ids) {
 				stmt.setInt(1, Integer.parseInt(id));
