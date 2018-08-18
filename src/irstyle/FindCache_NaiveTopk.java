@@ -69,7 +69,8 @@ public class FindCache_NaiveTopk {
 			String[] selectTemplates = new String[tableNames.length];
 			String[] insertTemplates = new String[tableNames.length];
 			String[] indexPaths = new String[tableNames.length];
-			RAMDirectory[] ramDir = new RAMDirectory[tableNames.length];
+			// RAMDirectory[] fsDir = new RAMDirectory[tableNames.length];
+			FSDirectory[] fsDir = new FSDirectory[tableNames.length];
 			// int[] pageSize = { 500000, 500000, 500000 };
 			int[] pageSize = new int[tableNames.length];
 			for (int i = 0; i < pageSize.length; i++) {
@@ -97,7 +98,8 @@ public class FindCache_NaiveTopk {
 			PreparedStatement selectSt[] = new PreparedStatement[tableNames.length];
 			PreparedStatement insertSt[] = new PreparedStatement[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
-				indexWriters[i] = new IndexWriter(FSDirectory.open(Paths.get(indexPaths[i])), config[i]);
+				fsDir[i] = FSDirectory.open(Paths.get(indexPaths[i]));
+				indexWriters[i] = new IndexWriter(fsDir[i], config[i]);
 				// ramDir[i] = new RAMDirectory();
 				// indexWriters[i] = new IndexWriter(ramDir[i], config[i]);
 				indexWriters[i].commit();
@@ -174,9 +176,9 @@ public class FindCache_NaiveTopk {
 				// test partition!
 				System.out.println("  testing new cache..");
 				List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
-				try (IndexReader articleReader = DirectoryReader.open(ramDir[0]);
-						IndexReader imageReader = DirectoryReader.open(ramDir[1]);
-						IndexReader linkReader = DirectoryReader.open(ramDir[2])) {
+				try (IndexReader articleReader = DirectoryReader.open(fsDir[0]);
+						IndexReader imageReader = DirectoryReader.open(fsDir[1]);
+						IndexReader linkReader = DirectoryReader.open(fsDir[2])) {
 					System.out.println("  index sizes: " + articleReader.numDocs() + "," + imageReader.numDocs() + ","
 							+ linkReader.numDocs());
 					for (ExperimentQuery query : queries) {
