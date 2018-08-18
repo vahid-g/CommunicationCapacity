@@ -60,8 +60,10 @@ public class FindCache_NaiveTopk {
 			Params.DEBUG = true;
 		}
 		Collections.shuffle(queries, new Random(1));
-		queries = queries.subList(0, 10);
+		queries = queries.subList(0, 20);
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
+			Map<ExperimentQuery, Integer> queryRelCountMap = IRStyleKeywordSearch
+					.buildQueryRelcountMap(dc.getConnection(), queries);
 			String[] tableNames = ExperimentConstants.tableName;
 			Connection conn = dc.getConnection();
 			String[] cacheTables = new String[tableNames.length];
@@ -193,7 +195,7 @@ public class FindCache_NaiveTopk {
 								relnamesValues);
 						queryResults.add(result);
 					}
-					acc = effectiveness(queryResults, effectivenessMetric);
+					acc = effectiveness(queryResults, effectivenessMetric, queryRelCountMap);
 					System.out.println("  new accuracy = " + acc);
 
 				}
@@ -206,7 +208,7 @@ public class FindCache_NaiveTopk {
 				if ((bestAcc - acc) > 0.005 && (m == 0)) {
 					System.out.println("  time to break");
 					System.out.println("======================================");
-					// break;
+					break;
 				}
 				if (lastPopularity[0] == -1 && lastPopularity[1] == -1 && lastPopularity[2] == -1) {
 					System.out.println("  breaking due negative popularity");
@@ -246,7 +248,8 @@ public class FindCache_NaiveTopk {
 		}
 	}
 
-	public static double effectiveness(List<IRStyleQueryResult> queryResults, int mode) {
+	public static double effectiveness(List<IRStyleQueryResult> queryResults, int mode,
+			Map<ExperimentQuery, Integer> queryRelCountMap) {
 		double acc = 0;
 		for (IRStyleQueryResult qr : queryResults) {
 			if (mode == 0) {
@@ -254,7 +257,7 @@ public class FindCache_NaiveTopk {
 			} else if (mode == 1) {
 				acc += qr.p20();
 			} else {
-				acc += qr.recall();
+				acc += qr.recall(queryRelCountMap);
 			}
 		}
 		acc /= queryResults.size();

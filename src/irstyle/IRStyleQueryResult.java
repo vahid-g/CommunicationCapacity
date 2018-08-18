@@ -2,6 +2,7 @@ package irstyle;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import irstyle.core.Result;
 import query.ExperimentQuery;
@@ -35,6 +36,7 @@ public class IRStyleQueryResult {
 		return 0;
 	}
 
+	@Deprecated
 	double recall() {
 		double relCount = 0.0;
 		for (String id : resultIDs) {
@@ -43,6 +45,16 @@ public class IRStyleQueryResult {
 			}
 		}
 		return relCount / resultIDs.size();
+	}
+
+	double recall(Map<ExperimentQuery, Integer> queryRelCountMap) {
+		double relCount = 0.0;
+		for (String id : resultIDs) {
+			if (query.getQrelScoreMap().keySet().contains(id)) {
+				relCount++;
+			}
+		}
+		return relCount / queryRelCountMap.get(this.query);
 	}
 
 	double p20() {

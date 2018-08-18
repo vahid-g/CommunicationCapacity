@@ -9,7 +9,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Vector;
 
@@ -192,6 +194,15 @@ public class IRStyleKeywordSearch {
 		String Password = config.getProperty("password");
 		JDBCaccess jdbcacc = new JDBCaccess(Server, Port, Database_name, Username, Password);
 		return jdbcacc;
+	}
+
+	public static Map<ExperimentQuery, Integer> buildQueryRelcountMap(Connection conn,
+			List<ExperimentQuery> queryList) throws SQLException {
+		Map<ExperimentQuery, Integer> map = new HashMap<ExperimentQuery, Integer>();
+		for (ExperimentQuery query : queryList) {
+			map.put(query, DatabaseHelper.relCounts(conn, query.getQrelScoreMap().keySet()));
+		}
+		return map;
 	}
 
 }
