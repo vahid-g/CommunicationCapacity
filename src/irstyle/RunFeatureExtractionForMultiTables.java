@@ -55,6 +55,9 @@ public class RunFeatureExtractionForMultiTables {
 			Collections.shuffle(queries, new Random(1));
 			suffix = "mrr";
 		}
+		if (argList.contains("-eff")) {
+			queries = queries.subList(0, 10);
+		}
 		for (String table : ExperimentConstants.tableName) {
 			String indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_" + suffix;
 			cacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
@@ -95,6 +98,7 @@ public class RunFeatureExtractionForMultiTables {
 		data.add("query,freq," + fileHeader);
 		Analyzer biwordAnalyzer = new BiwordAnalyzer();
 		Analyzer analyzer = new StandardAnalyzer();
+		long time = 0;
 		for (ExperimentQuery query : queries) {
 			String queryText = query.getText();
 			StringBuilder sb = new StringBuilder();
@@ -104,6 +108,7 @@ public class RunFeatureExtractionForMultiTables {
 				IndexReader biwordIndexReader = biCacheIndexReaderList.get(i);
 				IndexReader biwordRestIndexReader = biRestIndexReaderList.get(i);
 				for (String attrib : ExperimentConstants.textAttribs[i]) {
+					long start = System.currentTimeMillis();
 					List<Double> f = new ArrayList<Double>();
 					f.add(wqde.coveredTokenRatio(indexReader, queryText, attrib, analyzer));
 					f.add(wqde.coveredTokenRatio(restIndexReader, queryText, attrib, analyzer));
@@ -146,10 +151,12 @@ public class RunFeatureExtractionForMultiTables {
 					f.add(wqde.queryLogLikelihood(biwordRestIndexReader, queryText, attrib, biwordIndexReader,
 							biwordAnalyzer));
 					sb.append(f.stream().map(ft -> ft + ",").collect(Collectors.joining()));
+					time += System.currentTimeMillis() - start;
 				}
 			}
 			data.add(queryText + "," + query.getFreq() + "," + sb.toString());
 		}
+		System.out.println("time per query = " + time / queries.size());
 		try (FileWriter fw = new FileWriter("features.csv")) {
 			for (String line : data) {
 				fw.write(line + "\n");
