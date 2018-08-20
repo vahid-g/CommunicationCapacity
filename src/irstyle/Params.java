@@ -4,7 +4,7 @@ public class Params {
 
 	public static int MAX_GENERATED_CN = 50;
 
-	public static int MAX_ALLOWED_TIME = 5 * 60 * 1000;
+	public static int MAX_ALLOWED_TIME = 2 * 60 * 1000;
 
 	static boolean DEBUG = false;
 
