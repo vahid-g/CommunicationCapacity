@@ -41,6 +41,11 @@ def analyze(c, subset, db, popularity):
     bad_count = b.value_counts()[True]
     print('%d distinct bad queries (%.2f %%)' %
           (bad_count, bad_count * 100 / query_count))
+    ml_to_cache = c['ml_label'] * c[popularity]
+    ql_to_cache = c['ql_label'] * c[popularity]
+    s = float(c[popularity].sum())
+    print('ratio of queries sent to full db by ml: %.2f' % (ml_to_cache.sum() / s))
+    print('ratio of queries sent to full db by ql: %.2f' % (ql_to_cache.sum() / s))
 
 if __name__ == "__main__":
     main(sys.argv[1:])

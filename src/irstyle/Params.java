@@ -16,6 +16,6 @@ public class Params {
 
 	public static boolean allKeywInResults = false;
 
-	static int MAX_TS_SIZE = 1000;
+	static int MAX_TS_SIZE = 100;
 
 }

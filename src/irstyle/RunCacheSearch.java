@@ -62,6 +62,9 @@ public class RunCacheSearch {
 		} else if (argsList.contains("-ql")) {
 			useQueryLikelihood = true;
 		}
+		if (argsList.contains("-eff")) {
+			queries = queries.subList(0, 20);
+		}
 		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();

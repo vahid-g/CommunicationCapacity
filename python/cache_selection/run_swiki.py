@@ -9,6 +9,7 @@ from sklearn import linear_model
 from sklearn.ensemble import RandomForestClassifier
 from utils import print_results
 from stack_anal import analyze
+import datetime
 
 def main(argv):
     filename = argv[0]
@@ -40,6 +41,7 @@ def main(argv):
     #sc = StandardScaler().fit(X)
     sc = MinMaxScaler().fit(X)
     X = sc.transform(X)
+    start = datetime.datetime.now()
     X_test = sc.transform(X_test)
     print("training balanced LR..")
     lr = linear_model.LogisticRegression(class_weight='balanced')
@@ -49,6 +51,8 @@ def main(argv):
     #c = np.column_stack((df.columns.values[5:-1], np.round(lr.coef_.flatten(),2)))
     #print(c[c[:,1].argsort()])
     y_prob = lr.predict_proba(X_test)
+    end = datetime.datetime.now()
+    delta = end - start
     y_pred = y_prob[:, 1] > t
     y_pred = y_pred.astype('uint8')
     print('--- t = %.2f results:' % t)
@@ -60,11 +64,11 @@ def main(argv):
     output['full'] = db_mrr
     output['Label'] = y_test
     output['ql'] = ql
-    #output['ql_label'] = ql
+    output['ql_label'] = ql_pred
     ml = subset_mrr.copy()
     ml.loc[y_pred == 1] = db_mrr[y_pred == 1]
     output['ml'] = ml
-    #output['Pred'] = pd.Series(y_pred, index=output.index)
+    output['ml_label'] = pd.Series(y_pred, index=output.index)
     best = subset_mrr.copy()
     print(best.mean())
     best[y_test == 1] = db_mrr[y_test == 1]
@@ -75,6 +79,8 @@ def main(argv):
     # output['rand'] = output['cache'].copy()
     # output['rand'][r == 1] = output['full'][r == 1].copy()
     analyze(output, 'cache', 'full','TestFreq')
+    print('total time: %f' % delta.total_seconds())
+    print('time per query: %f' % (delta.total_seconds() / len(y_pred)))
     if (write_output):
         output.to_csv('%s%s_result.csv' % ('../../data/cache_selection_structured/',
                                        filename[:-4]), index=False)
