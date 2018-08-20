@@ -68,9 +68,9 @@ public class IRStyleQueryResult {
 	}
 
 	void dedup() {
-		System.out.println("  size before dedup = " + resultIDs.size());
+		System.out.println("\t size before dedup = " + resultIDs.size());
 		this.resultIDs = this.resultIDs.stream().distinct().collect(Collectors.toList());
-		System.out.println("  size after dedup = " + resultIDs.size());
+		System.out.println("\t size after dedup = " + resultIDs.size());
 	}
 
 }

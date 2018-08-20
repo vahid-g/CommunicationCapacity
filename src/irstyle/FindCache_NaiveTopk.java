@@ -252,6 +252,7 @@ public class FindCache_NaiveTopk {
 			Map<ExperimentQuery, Integer> queryRelCountMap) {
 		double acc = 0;
 		for (IRStyleQueryResult qr : queryResults) {
+			qr.dedup();
 			if (mode == 0) {
 				acc += qr.rrank();
 			} else if (mode == 1) {
