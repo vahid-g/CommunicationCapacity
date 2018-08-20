@@ -3,6 +3,7 @@ package irstyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import irstyle.core.Result;
 import query.ExperimentQuery;
@@ -36,7 +37,6 @@ public class IRStyleQueryResult {
 		return 0;
 	}
 
-	@Deprecated
 	double recall() {
 		double relCount = 0.0;
 		for (String id : resultIDs) {
@@ -44,7 +44,7 @@ public class IRStyleQueryResult {
 				relCount++;
 			}
 		}
-		return relCount / resultIDs.size();
+		return relCount / query.getQrelScoreMap().size();
 	}
 
 	double recall(Map<ExperimentQuery, Integer> queryRelCountMap) {
@@ -65,6 +65,12 @@ public class IRStyleQueryResult {
 			}
 		}
 		return relCount / 20.0;
+	}
+
+	void dedup() {
+		System.out.println("  size before dedup = " + resultIDs.size());
+		this.resultIDs = this.resultIDs.stream().distinct().collect(Collectors.toList());
+		System.out.println("  size after dedup = " + resultIDs.size());
 	}
 
 }

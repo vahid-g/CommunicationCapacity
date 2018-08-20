@@ -89,6 +89,7 @@ public class RunCacheSearch {
 			long selectionTime = 0;
 			long luceneTime = 0;
 			long tuplesetTime = 0;
+			double recall = 0;
 			for (int exec = 0; exec < Params.numExecutions; exec++) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
@@ -140,9 +141,11 @@ public class RunCacheSearch {
 					relnamesValues.put(linkTable, linkIds);
 					IRStyleQueryResult result = RunCacheSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
 							relnamesValues);
+					result.dedup();
 					tuplesetTime += result.tuplesetTime;
 					time += luceneTime + result.execTime;
 					System.out.println("rrank=" + result.rrank());
+					recall += result.recall();
 					queryResults.add(result);
 				}
 			}
@@ -156,6 +159,7 @@ public class RunCacheSearch {
 			System.out.println("average just search time = " + (time - tuplesetTime) + " (ms)");
 			System.out.println("average total time  = " + time + " (ms)");
 			System.out.println("number of cache hits: " + cacheUseCount + "/" + queries.size());
+			System.out.println("recall = " + recall / queries.size());
 			IRStyleKeywordSearch.printResults(queryResults, "result.csv");
 		}
 
