@@ -22,8 +22,8 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
-import irstyle.IRStyleKeywordSearch;
 import irstyle.IRStyleQueryResult;
+import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.MIndexAccess;
@@ -83,34 +83,28 @@ public class RunCacheSearch {
 					Vector<String> allkeyw = new Vector<String>();
 					// escaping single quotes
 					allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
-					String articleTable = "tbl_article_wiki13";
-					String imageTable = "tbl_image_pop";
-					String linkTable = "tbl_link_pop";
-					String articleImageTable = "tbl_article_image_09";
-					String articleLinkTable = "tbl_article_link_09";
+					String answersTable = Constants.tableName[0];
+					String tagsTable = Constants.tableName[1];
+					String commentsTable = Constants.tableName[2];
 					IndexReader articleIndexToUse = articleReader;
 					IndexReader imageIndexToUse = imageReader;
 					IndexReader linkIndexToUse = linkReader;
 					long start = System.currentTimeMillis();
 					if (justUseCache) {
 						cacheUseCount++;
-						articleTable = "sub_article_wiki13";
-						articleImageTable = "sub_article_image_09";
-						imageTable = "sub_image_pop";
-						articleLinkTable = "sub_article_link_09";
-						linkTable = "sub_link_pop";
+						answersTable = "sub" + answersTable;
+						tagsTable = "sub" + tagsTable;
+						commentsTable = "sub_" + commentsTable;
 						articleIndexToUse = articleCacheReader;
 						imageIndexToUse = imageCacheReader;
 						linkIndexToUse = linkCacheReader;
 					}
 					selectionTime += System.currentTimeMillis() - start;
-					String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
-							+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
-							+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
-							+ articleLinkTable + " " + linkTable;
+					String schemaDescription = "3 " + answersTable + " " + tagsTable + " " + commentsTable + " "
+							+ answersTable + " " + " " + tagsTable + " " + answersTable + " " + commentsTable;
 					Schema sch = new Schema(schemaDescription);
-					Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable,
-							linkTable, articleImageTable, articleLinkTable, jdbcacc.conn);
+					Vector<Relation> relations = IRStyleKeywordSearch.createRelations(answersTable, tagsTable,
+							commentsTable, articleImageTable, articleLinkTable, jdbcacc.conn);
 					start = System.currentTimeMillis();
 					List<String> articleIds = RunCacheSearch.executeLuceneQuery(articleIndexToUse, query.getText());
 					List<String> imageIds = RunCacheSearch.executeLuceneQuery(imageIndexToUse, query.getText());
@@ -121,9 +115,9 @@ public class RunCacheSearch {
 								imageIds.size(), linkIds.size());
 					}
 					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
-					relnamesValues.put(articleTable, articleIds);
-					relnamesValues.put(imageTable, imageIds);
-					relnamesValues.put(linkTable, linkIds);
+					relnamesValues.put(answersTable, articleIds);
+					relnamesValues.put(tagsTable, imageIds);
+					relnamesValues.put(commentsTable, linkIds);
 					// TODO
 					IRStyleQueryResult result = RunCacheSearch.executeIRStyleQuery(jdbcacc, sch, relations, null,
 							relnamesValues);

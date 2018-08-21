@@ -29,6 +29,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
+import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
@@ -63,7 +64,7 @@ public class FindCache_NaiveTopk {
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 20);
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			Map<ExperimentQuery, Integer> queryRelCountMap = IRStyleKeywordSearch
+			Map<ExperimentQuery, Integer> queryRelCountMap = IRStyleWikiHelper
 					.buildQueryRelcountMap(dc.getConnection(), queries);
 			String[] tableNames = ExperimentConstants.tableName;
 			Connection conn = dc.getConnection();
@@ -113,7 +114,7 @@ public class FindCache_NaiveTopk {
 			int[] offset = { 0, 0, 0 };
 			int[] bestOffset = { 0, 0, 0 };
 			int loop = 1;
-			JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
+			JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
 			String articleTable = cacheTables[0];
 			String imageTable = cacheTables[1];
 			String linkTable = cacheTables[2];
@@ -123,7 +124,7 @@ public class FindCache_NaiveTopk {
 					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
-			Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
+			Vector<Relation> relations = IRStyleWikiHelper.createRelations(articleTable, imageTable, linkTable,
 					articleImageTable, articleLinkTable, jdbcacc.conn);
 			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 			List<List<Document>> docsList = new ArrayList<List<Document>>();

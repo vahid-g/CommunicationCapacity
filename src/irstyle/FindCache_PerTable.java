@@ -30,6 +30,7 @@ import org.apache.lucene.store.RAMDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
+import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
@@ -98,7 +99,7 @@ public class FindCache_PerTable {
 			double bestAcc = 0;
 			int[] offset = { 0, 0, 0 };
 			int loop = 1;
-			JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
+			JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
 			IndexReader articleReader = DirectoryReader
 					.open(FSDirectory.open(Paths.get(ExperimentConstants.WIKI_DATA_DIR + "tbl_article_wiki13/100")));
 			IndexReader imageReader = DirectoryReader
@@ -124,7 +125,7 @@ public class FindCache_PerTable {
 						+ articleLinkTable + " " + usedTable[2] + " " + usedTable[0] + " " + articleImageTable + " "
 						+ articleImageTable + " " + usedTable[1] + " " + usedTable[0] + " " + articleLinkTable + " "
 						+ articleLinkTable + " " + usedTable[2];
-				Vector<Relation> relations = IRStyleKeywordSearch.createRelations(usedTable[0], usedTable[1],
+				Vector<Relation> relations = IRStyleWikiHelper.createRelations(usedTable[0], usedTable[1],
 						usedTable[2], articleImageTable, articleLinkTable, jdbcacc.conn);
 				IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 				while (true) {

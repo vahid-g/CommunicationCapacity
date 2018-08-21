@@ -15,9 +15,10 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
 import irstyle.CacheSelectionQL;
-import irstyle.IRStyleKeywordSearch;
 import irstyle.IRStyleQueryResult;
+import irstyle.IRStyleWikiHelper;
 import irstyle.RunCacheSearch;
+import irstyle.api.IRStyleKeywordSearch;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
 import irstyle.core.Schema;
@@ -29,7 +30,7 @@ public class RunCacheSearch_MySQL {
 
 	public static void main(String[] args) throws Exception {
 
-		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
+		JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
 		WikiFilesPaths paths = null;
 		paths = WikiFilesPaths.getMaplePaths();
 		List<ExperimentQuery> queries = QueryServices.loadMsnQueries(paths.getMsnQueryFilePath(),
@@ -85,7 +86,7 @@ public class RunCacheSearch_MySQL {
 						+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 						+ articleLinkTable + " " + linkTable;
 				Schema sch = new Schema(schemaDescription);
-				Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
+				Vector<Relation> relations = IRStyleWikiHelper.createRelations(articleTable, imageTable, linkTable,
 						articleImageTable, articleLinkTable, jdbcacc.conn);
 
 				List<String> articleIds = RunCacheSearch.executeLuceneQuery(articleReader, query.getText());

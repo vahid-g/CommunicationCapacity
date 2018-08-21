@@ -14,10 +14,11 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
-import irstyle.IRStyleKeywordSearch;
 import irstyle.IRStyleQueryResult;
+import irstyle.IRStyleWikiHelper;
 import irstyle.RelationalWikiIndexer;
 import irstyle.RunCacheSearch;
+import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
@@ -66,12 +67,12 @@ public class RunCacheSearch_Old {
 	static List<IRStyleQueryResult> runExperiment(List<ExperimentQuery> queries, String articleTable,
 			String articleImageTable, String imageTable, String articleLinkTable, String linkTable,
 			String articleIndexPath, String imageIndexPath, String linkIndexPath) throws Exception {
-		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
+		JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
 		String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
 				+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 				+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 				+ articleLinkTable + " " + linkTable;
-		Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
+		Vector<Relation> relations = IRStyleWikiHelper.createRelations(articleTable, imageTable, linkTable,
 				articleImageTable, articleLinkTable, jdbcacc.conn);
 		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 

@@ -4,7 +4,7 @@ package irstyle.core;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import irstyle.IRStyleKeywordSearch;
+import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 
 /**

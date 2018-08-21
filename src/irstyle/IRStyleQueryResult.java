@@ -20,6 +20,10 @@ public class IRStyleQueryResult {
 
 	}
 
+	public ExperimentQuery getQuery() {
+		return query;
+	}
+
 	public void addIRStyleResults(ArrayList<Result> results) {
 		for (Result result : results) {
 			String resultText = result.getStr();

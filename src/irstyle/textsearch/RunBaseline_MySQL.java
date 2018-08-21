@@ -7,8 +7,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
-import irstyle.IRStyleKeywordSearch;
 import irstyle.IRStyleQueryResult;
+import irstyle.IRStyleWikiHelper;
+import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.MIndexAccess;
@@ -22,7 +23,7 @@ import wiki13.WikiFilesPaths;
 public class RunBaseline_MySQL {
 
 	public static void main(String[] args) throws Exception {
-		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
+		JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
 		for (int exec = 0; exec < Params.numExecutions; exec++) {
 			String articleTable = "tbl_article_09";
 			String imageTable = "tbl_image_09_tk";
@@ -33,7 +34,7 @@ public class RunBaseline_MySQL {
 					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
-			Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
+			Vector<Relation> relations = IRStyleWikiHelper.createRelations(articleTable, imageTable, linkTable,
 					articleImageTable, articleLinkTable, jdbcacc.conn);
 			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 			WikiFilesPaths paths = null;

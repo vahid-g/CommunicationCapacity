@@ -25,9 +25,10 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
 import irstyle.CacheSelectionQL;
-import irstyle.IRStyleKeywordSearch;
 import irstyle.IRStyleQueryResult;
+import irstyle.IRStyleWikiHelper;
 import irstyle.RelationalWikiIndexer;
+import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.MIndexAccess;
@@ -78,7 +79,7 @@ public class RunCacheSearchWithQL {
 			outputFileName += "_eff";
 		}
 		outputFileName += ".csv";
-		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
+		JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		try (IndexReader articleReader = DirectoryReader
@@ -138,7 +139,7 @@ public class RunCacheSearchWithQL {
 							+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 							+ articleLinkTable + " " + linkTable;
 					Schema sch = new Schema(schemaDescription);
-					Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable,
+					Vector<Relation> relations = IRStyleWikiHelper.createRelations(articleTable, imageTable,
 							linkTable, articleImageTable, articleLinkTable, jdbcacc.conn);
 					start = System.currentTimeMillis();
 					List<String> articleIds = RunCacheSearchWithQL.executeLuceneQuery(articleIndexToUse, query.getText());

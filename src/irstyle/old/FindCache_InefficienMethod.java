@@ -33,9 +33,10 @@ import org.apache.lucene.store.FSDirectory;
 import database.DatabaseConnection;
 import database.DatabaseType;
 import irstyle.ExperimentConstants;
-import irstyle.IRStyleKeywordSearch;
 import irstyle.IRStyleQueryResult;
+import irstyle.IRStyleWikiHelper;
 import irstyle.RunCacheSearch;
+import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
@@ -124,7 +125,7 @@ public class FindCache_InefficienMethod {
 			double acc = 0;
 			double bestAcc = 0;
 			int loop = 1;
-			JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
+			JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
 			String articleTable = cacheTableNames[0];
 			String imageTable = cacheTableNames[1];
 			String linkTable = cacheTableNames[2];
@@ -134,7 +135,7 @@ public class FindCache_InefficienMethod {
 					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
-			Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable, linkTable,
+			Vector<Relation> relations = IRStyleWikiHelper.createRelations(articleTable, imageTable, linkTable,
 					articleImageTable, articleLinkTable, jdbcacc.conn);
 			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 			int[] currentMaxPopularity = new int[tableNames.length];
