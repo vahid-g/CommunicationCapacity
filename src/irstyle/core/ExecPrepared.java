@@ -785,8 +785,9 @@ public class ExecPrepared {
 			}
 		}
 		long time2 = System.currentTimeMillis();
-		System.out.println("    Parallel algor: results output = " + resultsSoFar + " numPreparedQueries = "
-				+ numPreparedQueries + "  in time = " + (time2 - time1));
+		if (Flags.DEBUG_INFO)
+			System.out.println("    Parallel algor: results output = " + resultsSoFar + " numPreparedQueries = "
+					+ numPreparedQueries + "  in time = " + (time2 - time1));
 		if (Flags.RESULTS__SHOW_OUTPUT)
 			printResults(R, scoresR);
 		for (int i = 0; i < R.size(); i++)

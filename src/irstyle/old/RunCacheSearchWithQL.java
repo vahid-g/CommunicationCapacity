@@ -1,4 +1,4 @@
-package irstyle;
+package irstyle.old;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -24,6 +24,11 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
+import irstyle.CacheSelectionQL;
+import irstyle.IRStyleKeywordSearch;
+import irstyle.IRStyleQueryResult;
+import irstyle.Params;
+import irstyle.RelationalWikiIndexer;
 import irstyle.core.JDBCaccess;
 import irstyle.core.MIndexAccess;
 import irstyle.core.Relation;
@@ -32,7 +37,7 @@ import irstyle.core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
 
-public class RunCacheSearch {
+public class RunCacheSearchWithQL {
 
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
@@ -57,9 +62,13 @@ public class RunCacheSearch {
 			Params.DEBUG = true;
 		}
 		boolean justUseCache = false;
+		boolean useQueryLikelihood = false;
 		if (argsList.contains("-cache")) {
 			justUseCache = true;
 			outputFileName += "_cache";
+		} else if (argsList.contains("-ql")) {
+			useQueryLikelihood = true;
+			outputFileName += "_ql";
 		} else {
 			outputFileName += "_full";
 		}
@@ -83,7 +92,11 @@ public class RunCacheSearch {
 				IndexReader linkReader = DirectoryReader
 						.open(FSDirectory.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_link_pop/100")));
 				IndexReader linkCacheReader = DirectoryReader.open(FSDirectory
-						.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_link_pop_" + cacheNameSuffix)))) {
+						.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_link_pop_" + cacheNameSuffix)));
+				IndexReader cacheReader = DirectoryReader.open(FSDirectory
+						.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_cache_" + cacheNameSuffix)));
+				IndexReader restReader = DirectoryReader.open(FSDirectory
+						.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_rest_" + cacheNameSuffix)))) {
 			long time = 0;
 			int cacheUseCount = 0;
 			long selectionTime = 0;
@@ -107,14 +120,15 @@ public class RunCacheSearch {
 					IndexReader imageIndexToUse = imageReader;
 					IndexReader linkIndexToUse = linkReader;
 					long start = System.currentTimeMillis();
-					if (justUseCache) {
+					if (justUseCache || (useQueryLikelihood
+							&& CacheSelectionQL.useCache(query.getText(), cacheReader, articleReader, restReader))) {
 						cacheUseCount++;
 						articleTable = "sub_article_wiki13";
 						articleImageTable = "sub_article_image_09";
 						imageTable = "sub_image_pop";
 						articleLinkTable = "sub_article_link_09";
 						linkTable = "sub_link_pop";
-						articleIndexToUse = articleCacheReader;
+						articleIndexToUse = cacheReader;
 						imageIndexToUse = imageCacheReader;
 						linkIndexToUse = linkCacheReader;
 					}
@@ -127,9 +141,9 @@ public class RunCacheSearch {
 					Vector<Relation> relations = IRStyleKeywordSearch.createRelations(articleTable, imageTable,
 							linkTable, articleImageTable, articleLinkTable, jdbcacc.conn);
 					start = System.currentTimeMillis();
-					List<String> articleIds = RunCacheSearch.executeLuceneQuery(articleIndexToUse, query.getText());
-					List<String> imageIds = RunCacheSearch.executeLuceneQuery(imageIndexToUse, query.getText());
-					List<String> linkIds = RunCacheSearch.executeLuceneQuery(linkIndexToUse, query.getText());
+					List<String> articleIds = RunCacheSearchWithQL.executeLuceneQuery(articleIndexToUse, query.getText());
+					List<String> imageIds = RunCacheSearchWithQL.executeLuceneQuery(imageIndexToUse, query.getText());
+					List<String> linkIds = RunCacheSearchWithQL.executeLuceneQuery(linkIndexToUse, query.getText());
 					luceneTime += (System.currentTimeMillis() - start);
 					if (Params.DEBUG) {
 						System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
@@ -139,7 +153,7 @@ public class RunCacheSearch {
 					relnamesValues.put(articleTable, articleIds);
 					relnamesValues.put(imageTable, imageIds);
 					relnamesValues.put(linkTable, linkIds);
-					IRStyleQueryResult result = RunCacheSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
+					IRStyleQueryResult result = RunCacheSearchWithQL.executeIRStyleQuery(jdbcacc, sch, relations, query,
 							relnamesValues);
 					result.dedup();
 					tuplesetTime += result.tuplesetTime;
