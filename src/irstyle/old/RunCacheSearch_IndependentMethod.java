@@ -17,7 +17,7 @@ import org.apache.lucene.store.FSDirectory;
 import irstyle.CacheSelectionQL;
 import irstyle.IRStyleQueryResult;
 import irstyle.IRStyleWikiHelper;
-import irstyle.RunCacheSearch;
+import irstyle.RelationalWikiIndexer;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
@@ -104,18 +104,21 @@ public class RunCacheSearch_IndependentMethod {
 							+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 							+ articleLinkTable + " " + linkTable;
 					Schema sch = new Schema(schemaDescription);
-					Vector<Relation> relations = IRStyleWikiHelper.createRelations(articleTable, imageTable,
-							linkTable, articleImageTable, articleLinkTable, jdbcacc.conn);
-					List<String> articleIds = RunCacheSearch.executeLuceneQuery(articleIndexToUse, query.getText());
-					List<String> imageIds = RunCacheSearch.executeLuceneQuery(imageIndexToUse, query.getText());
-					List<String> linkIds = RunCacheSearch.executeLuceneQuery(linkIndexToUse, query.getText());
+					Vector<Relation> relations = IRStyleWikiHelper.createRelations(articleTable, imageTable, linkTable,
+							articleImageTable, articleLinkTable, jdbcacc.conn);
+					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleIndexToUse,
+							query.getText(), RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
+					List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageIndexToUse, query.getText(),
+							RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
+					List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkIndexToUse, query.getText(),
+							RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
 					System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
 							imageIds.size(), linkIds.size());
 					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 					relnamesValues.put(articleTable, articleIds);
 					relnamesValues.put(imageTable, imageIds);
 					relnamesValues.put(linkTable, linkIds);
-					IRStyleQueryResult result = RunCacheSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
+					IRStyleQueryResult result = IRStyleKeywordSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
 							relnamesValues);
 					time += result.execTime;
 					queryResults.add(result);

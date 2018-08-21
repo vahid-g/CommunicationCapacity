@@ -45,8 +45,9 @@ public class Indexer {
 		return config;
 	}
 
-	public static void indexTable(DatabaseConnection dc, String indexPath, String table, String[] textAttribs, int limit,
-			String popularity, boolean ascending, IndexWriterConfig config) throws IOException, SQLException {
+	public static void indexTable(DatabaseConnection dc, String indexPath, String table, String[] textAttribs,
+			int limit, String popularity, boolean ascending, IndexWriterConfig config)
+			throws IOException, SQLException {
 		File indexFile = new File(indexPath);
 		if (!indexFile.exists()) {
 			indexFile.mkdirs();
@@ -98,8 +99,8 @@ public class Indexer {
 	}
 
 	// Make an index on table considering each text attrib as a field
-	public static void indexTableAttribs(DatabaseConnection dc, IndexWriter indexWriter, String table, String[] textAttribs,
-			int limit, String popularity, boolean ascending) throws IOException, SQLException {
+	public static void indexTableAttribs(DatabaseConnection dc, IndexWriter indexWriter, String table,
+			String[] textAttribs, int limit, String popularity, boolean ascending) throws IOException, SQLException {
 		try (Statement stmt = dc.getConnection().createStatement()) {
 			stmt.setFetchSize(Integer.MIN_VALUE);
 			String attribs = "id";
@@ -143,10 +144,9 @@ public class Indexer {
 		doc.add(new StoredField(RelationalWikiIndexer.WEIGHT_FIELD, rs.getInt("popularity")));
 		for (String attrib : textAttribs) {
 			doc.add(new TextField(attrib, rs.getString(attrib), Store.NO));
-	
+
 		}
 		iwriter.addDocument(doc);
-	
 	}
 
 }

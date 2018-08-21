@@ -1,8 +1,6 @@
 package stackoverflow.irstyle;
 
-import java.io.IOException;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,25 +8,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
 import irstyle.IRStyleQueryResult;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
-import irstyle.core.MIndexAccess;
 import irstyle.core.Relation;
-import irstyle.core.Result;
 import irstyle.core.Schema;
 import query.ExperimentQuery;
 import stackoverflow.QuestionDAO;
@@ -107,9 +95,12 @@ public class RunCacheSearch {
 					Vector<Relation> relations = IRStyleStackHelper.createRelations(answersTable, tagsTable,
 							commentsTable, jdbcacc.conn);
 					start = System.currentTimeMillis();
-					List<String> articleIds = RunCacheSearch.executeLuceneQuery(articleIndexToUse, query.getText());
-					List<String> imageIds = RunCacheSearch.executeLuceneQuery(imageIndexToUse, query.getText());
-					List<String> linkIds = RunCacheSearch.executeLuceneQuery(linkIndexToUse, query.getText());
+					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleIndexToUse,
+							query.getText(), TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
+					List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageIndexToUse, query.getText(),
+							TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
+					List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkIndexToUse, query.getText(),
+							TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
 					luceneTime += (System.currentTimeMillis() - start);
 					if (Params.DEBUG) {
 						System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
@@ -119,8 +110,7 @@ public class RunCacheSearch {
 					relnamesValues.put(answersTable, articleIds);
 					relnamesValues.put(tagsTable, imageIds);
 					relnamesValues.put(commentsTable, linkIds);
-					// TODO
-					IRStyleQueryResult result = RunCacheSearch.executeIRStyleQuery(jdbcacc, sch, relations, null,
+					IRStyleQueryResult result = IRStyleKeywordSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
 							relnamesValues);
 					result.dedup();
 					tuplesetTime += result.tuplesetTime;
@@ -145,56 +135,6 @@ public class RunCacheSearch {
 			System.out.println("p20 = " + p20 / queries.size());
 			IRStyleKeywordSearch.printResults(queryResults, outputFileName);
 		}
-	}
-
-	public static IRStyleQueryResult executeIRStyleQuery(JDBCaccess jdbcacc, Schema sch, Vector<Relation> relations,
-			ExperimentQuery query, Map<String, List<String>> relnameValues) throws SQLException {
-		MIndexAccess MIndx = new MIndexAccess(relations);
-		Vector<String> allkeyw = new Vector<String>();
-		// escaping single quotes
-		allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
-		int exectime = 0;
-		long start = System.currentTimeMillis();
-		MIndx.createTupleSetsFast(sch, allkeyw, jdbcacc.conn, relnameValues);
-		long tuplesetTime = System.currentTimeMillis() - start;
-		exectime += tuplesetTime;
-		if (Params.DEBUG)
-			System.out.println(" Time to create tuple sets: " + (tuplesetTime) + " (ms)");
-		start = System.currentTimeMillis();
-		Vector<?> CNs = sch.getCNs(Params.maxCNsize, allkeyw, sch, MIndx);
-		long cnTime = System.currentTimeMillis() - start;
-		exectime += cnTime;
-		if (Params.DEBUG)
-			System.out.println(" Time to get CNs=" + (cnTime) + " (ms) \n\t #CNs: " + CNs.size());
-		ArrayList<Result> results = new ArrayList<Result>();
-		int time = IRStyleKeywordSearch.methodC(Params.N, Params.allKeywInResults, relations, allkeyw, CNs, results,
-				jdbcacc);
-		exectime += time;
-		if (Params.DEBUG)
-			System.out.println(" Time to search joint tuplesets: " + time);
-		IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
-		IRStyleQueryResult result = new IRStyleQueryResult(query, exectime);
-		result.addIRStyleResults(results);
-		result.tuplesetTime = tuplesetTime;
-		if (Params.DEBUG)
-			System.out.println(" R-rank = " + result.rrank());
-		return result;
-	}
-
-	public static List<String> executeLuceneQuery(IndexReader reader, String queryText)
-			throws ParseException, IOException {
-		IndexSearcher searcher = new IndexSearcher(reader);
-		searcher.setSimilarity(new BM25Similarity());
-		QueryParser qp = new QueryParser("???", new StandardAnalyzer());
-		Query query = qp.parse(QueryParser.escape(queryText));
-		ScoreDoc[] scoreDocHits = searcher.search(query, Params.MAX_TS_SIZE).scoreDocs;
-		List<String> results = new ArrayList<String>();
-		for (int j = 0; j < scoreDocHits.length; j++) {
-			Document doc = reader.document(scoreDocHits[j].doc);
-			String docId = doc.get("???");
-			results.add("(" + docId + "," + scoreDocHits[j].score + ")");
-		}
-		return results;
 	}
 
 }
