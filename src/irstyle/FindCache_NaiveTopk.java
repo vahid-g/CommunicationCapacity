@@ -62,10 +62,10 @@ public class FindCache_NaiveTopk {
 			Params.DEBUG = true;
 		}
 		Collections.shuffle(queries, new Random(1));
-		queries = queries.subList(0, 20);
+		queries = queries.subList(0, 10);
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			Map<ExperimentQuery, Integer> queryRelCountMap = IRStyleWikiHelper
-					.buildQueryRelcountMap(dc.getConnection(), queries);
+			// Map<ExperimentQuery, Integer> queryRelCountMap = IRStyleWikiHelper
+			// .buildQueryRelcountMap(dc.getConnection(), queries);
 			String[] tableNames = ExperimentConstants.tableName;
 			Connection conn = dc.getConnection();
 			String[] cacheTables = new String[tableNames.length];
@@ -197,7 +197,7 @@ public class FindCache_NaiveTopk {
 								relnamesValues);
 						queryResults.add(result);
 					}
-					acc = effectiveness(queryResults, effectivenessMetric, queryRelCountMap);
+					acc = effectiveness(queryResults, effectivenessMetric, null);
 					System.out.println("  new accuracy = " + acc);
 
 				}
@@ -239,7 +239,7 @@ public class FindCache_NaiveTopk {
 			System.out.println("Offsets for articles, images, links = " + Arrays.toString(bestOffset));
 			double[] percent = new double[bestOffset.length];
 			for (int i = 0; i < bestOffset.length; i++) {
-				percent[i] = bestOffset[i] / (double)ExperimentConstants.size[i];
+				percent[i] = bestOffset[i] / (double) ExperimentConstants.size[i];
 			}
 			System.out.println("Best found sizes = " + Arrays.toString(percent));
 			for (int i = 0; i < tableNames.length; i++) {
@@ -260,7 +260,7 @@ public class FindCache_NaiveTopk {
 			} else if (mode == 1) {
 				acc += qr.p20();
 			} else {
-				acc += qr.recall(queryRelCountMap);
+				acc += qr.recall();
 			}
 		}
 		acc /= queryResults.size();
