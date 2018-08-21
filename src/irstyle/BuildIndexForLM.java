@@ -48,26 +48,23 @@ public class BuildIndexForLM {
 			// building index for LM
 			Directory cacheDirectory = FSDirectory
 					.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_cache_" + suffix));
-			IndexWriterConfig cacheConfig = Indexer.getIndexWriterConfig(analyzer)
-					.setOpenMode(OpenMode.CREATE);
+			IndexWriterConfig cacheConfig = Indexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
 			Directory restDirectory = FSDirectory
 					.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_rest_" + suffix));
 			Directory allDirectory = FSDirectory
 					.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_all_" + suffix));
-			IndexWriterConfig restConfig = Indexer.getIndexWriterConfig(analyzer)
-					.setOpenMode(OpenMode.CREATE);
+			IndexWriterConfig restConfig = Indexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
 			IndexWriterConfig allConfig = Indexer.getIndexWriterConfig(analyzer);
 			try (IndexWriter cacheWriter = new IndexWriter(cacheDirectory, cacheConfig);
 					IndexWriter restWriter = new IndexWriter(restDirectory, restConfig);
 					IndexWriter allWriter = new IndexWriter(allDirectory, allConfig)) {
 				for (int i = 0; i < tableName.length; i++) {
 					System.out.println("Indexing table " + tableName[i]);
-					Indexer.indexTable(dc, cacheWriter, tableName[i], textAttribs[i], limit[i],
-							"popularity", false);
+					Indexer.indexTable(dc, cacheWriter, tableName[i], textAttribs[i], limit[i], "popularity", false);
 					Indexer.indexTable(dc, restWriter, tableName[i], textAttribs[i],
 							ExperimentConstants.size[i] - limit[i], "popularity", true);
-					Indexer.indexTable(dc, allWriter, tableName[i], textAttribs[i],
-							ExperimentConstants.size[i], "popularity", false);
+					// Indexer.indexTable(dc, allWriter, tableName[i], textAttribs[i],
+					// ExperimentConstants.size[i], "popularity", false);
 				}
 			}
 		}
