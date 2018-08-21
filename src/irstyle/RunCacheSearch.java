@@ -67,6 +67,7 @@ public class RunCacheSearch {
 		}
 		Collections.shuffle(queries, new Random(1));
 		if (argsList.contains("-eff")) {
+			System.out.println("setting: " + Params.getDescriptor());
 			queries = queries.subList(0, 20);
 			outputFileName += "_eff";
 		}
@@ -126,8 +127,8 @@ public class RunCacheSearch {
 							+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 							+ articleLinkTable + " " + linkTable;
 					Schema sch = new Schema(schemaDescription);
-					Vector<Relation> relations = IRStyleWikiHelper.createRelations(articleTable, imageTable,
-							linkTable, articleImageTable, articleLinkTable, jdbcacc.conn);
+					Vector<Relation> relations = IRStyleWikiHelper.createRelations(articleTable, imageTable, linkTable,
+							articleImageTable, articleLinkTable, jdbcacc.conn);
 					start = System.currentTimeMillis();
 					List<String> articleIds = RunCacheSearch.executeLuceneQuery(articleIndexToUse, query.getText());
 					List<String> imageIds = RunCacheSearch.executeLuceneQuery(imageIndexToUse, query.getText());

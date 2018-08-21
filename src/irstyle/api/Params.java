@@ -17,5 +17,13 @@ public class Params {
 	public static boolean allKeywInResults = false;
 
 	public static int MAX_TS_SIZE = 100;
+	
+	public static String getDescriptor() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("MAX_ALLOWED_TIME = " + MAX_ALLOWED_TIME + "\n");
+		sb.append("N = " + N + "\n");
+		sb.append("MAX_TS_SIZE = " + MAX_TS_SIZE);
+		return sb.toString();
+	}
 
 }
