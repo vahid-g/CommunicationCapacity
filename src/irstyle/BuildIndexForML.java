@@ -17,6 +17,7 @@ import org.apache.lucene.store.FSDirectory;
 import database.DatabaseConnection;
 import database.DatabaseType;
 import indexing.BiwordAnalyzer;
+import irstyle.api.Indexer;
 
 public class BuildIndexForML {
 	public static void main(String[] args) throws SQLException, IOException {
@@ -46,19 +47,19 @@ public class BuildIndexForML {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 
 			String table = tableName[tableNo];
-			IndexWriterConfig config = RelationalWikiIndexer.getIndexWriterConfig(analyzer)
+			IndexWriterConfig config = Indexer.getIndexWriterConfig(analyzer)
 					.setOpenMode(OpenMode.CREATE);
 			Directory directory = FSDirectory
 					.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_" + suffix));
 			try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
-				RelationalWikiIndexer.indexTableAttribs(dc, indexWriter, table, textAttribs[tableNo], limit[tableNo],
+				Indexer.indexTableAttribs(dc, indexWriter, table, textAttribs[tableNo], limit[tableNo],
 						"popularity", false);
 			}
-			config = RelationalWikiIndexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
+			config = Indexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
 			directory = FSDirectory
 					.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_" + suffix));
 			try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
-				RelationalWikiIndexer.indexTableAttribs(dc, indexWriter, table, textAttribs[tableNo],
+				Indexer.indexTableAttribs(dc, indexWriter, table, textAttribs[tableNo],
 						ExperimentConstants.size[tableNo] - limit[tableNo], "popularity", true);
 			}
 		}

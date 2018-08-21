@@ -13,6 +13,7 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
+import irstyle.api.Indexer;
 
 public class BuildCache {
 	public static void main(String[] args) throws SQLException, IOException {
@@ -65,9 +66,9 @@ public class BuildCache {
 	private static void buildCacheIndex(DatabaseConnection dc, String tableName, String[] textAttribs, String cacheName,
 			int limit) throws IOException, SQLException {
 		try (Analyzer analyzer = new StandardAnalyzer()) {
-			IndexWriterConfig config = RelationalWikiIndexer.getIndexWriterConfig(analyzer);
+			IndexWriterConfig config = Indexer.getIndexWriterConfig(analyzer);
 			config.setOpenMode(OpenMode.CREATE);
-			RelationalWikiIndexer.indexTable(dc, ExperimentConstants.WIKI_DATA_DIR + cacheName, tableName,
+			Indexer.indexTable(dc, ExperimentConstants.WIKI_DATA_DIR + cacheName, tableName,
 					textAttribs, limit, "popularity", false, config);
 		}
 	}

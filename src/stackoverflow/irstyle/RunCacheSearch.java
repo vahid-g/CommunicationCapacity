@@ -36,11 +36,9 @@ import stackoverflow.StackQueryingExperiment;
 
 public class RunCacheSearch {
 
-	public static final String DATA_STACK = "/data/ghadakcv/stack/";
-
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
-		String cacheNameSuffix = "???";
+		String cacheNameSuffix = "mrr";
 		String outputFileName = "result";
 		StackQueryingExperiment sqe = new StackQueryingExperiment();
 		List<QuestionDAO> queries = sqe.loadQuestionsFromTable("questions_s_test_train");
@@ -56,21 +54,21 @@ public class RunCacheSearch {
 			outputFileName += "_eff";
 		}
 		outputFileName += ".csv";
-		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
+		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess("stack_overflow");
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		try (IndexReader articleReader = DirectoryReader
-				.open(FSDirectory.open(Paths.get(DATA_STACK + "tbl_article_wiki13/100")));
+				.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + "tbl_article_wiki13/100")));
 				IndexReader articleCacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(DATA_STACK + "sub_article_wiki13_" + cacheNameSuffix)));
+						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + "sub_article_wiki13_" + cacheNameSuffix)));
 				IndexReader imageReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(DATA_STACK + "tbl_image_pop/100")));
+						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + "tbl_image_pop/100")));
 				IndexReader imageCacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(DATA_STACK + "sub_image_pop_" + cacheNameSuffix)));
+						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + "sub_image_pop_" + cacheNameSuffix)));
 				IndexReader linkReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(DATA_STACK + "tbl_link_pop/100")));
+						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + "tbl_link_pop/100")));
 				IndexReader linkCacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(DATA_STACK + "sub_link_pop_" + cacheNameSuffix)))) {
+						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + "sub_link_pop_" + cacheNameSuffix)))) {
 			long time = 0;
 			int cacheUseCount = 0;
 			long selectionTime = 0;
