@@ -9,7 +9,7 @@ import java.util.Vector;
 
 import irstyle.IRStyleKeywordSearch;
 import irstyle.IRStyleQueryResult;
-import irstyle.Params;
+import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.MIndexAccess;
 import irstyle.core.Relation;

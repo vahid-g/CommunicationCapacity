@@ -24,7 +24,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import irstyle.IRStyleKeywordSearch;
 import irstyle.IRStyleQueryResult;
-import irstyle.Params;
+import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.MIndexAccess;
 import irstyle.core.Relation;
@@ -58,17 +58,17 @@ public class RunCacheSearch {
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		try (IndexReader articleReader = DirectoryReader
-				.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + "tbl_article_wiki13/100")));
-				IndexReader articleCacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + "sub_article_wiki13_" + cacheNameSuffix)));
+				.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + Constants.tableName[0] + "/100")));
+				IndexReader articleCacheReader = DirectoryReader.open(FSDirectory.open(
+						Paths.get(Constants.DATA_STACK + "sub_" + Constants.tableName[0] + "_" + cacheNameSuffix)));
 				IndexReader imageReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + "tbl_image_pop/100")));
-				IndexReader imageCacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + "sub_image_pop_" + cacheNameSuffix)));
+						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + Constants.tableName[1] + "/100")));
+				IndexReader imageCacheReader = DirectoryReader.open(FSDirectory.open(
+						Paths.get(Constants.DATA_STACK + "sub_" + Constants.tableName[1] + "_" + cacheNameSuffix)));
 				IndexReader linkReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + "tbl_link_pop/100")));
-				IndexReader linkCacheReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + "sub_link_pop_" + cacheNameSuffix)))) {
+						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + Constants.tableName[2] + "/100")));
+				IndexReader linkCacheReader = DirectoryReader.open(FSDirectory.open(
+						Paths.get(Constants.DATA_STACK + "sub_" + Constants.tableName[2] + "_" + cacheNameSuffix)))) {
 			long time = 0;
 			int cacheUseCount = 0;
 			long selectionTime = 0;

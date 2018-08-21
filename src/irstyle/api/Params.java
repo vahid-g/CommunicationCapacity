@@ -1,4 +1,4 @@
-package irstyle;
+package irstyle.api;
 
 public class Params {
 

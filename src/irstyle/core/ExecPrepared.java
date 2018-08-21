@@ -4,7 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
-import irstyle.Params;
+import irstyle.api.Params;
 
 public class ExecPrepared {
 

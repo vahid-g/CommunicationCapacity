@@ -24,6 +24,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
+import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.MIndexAccess;
 import irstyle.core.Relation;

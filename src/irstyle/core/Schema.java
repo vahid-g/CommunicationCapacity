@@ -5,7 +5,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import irstyle.IRStyleKeywordSearch;
-import irstyle.Params;
+import irstyle.api.Params;
 
 /**
  * Each relation has exactly one instance for schema.

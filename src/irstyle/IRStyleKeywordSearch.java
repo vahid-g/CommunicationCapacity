@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Vector;
 
+import irstyle.api.Params;
 import irstyle.core.ExecPrepared;
 import irstyle.core.Flags;
 import irstyle.core.InitialMain;

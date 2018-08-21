@@ -16,9 +16,9 @@ import org.apache.lucene.store.FSDirectory;
 
 import irstyle.IRStyleKeywordSearch;
 import irstyle.IRStyleQueryResult;
-import irstyle.Params;
 import irstyle.RelationalWikiIndexer;
 import irstyle.RunCacheSearch;
+import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
 import irstyle.core.Schema;

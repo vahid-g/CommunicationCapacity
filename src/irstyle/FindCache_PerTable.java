@@ -30,6 +30,7 @@ import org.apache.lucene.store.RAMDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
+import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
 import irstyle.core.Schema;
