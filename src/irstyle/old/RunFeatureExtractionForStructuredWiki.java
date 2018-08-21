@@ -1,4 +1,4 @@
-package irstyle;
+package irstyle.old;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,6 +23,7 @@ import org.apache.lucene.store.FSDirectory;
 import cache_selection_ml.FeatureExtraction;
 import indexing.BiwordAnalyzer;
 import indexing.popularity.TokenPopularity;
+import irstyle.RelationalWikiIndexer;
 import query.ExperimentQuery;
 import query.QueryServices;
 

@@ -76,7 +76,7 @@ public class FindCache_PerTable {
 				selectTemplates[i] = "select * from " + tableNames[i] + " order by popularity desc limit ?, "
 						+ pageSize[i] + ";";
 				insertTemplates[i] = "insert into " + cacheTables[i] + " (id) values (?);";
-				indexPaths[i] = ExperimentConstants.MAPLE_DATA_DIR + cacheTables[i];
+				indexPaths[i] = ExperimentConstants.WIKI_DATA_DIR + cacheTables[i];
 				config[i] = new IndexWriterConfig(new StandardAnalyzer());
 				config[i].setSimilarity(new BM25Similarity());
 				config[i].setRAMBufferSizeMB(1024);
@@ -99,11 +99,11 @@ public class FindCache_PerTable {
 			int loop = 1;
 			JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess();
 			IndexReader articleReader = DirectoryReader
-					.open(FSDirectory.open(Paths.get(ExperimentConstants.MAPLE_DATA_DIR + "tbl_article_wiki13/100")));
+					.open(FSDirectory.open(Paths.get(ExperimentConstants.WIKI_DATA_DIR + "tbl_article_wiki13/100")));
 			IndexReader imageReader = DirectoryReader
-					.open(FSDirectory.open(Paths.get(ExperimentConstants.MAPLE_DATA_DIR + "tbl_image_pop/100")));
+					.open(FSDirectory.open(Paths.get(ExperimentConstants.WIKI_DATA_DIR + "tbl_image_pop/100")));
 			IndexReader linkReader = DirectoryReader
-					.open(FSDirectory.open(Paths.get(ExperimentConstants.MAPLE_DATA_DIR + "tbl_link_pop/100")));
+					.open(FSDirectory.open(Paths.get(ExperimentConstants.WIKI_DATA_DIR + "tbl_link_pop/100")));
 			IndexReader[] indexReader = new IndexReader[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
 				System.out.println("================================");

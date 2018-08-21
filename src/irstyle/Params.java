@@ -6,7 +6,7 @@ public class Params {
 
 	public static int MAX_ALLOWED_TIME = 1 * 60 * 1000;
 
-	static boolean DEBUG = false;
+	public static boolean DEBUG = false;
 
 	public static int maxCNsize = 5;
 
@@ -16,6 +16,6 @@ public class Params {
 
 	public static boolean allKeywInResults = false;
 
-	static int MAX_TS_SIZE = 100;
+	public static int MAX_TS_SIZE = 100;
 
 }

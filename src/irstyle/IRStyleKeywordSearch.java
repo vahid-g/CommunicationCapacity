@@ -179,10 +179,13 @@ public class IRStyleKeywordSearch {
 	}
 
 	public static JDBCaccess jdbcAccess() throws IOException {
+		return jdbcAccess("wikipedia");
+	}
+
+	public static JDBCaccess jdbcAccess(String Database_name) throws IOException {
 		// JDBC input
 		// Server = "localhost";
 		String Server = "vm-maple.eecs.oregonstate.edu";
-		String Database_name = "wikipedia";
 		String Port = "3306";
 		// end input
 		Properties config = new Properties();
@@ -196,8 +199,8 @@ public class IRStyleKeywordSearch {
 		return jdbcacc;
 	}
 
-	public static Map<ExperimentQuery, Integer> buildQueryRelcountMap(Connection conn,
-			List<ExperimentQuery> queryList) throws SQLException {
+	public static Map<ExperimentQuery, Integer> buildQueryRelcountMap(Connection conn, List<ExperimentQuery> queryList)
+			throws SQLException {
 		Map<ExperimentQuery, Integer> map = new HashMap<ExperimentQuery, Integer>();
 		for (ExperimentQuery query : queryList) {
 			map.put(query, DatabaseHelper.relCounts(conn, query.getQrelScoreMap().keySet()));

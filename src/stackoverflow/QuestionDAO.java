@@ -22,6 +22,10 @@ public class QuestionDAO {
 		this.text = question;
 		this.acceptedAnswer = answer;
 	}
+	
+	public String getText() {
+		return text;
+	}
 
 	@Override
 	public String toString() {

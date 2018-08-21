@@ -11,7 +11,7 @@ import query.ExperimentQuery;
 public class IRStyleQueryResult {
 	ExperimentQuery query;
 	public long execTime = 0;
-	long tuplesetTime = 0;
+	public long tuplesetTime = 0;
 	List<String> resultIDs = new ArrayList<String>();
 
 	public IRStyleQueryResult(ExperimentQuery query, long execTime) {
@@ -37,7 +37,7 @@ public class IRStyleQueryResult {
 		return 0;
 	}
 
-	double recall() {
+	public double recall() {
 		double relCount = 0.0;
 		for (String id : resultIDs) {
 			if (query.getQrelScoreMap().keySet().contains(id)) {
@@ -57,7 +57,7 @@ public class IRStyleQueryResult {
 		return relCount / queryRelCountMap.get(this.query);
 	}
 
-	double p20() {
+	public double p20() {
 		double relCount = 0.0;
 		for (int i = 0; i < Math.min(20, resultIDs.size()); i++) {
 			if (query.getQrelScoreMap().keySet().contains(resultIDs.get(i))) {
@@ -67,10 +67,8 @@ public class IRStyleQueryResult {
 		return relCount / 20.0;
 	}
 
-	void dedup() {
-		System.out.println("\t size before dedup = " + resultIDs.size());
+	public void dedup() {
 		this.resultIDs = this.resultIDs.stream().distinct().collect(Collectors.toList());
-		System.out.println("\t size after dedup = " + resultIDs.size());
 	}
 
 }

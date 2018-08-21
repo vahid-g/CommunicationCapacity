@@ -70,13 +70,13 @@ public class RunFeatureExtractionForMultiTables {
 		}
 		LOGGER.log(Level.INFO, "loading popularity indices..");
 		cacheTermPopularity = TokenPopularity.loadTokenPopularities(
-				ExperimentConstants.MAPLE_DATA_DIR + "lm_cache_" + suffix + "_text_pop_index" + ".csv");
+				ExperimentConstants.WIKI_DATA_DIR + "lm_cache_" + suffix + "_text_pop_index" + ".csv");
 		restTermPopularity = TokenPopularity.loadTokenPopularities(
-				ExperimentConstants.MAPLE_DATA_DIR + "lm_rest_" + suffix + "_text_pop_index" + ".csv");
+				ExperimentConstants.WIKI_DATA_DIR + "lm_rest_" + suffix + "_text_pop_index" + ".csv");
 		biwordCachePopularity = TokenPopularity.loadTokenPopularities(
-				ExperimentConstants.MAPLE_DATA_DIR + "lm_cache_" + suffix + "_bi" + "_text_pop_index" + ".csv");
+				ExperimentConstants.WIKI_DATA_DIR + "lm_cache_" + suffix + "_bi" + "_text_pop_index" + ".csv");
 		biwordRestPopularity = TokenPopularity.loadTokenPopularities(
-				ExperimentConstants.MAPLE_DATA_DIR + "lm_rest_" + suffix + "_bi" + "_text_pop_index" + ".csv");
+				ExperimentConstants.WIKI_DATA_DIR + "lm_rest_" + suffix + "_bi" + "_text_pop_index" + ".csv");
 		FeatureExtraction wqde = new FeatureExtraction(RelationalWikiIndexer.WEIGHT_FIELD);
 		LOGGER.log(Level.INFO, "loading done!");
 		List<String> data = new ArrayList<String>();

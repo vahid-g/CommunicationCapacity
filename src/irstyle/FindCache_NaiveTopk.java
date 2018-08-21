@@ -89,7 +89,7 @@ public class FindCache_NaiveTopk {
 				selectTemplates[i] = "select * from " + tableNames[i] + " order by popularity desc limit ?, "
 						+ pageSize[i] + ";";
 				insertTemplates[i] = "insert into " + cacheTables[i] + " (id) values (?);";
-				indexPaths[i] = ExperimentConstants.MAPLE_DATA_DIR + cacheTables[i];
+				indexPaths[i] = ExperimentConstants.WIKI_DATA_DIR + cacheTables[i];
 				config[i] = new IndexWriterConfig(new StandardAnalyzer());
 				config[i].setSimilarity(new BM25Similarity());
 				config[i].setRAMBufferSizeMB(1024);

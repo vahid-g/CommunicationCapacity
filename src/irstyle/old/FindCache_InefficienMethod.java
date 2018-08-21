@@ -1,4 +1,4 @@
-package irstyle;
+package irstyle.old;
 
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -32,6 +32,11 @@ import org.apache.lucene.store.FSDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
+import irstyle.ExperimentConstants;
+import irstyle.IRStyleKeywordSearch;
+import irstyle.IRStyleQueryResult;
+import irstyle.Params;
+import irstyle.RunCacheSearch;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
 import irstyle.core.Schema;

@@ -1,15 +1,13 @@
-package irstyle;
+package stackoverflow.irstyle;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Vector;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -24,50 +22,35 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
+import irstyle.IRStyleKeywordSearch;
+import irstyle.IRStyleQueryResult;
+import irstyle.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.MIndexAccess;
 import irstyle.core.Relation;
 import irstyle.core.Result;
 import irstyle.core.Schema;
 import query.ExperimentQuery;
-import query.QueryServices;
+import stackoverflow.QuestionDAO;
+import stackoverflow.StackQueryingExperiment;
 
 public class RunCacheSearch {
 
+	public static final String DATA_STACK = "/data/ghadakcv/stack/";
+
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
-		String cacheNameSuffix;
-		List<ExperimentQuery> queries;
+		String cacheNameSuffix = "???";
 		String outputFileName = "result";
-		if (argsList.contains("-inexp")) {
-			Params.N = 20;
-			cacheNameSuffix = "p20";
-			queries = QueryServices.loadInexQueries();
-		} else if (argsList.contains("-inexr")) {
-			Params.N = 100;
-			cacheNameSuffix = "rec";
-			queries = QueryServices.loadInexQueries();
-		} else {
-			Params.N = 5;
-			cacheNameSuffix = "mrr";
-			queries = QueryServices.loadMsnQueriesAll();
-		}
-		outputFileName += "_" + cacheNameSuffix;
-		if (argsList.contains("-debug")) {
-			Params.DEBUG = true;
-		}
+		StackQueryingExperiment sqe = new StackQueryingExperiment();
+		List<QuestionDAO> queries = sqe.loadQuestionsFromTable("questions_s_test_train");
 		boolean justUseCache = false;
-		boolean useQueryLikelihood = false;
 		if (argsList.contains("-cache")) {
 			justUseCache = true;
 			outputFileName += "_cache";
-		} else if (argsList.contains("-ql")) {
-			useQueryLikelihood = true;
-			outputFileName += "_ql";
 		} else {
 			outputFileName += "_full";
 		}
-		Collections.shuffle(queries, new Random(1));
 		if (argsList.contains("-eff")) {
 			queries = queries.subList(0, 20);
 			outputFileName += "_eff";
@@ -77,21 +60,17 @@ public class RunCacheSearch {
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		try (IndexReader articleReader = DirectoryReader
-				.open(FSDirectory.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100")));
-				IndexReader articleCacheReader = DirectoryReader.open(FSDirectory.open(
-						Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_article_wiki13_" + cacheNameSuffix)));
+				.open(FSDirectory.open(Paths.get(DATA_STACK + "tbl_article_wiki13/100")));
+				IndexReader articleCacheReader = DirectoryReader
+						.open(FSDirectory.open(Paths.get(DATA_STACK + "sub_article_wiki13_" + cacheNameSuffix)));
 				IndexReader imageReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_image_pop/100")));
-				IndexReader imageCacheReader = DirectoryReader.open(FSDirectory
-						.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_image_pop_" + cacheNameSuffix)));
+						.open(FSDirectory.open(Paths.get(DATA_STACK + "tbl_image_pop/100")));
+				IndexReader imageCacheReader = DirectoryReader
+						.open(FSDirectory.open(Paths.get(DATA_STACK + "sub_image_pop_" + cacheNameSuffix)));
 				IndexReader linkReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_link_pop/100")));
-				IndexReader linkCacheReader = DirectoryReader.open(FSDirectory
-						.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_link_pop_" + cacheNameSuffix)));
-				IndexReader cacheReader = DirectoryReader.open(FSDirectory
-						.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_cache_" + cacheNameSuffix)));
-				IndexReader restReader = DirectoryReader.open(FSDirectory
-						.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_rest_" + cacheNameSuffix)))) {
+						.open(FSDirectory.open(Paths.get(DATA_STACK + "tbl_link_pop/100")));
+				IndexReader linkCacheReader = DirectoryReader
+						.open(FSDirectory.open(Paths.get(DATA_STACK + "sub_link_pop_" + cacheNameSuffix)))) {
 			long time = 0;
 			int cacheUseCount = 0;
 			long selectionTime = 0;
@@ -101,8 +80,8 @@ public class RunCacheSearch {
 			double p20 = 0;
 			for (int exec = 0; exec < Params.numExecutions; exec++) {
 				int loop = 1;
-				for (ExperimentQuery query : queries) {
-					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
+				for (QuestionDAO query : queries) {
+					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.text);
 					Vector<String> allkeyw = new Vector<String>();
 					// escaping single quotes
 					allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
@@ -115,15 +94,14 @@ public class RunCacheSearch {
 					IndexReader imageIndexToUse = imageReader;
 					IndexReader linkIndexToUse = linkReader;
 					long start = System.currentTimeMillis();
-					if (justUseCache || (useQueryLikelihood
-							&& CacheSelectionQL.useCache(query.getText(), cacheReader, articleReader, restReader))) {
+					if (justUseCache) {
 						cacheUseCount++;
 						articleTable = "sub_article_wiki13";
 						articleImageTable = "sub_article_image_09";
 						imageTable = "sub_image_pop";
 						articleLinkTable = "sub_article_link_09";
 						linkTable = "sub_link_pop";
-						articleIndexToUse = cacheReader;
+						articleIndexToUse = articleCacheReader;
 						imageIndexToUse = imageCacheReader;
 						linkIndexToUse = linkCacheReader;
 					}
@@ -148,7 +126,8 @@ public class RunCacheSearch {
 					relnamesValues.put(articleTable, articleIds);
 					relnamesValues.put(imageTable, imageIds);
 					relnamesValues.put(linkTable, linkIds);
-					IRStyleQueryResult result = RunCacheSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
+					// TODO
+					IRStyleQueryResult result = RunCacheSearch.executeIRStyleQuery(jdbcacc, sch, relations, null,
 							relnamesValues);
 					result.dedup();
 					tuplesetTime += result.tuplesetTime;
@@ -213,13 +192,13 @@ public class RunCacheSearch {
 			throws ParseException, IOException {
 		IndexSearcher searcher = new IndexSearcher(reader);
 		searcher.setSimilarity(new BM25Similarity());
-		QueryParser qp = new QueryParser(RelationalWikiIndexer.TEXT_FIELD, new StandardAnalyzer());
+		QueryParser qp = new QueryParser("???", new StandardAnalyzer());
 		Query query = qp.parse(QueryParser.escape(queryText));
 		ScoreDoc[] scoreDocHits = searcher.search(query, Params.MAX_TS_SIZE).scoreDocs;
 		List<String> results = new ArrayList<String>();
 		for (int j = 0; j < scoreDocHits.length; j++) {
 			Document doc = reader.document(scoreDocHits[j].doc);
-			String docId = doc.get(RelationalWikiIndexer.ID_FIELD);
+			String docId = doc.get("???");
 			results.add("(" + docId + "," + scoreDocHits[j].score + ")");
 		}
 		return results;

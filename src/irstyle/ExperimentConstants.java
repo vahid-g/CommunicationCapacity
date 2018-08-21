@@ -6,8 +6,8 @@ public class ExperimentConstants {
 
 	public static String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
 
-	// best inex p20 sizes. p20 = 0.43 4%, 34%, 4%
-	static int[] precisionLimit = { 597251, 414071, 488317 };
+	// best inex p20 sizes. p20 = 0.37 4%, 24%, 4%
+	static int[] precisionLimit = { 597251, 295765, 488317 };
 
 	// best inex recall sizes wth v2 3%, 16%, 55%
 	//static int[] recallLimit = { 400000, 200000, 500000 };
@@ -18,6 +18,6 @@ public class ExperimentConstants {
 
 	static int[] size = { 11945034, 1183070, 9766351 };
 
-	final static String MAPLE_DATA_DIR = "/data/ghadakcv/wikipedia/";
+	final static String WIKI_DATA_DIR = "/data/ghadakcv/wikipedia/";
 
 }
