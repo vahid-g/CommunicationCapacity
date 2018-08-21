@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import irstyle.core.Result;
 import query.ExperimentQuery;
+import stackoverflow.QuestionDAO;
 
 public class IRStyleQueryResult {
 	ExperimentQuery query;
@@ -17,7 +18,6 @@ public class IRStyleQueryResult {
 	public IRStyleQueryResult(ExperimentQuery query, long execTime) {
 		this.query = query;
 		this.execTime = execTime;
-
 	}
 
 	public ExperimentQuery getQuery() {

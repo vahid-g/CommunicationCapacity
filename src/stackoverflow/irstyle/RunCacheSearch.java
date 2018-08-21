@@ -41,7 +41,8 @@ public class RunCacheSearch {
 		String cacheNameSuffix = "mrr";
 		String outputFileName = "result";
 		StackQueryingExperiment sqe = new StackQueryingExperiment();
-		List<QuestionDAO> queries = sqe.loadQuestionsFromTable("questions_s_test_train");
+		List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
+		List<ExperimentQuery> queries = QuestionDAO.convertToExperimentQuery(questions);
 		boolean justUseCache = false;
 		if (argsList.contains("-cache")) {
 			justUseCache = true;
@@ -78,8 +79,8 @@ public class RunCacheSearch {
 			double p20 = 0;
 			for (int exec = 0; exec < Params.numExecutions; exec++) {
 				int loop = 1;
-				for (QuestionDAO query : queries) {
-					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.text);
+				for (ExperimentQuery query : queries) {
+					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
 					Vector<String> allkeyw = new Vector<String>();
 					// escaping single quotes
 					allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
