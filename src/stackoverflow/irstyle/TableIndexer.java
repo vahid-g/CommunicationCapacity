@@ -14,13 +14,12 @@ public class TableIndexer {
 	public static final String TEXT_FIELD = "text";
 	public static final String WEIGHT_FIELD = "weight";
 
-	// TODO data prep for popularities
 	public static void main(String[] args) throws IOException, SQLException {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {
 			for (int i = 0; i < Constants.tableName.length; i++) {
 				String tableName = Constants.tableName[i];
 				String[] textAttribs = Constants.textAttribs[i];
-				String popularity = "ViewCount???";
+				String popularity = "ViewCount";
 				int limit = DatabaseHelper.tableSize(tableName, dc.getConnection());
 				String indexPath = Constants.DATA_STACK + tableName + "/100";
 				Indexer.indexTable(dc, indexPath, tableName, textAttribs, limit, popularity, false,
