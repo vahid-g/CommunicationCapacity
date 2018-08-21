@@ -46,15 +46,17 @@ public class BuildCache {
 
 	private static void buildCacheTable(DatabaseConnection dc, String tableName, String[] textAttribs, String cacheName,
 			int limit) throws SQLException, IOException {
-		String selectStatement = "SELECT * FROM " + tableName + " ORDER BY popularity LIMIT " + limit;
+		String selectStatement = "SELECT * FROM " + tableName + " ORDER BY popularity desc LIMIT " + limit;
 		String createStatement = "CREATE TABLE " + cacheName + " AS " + selectStatement + ";";
 		System.out.println("Creating table..");
+		System.out.println("sql: " + createStatement);
 		try (Statement stmt = dc.getConnection().createStatement()) {
 			stmt.execute("drop table if exists " + cacheName);
 			stmt.execute(createStatement);
 		}
 		System.out.println("Creating id index..");
 		String createIndex = "CREATE INDEX id ON " + cacheName + "(id);";
+		System.out.println("sql: " + createIndex);
 		try (Statement stmt = dc.getConnection().createStatement()) {
 			stmt.executeUpdate(createIndex);
 		}
@@ -65,7 +67,7 @@ public class BuildCache {
 		try (Analyzer analyzer = new StandardAnalyzer()) {
 			IndexWriterConfig config = RelationalWikiIndexer.getIndexWriterConfig(analyzer);
 			config.setOpenMode(OpenMode.CREATE);
-			RelationalWikiIndexer.indexTable(dc, RelationalWikiIndexer.DATA_WIKIPEDIA + cacheName, tableName,
+			RelationalWikiIndexer.indexTable(dc, ExperimentConstants.WIKI_DATA_DIR + cacheName, tableName,
 					textAttribs, limit, "popularity", false, config);
 		}
 	}
