@@ -68,7 +68,7 @@ public class RunCacheSearch {
 		Collections.shuffle(queries, new Random(1));
 		if (argsList.contains("-eff")) {
 			System.out.println("setting: " + Params.getDescriptor());
-			queries = queries.subList(0, 20);
+			queries = queries.subList(0, 10);
 			outputFileName += "_eff";
 		}
 		outputFileName += ".csv";
