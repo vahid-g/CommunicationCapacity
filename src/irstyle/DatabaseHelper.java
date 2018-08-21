@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class DatabaseHelper {
 
-	static int tableSize(String tableName, Connection conn) throws SQLException {
+	public static int tableSize(String tableName, Connection conn) throws SQLException {
 		int count = -1;
 		try (Statement stmt = conn.createStatement()) {
 			String sql = "select count(*) count from " + tableName + ";";
