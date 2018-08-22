@@ -55,6 +55,7 @@ public class RunCacheSearch {
 		}
 		Collections.shuffle(queries, new Random(1));
 		if (argsList.contains("-eff")) {
+			Params.N = 20; // even if we are looking for recall response time is important
 			System.out.println("setting: " + Params.getDescriptor());
 			queries = queries.subList(0, 10);
 			outputFileName += "_eff";
