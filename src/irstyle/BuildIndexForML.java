@@ -21,7 +21,6 @@ import irstyle.api.Indexer;
 
 public class BuildIndexForML {
 	public static void main(String[] args) throws SQLException, IOException {
-		int tableNo = Integer.parseInt(args[0]); // this parameter is to select the table
 		List<String> argsList = Arrays.asList(args);
 		String suffix;
 		int[] limit;
@@ -35,33 +34,38 @@ public class BuildIndexForML {
 			limit = ExperimentConstants.mrrLimit;
 			suffix = "mrr";
 		}
-		Analyzer analyzer = null;
+		Analyzer analyzer;
 		if (argsList.contains("-bi")) {
 			suffix += "_bi";
 			analyzer = new BiwordAnalyzer();
 		} else {
 			analyzer = new StandardAnalyzer();
 		}
+		String finalSuffix = suffix;
 		String[] tableName = { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
 		String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
+		int[] tableIndex = { 0, 1, 2 };
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
+			Arrays.stream(tableIndex).forEach(tableNo -> {
+				IndexWriterConfig config = Indexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
+				try (Directory directory = FSDirectory.open(Paths.get(
+						RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + tableName[tableNo] + "_cache_" + finalSuffix));
+						Directory directory2 = FSDirectory.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_"
+								+ tableName[tableNo] + "_rest_" + finalSuffix));) {
+					try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
+						Indexer.indexTableAttribs(dc, indexWriter, tableName[tableNo], textAttribs[tableNo],
+								limit[tableNo], "popularity", false);
+					}
+					config = Indexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
 
-			String table = tableName[tableNo];
-			IndexWriterConfig config = Indexer.getIndexWriterConfig(analyzer)
-					.setOpenMode(OpenMode.CREATE);
-			Directory directory = FSDirectory
-					.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_" + suffix));
-			try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
-				Indexer.indexTableAttribs(dc, indexWriter, table, textAttribs[tableNo], limit[tableNo],
-						"popularity", false);
-			}
-			config = Indexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
-			directory = FSDirectory
-					.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_" + suffix));
-			try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
-				Indexer.indexTableAttribs(dc, indexWriter, table, textAttribs[tableNo],
-						ExperimentConstants.size[tableNo] - limit[tableNo], "popularity", true);
-			}
+					try (IndexWriter indexWriter = new IndexWriter(directory2, config)) {
+						Indexer.indexTableAttribs(dc, indexWriter, tableName[tableNo], textAttribs[tableNo],
+								ExperimentConstants.size[tableNo] - limit[tableNo], "popularity", true);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
 		}
 		analyzer.close();
 	}
