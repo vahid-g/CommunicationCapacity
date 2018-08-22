@@ -3,9 +3,12 @@ package stackoverflow.irstyle;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+
 import database.DatabaseConnection;
 import database.DatabaseType;
-import irstyle.DatabaseHelper;
+import irstyle.api.DatabaseHelper;
 import irstyle.api.Indexer;
 
 public class TableIndexer {
@@ -22,8 +25,9 @@ public class TableIndexer {
 				String popularity = "ViewCount";
 				int limit = DatabaseHelper.tableSize(tableName, dc.getConnection());
 				String indexPath = Constants.DATA_STACK + tableName + "_full";
-				Indexer.indexTable(dc, indexPath, tableName, textAttribs, limit, popularity, false,
-						Indexer.getIndexWriterConfig());
+				IndexWriterConfig config = Indexer.getIndexWriterConfig();
+				config.setOpenMode(OpenMode.CREATE);
+				Indexer.indexTable(dc, indexPath, tableName, textAttribs, limit, popularity, false, config);
 			}
 		}
 	}

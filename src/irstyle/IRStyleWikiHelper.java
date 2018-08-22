@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import irstyle.api.DatabaseHelper;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
@@ -72,7 +73,7 @@ public class IRStyleWikiHelper {
 			throws SQLException {
 		Map<ExperimentQuery, Integer> map = new HashMap<ExperimentQuery, Integer>();
 		for (ExperimentQuery query : queryList) {
-			map.put(query, DatabaseHelper.relCounts(conn, query.getQrelScoreMap().keySet()));
+			map.put(query, DatabaseHelper.relCountsForWiki(conn, query.getQrelScoreMap().keySet()));
 		}
 		return map;
 	}

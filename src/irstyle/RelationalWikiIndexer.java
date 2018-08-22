@@ -5,6 +5,7 @@ import java.sql.SQLException;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
+import irstyle.api.DatabaseHelper;
 import irstyle.api.Indexer;
 
 public class RelationalWikiIndexer {

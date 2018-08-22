@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Vector;
 
-import irstyle.DatabaseHelper;
+import irstyle.api.DatabaseHelper;
 import irstyle.core.Relation;
 
 public class IRStyleStackHelper {

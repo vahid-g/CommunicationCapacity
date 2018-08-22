@@ -20,7 +20,6 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 import database.DatabaseConnection;
-import irstyle.DatabaseHelper;
 import irstyle.RelationalWikiIndexer;
 
 public class Indexer {

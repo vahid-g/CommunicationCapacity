@@ -6,6 +6,7 @@ import java.sql.Statement;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
+import irstyle.api.DatabaseHelper;
 
 public class BuildTableCache {
 	public static void main(String[] args) throws SQLException, IOException {

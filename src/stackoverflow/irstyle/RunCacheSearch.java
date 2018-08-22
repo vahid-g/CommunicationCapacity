@@ -47,15 +47,15 @@ public class RunCacheSearch {
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		try (IndexReader articleReader = DirectoryReader
-				.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + Constants.tableName[0] + "/100")));
+				.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + Constants.tableName[0] + "_full")));
 				IndexReader articleCacheReader = DirectoryReader.open(FSDirectory.open(
 						Paths.get(Constants.DATA_STACK + "sub_" + Constants.tableName[0] + "_" + cacheNameSuffix)));
 				IndexReader imageReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + Constants.tableName[1] + "/100")));
+						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + Constants.tableName[1] + "_full")));
 				IndexReader imageCacheReader = DirectoryReader.open(FSDirectory.open(
 						Paths.get(Constants.DATA_STACK + "sub_" + Constants.tableName[1] + "_" + cacheNameSuffix)));
 				IndexReader linkReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + Constants.tableName[2] + "/100")));
+						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + Constants.tableName[2] + "_full")));
 				IndexReader linkCacheReader = DirectoryReader.open(FSDirectory.open(
 						Paths.get(Constants.DATA_STACK + "sub_" + Constants.tableName[2] + "_" + cacheNameSuffix)))) {
 			long time = 0;
@@ -92,8 +92,8 @@ public class RunCacheSearch {
 					String schemaDescription = "3 " + answersTable + " " + tagsTable + " " + commentsTable + " "
 							+ answersTable + " " + " " + tagsTable + " " + answersTable + " " + commentsTable;
 					Schema sch = new Schema(schemaDescription);
-					Vector<Relation> relations = IRStyleStackHelper.createRelations(answersTable, "posts_tags", tagsTable,
-							commentsTable, jdbcacc.conn);
+					Vector<Relation> relations = IRStyleStackHelper.createRelations(answersTable, "posts_tags",
+							tagsTable, commentsTable, jdbcacc.conn);
 					start = System.currentTimeMillis();
 					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleIndexToUse,
 							query.getText(), TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
