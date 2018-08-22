@@ -43,7 +43,7 @@ public class CreatePostTagRelation {
 						}
 						Integer tagId = tagIdMap.get(tag);
 						if (tagId == null) {
-							System.out.println("Couldn't find tag: " + tag + " in Tags table");
+							System.out.println("Couldn't find tag: '" + tag + "' in Tags table");
 							continue;
 						} else {
 							preparedInsert.setInt(1, postId);
