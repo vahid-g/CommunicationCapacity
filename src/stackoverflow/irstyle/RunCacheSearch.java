@@ -92,7 +92,7 @@ public class RunCacheSearch {
 					String schemaDescription = "3 " + answersTable + " " + tagsTable + " " + commentsTable + " "
 							+ answersTable + " " + " " + tagsTable + " " + answersTable + " " + commentsTable;
 					Schema sch = new Schema(schemaDescription);
-					Vector<Relation> relations = IRStyleStackHelper.createRelations(answersTable, tagsTable,
+					Vector<Relation> relations = IRStyleStackHelper.createRelations(answersTable, "posts_tags", tagsTable,
 							commentsTable, jdbcacc.conn);
 					start = System.currentTimeMillis();
 					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleIndexToUse,

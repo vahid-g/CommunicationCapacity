@@ -21,7 +21,7 @@ public class TableIndexer {
 				String[] textAttribs = Constants.textAttribs[i];
 				String popularity = "ViewCount";
 				int limit = DatabaseHelper.tableSize(tableName, dc.getConnection());
-				String indexPath = Constants.DATA_STACK + tableName + "/100";
+				String indexPath = Constants.DATA_STACK + tableName + "_full";
 				Indexer.indexTable(dc, indexPath, tableName, textAttribs, limit, popularity, false,
 						Indexer.getIndexWriterConfig());
 			}
