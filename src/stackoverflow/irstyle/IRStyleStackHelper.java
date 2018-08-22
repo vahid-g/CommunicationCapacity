@@ -27,6 +27,7 @@ public class IRStyleStackHelper {
 		rel.addAttribute("TagId", false, "INTEGER");
 		rel.addAttr4Rel("PostId", answersTable);
 		rel.addAttr4Rel("TagId", tagsTable);
+		relations.addElement(rel);
 
 		rel = new Relation(tagsTable);
 		rel.addAttribute("Id", false, "INTEGER");

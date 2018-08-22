@@ -34,7 +34,7 @@ public class RunStackCacheSearch {
 		String answersTable = Constants.tableName[0];
 		String tagsTable = Constants.tableName[1];
 		String commentsTable = Constants.tableName[2];
-		String postTagsTable = "post_tags";
+		String postTagsTable = Constants.POST_TAGS_TABLE;
 		String answersIndexPath = Constants.DATA_STACK + Constants.tableName[0] + "_full";
 		String tagsIndexPath = Constants.DATA_STACK + Constants.tableName[1] + "_full";
 		String commentsIndexPath = Constants.DATA_STACK + Constants.tableName[2] + "_full";
@@ -79,7 +79,7 @@ public class RunStackCacheSearch {
 							+ commentsTable + " " + answersTable + " " + postTagsTable + " " + postTagsTable + " "
 							+ tagsTable + " " + answersTable + " " + commentsTable;
 					Schema sch = new Schema(schemaDescription);
-					Vector<Relation> relations = IRStyleStackHelper.createRelations(answersTable, "posts_tags",
+					Vector<Relation> relations = IRStyleStackHelper.createRelations(answersTable, postTagsTable,
 							tagsTable, commentsTable, jdbcacc.conn);
 					start = System.currentTimeMillis();
 					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(answersReader, query.getText(),
