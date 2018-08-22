@@ -31,10 +31,22 @@ public class RunStackCacheSearch {
 		StackQueryingExperiment sqe = new StackQueryingExperiment();
 		List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
 		List<ExperimentQuery> queries = QuestionDAO.convertToExperimentQuery(questions);
-		boolean justUseCache = false;
+		String answersTable = Constants.tableName[0];
+		String tagsTable = Constants.tableName[1];
+		String commentsTable = Constants.tableName[2];
+		String postTagsTable = "post_tags";
+		String answersIndexPath = Constants.DATA_STACK + Constants.tableName[0] + "_full";
+		String tagsIndexPath = Constants.DATA_STACK + Constants.tableName[1] + "_full";
+		String commentsIndexPath = Constants.DATA_STACK + Constants.tableName[2] + "_full";
 		if (argsList.contains("-cache")) {
-			justUseCache = true;
 			outputFileName += "_cache";
+			answersTable = "sub" + answersTable;
+			tagsTable = "sub" + tagsTable;
+			commentsTable = "sub_" + commentsTable;
+			answersIndexPath = Constants.DATA_STACK + "sub_" + Constants.tableName[0] + "_" + cacheNameSuffix;
+			tagsIndexPath = Constants.DATA_STACK + "sub_" + Constants.tableName[1] + "_" + cacheNameSuffix;
+			commentsIndexPath = Constants.DATA_STACK + "sub_" + Constants.tableName[2] + "_" + cacheNameSuffix;
+
 		} else {
 			outputFileName += "_full";
 		}
@@ -46,21 +58,11 @@ public class RunStackCacheSearch {
 		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess("stack_overflow");
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
-		try (IndexReader articleReader = DirectoryReader
-				.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + Constants.tableName[0] + "_full")));
-				IndexReader articleCacheReader = DirectoryReader.open(FSDirectory.open(
-						Paths.get(Constants.DATA_STACK + "sub_" + Constants.tableName[0] + "_" + cacheNameSuffix)));
-				IndexReader imageReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + Constants.tableName[1] + "_full")));
-				IndexReader imageCacheReader = DirectoryReader.open(FSDirectory.open(
-						Paths.get(Constants.DATA_STACK + "sub_" + Constants.tableName[1] + "_" + cacheNameSuffix)));
-				IndexReader linkReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(Constants.DATA_STACK + Constants.tableName[2] + "_full")));
-				IndexReader linkCacheReader = DirectoryReader.open(FSDirectory.open(
-						Paths.get(Constants.DATA_STACK + "sub_" + Constants.tableName[2] + "_" + cacheNameSuffix)))) {
+		try (IndexReader answersReader = DirectoryReader.open(FSDirectory.open(Paths.get(answersIndexPath)));
+				IndexReader tagsIndexReader = DirectoryReader.open(FSDirectory.open(Paths.get(tagsIndexPath)));
+				IndexReader commentsIndexReader = DirectoryReader
+						.open(FSDirectory.open(Paths.get(commentsIndexPath)))) {
 			long time = 0;
-			int cacheUseCount = 0;
-			long selectionTime = 0;
 			long luceneTime = 0;
 			long tuplesetTime = 0;
 			double recall = 0;
@@ -72,34 +74,19 @@ public class RunStackCacheSearch {
 					Vector<String> allkeyw = new Vector<String>();
 					// escaping single quotes
 					allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
-					String answersTable = Constants.tableName[0];
-					String tagsTable = Constants.tableName[1];
-					String commentsTable = Constants.tableName[2];
-					IndexReader articleIndexToUse = articleReader;
-					IndexReader imageIndexToUse = imageReader;
-					IndexReader linkIndexToUse = linkReader;
 					long start = System.currentTimeMillis();
-					if (justUseCache) {
-						cacheUseCount++;
-						answersTable = "sub" + answersTable;
-						tagsTable = "sub" + tagsTable;
-						commentsTable = "sub_" + commentsTable;
-						articleIndexToUse = articleCacheReader;
-						imageIndexToUse = imageCacheReader;
-						linkIndexToUse = linkCacheReader;
-					}
-					selectionTime += System.currentTimeMillis() - start;
-					String schemaDescription = "3 " + answersTable + " " + tagsTable + " " + commentsTable + " "
-							+ answersTable + " " + " " + tagsTable + " " + answersTable + " " + commentsTable;
+					String schemaDescription = "4 " + answersTable + " " + postTagsTable + " " + tagsTable + " "
+							+ commentsTable + " " + answersTable + " " + postTagsTable + " " + postTagsTable + " "
+							+ tagsTable + " " + answersTable + " " + commentsTable;
 					Schema sch = new Schema(schemaDescription);
 					Vector<Relation> relations = IRStyleStackHelper.createRelations(answersTable, "posts_tags",
 							tagsTable, commentsTable, jdbcacc.conn);
 					start = System.currentTimeMillis();
-					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleIndexToUse,
-							query.getText(), TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
-					List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageIndexToUse, query.getText(),
+					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(answersReader, query.getText(),
 							TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
-					List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkIndexToUse, query.getText(),
+					List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(tagsIndexReader, query.getText(),
+							TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
+					List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(commentsIndexReader, query.getText(),
 							TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
 					luceneTime += (System.currentTimeMillis() - start);
 					if (Params.DEBUG) {
@@ -121,16 +108,13 @@ public class RunStackCacheSearch {
 					queryResults.add(result);
 				}
 			}
-			selectionTime /= (queries.size() * Params.numExecutions);
 			luceneTime /= (queries.size() * Params.numExecutions);
 			tuplesetTime /= (queries.size() * Params.numExecutions);
 			time /= queries.size() * Params.numExecutions;
-			System.out.println("average cache selection time = " + selectionTime + " (ms)");
 			System.out.println("average lucene time = " + luceneTime + " (ms)");
 			System.out.println("average tupleset time = " + tuplesetTime + " (ms)");
 			System.out.println("average just search time = " + (time - tuplesetTime) + " (ms)");
 			System.out.println("average total time  = " + time + " (ms)");
-			System.out.println("number of cache hits: " + cacheUseCount + "/" + queries.size());
 			System.out.println("recall = " + recall / queries.size());
 			System.out.println("p20 = " + p20 / queries.size());
 			IRStyleKeywordSearch.printResults(queryResults, outputFileName);
