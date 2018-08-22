@@ -39,7 +39,7 @@ import query.ExperimentQuery;
 import stackoverflow.QuestionDAO;
 import stackoverflow.StackQueryingExperiment;
 
-public class FindCache_NaiveTopk_Stack {
+public class FindStackCache {
 
 	private static final double popSum[] = { 3498653290.0, 14181355214.0, 15060335277.0 };
 
