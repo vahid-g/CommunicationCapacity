@@ -34,8 +34,8 @@ public class RunStackCacheSearch {
 		String answersTable = Constants.tableName[0];
 		String tagsTable = Constants.tableName[1];
 		String commentsTable = Constants.tableName[2];
-		String postTagsTable = Constants.POST_TAGS_TABLE;
-		String postCommentsTable = Constants.POST_COMMENTS_TABLE;
+		String postTagsTable = Constants.ANSWER_TAGS_TABLE;
+		String postCommentsTable = Constants.ANSWER_COMMENTS_TABLE;
 		String answersIndexPath = Constants.DATA_STACK + Constants.tableName[0] + "_full";
 		String tagsIndexPath = Constants.DATA_STACK + Constants.tableName[1] + "_full";
 		String commentsIndexPath = Constants.DATA_STACK + Constants.tableName[2] + "_full";
