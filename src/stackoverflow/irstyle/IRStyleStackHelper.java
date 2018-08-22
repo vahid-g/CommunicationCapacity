@@ -45,9 +45,8 @@ public class IRStyleStackHelper {
 
 		rel = new Relation(commentsTable);
 		rel.addAttribute("Id", false, "INTEGER");
-		rel.addAttribute("PostId", false, "INTEGER");
 		rel.addAttribute("Text", true, "TEXT");
-		rel.addAttr4Rel("PostId", postCommentsTable);
+		rel.addAttr4Rel("Id", postCommentsTable);
 		rel.setSize(DatabaseHelper.tableSize(commentsTable, conn));
 		relations.addElement(rel);
 

@@ -39,13 +39,13 @@ def main(argv):
         is_bad = p12 < p100
         X_test = X_test.drop([subset, full], axis=1)
         # compute query likelihood based effectiveness
-        ql_pred = X_test['ql_0_0'].iloc[0] < X_test['ql_rest_0_0'].iloc[0]
+        ql_cache = np.mean(X_test['ql_0_0'] + X_test['ql_0_1'] +
+                           X_test['ql_1_0'] + X_test['ql_2_0'])
+        ql_rest = np.mean(X_test['ql_rest_0_0'] + X_test['ql_rest_0_1'] +
+                           X_test['ql_rest_1_0'] + X_test['ql_rest_2_0'])
+        #ql_pred = X_test['ql_0_1'].iloc[0] < X_test['ql_rest_0_1'].iloc[0]
+        ql_pred = 1 if ql_cache < ql_rest else 0
         ql = p12 if ql_pred == 0 else p100
-        ql_average_rare += (ql_pred.sum() / ql_pred.size)
-        # print("\ttrain set size and ones: %d, %d" % (y_train.shape[0], np.sum(y_train)))
-        # print("\ttest set size and ones: %d, %d" % (y_test.shape[0], np.sum(y_test)))
-        # print("\tonez ratio in trian set =  %.2f" % (100 * np.sum(y_train) / y_train.shape[0]))
-        # print("\tonez ratio in test set =  %.2f" % (100 * np.sum(y_test) / y_test.shape[0]))
         # learn the model
         sc = MinMaxScaler().fit(X_train)
         X_train = sc.transform(X_train)
@@ -70,6 +70,7 @@ def main(argv):
             #bad_mean += [p12[0], p100[0], ml[0], ql[0], best[0], rnd[0]]
             bad_mean += [p12, p100, ml, ql, best, rnd]
             bad_counter += 1
+            print('\t bad result: ql=%d ml=%d' % (ql_pred, y_pred[0]))
     print('final results:')
     print('\t'.join(map(str,['set', 'cache', 'db', 'ml', 'ql', 'best',
                               'rand'])))

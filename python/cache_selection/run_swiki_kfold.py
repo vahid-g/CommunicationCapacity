@@ -7,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 from sklearn import linear_model
 from sklearn.model_selection import StratifiedKFold
-from sklearn.model_selection import LeaveOneOut 
+from sklearn.model_selection import LeaveOneOut
 from sklearn.model_selection import RepeatedStratifiedKFold
 from utils import print_results
 
