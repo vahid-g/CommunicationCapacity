@@ -10,17 +10,48 @@ from sklearn.ensemble import RandomForestClassifier
 from utils import print_results
 from stack_anal import analyze
 import datetime
+import argparse
+def train_lr( X, y, X_test, y_test, t, col_names = None ):
+    sc = MinMaxScaler().fit(X)
+    X = sc.transform(X)
+    start = datetime.datetime.now()
+    X_test_trans = sc.transform(X_test)
+    print("training balanced LR..")
+    lr = linear_model.LogisticRegression(class_weight='balanced')
+    lr.fit(X, y)
+    print("training mean accuracy = %.2f" % lr.score(X, y))
+    print("testing mean accuracy = %.2f" % lr.score(X_test_trans, y_test))
+    if col_names is not None:
+        c = np.column_stack((col_names, np.round(lr.coef_.flatten(),2)))
+        print(c[c[:,1].argsort()])
+    y_prob = lr.predict_proba(X_test)
+    end = datetime.datetime.now()
+    delta = end - start
+    y_pred = y_prob[:, 1] > t
+    y_pred = y_pred.astype('uint8')
+    print('--- t = %.2f results:' % t)
+    print_results(y_test, y_pred)
+    print('total time predictions: %f' % delta.total_seconds())
+    print('time per query: %f' % (delta.total_seconds() / len(y_pred)))
+    return y_pred
 
 def main(argv):
-    filename = argv[0]
-    df = pd.read_csv('../../data/cache_selection_structured/' + filename)
-    print('df size: ' + str(df.shape))
-    t = float(argv[1])
-    test_size = float(argv[2])
-    write_output = argv[3]
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filename', help="input features file")
+    parser.add_argument('-s', '--split', type=float, help="test split ratio", default=0.33)
+    parser.add_argument('-t', '--threshold', type=float, help="decision boundry", default=0.5)
+    parser.add_argument('-o', '--output', action='store_true', help="save the output")
+    args = parser.parse_args()
+    filename = args.filename
+    test_size = args.split
+    t = args.threshold
+    write_output = args.output
+
+    df = pd.read_csv("../../data/cache_selection_structured/" + filename)
     df = df.fillna(0)
     labels = np.where(df['full'] > df['cache'], 1, 0)
-    print("onez ratio: %.2f" % (100 * np.sum(labels) / labels.shape[0]))
+    print("df size: " + str(df.shape))
+    print("bad queries ratio: %.2f" % (100 * np.sum(labels) / labels.shape[0]))
     X, X_test, y, y_test = train_test_split(df, labels, stratify=labels,
                                             test_size=test_size, random_state=1)
     X = X.drop(['query', 'freq', 'cache', 'full'], axis=1)
@@ -29,58 +60,28 @@ def main(argv):
     subset_mrr = X_test['cache']
     db_mrr = X_test['full']
     X_test = X_test.drop(['query', 'freq', 'cache', 'full'], axis=1)
-    ql = subset_mrr.copy()
-    ql_pred = X_test['ql_0_0'] < X_test['ql_rest_0_0']
-    ql.loc[ql_pred == 1] = db_mrr[ql_pred == 1]
     #print(df.corr()['label'].sort_values())
     print("train set size and ones: %d, %d" % (y.shape[0], np.sum(y)))
     print("test set size and ones: %d, %d" % (y_test.shape[0], np.sum(y_test)))
-    print("onez ratio in trian set =  %.2f" % (100 * np.sum(y) / y.shape[0]))
-    print("onez ratio in test set =  %.2f" % (100 * np.sum(y_test) / y_test.shape[0]))
+    print("bad query ratio in trian set =  %.2f" % (100 * np.sum(y) / y.shape[0]))
+    print("bad uqery in test set =  %.2f" % (100 * np.sum(y_test) / y_test.shape[0]))
     # learn the model
-    #sc = StandardScaler().fit(X)
-    sc = MinMaxScaler().fit(X)
-    X = sc.transform(X)
-    start = datetime.datetime.now()
-    X_test = sc.transform(X_test)
-    print("training balanced LR..")
-    lr = linear_model.LogisticRegression(class_weight='balanced')
-    lr.fit(X, y)
-    print("training mean accuracy = %.2f" % lr.score(X, y))
-    print("testing mean accuracy = %.2f" % lr.score(X_test, y_test))
-    c = np.column_stack((df.columns.values[2:-2], np.round(lr.coef_.flatten(),2)))
-    print(c[c[:,1].argsort()])
-    y_prob = lr.predict_proba(X_test)
-    end = datetime.datetime.now()
-    delta = end - start
-    y_pred = y_prob[:, 1] > t
-    y_pred = y_pred.astype('uint8')
-    print('--- t = %.2f results:' % t)
-    print_results(y_test, y_pred)
+    # y_pred = train_lr(X, y, X_test, y_test, t, df.columns.values[2:-2])
+    y_pred = train_lr(X, y, X_test, y_test, t)
     output = pd.DataFrame()
-    output['Query'] = test_queries
-    output['TestFreq'] = test_freq
+    output['query'] = test_queries
+    output['testfreq'] = test_freq
     output['cache'] = subset_mrr
     output['full'] = db_mrr
-    output['Label'] = y_test
-    output['ql'] = ql
-    output['ql_label'] = ql_pred
-    ml = subset_mrr.copy()
-    ml.loc[y_pred == 1] = db_mrr[y_pred == 1]
-    output['ml'] = ml
-    output['ml_label'] = pd.Series(y_pred, index=output.index)
-    best = subset_mrr.copy()
-    print(best.mean())
-    best[y_test == 1] = db_mrr[y_test == 1]
-    print(best.mean())
-    output['best'] = best
+    output['label'] = y_test
+    output['ql_label'] = x_test['ql_0_0'] < x_test['ql_rest_0_0']
+    output['ql'] = np.where(output['ql_label'] == 1, db_mrr, subset_mrr)
+    output['ml_label'] = pd.series(y_pred, index=output.index)
+    output['ml'] = np.where(output['ml_label'] == 1, db_mrr, subset_mrr)
+    output['best'] = np.maximum(subset_mrr, db_mrr)
     r = np.random.randint(0, 2, output['cache'].size)
     output['rand'] = np.where(r == 1, output['full'], output['cache'])
-    # output['rand'] = output['cache'].copy()
-    # output['rand'][r == 1] = output['full'][r == 1].copy()
     analyze(output, 'cache', 'full','TestFreq')
-    print('total time: %f' % delta.total_seconds())
-    print('time per query: %f' % (delta.total_seconds() / len(y_pred)))
     if (write_output):
         output.to_csv('%s%s_result.csv' % ('../../data/cache_selection_structured/',
                                        filename[:-4]), index=False)
