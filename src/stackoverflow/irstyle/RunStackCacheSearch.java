@@ -22,7 +22,7 @@ import query.ExperimentQuery;
 import stackoverflow.QuestionDAO;
 import stackoverflow.StackQueryingExperiment;
 
-public class RunCacheSearch {
+public class RunStackCacheSearch {
 
 	public static void main(String[] args) throws Exception {
 		List<String> argsList = Arrays.asList(args);
