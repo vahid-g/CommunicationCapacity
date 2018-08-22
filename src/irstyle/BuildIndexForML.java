@@ -46,7 +46,7 @@ public class BuildIndexForML {
 		String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
 		int[] tableIndex = { 0, 1, 2 };
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			Arrays.stream(tableIndex).forEach(tableNo -> {
+			Arrays.stream(tableIndex).parallel().forEach(tableNo -> {
 				IndexWriterConfig config = Indexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
 				try (Directory directory = FSDirectory.open(Paths.get(
 						RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + tableName[tableNo] + "_cache_" + finalSuffix));
