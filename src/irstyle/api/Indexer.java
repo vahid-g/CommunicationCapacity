@@ -70,7 +70,7 @@ public class Indexer {
 				System.out.println(sql);
 				ResultSet rs = stmt.executeQuery(sql);
 				while (rs.next()) {
-					Indexer.indexRS("id", textAttribs, iwriter, rs);
+					Indexer.indexRS("id", textAttribs, iwriter, rs, popularity);
 				}
 			}
 		}
@@ -93,7 +93,7 @@ public class Indexer {
 			System.out.println(sql);
 			ResultSet rs = stmt.executeQuery(sql);
 			while (rs.next()) {
-				Indexer.indexRS("id", textAttribs, indexWriter, rs);
+				Indexer.indexRS("id", textAttribs, indexWriter, rs, popularity);
 			}
 		}
 	}
@@ -116,13 +116,13 @@ public class Indexer {
 			System.out.println(sql);
 			ResultSet rs = stmt.executeQuery(sql);
 			while (rs.next()) {
-				Indexer.indexRSWithAttribs("id", textAttribs, indexWriter, rs);
+				Indexer.indexRSWithAttribs("id", textAttribs, indexWriter, rs, popularity);
 			}
 		}
 	}
 
-	public static void indexRS(String idAttrib, String[] textAttribs, IndexWriter iwriter, ResultSet rs)
-			throws SQLException, IOException {
+	public static void indexRS(String idAttrib, String[] textAttribs, IndexWriter iwriter, ResultSet rs,
+			String popularity) throws SQLException, IOException {
 		StringBuilder answerBuilder = new StringBuilder();
 		for (String s : textAttribs) {
 			answerBuilder.append(rs.getString(s));
@@ -133,15 +133,15 @@ public class Indexer {
 		// answer = StringEscapeUtils.unescapeHtml4(answer); // convert html encoded
 		// characters to unicode
 		doc.add(new TextField(RelationalWikiIndexer.TEXT_FIELD, answer, Store.NO));
-		doc.add(new StoredField(RelationalWikiIndexer.WEIGHT_FIELD, rs.getInt("popularity")));
+		doc.add(new StoredField(RelationalWikiIndexer.WEIGHT_FIELD, rs.getInt(popularity)));
 		iwriter.addDocument(doc);
 	}
 
-	public static void indexRSWithAttribs(String idAttrib, String[] textAttribs, IndexWriter iwriter, ResultSet rs)
-			throws SQLException, IOException {
+	public static void indexRSWithAttribs(String idAttrib, String[] textAttribs, IndexWriter iwriter, ResultSet rs,
+			String popularity) throws SQLException, IOException {
 		Document doc = new Document();
 		doc.add(new StoredField(RelationalWikiIndexer.ID_FIELD, rs.getString(idAttrib)));
-		doc.add(new StoredField(RelationalWikiIndexer.WEIGHT_FIELD, rs.getInt("popularity")));
+		doc.add(new StoredField(RelationalWikiIndexer.WEIGHT_FIELD, rs.getInt(popularity)));
 		for (String attrib : textAttribs) {
 			doc.add(new TextField(attrib, rs.getString(attrib), Store.NO));
 
