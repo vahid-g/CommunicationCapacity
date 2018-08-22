@@ -12,15 +12,19 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 from utils import print_results
 
 def main(argv):
-    filename = argv[0] # the file containing features + precision of cache +
-    # precision of db 
+    filename = argv[0]
     t = float(argv[1]) # threshold for logistic regression (default=0.5)
+    dup = int(argv[2]) # if 1, bad queries will be duplicated
     subset = 'cache' # column title for precision of cache
     full = 'full' # column title for precision of full db
     df = pd.read_csv('../../data/cache_selection_structured/' + filename)
     df = df.drop(['query', 'freq'], axis = 1)
     df = df.fillna(0)
     df['label'] = np.where(df['full'] > df['cache'], 1, 0)
+    if dup:
+        print('duping..')
+        bads = df[df['label'] == 1]
+        df = df.append(bads, ignore_index=True)
     X = df.drop(['label'], axis = 1)
     y = df['label']
     p20_mean = np.zeros([1, 6])
@@ -70,7 +74,6 @@ def main(argv):
             #bad_mean += [p12[0], p100[0], ml[0], ql[0], best[0], rnd[0]]
             bad_mean += [p12, p100, ml, ql, best, rnd]
             bad_counter += 1
-            print('\t bad result: ql=%d ml=%d' % (ql_pred, y_pred[0]))
     print('final results:')
     print('\t'.join(map(str,['set', 'cache', 'db', 'ml', 'ql', 'best',
                               'rand'])))

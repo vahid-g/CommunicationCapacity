@@ -15,13 +15,17 @@ def main(argv):
     filename = argv[0] # the file containing features + precision of cache +
     # precision of db 
     t = float(argv[1]) # threshold for logistic regression (default=0.5)
+    split = int(argv[2]) # ratio of test like 0.33
+    dup = int(argv[3]) # if 1, bad queries will be duplicated
     subset = 'cache' # column title for precision of cache
     full = 'full' # column title for precision of full db
-    split = int(argv[2])
     df = pd.read_csv('../../data/cache_selection_structured/' + filename)
     df = df.drop(['query', 'freq'], axis = 1)
     df = df.fillna(0)
     df['label'] = np.where(df['full'] > df['cache'], 1, 0)
+    if dup:
+        bads = df[df['label'] == 1]
+        df = df.append(bads, ignore_index=True)
     X = df.drop(['label'], axis = 1)
     y = df['label']
     p20_mean = np.zeros([1, 6])
