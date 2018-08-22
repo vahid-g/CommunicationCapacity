@@ -107,7 +107,8 @@ public class IRStyleKeywordSearch {
 
 	public static void dropAllTuplesets(JDBCaccess jdbcacc) throws SQLException {
 		String sql = "SELECT CONCAT( 'DROP TABLE ', GROUP_CONCAT(table_name) , ';' ) AS statement FROM "
-				+ "information_schema.tables WHERE table_name LIKE 'TS_%';";
+				+ "information_schema.tables WHERE table_name LIKE 'TS_%' and table_schema like '"
+				+ jdbcacc.getDatabaseName() + "';";
 		try (Statement stmt = jdbcacc.conn.createStatement()) {
 			ResultSet rs = stmt.executeQuery(sql);
 			if (rs.next()) {

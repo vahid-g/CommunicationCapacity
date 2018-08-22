@@ -10,6 +10,8 @@ public class JDBCaccess {
 	Set<Statement> statementPool = new HashSet<Statement>();
 	Set<ResultSet> resultsetPool = new HashSet<ResultSet>();
 
+	private String databaseName;
+
 	public JDBCaccess(String Server, String Port, String Database_name, String Username, String Password) {
 		try {
 			// DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
@@ -24,6 +26,7 @@ public class JDBCaccess {
 			Properties connectionProps = new Properties();
 			connectionProps.put("user", Username);
 			connectionProps.put("password", Password);
+			databaseName = Database_name;
 			conn = DriverManager.getConnection("jdbc:mysql://" + Server + ":3306/" + Database_name, connectionProps);
 			conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 			stmt = conn.createStatement();
@@ -32,6 +35,10 @@ public class JDBCaccess {
 					+ "exception in JDBCaccess.JDBCaccess");
 		}
 
+	}
+
+	public String getDatabaseName() {
+		return databaseName;
 	}
 
 	public JDBCaccess(Connection conn) {
