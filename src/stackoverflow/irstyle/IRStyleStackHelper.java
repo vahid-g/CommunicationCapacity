@@ -9,7 +9,7 @@ import irstyle.core.Relation;
 
 public class IRStyleStackHelper {
 	public static Vector<Relation> createRelations(String answersTable, String postTagsTable, String tagsTable,
-			String commentsTable, Connection conn) throws SQLException {
+			String postCommentsTable, String commentsTable, Connection conn) throws SQLException {
 		// Note that to be able to match qrels with answers, the main table should be
 		// the first relation and the first attrib should be its ID
 		Vector<Relation> relations = new Vector<Relation>();
@@ -18,7 +18,7 @@ public class IRStyleStackHelper {
 		rel.addAttribute("ParentId", false, "INTEGER");
 		rel.addAttribute("Body", true, "TEXT");
 		rel.addAttr4Rel("ParentId", postTagsTable);
-		rel.addAttr4Rel("Id", commentsTable);
+		rel.addAttr4Rel("Id", postCommentsTable);
 		rel.setSize(DatabaseHelper.tableSize(answersTable, conn));
 		relations.addElement(rel);
 
@@ -36,11 +36,18 @@ public class IRStyleStackHelper {
 		rel.setSize(DatabaseHelper.tableSize(tagsTable, conn));
 		relations.addElement(rel);
 
+		rel = new Relation(postCommentsTable);
+		rel.addAttribute("CommentId", false, "INTEGER");
+		rel.addAttribute("PostId", false, "INTEGER");
+		rel.addAttr4Rel("CommentId", commentsTable);
+		rel.addAttr4Rel("PostId", answersTable);
+		relations.addElement(rel);
+
 		rel = new Relation(commentsTable);
 		rel.addAttribute("Id", false, "INTEGER");
 		rel.addAttribute("PostId", false, "INTEGER");
 		rel.addAttribute("Text", true, "TEXT");
-		rel.addAttr4Rel("PostId", answersTable);
+		rel.addAttr4Rel("PostId", postCommentsTable);
 		rel.setSize(DatabaseHelper.tableSize(commentsTable, conn));
 		relations.addElement(rel);
 

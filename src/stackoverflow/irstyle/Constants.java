@@ -8,6 +8,8 @@ public class Constants {
 
 	public static final String POST_TAGS_TABLE = "post_tags";
 
+	public static final String POST_COMMENTS_TABLE = "post_comments";
+
 	public static final String DATA_STACK = "/data/ghadakcv/stack/";
 
 }

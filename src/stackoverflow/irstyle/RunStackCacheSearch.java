@@ -35,6 +35,7 @@ public class RunStackCacheSearch {
 		String tagsTable = Constants.tableName[1];
 		String commentsTable = Constants.tableName[2];
 		String postTagsTable = Constants.POST_TAGS_TABLE;
+		String postCommentsTable = Constants.POST_COMMENTS_TABLE;
 		String answersIndexPath = Constants.DATA_STACK + Constants.tableName[0] + "_full";
 		String tagsIndexPath = Constants.DATA_STACK + Constants.tableName[1] + "_full";
 		String commentsIndexPath = Constants.DATA_STACK + Constants.tableName[2] + "_full";
@@ -75,12 +76,13 @@ public class RunStackCacheSearch {
 					// escaping single quotes
 					allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
 					long start = System.currentTimeMillis();
-					String schemaDescription = "4 " + answersTable + " " + postTagsTable + " " + tagsTable + " "
-							+ commentsTable + " " + answersTable + " " + postTagsTable + " " + postTagsTable + " "
-							+ tagsTable + " " + answersTable + " " + commentsTable;
+					String schemaDescription = "5 " + answersTable + " " + postTagsTable + " " + tagsTable + " "
+							+ postCommentsTable + " " + commentsTable + " " + answersTable + " " + postTagsTable + " "
+							+ postTagsTable + " " + tagsTable + " " + answersTable + " " + postCommentsTable + " "
+							+ postCommentsTable + " " + commentsTable;
 					Schema sch = new Schema(schemaDescription);
 					Vector<Relation> relations = IRStyleStackHelper.createRelations(answersTable, postTagsTable,
-							tagsTable, commentsTable, jdbcacc.conn);
+							tagsTable, postCommentsTable, commentsTable, jdbcacc.conn);
 					start = System.currentTimeMillis();
 					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(answersReader, query.getText(),
 							TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
