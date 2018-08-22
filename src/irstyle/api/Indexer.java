@@ -55,13 +55,14 @@ public class Indexer {
 		try (IndexWriter iwriter = new IndexWriter(directory, config)) {
 			try (Statement stmt = dc.getConnection().createStatement()) {
 				stmt.setFetchSize(Integer.MIN_VALUE);
-				String attribs = "id";
+				StringBuilder attribs = new StringBuilder();
+				attribs.append("id");
 				for (String s : textAttribs) {
-					attribs += "," + s;
+					attribs.append("," + s);
 				}
-				attribs += ", popularity ";
-				String sql = "select " + attribs + " from " + table + " order by " + popularity + " desc limit " + limit
-						+ ";";
+				attribs.append(", " + popularity);
+				String sql = "select " + attribs.toString() + " from " + table + " order by " + popularity
+						+ " desc limit " + limit + ";";
 				if (ascending) {
 					sql = "select " + attribs + " from " + table + " order by " + popularity + " asc limit " + limit
 							+ ";";
