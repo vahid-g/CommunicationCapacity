@@ -15,8 +15,8 @@ public class ExperimentConstants {
 	// best msn mrr sizes obtained with v2
 	static int[] mrrLimit = { 238900, 106470, 195326 };
 
-	static int[] size = { 11945034, 1183070, 9766351 };
+	public static int[] size = { 11945034, 1183070, 9766351 };
 
-	final static String WIKI_DATA_DIR = "/data/ghadakcv/wikipedia/";
+	public final static String WIKI_DATA_DIR = "/data/ghadakcv/wikipedia/";
 
 }

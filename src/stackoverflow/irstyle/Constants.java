@@ -4,6 +4,8 @@ public class Constants {
 
 	public static String[] tableName = { "answers_s", "tags_pop", "comments_pop" };
 
+	public static int[] size = { 1092420, 1092420, 1967107 };
+
 	public static String[][] textAttribs = new String[][] { { "Body" }, { "TagName" }, { "Text" } };
 
 	public static final String ANSWER_TAGS_TABLE = "answer_tags";

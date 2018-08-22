@@ -1,4 +1,4 @@
-package irstyle;
+package irstyle.old;
 
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -30,6 +30,10 @@ import org.apache.lucene.store.RAMDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
+import irstyle.ExperimentConstants;
+import irstyle.IRStyleQueryResult;
+import irstyle.IRStyleWikiHelper;
+import irstyle.RelationalWikiIndexer;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
