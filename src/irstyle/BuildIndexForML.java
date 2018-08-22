@@ -1,6 +1,7 @@
 package irstyle;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -45,28 +46,31 @@ public class BuildIndexForML {
 		String[] tableName = { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
 		String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
 		int[] tableIndex = { 0, 1, 2 };
-		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			Arrays.stream(tableIndex).parallel().forEach(tableNo -> {
-				IndexWriterConfig config = Indexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
-				try (Directory directory = FSDirectory.open(Paths.get(
-						RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + tableName[tableNo] + "_cache_" + finalSuffix));
-						Directory directory2 = FSDirectory.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_"
-								+ tableName[tableNo] + "_rest_" + finalSuffix));) {
-					try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
-						Indexer.indexTableAttribs(dc, indexWriter, tableName[tableNo], textAttribs[tableNo],
-								limit[tableNo], "popularity", false);
-					}
-					config = Indexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
-
-					try (IndexWriter indexWriter = new IndexWriter(directory2, config)) {
-						Indexer.indexTableAttribs(dc, indexWriter, tableName[tableNo], textAttribs[tableNo],
-								ExperimentConstants.size[tableNo] - limit[tableNo], "popularity", true);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
+		Arrays.stream(tableIndex).parallel().forEach(tableNo -> {
+			Path cacheIndexPath = Paths
+					.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + tableName[tableNo] + "_cache_" + finalSuffix);
+			Path restIndexPath = Paths
+					.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + tableName[tableNo] + "_rest_" + finalSuffix);
+			try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA);
+					Directory cacheIndexDir = FSDirectory.open(cacheIndexPath);
+					Directory restIndexDir = FSDirectory.open(restIndexPath);) {
+				IndexWriterConfig cacheIndexWriterConfig = Indexer.getIndexWriterConfig(analyzer)
+						.setOpenMode(OpenMode.CREATE);
+				IndexWriterConfig restIndexWriterConfig = Indexer.getIndexWriterConfig(analyzer)
+						.setOpenMode(OpenMode.CREATE);
+				try (IndexWriter cacheIndexWriter = new IndexWriter(cacheIndexDir, cacheIndexWriterConfig);
+						IndexWriter restIndexWriter = new IndexWriter(restIndexDir, restIndexWriterConfig)) {
+					Indexer.indexTableAttribs(dc, cacheIndexWriter, tableName[tableNo], textAttribs[tableNo],
+							limit[tableNo], "popularity", false);
+					Indexer.indexTableAttribs(dc, restIndexWriter, tableName[tableNo], textAttribs[tableNo],
+							ExperimentConstants.size[tableNo] - limit[tableNo], "popularity", true);
 				}
-			});
-		}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		});
 		analyzer.close();
 	}
 
