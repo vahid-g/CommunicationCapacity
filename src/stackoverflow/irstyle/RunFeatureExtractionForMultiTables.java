@@ -47,7 +47,7 @@ public class RunFeatureExtractionForMultiTables {
 		Map<String, TokenPopularity> restTermPopularity;
 		Map<String, TokenPopularity> biwordCachePopularity;
 		Map<String, TokenPopularity> biwordRestPopularity;
-		String suffix = "";
+		String suffix = "mrr";
 		if (argList.contains("-eff")) {
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 1000);
