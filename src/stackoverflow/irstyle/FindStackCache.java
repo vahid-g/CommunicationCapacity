@@ -223,7 +223,7 @@ public class FindStackCache {
 					doc.add(new StoredField("id", id));
 					doc.add(new TextField("text", text, Store.NO));
 					docs.add(doc);
-					lastPopularity[m] = rs.getInt("popularity");
+					lastPopularity[m] = rs.getInt("ViewCount");
 				}
 				docsList.remove(m);
 				docsList.add(m, docs);
