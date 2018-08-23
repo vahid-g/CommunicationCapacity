@@ -6,6 +6,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexReader;
 
 import cache_selection_ml.FeatureExtraction;
+import irstyle.api.Indexer;
 import wiki13.WikiFileIndexer;
 
 public class CacheSelectionQL {
@@ -16,9 +17,9 @@ public class CacheSelectionQL {
 		FeatureExtraction fe = new FeatureExtraction(WikiFileIndexer.WEIGHT_ATTRIB);
 		double ql_cache = 0;
 		double ql_rest = 0;
-		ql_cache = fe.queryLikelihood(cacheIndexReader, query, WikiIndexer.TEXT_FIELD, globalIndexReader,
+		ql_cache = fe.queryLikelihood(cacheIndexReader, query, Indexer.textField, globalIndexReader,
 				new StandardAnalyzer());
-		ql_rest = fe.queryLikelihood(restIndexReader, query, WikiIndexer.TEXT_FIELD, globalIndexReader,
+		ql_rest = fe.queryLikelihood(restIndexReader, query, Indexer.textField, globalIndexReader,
 				new StandardAnalyzer());
 		return (ql_cache >= ql_rest);
 		// return false;
