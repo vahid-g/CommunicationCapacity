@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -69,14 +70,14 @@ public class FindStackCache {
 			}
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
-				cacheTables[i] = "tmp_" + tableNames[i].substring(4);
+				cacheTables[i] = "tmp_" + tableNames[i];
 				try (Statement stmt = conn.createStatement()) {
 					stmt.execute("drop table if exists " + cacheTables[i] + ";");
 					stmt.execute(
 							"create table " + cacheTables[i] + " as select id from " + tableNames[i] + " limit 0;");
 					stmt.execute("create index id on " + cacheTables[i] + "(id);");
 				}
-				selectTemplates[i] = "select * from " + tableNames[i] + " order by popularity desc limit ?, "
+				selectTemplates[i] = "select * from " + tableNames[i] + " order by ViewCount desc limit ?, "
 						+ pageSize[i] + ";";
 				insertTemplates[i] = "insert into " + cacheTables[i] + " (id) values (?);";
 				indexPaths[i] = Constants.DATA_STACK + cacheTables[i];
@@ -106,14 +107,14 @@ public class FindStackCache {
 			String articleTable = cacheTables[0];
 			String imageTable = cacheTables[1];
 			String linkTable = cacheTables[2];
-			String articleImageTable = "tbl_article_image_09";
-			String articleLinkTable = "tbl_article_link_09";
+			String articleImageTable = Constants.ANSWER_TAGS_TABLE;
+			String articleLinkTable = Constants.ANSWER_COMMENTS_TABLE;
 			String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
 					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
-			Vector<Relation> relations = IRStyleStackHelper.createRelations(articleTable, imageTable, linkTable,
-					articleImageTable, articleLinkTable, jdbcacc.conn);
+			Vector<Relation> relations = IRStyleStackHelper.createRelations(articleTable, articleImageTable, imageTable,
+					articleLinkTable, linkTable, jdbcacc.conn);
 			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 			List<List<Document>> docsList = new ArrayList<List<Document>>();
 			int[] lastPopularity = new int[tableNames.length];
@@ -131,7 +132,7 @@ public class FindStackCache {
 					doc.add(new StoredField("id", id));
 					doc.add(new TextField("text", text, Store.NO));
 					docs.add(doc);
-					lastPopularity[i] = rs.getInt("popularity");
+					lastPopularity[i] = rs.getInt("ViewCount");
 				}
 				docsList.add(docs);
 			}
