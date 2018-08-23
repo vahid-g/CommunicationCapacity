@@ -3,9 +3,11 @@ package stackoverflow.irstyle;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Vector;
 
 import org.apache.lucene.index.DirectoryReader;
@@ -31,6 +33,10 @@ public class RunStackCacheSearch {
 		StackQueryingExperiment sqe = new StackQueryingExperiment();
 		List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
 		List<ExperimentQuery> queries = QuestionDAO.convertToExperimentQuery(questions);
+		if (argsList.contains("-eff")) {
+			Collections.shuffle(queries, new Random(1));
+			queries = queries.subList(0, 1000);
+		}
 		String answersTable = Constants.tableName[0];
 		String tagsTable = Constants.tableName[1];
 		String commentsTable = Constants.tableName[2];
