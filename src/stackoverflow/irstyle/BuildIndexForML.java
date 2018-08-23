@@ -23,7 +23,7 @@ import irstyle.api.Indexer;
 public class BuildIndexForML {
 	public static void main(String[] args) throws SQLException, IOException {
 		List<String> argsList = Arrays.asList(args);
-		String suffix = "";
+		String suffix = "mrr";
 		int[] limit = Constants.cacheSize;
 		Analyzer analyzer;
 		if (argsList.contains("-bi")) {

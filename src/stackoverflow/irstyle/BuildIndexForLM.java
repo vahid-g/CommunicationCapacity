@@ -23,7 +23,7 @@ public class BuildIndexForLM {
 
 	public static void main(String[] args) throws SQLException, IOException {
 		List<String> argsList = Arrays.asList(args);
-		String suffix = "";
+		String suffix = "mrr";
 		int[] limit = Constants.cacheSize;
 		Analyzer analyzer = null;
 		if (argsList.contains("-bi")) {
