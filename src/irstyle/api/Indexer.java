@@ -20,13 +20,14 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 import database.DatabaseConnection;
-import irstyle.RelationalWikiIndexer;
+import irstyle.WikiIndexer;
 
 public class Indexer {
 
+	
+	
 	public static void indexCompTable(DatabaseConnection dc, String tableName, int percentage, String[] textAttribs,
-			String popularityAttrib) throws IOException, SQLException {
-		String indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + tableName + "/c" + percentage;
+			String popularityAttrib, String indexPath) throws IOException, SQLException {
 		double count = DatabaseHelper.tableSize(tableName, dc.getConnection());
 		int limit = (int) Math.floor(count - ((percentage * count) / 100.0));
 		indexTable(dc, indexPath, tableName, textAttribs, limit, popularityAttrib, true, getIndexWriterConfig());
@@ -84,7 +85,7 @@ public class Indexer {
 			for (String s : textAttribs) {
 				attribs += "," + s;
 			}
-			attribs += ", popularity ";
+			attribs += ", " + popularity;
 			String sql = "select " + attribs + " from " + table + " order by " + popularity + " desc limit " + limit
 					+ ";";
 			if (ascending) {
@@ -107,7 +108,7 @@ public class Indexer {
 			for (String s : textAttribs) {
 				attribs += "," + s;
 			}
-			attribs += ", popularity ";
+			attribs += ", " + popularity;
 			String sql = "select " + attribs + " from " + table + " order by " + popularity + " desc limit " + limit
 					+ ";";
 			if (ascending) {
@@ -129,19 +130,19 @@ public class Indexer {
 		}
 		String answer = answerBuilder.toString();
 		Document doc = new Document();
-		doc.add(new StoredField(RelationalWikiIndexer.ID_FIELD, rs.getString(idAttrib)));
+		doc.add(new StoredField(WikiIndexer.ID_FIELD, rs.getString(idAttrib)));
 		// answer = StringEscapeUtils.unescapeHtml4(answer); // convert html encoded
 		// characters to unicode
-		doc.add(new TextField(RelationalWikiIndexer.TEXT_FIELD, answer, Store.NO));
-		doc.add(new StoredField(RelationalWikiIndexer.WEIGHT_FIELD, rs.getInt(popularity)));
+		doc.add(new TextField(WikiIndexer.TEXT_FIELD, answer, Store.NO));
+		doc.add(new StoredField(WikiIndexer.WEIGHT_FIELD, rs.getInt(popularity)));
 		iwriter.addDocument(doc);
 	}
 
 	public static void indexRSWithAttribs(String idAttrib, String[] textAttribs, IndexWriter iwriter, ResultSet rs,
 			String popularity) throws SQLException, IOException {
 		Document doc = new Document();
-		doc.add(new StoredField(RelationalWikiIndexer.ID_FIELD, rs.getString(idAttrib)));
-		doc.add(new StoredField(RelationalWikiIndexer.WEIGHT_FIELD, rs.getInt(popularity)));
+		doc.add(new StoredField(WikiIndexer.ID_FIELD, rs.getString(idAttrib)));
+		doc.add(new StoredField(WikiIndexer.WEIGHT_FIELD, rs.getInt(popularity)));
 		for (String attrib : textAttribs) {
 			doc.add(new TextField(attrib, rs.getString(attrib), Store.NO));
 
