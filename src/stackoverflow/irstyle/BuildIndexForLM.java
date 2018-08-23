@@ -1,4 +1,4 @@
-package irstyle;
+package stackoverflow.irstyle;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -23,18 +23,8 @@ public class BuildIndexForLM {
 
 	public static void main(String[] args) throws SQLException, IOException {
 		List<String> argsList = Arrays.asList(args);
-		String suffix;
-		int[] limit;
-		if (argsList.contains("-inexp")) {
-			limit = ExperimentConstants.precisionLimit;
-			suffix = "p20";
-		} else if (argsList.contains("-inexr")) {
-			limit = ExperimentConstants.recallLimit;
-			suffix = "rec";
-		} else {
-			limit = ExperimentConstants.mrrLimit;
-			suffix = "mrr";
-		}
+		String suffix = "";
+		int[] limit = Constants.cacheSize;
 		Analyzer analyzer = null;
 		if (argsList.contains("-bi")) {
 			suffix += "_bi";
@@ -42,17 +32,14 @@ public class BuildIndexForLM {
 		} else {
 			analyzer = new StandardAnalyzer();
 		}
-		String[] tableName = { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
-		String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
-		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
+		String[] tableName = Constants.tableName;
+		String[][] textAttribs = Constants.textAttribs;
+		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {
 			// building index for LM
-			Directory cacheDirectory = FSDirectory
-					.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "lm_cache_" + suffix));
+			Directory cacheDirectory = FSDirectory.open(Paths.get(Constants.DATA_STACK + "lm_cache_" + suffix));
 			IndexWriterConfig cacheConfig = Indexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
-			Directory restDirectory = FSDirectory
-					.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "lm_rest_" + suffix));
-			Directory allDirectory = FSDirectory
-					.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "lm_all_" + suffix));
+			Directory restDirectory = FSDirectory.open(Paths.get(Constants.DATA_STACK + "lm_rest_" + suffix));
+			Directory allDirectory = FSDirectory.open(Paths.get(Constants.DATA_STACK + "lm_all_" + suffix));
 			IndexWriterConfig restConfig = Indexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
 			IndexWriterConfig allConfig = Indexer.getIndexWriterConfig(analyzer);
 			try (IndexWriter cacheWriter = new IndexWriter(cacheDirectory, cacheConfig);
@@ -60,11 +47,11 @@ public class BuildIndexForLM {
 					IndexWriter allWriter = new IndexWriter(allDirectory, allConfig)) {
 				for (int i = 0; i < tableName.length; i++) {
 					System.out.println("Indexing table " + tableName[i]);
-					Indexer.indexTable(dc, cacheWriter, tableName[i], textAttribs[i], limit[i], "popularity", false);
-					Indexer.indexTable(dc, restWriter, tableName[i], textAttribs[i],
-							ExperimentConstants.size[i] - limit[i], "popularity", true);
+					Indexer.indexTable(dc, cacheWriter, tableName[i], textAttribs[i], limit[i], "ViewCount", false);
+					Indexer.indexTable(dc, restWriter, tableName[i], textAttribs[i], Constants.size[i] - limit[i],
+							"ViewCount", true);
 					// Indexer.indexTable(dc, allWriter, tableName[i], textAttribs[i],
-					// ExperimentConstants.size[i], "popularity", false);
+					// Constants.size[i], "popularity", false);
 				}
 			}
 		}

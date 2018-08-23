@@ -17,7 +17,7 @@ import org.apache.lucene.store.FSDirectory;
 import irstyle.CacheSelectionQL;
 import irstyle.IRStyleQueryResult;
 import irstyle.IRStyleWikiHelper;
-import irstyle.RelationalWikiIndexer;
+import irstyle.WikiIndexer;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
@@ -89,11 +89,11 @@ public class RunCacheSearch_MySQL {
 						articleImageTable, articleLinkTable, jdbcacc.conn);
 
 				List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleReader, query.getText(),
-						RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
+						WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
 				List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageReader, query.getText(),
-						RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
+						WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
 				List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkReader, query.getText(),
-						RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
+						WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
 				Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 				relnamesValues.put(articleTable, articleIds);
 				relnamesValues.put(imageTable, imageIds);

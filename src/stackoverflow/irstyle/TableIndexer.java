@@ -2,6 +2,8 @@ package stackoverflow.irstyle;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -18,12 +20,22 @@ public class TableIndexer {
 	public static final String WEIGHT_FIELD = "weight";
 
 	public static void main(String[] args) throws IOException, SQLException {
+		List<String> argList = Arrays.asList(args);
+		boolean useCache = false;
+		if (argList.contains("-cacahe")) {
+			useCache = true;
+		}
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {
 			for (int i = 0; i < Constants.tableName.length; i++) {
 				String tableName = Constants.tableName[i];
 				String[] textAttribs = Constants.textAttribs[i];
 				String popularity = "ViewCount";
-				int limit = DatabaseHelper.tableSize(tableName, dc.getConnection());
+				int limit;
+				if (useCache) {
+					limit = Constants.cacheSize[i];
+				} else {
+					limit = DatabaseHelper.tableSize(tableName, dc.getConnection());
+				}
 				String indexPath = Constants.DATA_STACK + tableName + "_full";
 				IndexWriterConfig config = Indexer.getIndexWriterConfig();
 				config.setOpenMode(OpenMode.CREATE);

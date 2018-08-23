@@ -16,7 +16,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import irstyle.IRStyleQueryResult;
 import irstyle.IRStyleWikiHelper;
-import irstyle.RelationalWikiIndexer;
+import irstyle.WikiIndexer;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
@@ -34,9 +34,9 @@ public class RunCacheSearch_Old {
 		String linkTable = "tbl_link_pop";
 		String articleImageTable = "tbl_article_image_09";
 		String articleLinkTable = "tbl_article_link_09";
-		String articleIndexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100";
-		String imageIndexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_image_pop/100";
-		String linkIndexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_link_pop/100";
+		String articleIndexPath = WikiIndexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100";
+		String imageIndexPath = WikiIndexer.DATA_WIKIPEDIA + "tbl_image_pop/100";
+		String linkIndexPath = WikiIndexer.DATA_WIKIPEDIA + "tbl_link_pop/100";
 		if (argsList.contains("-debug")) {
 			Params.DEBUG = true;
 		}
@@ -46,9 +46,9 @@ public class RunCacheSearch_Old {
 			linkTable = "sub_link_pop";
 			articleImageTable = "sub_article_image_09";
 			articleLinkTable = "sub_article_link_09";
-			articleIndexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_article_wiki13";
-			imageIndexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_image_pop";
-			linkIndexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_link_pop";
+			articleIndexPath = WikiIndexer.DATA_WIKIPEDIA + "sub_article_wiki13";
+			imageIndexPath = WikiIndexer.DATA_WIKIPEDIA + "sub_image_pop";
+			linkIndexPath = WikiIndexer.DATA_WIKIPEDIA + "sub_link_pop";
 		}
 		List<ExperimentQuery> queries = null;
 		if (argsList.contains("-inex")) {
@@ -88,9 +88,9 @@ public class RunCacheSearch_Old {
 					System.out.println("processing query " + loop++ + "/" + queries.size() + ": " + query.getText());
 					Schema sch = new Schema(schemaDescription);
 					long start = System.currentTimeMillis();
-					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleReader, query.getText(),RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
-					List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageReader, query.getText(),RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
-					List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkReader, query.getText(), RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
+					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleReader, query.getText(),WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
+					List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageReader, query.getText(),WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
+					List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkReader, query.getText(), WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
 					long end = System.currentTimeMillis() - start;
 					luceneTime += end;
 					System.out.println(" Lucene search time: " + end + " (ms)");

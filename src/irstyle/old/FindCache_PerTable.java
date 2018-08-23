@@ -33,7 +33,7 @@ import database.DatabaseType;
 import irstyle.ExperimentConstants;
 import irstyle.IRStyleQueryResult;
 import irstyle.IRStyleWikiHelper;
-import irstyle.RelationalWikiIndexer;
+import irstyle.WikiIndexer;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
@@ -172,11 +172,11 @@ public class FindCache_PerTable {
 					for (ExperimentQuery query : queries) {
 						Schema sch = new Schema(schemaDescription);
 						List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(indexReader[0],
-								query.getText(), RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
+								query.getText(), WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
 						List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(indexReader[1], query.getText(),
-								RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
+								WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
 						List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(indexReader[2], query.getText(),
-								RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
+								WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
 						Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 						relnamesValues.put(usedTable[0], articleIds);
 						relnamesValues.put(usedTable[1], imageIds);

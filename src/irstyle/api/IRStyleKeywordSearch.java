@@ -25,7 +25,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.BM25Similarity;
 
 import irstyle.IRStyleQueryResult;
-import irstyle.RelationalWikiIndexer;
+import irstyle.WikiIndexer;
 import irstyle.core.ExecPrepared;
 import irstyle.core.Flags;
 import irstyle.core.InitialMain;

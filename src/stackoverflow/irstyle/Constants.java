@@ -5,6 +5,9 @@ public class Constants {
 	public static String[] tableName = { "answers_s", "tags_pop", "comments_pop" };
 
 	public static int[] size = { 1092420, 1092420, 1967107 };
+	
+	// 0.25, 0.2 and 0.1 percent
+	public static int[] cacheSize = { 273105, 218484, 196710};
 
 	public static String[][] textAttribs = new String[][] { { "Body" }, { "TagName" }, { "Text" } };
 

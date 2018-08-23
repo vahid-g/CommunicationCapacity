@@ -27,7 +27,7 @@ import org.apache.lucene.store.FSDirectory;
 import irstyle.CacheSelectionQL;
 import irstyle.IRStyleQueryResult;
 import irstyle.IRStyleWikiHelper;
-import irstyle.RelationalWikiIndexer;
+import irstyle.WikiIndexer;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
@@ -83,21 +83,21 @@ public class RunCacheSearchWithQL {
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		try (IndexReader articleReader = DirectoryReader
-				.open(FSDirectory.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100")));
+				.open(FSDirectory.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100")));
 				IndexReader articleCacheReader = DirectoryReader.open(FSDirectory.open(
-						Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_article_wiki13_" + cacheNameSuffix)));
+						Paths.get(WikiIndexer.DATA_WIKIPEDIA + "sub_article_wiki13_" + cacheNameSuffix)));
 				IndexReader imageReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_image_pop/100")));
+						.open(FSDirectory.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "tbl_image_pop/100")));
 				IndexReader imageCacheReader = DirectoryReader.open(FSDirectory
-						.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_image_pop_" + cacheNameSuffix)));
+						.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "sub_image_pop_" + cacheNameSuffix)));
 				IndexReader linkReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "tbl_link_pop/100")));
+						.open(FSDirectory.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "tbl_link_pop/100")));
 				IndexReader linkCacheReader = DirectoryReader.open(FSDirectory
-						.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "sub_link_pop_" + cacheNameSuffix)));
+						.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "sub_link_pop_" + cacheNameSuffix)));
 				IndexReader cacheReader = DirectoryReader.open(FSDirectory
-						.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_cache_" + cacheNameSuffix)));
+						.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "lm_cache_" + cacheNameSuffix)));
 				IndexReader restReader = DirectoryReader.open(FSDirectory
-						.open(Paths.get(RelationalWikiIndexer.DATA_WIKIPEDIA + "lm_rest_" + cacheNameSuffix)))) {
+						.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "lm_rest_" + cacheNameSuffix)))) {
 			long time = 0;
 			int cacheUseCount = 0;
 			long selectionTime = 0;
@@ -219,13 +219,13 @@ public class RunCacheSearchWithQL {
 			throws ParseException, IOException {
 		IndexSearcher searcher = new IndexSearcher(reader);
 		searcher.setSimilarity(new BM25Similarity());
-		QueryParser qp = new QueryParser(RelationalWikiIndexer.TEXT_FIELD, new StandardAnalyzer());
+		QueryParser qp = new QueryParser(WikiIndexer.TEXT_FIELD, new StandardAnalyzer());
 		Query query = qp.parse(QueryParser.escape(queryText));
 		ScoreDoc[] scoreDocHits = searcher.search(query, Params.MAX_TS_SIZE).scoreDocs;
 		List<String> results = new ArrayList<String>();
 		for (int j = 0; j < scoreDocHits.length; j++) {
 			Document doc = reader.document(scoreDocHits[j].doc);
-			String docId = doc.get(RelationalWikiIndexer.ID_FIELD);
+			String docId = doc.get(WikiIndexer.ID_FIELD);
 			results.add("(" + docId + "," + scoreDocHits[j].score + ")");
 		}
 		return results;

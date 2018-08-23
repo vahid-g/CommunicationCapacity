@@ -23,7 +23,7 @@ import org.apache.lucene.store.FSDirectory;
 import cache_selection_ml.FeatureExtraction;
 import indexing.BiwordAnalyzer;
 import indexing.popularity.TokenPopularity;
-import irstyle.RelationalWikiIndexer;
+import irstyle.WikiIndexer;
 import query.ExperimentQuery;
 import query.QueryServices;
 
@@ -61,7 +61,7 @@ public class RunFeatureExtractionForStructuredWiki {
 			allBiwordIndexPath = Paths.get(baseDataDir + "lm_all_mrr_bi");
 		}
 
-		FeatureExtraction wqde = new FeatureExtraction(RelationalWikiIndexer.WEIGHT_FIELD);
+		FeatureExtraction wqde = new FeatureExtraction(WikiIndexer.WEIGHT_FIELD);
 		LOGGER.log(Level.INFO, "loading popularity indices..");
 		Map<String, TokenPopularity> cacheTermPopularity = TokenPopularity
 				.loadTokenPopularities(cacheIndexPath + "_text_pop_index" + ".csv");
@@ -93,55 +93,55 @@ public class RunFeatureExtractionForStructuredWiki {
 			for (ExperimentQuery query : queries) {
 				String queryText = query.getText();
 				List<Double> f = new ArrayList<Double>();
-				f.add(wqde.coveredTokenRatio(indexReader, queryText, RelationalWikiIndexer.TEXT_FIELD, analyzer));
-				f.add(wqde.coveredTokenRatio(restIndexReader, queryText, RelationalWikiIndexer.TEXT_FIELD, analyzer));
+				f.add(wqde.coveredTokenRatio(indexReader, queryText, WikiIndexer.TEXT_FIELD, analyzer));
+				f.add(wqde.coveredTokenRatio(restIndexReader, queryText, WikiIndexer.TEXT_FIELD, analyzer));
 				f.add(wqde.meanNormalizedTokenDocumentFrequency(indexReader, queryText,
-						RelationalWikiIndexer.TEXT_FIELD, analyzer));
+						WikiIndexer.TEXT_FIELD, analyzer));
 				f.add(wqde.meanNormalizedTokenDocumentFrequency(restIndexReader, queryText,
-						RelationalWikiIndexer.TEXT_FIELD, analyzer));
-				f.add(wqde.minNormalizedTokenDocumentFrequency(indexReader, queryText, RelationalWikiIndexer.TEXT_FIELD,
+						WikiIndexer.TEXT_FIELD, analyzer));
+				f.add(wqde.minNormalizedTokenDocumentFrequency(indexReader, queryText, WikiIndexer.TEXT_FIELD,
 						analyzer));
 				f.add(wqde.minNormalizedTokenDocumentFrequency(restIndexReader, queryText,
-						RelationalWikiIndexer.TEXT_FIELD, analyzer));
+						WikiIndexer.TEXT_FIELD, analyzer));
 				List<Double> averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(cacheTermPopularity,
-						queryText, RelationalWikiIndexer.TEXT_FIELD, analyzer);
+						queryText, WikiIndexer.TEXT_FIELD, analyzer);
 				f.addAll(averageTokenDocPopularity);
 				averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(restTermPopularity, queryText,
-						RelationalWikiIndexer.TEXT_FIELD, analyzer);
+						WikiIndexer.TEXT_FIELD, analyzer);
 				f.addAll(averageTokenDocPopularity);
-				f.add(wqde.queryLikelihood(indexReader, queryText, RelationalWikiIndexer.TEXT_FIELD, globalIndexReader,
+				f.add(wqde.queryLikelihood(indexReader, queryText, WikiIndexer.TEXT_FIELD, globalIndexReader,
 						analyzer));
-				f.add(wqde.queryLikelihood(restIndexReader, queryText, RelationalWikiIndexer.TEXT_FIELD,
+				f.add(wqde.queryLikelihood(restIndexReader, queryText, WikiIndexer.TEXT_FIELD,
 						globalIndexReader, analyzer));
-				f.add(wqde.queryLogLikelihood(indexReader, queryText, RelationalWikiIndexer.TEXT_FIELD,
+				f.add(wqde.queryLogLikelihood(indexReader, queryText, WikiIndexer.TEXT_FIELD,
 						globalIndexReader, analyzer));
-				f.add(wqde.queryLogLikelihood(restIndexReader, queryText, RelationalWikiIndexer.TEXT_FIELD,
+				f.add(wqde.queryLogLikelihood(restIndexReader, queryText, WikiIndexer.TEXT_FIELD,
 						globalIndexReader, analyzer));
-				f.add(wqde.coveredTokenRatio(biwordIndexReader, queryText, RelationalWikiIndexer.TEXT_FIELD,
+				f.add(wqde.coveredTokenRatio(biwordIndexReader, queryText, WikiIndexer.TEXT_FIELD,
 						biwordAnalyzer));
-				f.add(wqde.coveredTokenRatio(biwordRestIndexReader, queryText, RelationalWikiIndexer.TEXT_FIELD,
+				f.add(wqde.coveredTokenRatio(biwordRestIndexReader, queryText, WikiIndexer.TEXT_FIELD,
 						biwordAnalyzer));
 				f.add(wqde.meanNormalizedTokenDocumentFrequency(biwordIndexReader, queryText,
-						RelationalWikiIndexer.TEXT_FIELD, biwordAnalyzer));
+						WikiIndexer.TEXT_FIELD, biwordAnalyzer));
 				f.add(wqde.meanNormalizedTokenDocumentFrequency(biwordRestIndexReader, queryText,
-						RelationalWikiIndexer.TEXT_FIELD, biwordAnalyzer));
+						WikiIndexer.TEXT_FIELD, biwordAnalyzer));
 				f.add(wqde.minNormalizedTokenDocumentFrequency(biwordIndexReader, queryText,
-						RelationalWikiIndexer.TEXT_FIELD, biwordAnalyzer));
+						WikiIndexer.TEXT_FIELD, biwordAnalyzer));
 				f.add(wqde.minNormalizedTokenDocumentFrequency(biwordRestIndexReader, queryText,
-						RelationalWikiIndexer.TEXT_FIELD, biwordAnalyzer));
+						WikiIndexer.TEXT_FIELD, biwordAnalyzer));
 				averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(biwordCachePopularity, queryText,
-						RelationalWikiIndexer.TEXT_FIELD, biwordAnalyzer);
+						WikiIndexer.TEXT_FIELD, biwordAnalyzer);
 				f.addAll(averageTokenDocPopularity);
 				averageTokenDocPopularity = wqde.fastTokenPopularityFeatures(biwordRestPopularity, queryText,
-						RelationalWikiIndexer.TEXT_FIELD, biwordAnalyzer);
+						WikiIndexer.TEXT_FIELD, biwordAnalyzer);
 				f.addAll(averageTokenDocPopularity);
-				f.add(wqde.queryLikelihood(biwordIndexReader, queryText, RelationalWikiIndexer.TEXT_FIELD,
+				f.add(wqde.queryLikelihood(biwordIndexReader, queryText, WikiIndexer.TEXT_FIELD,
 						globalBiwordIndexReader, biwordAnalyzer));
-				f.add(wqde.queryLikelihood(biwordRestIndexReader, queryText, RelationalWikiIndexer.TEXT_FIELD,
+				f.add(wqde.queryLikelihood(biwordRestIndexReader, queryText, WikiIndexer.TEXT_FIELD,
 						globalBiwordIndexReader, biwordAnalyzer));
-				f.add(wqde.queryLogLikelihood(biwordIndexReader, queryText, RelationalWikiIndexer.TEXT_FIELD,
+				f.add(wqde.queryLogLikelihood(biwordIndexReader, queryText, WikiIndexer.TEXT_FIELD,
 						globalBiwordIndexReader, biwordAnalyzer));
-				f.add(wqde.queryLogLikelihood(biwordRestIndexReader, queryText, RelationalWikiIndexer.TEXT_FIELD,
+				f.add(wqde.queryLogLikelihood(biwordRestIndexReader, queryText, WikiIndexer.TEXT_FIELD,
 						globalBiwordIndexReader, biwordAnalyzer));
 				data.add(queryText + "," + query.getFreq() + ","
 						+ f.stream().map(ft -> ft + ",").collect(Collectors.joining()));

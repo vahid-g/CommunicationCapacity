@@ -59,13 +59,13 @@ public class RunFeatureExtractionForMultiTables {
 			queries = queries.subList(0, 10);
 		}
 		for (String table : ExperimentConstants.tableName) {
-			String indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_" + suffix;
+			String indexPath = WikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_" + suffix;
 			cacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_" + suffix;
+			indexPath = WikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_" + suffix;
 			restIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_" + suffix + "_bi";
+			indexPath = WikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_" + suffix + "_bi";
 			biCacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = RelationalWikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_" + suffix + "_bi";
+			indexPath = WikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_" + suffix + "_bi";
 			biRestIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
 		}
 		LOGGER.log(Level.INFO, "loading popularity indices..");
@@ -77,7 +77,7 @@ public class RunFeatureExtractionForMultiTables {
 				ExperimentConstants.WIKI_DATA_DIR + "lm_cache_" + suffix + "_bi" + "_text_pop_index" + ".csv");
 		biwordRestPopularity = TokenPopularity.loadTokenPopularities(
 				ExperimentConstants.WIKI_DATA_DIR + "lm_rest_" + suffix + "_bi" + "_text_pop_index" + ".csv");
-		FeatureExtraction wqde = new FeatureExtraction(RelationalWikiIndexer.WEIGHT_FIELD);
+		FeatureExtraction wqde = new FeatureExtraction(WikiIndexer.WEIGHT_FIELD);
 		LOGGER.log(Level.INFO, "loading done!");
 		List<String> data = new ArrayList<String>();
 		String[] featureNames = { "covered", "covered_rest", "mean_df", "mean_df_rest", "min_df", "min_df_rest",

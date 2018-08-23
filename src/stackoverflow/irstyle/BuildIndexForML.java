@@ -1,4 +1,4 @@
-package irstyle;
+package stackoverflow.irstyle;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -23,18 +23,8 @@ import irstyle.api.Indexer;
 public class BuildIndexForML {
 	public static void main(String[] args) throws SQLException, IOException {
 		List<String> argsList = Arrays.asList(args);
-		String suffix;
-		int[] limit;
-		if (argsList.contains("-inexp")) {
-			limit = ExperimentConstants.precisionLimit;
-			suffix = "p20";
-		} else if (argsList.contains("-inexr")) {
-			limit = ExperimentConstants.recallLimit;
-			suffix = "rec";
-		} else {
-			limit = ExperimentConstants.mrrLimit;
-			suffix = "mrr";
-		}
+		String suffix = "";
+		int[] limit = Constants.cacheSize;
 		Analyzer analyzer;
 		if (argsList.contains("-bi")) {
 			suffix += "_bi";
@@ -43,15 +33,14 @@ public class BuildIndexForML {
 			analyzer = new StandardAnalyzer();
 		}
 		String finalSuffix = suffix;
-		String[] tableName = { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
-		String[][] textAttribs = new String[][] { { "title", "text" }, { "src" }, { "url" } };
+		String[] tableName = Constants.tableName;
+		String[][] textAttribs = Constants.textAttribs;
 		int[] tableIndex = { 0, 1, 2 };
 		Arrays.stream(tableIndex).parallel().forEach(tableNo -> {
 			Path cacheIndexPath = Paths
-					.get(WikiIndexer.DATA_WIKIPEDIA + "ml_" + tableName[tableNo] + "_cache_" + finalSuffix);
-			Path restIndexPath = Paths
-					.get(WikiIndexer.DATA_WIKIPEDIA + "ml_" + tableName[tableNo] + "_rest_" + finalSuffix);
-			try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA);
+					.get(Constants.DATA_STACK + "ml_" + tableName[tableNo] + "_cache_" + finalSuffix);
+			Path restIndexPath = Paths.get(Constants.DATA_STACK + "ml_" + tableName[tableNo] + "_rest_" + finalSuffix);
+			try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 					Directory cacheIndexDir = FSDirectory.open(cacheIndexPath);
 					Directory restIndexDir = FSDirectory.open(restIndexPath);) {
 				IndexWriterConfig cacheIndexWriterConfig = Indexer.getIndexWriterConfig(analyzer)
@@ -61,9 +50,9 @@ public class BuildIndexForML {
 				try (IndexWriter cacheIndexWriter = new IndexWriter(cacheIndexDir, cacheIndexWriterConfig);
 						IndexWriter restIndexWriter = new IndexWriter(restIndexDir, restIndexWriterConfig)) {
 					Indexer.indexTableAttribs(dc, cacheIndexWriter, tableName[tableNo], textAttribs[tableNo],
-							limit[tableNo], "popularity", false);
+							limit[tableNo], "ViewCount", false);
 					Indexer.indexTableAttribs(dc, restIndexWriter, tableName[tableNo], textAttribs[tableNo],
-							ExperimentConstants.size[tableNo] - limit[tableNo], "popularity", true);
+							Constants.size[tableNo] - limit[tableNo], "ViewCount", true);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();

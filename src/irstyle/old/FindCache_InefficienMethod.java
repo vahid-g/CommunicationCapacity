@@ -35,7 +35,7 @@ import database.DatabaseType;
 import irstyle.ExperimentConstants;
 import irstyle.IRStyleQueryResult;
 import irstyle.IRStyleWikiHelper;
-import irstyle.RelationalWikiIndexer;
+import irstyle.WikiIndexer;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
@@ -218,9 +218,9 @@ public class FindCache_InefficienMethod {
 								+ "," + linkReader.numDocs());
 						for (ExperimentQuery query : queries) {
 							Schema sch = new Schema(schemaDescription);
-							List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleReader, query.getText(),RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
-							List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageReader, query.getText(),RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
-							List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkReader, query.getText(),RelationalWikiIndexer.TEXT_FIELD, RelationalWikiIndexer.ID_FIELD);
+							List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleReader, query.getText(),WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
+							List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageReader, query.getText(),WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
+							List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkReader, query.getText(),WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
 							Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 							relnamesValues.put(articleTable, articleIds);
 							relnamesValues.put(imageTable, imageIds);
