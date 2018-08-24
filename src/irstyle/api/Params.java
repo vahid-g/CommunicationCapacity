@@ -16,7 +16,7 @@ public class Params {
 
 	public static boolean allKeywInResults = false;
 
-	public static int MAX_TS_SIZE = 10000;
+	public static int MAX_TS_SIZE = 1000;
 	
 	public static String getDescriptor() {
 		StringBuilder sb = new StringBuilder();

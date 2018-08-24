@@ -56,6 +56,7 @@ public class RunCacheSearch {
 			if (argsList.contains("-inexr")) {
 				Params.N = 20; // even if we are looking for recall response time is important
 			}
+			queries = queries.subList(0, 10);
 			outputFileName += "_eff";
 			System.out.println("setting: \n" + Params.getDescriptor());
 		}
@@ -82,6 +83,7 @@ public class RunCacheSearch {
 			long tuplesetTime = 0;
 			double recall = 0;
 			double p20 = 0;
+			double mrr = 0;
 			for (int exec = 0; exec < Params.numExecutions; exec++) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
@@ -141,6 +143,7 @@ public class RunCacheSearch {
 					System.out.println("rrank=" + result.rrank());
 					recall += result.recall();
 					p20 += result.p20();
+					mrr += result.rrank();
 					queryResults.add(result);
 				}
 			}
@@ -156,6 +159,7 @@ public class RunCacheSearch {
 			System.out.println("number of cache hits: " + cacheUseCount + "/" + queries.size());
 			System.out.println("recall = " + recall / queries.size());
 			System.out.println("p20 = " + p20 / queries.size());
+			System.out.println("mrr = " + mrr / queries.size());
 			System.out.println("avergae article TS size: "
 					+ IRStyleKeywordSearch.aggregateArticleTuplesetSize / IRStyleKeywordSearch.counter);
 			IRStyleKeywordSearch.printResults(queryResults, outputFileName);
