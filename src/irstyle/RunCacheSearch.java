@@ -30,7 +30,6 @@ public class RunCacheSearch {
 		List<ExperimentQuery> queries;
 		String outputFileName = "result";
 		if (argsList.contains("-inexp")) {
-			Params.N = 20;
 			cacheNameSuffix = "p20";
 			queries = QueryServices.loadInexQueries();
 		} else if (argsList.contains("-inexr")) {
@@ -38,7 +37,6 @@ public class RunCacheSearch {
 			cacheNameSuffix = "rec";
 			queries = QueryServices.loadInexQueries();
 		} else {
-			Params.N = 10;
 			cacheNameSuffix = "mrr";
 			queries = QueryServices.loadMsnQueriesAll();
 		}
