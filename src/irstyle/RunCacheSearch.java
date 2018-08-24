@@ -38,7 +38,7 @@ public class RunCacheSearch {
 			cacheNameSuffix = "rec";
 			queries = QueryServices.loadInexQueries();
 		} else {
-			Params.N = 5;
+			Params.N = 10;
 			cacheNameSuffix = "mrr";
 			queries = QueryServices.loadMsnQueriesAll();
 		}
