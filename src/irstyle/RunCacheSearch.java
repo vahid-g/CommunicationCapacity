@@ -58,7 +58,6 @@ public class RunCacheSearch {
 			if (argsList.contains("-inexr")) {
 				Params.N = 20; // even if we are looking for recall response time is important
 			}
-			queries = queries.subList(0, 10);
 			outputFileName += "_eff";
 			System.out.println("setting: \n" + Params.getDescriptor());
 		}
