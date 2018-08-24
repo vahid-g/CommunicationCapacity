@@ -4,7 +4,7 @@ public class Params {
 
 	public static int MAX_GENERATED_CN = 50;
 
-	public static int MAX_ALLOWED_TIME = 1 * 60 * 1000;
+	public static int MAX_ALLOWED_TIME = 2 * 60 * 1000;
 
 	public static boolean DEBUG = false;
 
@@ -16,7 +16,7 @@ public class Params {
 
 	public static boolean allKeywInResults = false;
 
-	public static int MAX_TS_SIZE = 100;
+	public static int MAX_TS_SIZE = 10000;
 	
 	public static String getDescriptor() {
 		StringBuilder sb = new StringBuilder();

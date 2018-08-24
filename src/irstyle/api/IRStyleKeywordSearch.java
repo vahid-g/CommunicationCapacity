@@ -25,7 +25,6 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.similarities.BM25Similarity;
 
 import irstyle.IRStyleQueryResult;
-import irstyle.WikiIndexer;
 import irstyle.core.ExecPrepared;
 import irstyle.core.Flags;
 import irstyle.core.InitialMain;
@@ -193,6 +192,9 @@ public class IRStyleKeywordSearch {
 		return result;
 	}
 
+	public static int aggregateArticleTuplesetSize = 0;
+	public static int counter = 0;
+
 	public static List<String> executeLuceneQuery(IndexReader reader, String queryText, String TextField,
 			String IdField) throws ParseException, IOException {
 		IndexSearcher searcher = new IndexSearcher(reader);
@@ -205,8 +207,16 @@ public class IRStyleKeywordSearch {
 			Document doc = reader.document(scoreDocHits[j].doc);
 			String docId = doc.get(IdField);
 			results.add("(" + docId + "," + scoreDocHits[j].score + ")");
+			/*if (scoreDocHits[j].score < scoreDocHits[0].score * 0.8) {
+				break;
+			}*/
 		}
+		// System.out.println(
+		// "\t score range = " + scoreDocHits[0].score + " - " +
+		// scoreDocHits[scoreDocHits.length - 1].score);
+		// System.out.println("\t TS size = " + results.size());
+		aggregateArticleTuplesetSize += results.size();
+		counter++;
 		return results;
 	}
-
 }
