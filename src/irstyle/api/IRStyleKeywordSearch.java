@@ -207,8 +207,8 @@ public class IRStyleKeywordSearch {
 			Document doc = reader.document(scoreDocHits[j].doc);
 			String docId = doc.get(IdField);
 			results.add("(" + docId + "," + scoreDocHits[j].score + ")");
-			if (scoreDocHits[j].score < scoreDocHits[0].score * 0.5) {
-//				break;
+			if (Params.useScoreThresholding && (scoreDocHits[j].score < scoreDocHits[0].score * 0.5)) {
+				break;
 			}
 		}
 		System.out.println(

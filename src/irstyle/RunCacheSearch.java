@@ -33,11 +33,11 @@ public class RunCacheSearch {
 	public static void main(String[] args) throws Exception {
 		Options options = new Options();
 		options.addOption(Option.builder("e").required().hasArg().desc("The experiment inexp/inexr/mrr").build());
-		options.addOption(Option.builder("k").desc("The k in tok-k").required().hasArg().build());
-		options.addOption(Option.builder("t").desc("TS size threshold").required().hasArg().build());
 		options.addOption(Option.builder("c").desc("Use cache").build());
-		options.addOption(Option.builder("s").desc("Score thresholding").build());
 		options.addOption(Option.builder("f").desc("Efficiency experiment").build());
+		options.addOption(Option.builder("k").desc("The k in tok-k").hasArg().build());
+		options.addOption(Option.builder("t").desc("TS size threshold").hasArg().build());
+		options.addOption(Option.builder("s").desc("Score thresholding").build());
 		CommandLineParser clp = new DefaultParser();
 		CommandLine cl;
 		String cacheNameSuffix;
@@ -69,9 +69,12 @@ public class RunCacheSearch {
 			Collections.shuffle(queries, new Random(2));
 			queries = queries.subList(0, 20);
 			outputFileName += "_eff";
-			System.out.println("setting: \n" + Params.getDescriptor());
 		}
 		outputFileName += ".csv";
+		Params.MAX_TS_SIZE = Integer.parseInt(cl.getOptionValue("t", "10000"));
+		Params.N = Integer.parseInt(cl.getOptionValue("k", "20"));
+		Params.useScoreThresholding = cl.hasOption("s");
+		System.out.println("setting: \n" + Params.getDescriptor());
 		JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
