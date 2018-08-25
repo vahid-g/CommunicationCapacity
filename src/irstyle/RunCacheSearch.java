@@ -16,6 +16,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
+import irstyle.core.ExecPrepared;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
 import irstyle.core.Schema;
@@ -51,12 +52,12 @@ public class RunCacheSearch {
 		} else {
 			outputFileName += "_full";
 		}
-		Collections.shuffle(queries, new Random(1));
+		Collections.shuffle(queries, new Random(2));
 		if (argsList.contains("-eff")) {
 			if (argsList.contains("-inexr")) {
 				Params.N = 20; // even if we are looking for recall response time is important
 			}
-			queries = queries.subList(0, 10);
+			queries = queries.subList(0, 20);
 			outputFileName += "_eff";
 			System.out.println("setting: \n" + Params.getDescriptor());
 		}
@@ -162,6 +163,7 @@ public class RunCacheSearch {
 			System.out.println("mrr = " + mrr / queries.size());
 			System.out.println("avergae article TS size: "
 					+ IRStyleKeywordSearch.aggregateArticleTuplesetSize / IRStyleKeywordSearch.counter);
+			System.out.println("average gen queries: " + ExecPrepared.totalGenQueries / ExecPrepared.execCount);
 			IRStyleKeywordSearch.printResults(queryResults, outputFileName);
 		}
 	}

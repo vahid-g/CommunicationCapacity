@@ -207,14 +207,13 @@ public class IRStyleKeywordSearch {
 			Document doc = reader.document(scoreDocHits[j].doc);
 			String docId = doc.get(IdField);
 			results.add("(" + docId + "," + scoreDocHits[j].score + ")");
-			/*if (scoreDocHits[j].score < scoreDocHits[0].score * 0.8) {
-				break;
-			}*/
+			if (scoreDocHits[j].score < scoreDocHits[0].score * 0.5) {
+//				break;
+			}
 		}
-		// System.out.println(
-		// "\t score range = " + scoreDocHits[0].score + " - " +
-		// scoreDocHits[scoreDocHits.length - 1].score);
-		// System.out.println("\t TS size = " + results.size());
+		System.out.println(
+				"\t score range = " + scoreDocHits[0].score + " - " + scoreDocHits[scoreDocHits.length - 1].score);
+		System.out.println("\t TS size = " + results.size());
 		aggregateArticleTuplesetSize += results.size();
 		counter++;
 		return results;

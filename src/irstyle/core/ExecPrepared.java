@@ -525,6 +525,9 @@ public class ExecPrepared {
 		return ret / numnfreeTSs;
 	}
 
+	public static int totalGenQueries = 0;
+	public static int execCount = 0;
+
 	public int ExecuteParallel(JDBCaccess jdbcacc, String[] sqls, ArrayList[] nfreeTSs, ArrayList keywords, int N,
 			int[] CNsize, ArrayList ResultsAndScores, boolean allKeywInResults) {// input:
 		// sqls[i]: param sql for i-th CN
@@ -785,9 +788,11 @@ public class ExecPrepared {
 			}
 		}
 		long time2 = System.currentTimeMillis();
-		if (Flags.DEBUG_INFO)
+		if (Params.DEBUG)
 			System.out.println("    Parallel algor: results output = " + resultsSoFar + " numPreparedQueries = "
 					+ numPreparedQueries + "  in time = " + (time2 - time1));
+		totalGenQueries += numPreparedQueries;
+		execCount++;
 		if (Flags.RESULTS__SHOW_OUTPUT)
 			printResults(R, scoresR);
 		for (int i = 0; i < R.size(); i++)
