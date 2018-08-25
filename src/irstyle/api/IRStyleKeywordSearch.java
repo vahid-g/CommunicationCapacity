@@ -92,9 +92,6 @@ public class IRStyleKeywordSearch {
 		ExecPrepared execprepared2 = new ExecPrepared();
 		exectime = execprepared2.ExecuteParallel(jdbcacc, sqls, nfreeTSs, new ArrayList<String>(allkeyw), N, CNsize,
 				results, allKeywInResults);
-		if (Params.DEBUG)
-			System.out.println(" Proccess CNs in parallel time = " + exectime + " (ms) " + allKeywInResults
-					+ " #results==" + results.size());
 		return exectime;
 	}
 
@@ -177,7 +174,7 @@ public class IRStyleKeywordSearch {
 		long cnTime = System.currentTimeMillis() - start;
 		exectime += cnTime;
 		if (Params.DEBUG)
-			System.out.println(" Time to get CNs=" + (cnTime) + " (ms) \n\t #CNs: " + CNs.size());
+			System.out.println(" Time to get " + CNs.size() + " CNs = " + (cnTime) + " (ms)");
 		ArrayList<Result> results = new ArrayList<Result>();
 		int time = methodC(Params.N, Params.allKeywInResults, relations, allkeyw, CNs, results, jdbcacc);
 		exectime += time;
@@ -212,9 +209,9 @@ public class IRStyleKeywordSearch {
 			}
 		}
 		if (Params.DEBUG) {
-			System.out.println(
-					"\t score range = " + scoreDocHits[0].score + " - " + scoreDocHits[scoreDocHits.length - 1].score);
-			System.out.println("\t TS size = " + results.size());
+			System.out.print(
+					" score range = " + scoreDocHits[0].score + " - " + scoreDocHits[scoreDocHits.length - 1].score);
+			System.out.println(" and TS size = " + results.size());
 		}
 		aggregateArticleTuplesetSize += results.size();
 		counter++;

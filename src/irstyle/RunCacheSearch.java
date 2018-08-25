@@ -32,12 +32,13 @@ public class RunCacheSearch {
 
 	public static void main(String[] args) throws Exception {
 		Options options = new Options();
-		options.addOption(Option.builder("e").required().hasArg().desc("The experiment inexp/inexr/mrr").build());
+		options.addOption(Option.builder("e").hasArg().desc("The experiment inexp/inexr/mrr").build());
 		options.addOption(Option.builder("c").desc("Use cache").build());
 		options.addOption(Option.builder("f").desc("Efficiency experiment").build());
 		options.addOption(Option.builder("k").desc("The k in tok-k").hasArg().build());
 		options.addOption(Option.builder("t").desc("TS size threshold").hasArg().build());
 		options.addOption(Option.builder("s").desc("Score thresholding").build());
+		options.addOption(Option.builder("d").desc("Output debug info").build());
 		CommandLineParser clp = new DefaultParser();
 		CommandLine cl;
 		String cacheNameSuffix;
@@ -59,16 +60,28 @@ public class RunCacheSearch {
 		}
 		outputFileName += "_" + cacheNameSuffix;
 		boolean justUseCache = false;
+		String articleIndexPath;
+		String imageIndexPath;
+		String linkIndexPath;
 		if (cl.hasOption('c')) {
 			justUseCache = true;
 			outputFileName += "_cache";
+			articleIndexPath = WikiIndexer.DATA_WIKIPEDIA + "sub_article_wiki13_" + cacheNameSuffix;
+			imageIndexPath = WikiIndexer.DATA_WIKIPEDIA + "sub_image_pop_" + cacheNameSuffix;
+			linkIndexPath = WikiIndexer.DATA_WIKIPEDIA + "sub_link_pop_" + cacheNameSuffix;
 		} else {
+			articleIndexPath = WikiIndexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100";
+			imageIndexPath = WikiIndexer.DATA_WIKIPEDIA + "tbl_image_pop/100";
+			linkIndexPath = WikiIndexer.DATA_WIKIPEDIA + "tbl_link_pop/100";
 			outputFileName += "_full";
 		}
 		if (cl.hasOption('f')) {
-			Collections.shuffle(queries, new Random(2));
+			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 20);
 			outputFileName += "_eff";
+		}
+		if (cl.hasOption('d')) {
+			Params.DEBUG = true;
 		}
 		outputFileName += ".csv";
 		Params.MAX_TS_SIZE = Integer.parseInt(cl.getOptionValue("t", "10000"));
@@ -78,18 +91,9 @@ public class RunCacheSearch {
 		JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
-		try (IndexReader articleReader = DirectoryReader
-				.open(FSDirectory.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100")));
-				IndexReader articleCacheReader = DirectoryReader.open(FSDirectory
-						.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "sub_article_wiki13_" + cacheNameSuffix)));
-				IndexReader imageReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "tbl_image_pop/100")));
-				IndexReader imageCacheReader = DirectoryReader.open(
-						FSDirectory.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "sub_image_pop_" + cacheNameSuffix)));
-				IndexReader linkReader = DirectoryReader
-						.open(FSDirectory.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "tbl_link_pop/100")));
-				IndexReader linkCacheReader = DirectoryReader.open(
-						FSDirectory.open(Paths.get(WikiIndexer.DATA_WIKIPEDIA + "sub_link_pop_" + cacheNameSuffix)))) {
+		try (IndexReader articleReader = DirectoryReader.open(FSDirectory.open(Paths.get(articleIndexPath)));
+				IndexReader imageReader = DirectoryReader.open(FSDirectory.open(Paths.get(imageIndexPath)));
+				IndexReader linkReader = DirectoryReader.open(FSDirectory.open(Paths.get(linkIndexPath)))) {
 			long time = 0;
 			int cacheUseCount = 0;
 			long selectionTime = 0;
@@ -110,9 +114,6 @@ public class RunCacheSearch {
 					String linkTable = "tbl_link_pop";
 					String articleImageTable = "tbl_article_image_09";
 					String articleLinkTable = "tbl_article_link_09";
-					IndexReader articleIndexToUse = articleReader;
-					IndexReader imageIndexToUse = imageReader;
-					IndexReader linkIndexToUse = linkReader;
 					long start = System.currentTimeMillis();
 					if (justUseCache) {
 						cacheUseCount++;
@@ -121,9 +122,6 @@ public class RunCacheSearch {
 						imageTable = "sub_image_pop";
 						articleLinkTable = "sub_article_link_09";
 						linkTable = "sub_link_pop";
-						articleIndexToUse = articleCacheReader;
-						imageIndexToUse = imageCacheReader;
-						linkIndexToUse = linkCacheReader;
 					}
 					selectionTime += System.currentTimeMillis() - start;
 					String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
@@ -131,14 +129,20 @@ public class RunCacheSearch {
 							+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 							+ articleLinkTable + " " + linkTable;
 					Schema sch = new Schema(schemaDescription);
+					if (Params.DEBUG) {
+						System.out.println(" Using tables: " + articleTable + " " + articleImageTable + " " + imageTable
+								+ " " + articleLinkTable + " " + linkTable);
+						System.out.println(
+								" Using indices: " + articleIndexPath + " " + imageIndexPath + " " + linkIndexPath);
+					}
 					Vector<Relation> relations = IRStyleWikiHelper.createRelations(articleTable, imageTable, linkTable,
 							articleImageTable, articleLinkTable, jdbcacc.conn);
 					start = System.currentTimeMillis();
-					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleIndexToUse,
-							query.getText(), WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
-					List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageIndexToUse, query.getText(),
+					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleReader, query.getText(),
 							WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
-					List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkIndexToUse, query.getText(),
+					List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageReader, query.getText(),
+							WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
+					List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkReader, query.getText(),
 							WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
 					luceneTime += (System.currentTimeMillis() - start);
 					if (Params.DEBUG) {
@@ -151,10 +155,14 @@ public class RunCacheSearch {
 					relnamesValues.put(linkTable, linkIds);
 					IRStyleQueryResult result = IRStyleKeywordSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
 							relnamesValues);
+					if (Params.DEBUG) {
+						System.out.println(" table scan percentage = "
+								+ (double)ExecPrepared.lastGenQueries / (articleIds.size() * imageIds.size() * linkIds.size())
+								+ "%");
+					}
 					result.dedup();
 					tuplesetTime += result.tuplesetTime;
 					time += luceneTime + result.execTime;
-					System.out.println("rrank=" + result.rrank());
 					recall += result.recall();
 					p20 += result.p20();
 					mrr += result.rrank();
