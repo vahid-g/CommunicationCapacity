@@ -22,8 +22,8 @@ public class Params {
 		StringBuilder sb = new StringBuilder();
 		sb.append("MAX_ALLOWED_TIME = " + MAX_ALLOWED_TIME + "\n");
 		sb.append("N = " + N + "\n");
-		sb.append("MAX_TS_SIZE = " + MAX_TS_SIZE);
-		sb.append("Score thresholding = " + useScoreThresholding);
+		sb.append("MAX_TS_SIZE = " + MAX_TS_SIZE + "\n");
+		sb.append("Score thresholding = " + useScoreThresholding + "\n");
 		return sb.toString();
 	}
 

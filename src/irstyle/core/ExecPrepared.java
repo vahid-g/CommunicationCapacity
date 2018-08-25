@@ -508,9 +508,10 @@ public class ExecPrepared {
 			// foundtopn=foundTopN(R,scoresR,lookaheadscores,B,N,CNsize);
 		}
 		long time2 = System.currentTimeMillis();
-		// System.out.println("results output = " + resultsSoFar + " numPreparedQueries
-		// = " + numPreparedQueries
-		// + " in time = " + (time2 - time1));
+		if (Params.DEBUG) {
+			System.out.println("results output = " + resultsSoFar + " numPreparedQueries = " + numPreparedQueries
+					+ " in time = " + (time2 - time1));
+		}
 		if (Flags.RESULTS__SHOW_OUTPUT)
 			printResults(R, scoresR);
 		for (int i = 0; i < R.size(); i++)
