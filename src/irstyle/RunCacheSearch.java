@@ -10,6 +10,11 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
@@ -26,15 +31,26 @@ import query.QueryServices;
 public class RunCacheSearch {
 
 	public static void main(String[] args) throws Exception {
-		List<String> argsList = Arrays.asList(args);
+		Options options = new Options();
+		options.addOption(Option.builder("e").required().hasArg().desc("The experiment inexp/inexr/mrr").build());
+		options.addOption(Option.builder("k").desc("The k in tok-k").required().hasArg().build());
+		options.addOption(Option.builder("t").desc("TS size threshold").required().hasArg().build());
+		options.addOption(Option.builder("c").desc("Use cache").build());
+		options.addOption(Option.builder("s").desc("Score thresholding").build());
+		options.addOption(Option.builder("f").desc("Efficiency experiment").build());
+		CommandLineParser clp = new DefaultParser();
+		CommandLine cl;
 		String cacheNameSuffix;
 		List<ExperimentQuery> queries;
 		String outputFileName = "result";
-		if (argsList.contains("-inexp")) {
+		cl = clp.parse(options, args);
+		if (cl.getOptionValue('e').equals("inexp")) {
 			cacheNameSuffix = "p20";
 			queries = QueryServices.loadInexQueries();
-		} else if (argsList.contains("-inexr")) {
-			Params.N = 100;
+		} else if (cl.getOptionValue('e').equals("inexr")) {
+			if (!cl.hasOption('f')) {
+				Params.N = 100;
+			}
 			cacheNameSuffix = "rec";
 			queries = QueryServices.loadInexQueries();
 		} else {
@@ -42,21 +58,15 @@ public class RunCacheSearch {
 			queries = QueryServices.loadMsnQueriesAll();
 		}
 		outputFileName += "_" + cacheNameSuffix;
-		if (argsList.contains("-debug")) {
-			Params.DEBUG = true;
-		}
 		boolean justUseCache = false;
-		if (argsList.contains("-cache")) {
+		if (cl.hasOption('c')) {
 			justUseCache = true;
 			outputFileName += "_cache";
 		} else {
 			outputFileName += "_full";
 		}
-		Collections.shuffle(queries, new Random(2));
-		if (argsList.contains("-eff")) {
-			if (argsList.contains("-inexr")) {
-				Params.N = 20; // even if we are looking for recall response time is important
-			}
+		if (cl.hasOption('f')) {
+			Collections.shuffle(queries, new Random(2));
 			queries = queries.subList(0, 20);
 			outputFileName += "_eff";
 			System.out.println("setting: \n" + Params.getDescriptor());
