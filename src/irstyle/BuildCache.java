@@ -10,56 +10,39 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 
 import database.DatabaseConnection;
-import database.DatabaseType;
+import irstyle.api.IRStyleExperiment;
 import irstyle.api.Indexer;
-import stackoverflow.irstyle.StackConstants;
 
 public class BuildCache {
 	public static void main(String[] args) throws Exception {
-		String suffix;
-		int[] limit;
-		DatabaseType databaseType;
-		String dataDir;
-		if (args[0].equals("-inexp") || args[0].equals("-inexr") || args[0].equals("-mrr")) {
-			databaseType = DatabaseType.WIKIPEDIA;
-			dataDir = WikiConstants.WIKI_DATA_DIR;
-		} else if (args[0].equals("-stack")) {
-			databaseType = DatabaseType.STACKOVERFLOW;
-			dataDir = StackConstants.DATA_STACK;
-		} else {
-			throw new Exception();
-		}
+		IRStyleExperiment experiment;
 		if (args[0].equals("-inexp")) {
-			limit = WikiConstants.precisionLimit;
-			suffix = "p20";
+			experiment = IRStyleExperiment.createWikiP20Experiment();
 		} else if (args[0].equals("-inexr")) {
-			limit = WikiConstants.recallLimit;
-			suffix = "rec";
+			experiment = IRStyleExperiment.createWikiRecExperiment();
 		} else if (args[0].equals("-mrr")) {
-			limit = WikiConstants.mrrLimit;
-			suffix = "mrr";
+			experiment = IRStyleExperiment.createWikiMrrExperiment();
 		} else if (args[0].equals("-stack")) {
-			limit = StackConstants.cacheSize;
-			suffix = "mrr";
+			experiment = IRStyleExperiment.createStackExperiment();
 		} else {
 			throw new Exception();
 		}
-		try (DatabaseConnection dc = new DatabaseConnection(databaseType)) {
+		try (DatabaseConnection dc = new DatabaseConnection(experiment.databaseType)) {
 			// building the cache
-			for (int i = 0; i < WikiConstants.tableName.length; i++) {
-				System.out.println("Indexing table " + WikiConstants.tableName[i]);
-				String cacheName = "sub_" + WikiConstants.tableName[i].substring(4) + "_" + suffix;
-				buildCacheTable(dc, WikiConstants.tableName[i], WikiConstants.textAttribs[i], cacheName, limit[i]);
-				buildCacheIndex(dc, WikiConstants.tableName[i], WikiConstants.textAttribs[i], cacheName, limit[i],
-						dataDir);
+			for (int i = 0; i < experiment.tableNames.length; i++) {
+				System.out.println("Indexing table " + experiment.tableNames[i]);
+				buildCacheTable(dc, experiment.tableNames[i], experiment.textAttribs[i], experiment.popularity,
+						experiment.cacheNames[i], experiment.limits[i]);
+				buildCacheIndex(dc, experiment.tableNames[i], experiment.textAttribs[i], experiment.popularity,
+						experiment.cacheNames[i], experiment.limits[i], experiment.dataDir);
 			}
 			System.out.println("finished building cache");
 		}
 	}
 
-	private static void buildCacheTable(DatabaseConnection dc, String tableName, String[] textAttribs, String cacheName,
-			int limit) throws SQLException, IOException {
-		String selectStatement = "SELECT * FROM " + tableName + " ORDER BY popularity desc LIMIT " + limit;
+	private static void buildCacheTable(DatabaseConnection dc, String tableName, String[] textAttribs,
+			String popularity, String cacheName, int limit) throws SQLException, IOException {
+		String selectStatement = "SELECT * FROM " + tableName + " ORDER BY " + popularity + "  desc LIMIT " + limit;
 		String createStatement = "CREATE TABLE " + cacheName + " AS " + selectStatement + ";";
 		System.out.println("Creating table..");
 		System.out.println("sql: " + createStatement);
@@ -75,12 +58,12 @@ public class BuildCache {
 		}
 	}
 
-	private static void buildCacheIndex(DatabaseConnection dc, String tableName, String[] textAttribs, String cacheName,
-			int limit, String dataDir) throws IOException, SQLException {
+	private static void buildCacheIndex(DatabaseConnection dc, String tableName, String[] textAttribs,
+			String popularity, String cacheName, int limit, String dataDir) throws IOException, SQLException {
 		try (Analyzer analyzer = new StandardAnalyzer()) {
 			IndexWriterConfig config = Indexer.getIndexWriterConfig(analyzer);
 			config.setOpenMode(OpenMode.CREATE);
-			Indexer.indexTable(dc, dataDir + cacheName, tableName, textAttribs, limit, "popularity", false, config);
+			Indexer.indexTable(dc, dataDir + cacheName, tableName, textAttribs, limit, popularity, false, config);
 		}
 	}
 }

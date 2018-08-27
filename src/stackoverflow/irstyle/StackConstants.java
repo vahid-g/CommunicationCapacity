@@ -2,7 +2,7 @@ package stackoverflow.irstyle;
 
 public class StackConstants {
 
-	public static String[] tableName = { "answers_s", "tags_pop", "comments_pop" };
+	public static String[] tableName = { "answers_s_train", "tags_pop", "comments_pop" };
 
 	public static int[] size = { 1092420, 1092420, 1967107 };
 	
