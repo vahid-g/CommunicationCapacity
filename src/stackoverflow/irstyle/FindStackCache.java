@@ -54,7 +54,7 @@ public class FindStackCache {
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 10);
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {
-			String[] tableNames = Constants.tableName;
+			String[] tableNames = StackConstants.tableName;
 			Connection conn = dc.getConnection();
 			String[] cacheTables = new String[tableNames.length];
 			String[] selectTemplates = new String[tableNames.length];
@@ -65,7 +65,7 @@ public class FindStackCache {
 			// int[] pageSize = { 500000, 500000, 500000 };
 			int[] pageSize = new int[tableNames.length];
 			for (int i = 0; i < pageSize.length; i++) {
-				pageSize[i] = (Constants.size[i] / 20);
+				pageSize[i] = (StackConstants.size[i] / 20);
 			}
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
@@ -79,7 +79,7 @@ public class FindStackCache {
 				selectTemplates[i] = "select * from " + tableNames[i] + " order by ViewCount desc limit ?, "
 						+ pageSize[i] + ";";
 				insertTemplates[i] = "insert into " + cacheTables[i] + " (id) values (?);";
-				indexPaths[i] = Constants.DATA_STACK + cacheTables[i];
+				indexPaths[i] = StackConstants.DATA_STACK + cacheTables[i];
 				config[i] = new IndexWriterConfig(new StandardAnalyzer());
 				config[i].setSimilarity(new BM25Similarity());
 				config[i].setRAMBufferSizeMB(1024);
@@ -106,8 +106,8 @@ public class FindStackCache {
 			String articleTable = cacheTables[0];
 			String imageTable = cacheTables[1];
 			String linkTable = cacheTables[2];
-			String articleImageTable = Constants.ANSWER_TAGS_TABLE;
-			String articleLinkTable = Constants.ANSWER_COMMENTS_TABLE;
+			String articleImageTable = StackConstants.ANSWER_TAGS_TABLE;
+			String articleLinkTable = StackConstants.ANSWER_COMMENTS_TABLE;
 			String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
 					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
@@ -124,7 +124,7 @@ public class FindStackCache {
 				while (rs.next()) {
 					int id = rs.getInt("id");
 					String text = "";
-					for (String attrib : Constants.textAttribs[i]) {
+					for (String attrib : StackConstants.textAttribs[i]) {
 						text += rs.getString(attrib);
 					}
 					Document doc = new Document();
@@ -215,7 +215,7 @@ public class FindStackCache {
 				while (rs.next()) {
 					int id = rs.getInt("id");
 					String text = "";
-					for (String attrib : Constants.textAttribs[m]) {
+					for (String attrib : StackConstants.textAttribs[m]) {
 						text += rs.getString(attrib);
 					}
 					Document doc = new Document();
@@ -230,7 +230,7 @@ public class FindStackCache {
 			System.out.println("Offsets for articles, images, links = " + Arrays.toString(bestOffset));
 			double[] percent = new double[bestOffset.length];
 			for (int i = 0; i < bestOffset.length; i++) {
-				percent[i] = bestOffset[i] / (double) Constants.size[i];
+				percent[i] = bestOffset[i] / (double) StackConstants.size[i];
 			}
 			System.out.println("Best found sizes = " + Arrays.toString(percent));
 			for (int i = 0; i < tableNames.length; i++) {

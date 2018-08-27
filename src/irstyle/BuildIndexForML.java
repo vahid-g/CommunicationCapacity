@@ -26,13 +26,13 @@ public class BuildIndexForML {
 		String suffix;
 		int[] limit;
 		if (argsList.contains("-inexp")) {
-			limit = ExperimentConstants.precisionLimit;
+			limit = WikiConstants.precisionLimit;
 			suffix = "p20";
 		} else if (argsList.contains("-inexr")) {
-			limit = ExperimentConstants.recallLimit;
+			limit = WikiConstants.recallLimit;
 			suffix = "rec";
 		} else {
-			limit = ExperimentConstants.mrrLimit;
+			limit = WikiConstants.mrrLimit;
 			suffix = "mrr";
 		}
 		Analyzer analyzer;
@@ -63,7 +63,7 @@ public class BuildIndexForML {
 					Indexer.indexTableAttribs(dc, cacheIndexWriter, tableName[tableNo], textAttribs[tableNo],
 							limit[tableNo], "popularity", false);
 					Indexer.indexTableAttribs(dc, restIndexWriter, tableName[tableNo], textAttribs[tableNo],
-							ExperimentConstants.size[tableNo] - limit[tableNo], "popularity", true);
+							WikiConstants.size[tableNo] - limit[tableNo], "popularity", true);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();

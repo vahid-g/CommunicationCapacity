@@ -24,7 +24,7 @@ public class BuildIndexForML {
 	public static void main(String[] args) throws SQLException, IOException {
 		List<String> argsList = Arrays.asList(args);
 		String suffix = "mrr";
-		int[] limit = Constants.cacheSize;
+		int[] limit = StackConstants.cacheSize;
 		Analyzer analyzer;
 		if (argsList.contains("-bi")) {
 			suffix += "_bi";
@@ -33,13 +33,13 @@ public class BuildIndexForML {
 			analyzer = new StandardAnalyzer();
 		}
 		String finalSuffix = suffix;
-		String[] tableName = Constants.tableName;
-		String[][] textAttribs = Constants.textAttribs;
+		String[] tableName = StackConstants.tableName;
+		String[][] textAttribs = StackConstants.textAttribs;
 		int[] tableIndex = { 0, 1, 2 };
 		Arrays.stream(tableIndex).parallel().forEach(tableNo -> {
 			Path cacheIndexPath = Paths
-					.get(Constants.DATA_STACK + "ml_" + tableName[tableNo] + "_cache_" + finalSuffix);
-			Path restIndexPath = Paths.get(Constants.DATA_STACK + "ml_" + tableName[tableNo] + "_rest_" + finalSuffix);
+					.get(StackConstants.DATA_STACK + "ml_" + tableName[tableNo] + "_cache_" + finalSuffix);
+			Path restIndexPath = Paths.get(StackConstants.DATA_STACK + "ml_" + tableName[tableNo] + "_rest_" + finalSuffix);
 			try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW);
 					Directory cacheIndexDir = FSDirectory.open(cacheIndexPath);
 					Directory restIndexDir = FSDirectory.open(restIndexPath);) {
@@ -52,7 +52,7 @@ public class BuildIndexForML {
 					Indexer.indexTableAttribs(dc, cacheIndexWriter, tableName[tableNo], textAttribs[tableNo],
 							limit[tableNo], "ViewCount", false);
 					Indexer.indexTableAttribs(dc, restIndexWriter, tableName[tableNo], textAttribs[tableNo],
-							Constants.size[tableNo] - limit[tableNo], "ViewCount", true);
+							StackConstants.size[tableNo] - limit[tableNo], "ViewCount", true);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();

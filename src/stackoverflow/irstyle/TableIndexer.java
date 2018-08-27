@@ -26,17 +26,17 @@ public class TableIndexer {
 			useCache = true;
 		}
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {
-			for (int i = 0; i < Constants.tableName.length; i++) {
-				String tableName = Constants.tableName[i];
-				String[] textAttribs = Constants.textAttribs[i];
+			for (int i = 0; i < StackConstants.tableName.length; i++) {
+				String tableName = StackConstants.tableName[i];
+				String[] textAttribs = StackConstants.textAttribs[i];
 				String popularity = "ViewCount";
 				int limit;
 				if (useCache) {
-					limit = Constants.cacheSize[i];
+					limit = StackConstants.cacheSize[i];
 				} else {
 					limit = DatabaseHelper.tableSize(tableName, dc.getConnection());
 				}
-				String indexPath = Constants.DATA_STACK + tableName + "_full";
+				String indexPath = StackConstants.DATA_STACK + tableName + "_full";
 				IndexWriterConfig config = Indexer.getIndexWriterConfig();
 				config.setOpenMode(OpenMode.CREATE);
 				Indexer.indexTable(dc, indexPath, tableName, textAttribs, limit, popularity, false, config);

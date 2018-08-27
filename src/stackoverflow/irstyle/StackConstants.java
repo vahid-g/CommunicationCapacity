@@ -1,6 +1,6 @@
 package stackoverflow.irstyle;
 
-public class Constants {
+public class StackConstants {
 
 	public static String[] tableName = { "answers_s", "tags_pop", "comments_pop" };
 

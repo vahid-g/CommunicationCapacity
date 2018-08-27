@@ -66,7 +66,7 @@ public class FindCache_NaiveTopk {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
 			// Map<ExperimentQuery, Integer> queryRelCountMap = IRStyleWikiHelper
 			// .buildQueryRelcountMap(dc.getConnection(), queries);
-			String[] tableNames = ExperimentConstants.tableName;
+			String[] tableNames = WikiConstants.tableName;
 			Connection conn = dc.getConnection();
 			String[] cacheTables = new String[tableNames.length];
 			String[] selectTemplates = new String[tableNames.length];
@@ -77,7 +77,7 @@ public class FindCache_NaiveTopk {
 			// int[] pageSize = { 500000, 500000, 500000 };
 			int[] pageSize = new int[tableNames.length];
 			for (int i = 0; i < pageSize.length; i++) {
-				pageSize[i] = (ExperimentConstants.size[i] / 20);
+				pageSize[i] = (WikiConstants.size[i] / 20);
 			}
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
@@ -91,7 +91,7 @@ public class FindCache_NaiveTopk {
 				selectTemplates[i] = "select * from " + tableNames[i] + " order by popularity desc limit ?, "
 						+ pageSize[i] + ";";
 				insertTemplates[i] = "insert into " + cacheTables[i] + " (id) values (?);";
-				indexPaths[i] = ExperimentConstants.WIKI_DATA_DIR + cacheTables[i];
+				indexPaths[i] = WikiConstants.WIKI_DATA_DIR + cacheTables[i];
 				config[i] = new IndexWriterConfig(new StandardAnalyzer());
 				config[i].setSimilarity(new BM25Similarity());
 				config[i].setRAMBufferSizeMB(1024);
@@ -136,7 +136,7 @@ public class FindCache_NaiveTopk {
 				while (rs.next()) {
 					int id = rs.getInt("id");
 					String text = "";
-					for (String attrib : ExperimentConstants.textAttribs[i]) {
+					for (String attrib : WikiConstants.textAttribs[i]) {
 						text += rs.getString(attrib);
 					}
 					Document doc = new Document();
@@ -224,7 +224,7 @@ public class FindCache_NaiveTopk {
 				while (rs.next()) {
 					int id = rs.getInt("id");
 					String text = "";
-					for (String attrib : ExperimentConstants.textAttribs[m]) {
+					for (String attrib : WikiConstants.textAttribs[m]) {
 						text += rs.getString(attrib);
 					}
 					Document doc = new Document();
@@ -239,7 +239,7 @@ public class FindCache_NaiveTopk {
 			System.out.println("Offsets for articles, images, links = " + Arrays.toString(bestOffset));
 			double[] percent = new double[bestOffset.length];
 			for (int i = 0; i < bestOffset.length; i++) {
-				percent[i] = bestOffset[i] / (double) ExperimentConstants.size[i];
+				percent[i] = bestOffset[i] / (double) WikiConstants.size[i];
 			}
 			System.out.println("Best found sizes = " + Arrays.toString(percent));
 			for (int i = 0; i < tableNames.length; i++) {

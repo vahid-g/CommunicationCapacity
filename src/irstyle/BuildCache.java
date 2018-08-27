@@ -3,8 +3,6 @@ package irstyle;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
-import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -14,32 +12,46 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import database.DatabaseConnection;
 import database.DatabaseType;
 import irstyle.api.Indexer;
+import stackoverflow.irstyle.StackConstants;
 
 public class BuildCache {
-	public static void main(String[] args) throws SQLException, IOException {
-		List<String> argsList = Arrays.asList(args);
+	public static void main(String[] args) throws Exception {
 		String suffix;
 		int[] limit;
-		if (argsList.contains("-inexp")) {
-			limit = ExperimentConstants.precisionLimit;
-			suffix = "p20";
-		} else if (argsList.contains("-inexr")) {
-			limit = ExperimentConstants.recallLimit;
-			suffix = "rec";
+		DatabaseType databaseType;
+		String dataDir;
+		if (args[0].equals("-inexp") || args[0].equals("-inexr") || args[0].equals("-mrr")) {
+			databaseType = DatabaseType.WIKIPEDIA;
+			dataDir = WikiConstants.WIKI_DATA_DIR;
+		} else if (args[0].equals("-stack")) {
+			databaseType = DatabaseType.STACKOVERFLOW;
+			dataDir = StackConstants.DATA_STACK;
 		} else {
-			limit = ExperimentConstants.mrrLimit;
-			suffix = "mrr";
+			throw new Exception();
 		}
-
-		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
+		if (args[0].equals("-inexp")) {
+			limit = WikiConstants.precisionLimit;
+			suffix = "p20";
+		} else if (args[0].equals("-inexr")) {
+			limit = WikiConstants.recallLimit;
+			suffix = "rec";
+		} else if (args[0].equals("-mrr")) {
+			limit = WikiConstants.mrrLimit;
+			suffix = "mrr";
+		} else if (args[0].equals("-stack")) {
+			limit = StackConstants.cacheSize;
+			suffix = "mrr";
+		} else {
+			throw new Exception();
+		}
+		try (DatabaseConnection dc = new DatabaseConnection(databaseType)) {
 			// building the cache
-			for (int i = 0; i < ExperimentConstants.tableName.length; i++) {
-				System.out.println("Indexing table " + ExperimentConstants.tableName[i]);
-				String cacheName = "sub_" + ExperimentConstants.tableName[i].substring(4) + "_" + suffix;
-				buildCacheTable(dc, ExperimentConstants.tableName[i], ExperimentConstants.textAttribs[i], cacheName,
-						limit[i]);
-				buildCacheIndex(dc, ExperimentConstants.tableName[i], ExperimentConstants.textAttribs[i], cacheName,
-						limit[i]);
+			for (int i = 0; i < WikiConstants.tableName.length; i++) {
+				System.out.println("Indexing table " + WikiConstants.tableName[i]);
+				String cacheName = "sub_" + WikiConstants.tableName[i].substring(4) + "_" + suffix;
+				buildCacheTable(dc, WikiConstants.tableName[i], WikiConstants.textAttribs[i], cacheName, limit[i]);
+				buildCacheIndex(dc, WikiConstants.tableName[i], WikiConstants.textAttribs[i], cacheName, limit[i],
+						dataDir);
 			}
 			System.out.println("finished building cache");
 		}
@@ -64,12 +76,11 @@ public class BuildCache {
 	}
 
 	private static void buildCacheIndex(DatabaseConnection dc, String tableName, String[] textAttribs, String cacheName,
-			int limit) throws IOException, SQLException {
+			int limit, String dataDir) throws IOException, SQLException {
 		try (Analyzer analyzer = new StandardAnalyzer()) {
 			IndexWriterConfig config = Indexer.getIndexWriterConfig(analyzer);
 			config.setOpenMode(OpenMode.CREATE);
-			Indexer.indexTable(dc, ExperimentConstants.WIKI_DATA_DIR + cacheName, tableName,
-					textAttribs, limit, "popularity", false, config);
+			Indexer.indexTable(dc, dataDir + cacheName, tableName, textAttribs, limit, "popularity", false, config);
 		}
 	}
 }

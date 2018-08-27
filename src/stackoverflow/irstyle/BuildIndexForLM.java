@@ -24,7 +24,7 @@ public class BuildIndexForLM {
 	public static void main(String[] args) throws SQLException, IOException {
 		List<String> argsList = Arrays.asList(args);
 		String suffix = "mrr";
-		int[] limit = Constants.cacheSize;
+		int[] limit = StackConstants.cacheSize;
 		Analyzer analyzer = null;
 		if (argsList.contains("-bi")) {
 			suffix += "_bi";
@@ -32,14 +32,14 @@ public class BuildIndexForLM {
 		} else {
 			analyzer = new StandardAnalyzer();
 		}
-		String[] tableName = Constants.tableName;
-		String[][] textAttribs = Constants.textAttribs;
+		String[] tableName = StackConstants.tableName;
+		String[][] textAttribs = StackConstants.textAttribs;
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {
 			// building index for LM
-			Directory cacheDirectory = FSDirectory.open(Paths.get(Constants.DATA_STACK + "lm_cache_" + suffix));
+			Directory cacheDirectory = FSDirectory.open(Paths.get(StackConstants.DATA_STACK + "lm_cache_" + suffix));
 			IndexWriterConfig cacheConfig = Indexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
-			Directory restDirectory = FSDirectory.open(Paths.get(Constants.DATA_STACK + "lm_rest_" + suffix));
-			Directory allDirectory = FSDirectory.open(Paths.get(Constants.DATA_STACK + "lm_all_" + suffix));
+			Directory restDirectory = FSDirectory.open(Paths.get(StackConstants.DATA_STACK + "lm_rest_" + suffix));
+			Directory allDirectory = FSDirectory.open(Paths.get(StackConstants.DATA_STACK + "lm_all_" + suffix));
 			IndexWriterConfig restConfig = Indexer.getIndexWriterConfig(analyzer).setOpenMode(OpenMode.CREATE);
 			IndexWriterConfig allConfig = Indexer.getIndexWriterConfig(analyzer);
 			try (IndexWriter cacheWriter = new IndexWriter(cacheDirectory, cacheConfig);
@@ -48,7 +48,7 @@ public class BuildIndexForLM {
 				for (int i = 0; i < tableName.length; i++) {
 					System.out.println("Indexing table " + tableName[i]);
 					Indexer.indexTable(dc, cacheWriter, tableName[i], textAttribs[i], limit[i], "ViewCount", false);
-					Indexer.indexTable(dc, restWriter, tableName[i], textAttribs[i], Constants.size[i] - limit[i],
+					Indexer.indexTable(dc, restWriter, tableName[i], textAttribs[i], StackConstants.size[i] - limit[i],
 							"ViewCount", true);
 					// Indexer.indexTable(dc, allWriter, tableName[i], textAttribs[i],
 					// Constants.size[i], "popularity", false);

@@ -38,22 +38,22 @@ public class RunStackCacheSearch {
 			queries = queries.subList(0, 1000);
 			outputFileName += "_eff";
 		}
-		String answersTable = Constants.tableName[0];
-		String tagsTable = Constants.tableName[1];
-		String commentsTable = Constants.tableName[2];
-		String postTagsTable = Constants.ANSWER_TAGS_TABLE;
-		String postCommentsTable = Constants.ANSWER_COMMENTS_TABLE;
-		String answersIndexPath = Constants.DATA_STACK + Constants.tableName[0] + "_full";
-		String tagsIndexPath = Constants.DATA_STACK + Constants.tableName[1] + "_full";
-		String commentsIndexPath = Constants.DATA_STACK + Constants.tableName[2] + "_full";
+		String answersTable = StackConstants.tableName[0];
+		String tagsTable = StackConstants.tableName[1];
+		String commentsTable = StackConstants.tableName[2];
+		String postTagsTable = StackConstants.ANSWER_TAGS_TABLE;
+		String postCommentsTable = StackConstants.ANSWER_COMMENTS_TABLE;
+		String answersIndexPath = StackConstants.DATA_STACK + StackConstants.tableName[0] + "_full";
+		String tagsIndexPath = StackConstants.DATA_STACK + StackConstants.tableName[1] + "_full";
+		String commentsIndexPath = StackConstants.DATA_STACK + StackConstants.tableName[2] + "_full";
 		if (argsList.contains("-cache")) {
 			outputFileName += "_cache";
 			answersTable = "sub" + answersTable;
 			tagsTable = "sub" + tagsTable;
 			commentsTable = "sub_" + commentsTable;
-			answersIndexPath = Constants.DATA_STACK + "sub_" + Constants.tableName[0] + "_" + cacheNameSuffix;
-			tagsIndexPath = Constants.DATA_STACK + "sub_" + Constants.tableName[1] + "_" + cacheNameSuffix;
-			commentsIndexPath = Constants.DATA_STACK + "sub_" + Constants.tableName[2] + "_" + cacheNameSuffix;
+			answersIndexPath = StackConstants.DATA_STACK + "sub_" + StackConstants.tableName[0] + "_" + cacheNameSuffix;
+			tagsIndexPath = StackConstants.DATA_STACK + "sub_" + StackConstants.tableName[1] + "_" + cacheNameSuffix;
+			commentsIndexPath = StackConstants.DATA_STACK + "sub_" + StackConstants.tableName[2] + "_" + cacheNameSuffix;
 
 		} else {
 			outputFileName += "_full";

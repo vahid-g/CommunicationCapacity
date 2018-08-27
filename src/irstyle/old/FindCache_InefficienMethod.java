@@ -32,7 +32,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
-import irstyle.ExperimentConstants;
+import irstyle.WikiConstants;
 import irstyle.IRStyleQueryResult;
 import irstyle.IRStyleWikiHelper;
 import irstyle.WikiIndexer;
@@ -60,9 +60,9 @@ public class FindCache_InefficienMethod {
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 10);
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			String[] tableNames = ExperimentConstants.tableName;
+			String[] tableNames = WikiConstants.tableName;
 			String[] shortTableNames = new String[] { "a", "i", "l" };
-			String[][] textAttribs = ExperimentConstants.textAttribs;
+			String[][] textAttribs = WikiConstants.textAttribs;
 			Connection conn = dc.getConnection();
 			conn.setAutoCommit(false);
 			String[] cacheTableNames = new String[tableNames.length];

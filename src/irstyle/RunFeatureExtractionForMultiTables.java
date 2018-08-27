@@ -58,7 +58,7 @@ public class RunFeatureExtractionForMultiTables {
 		if (argList.contains("-eff")) {
 			queries = queries.subList(0, 10);
 		}
-		for (String table : ExperimentConstants.tableName) {
+		for (String table : WikiConstants.tableName) {
 			String indexPath = WikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_" + suffix;
 			cacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
 			indexPath = WikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_" + suffix;
@@ -70,13 +70,13 @@ public class RunFeatureExtractionForMultiTables {
 		}
 		LOGGER.log(Level.INFO, "loading popularity indices..");
 		cacheTermPopularity = TokenPopularity.loadTokenPopularities(
-				ExperimentConstants.WIKI_DATA_DIR + "lm_cache_" + suffix + "_text_pop_index" + ".csv");
+				WikiConstants.WIKI_DATA_DIR + "lm_cache_" + suffix + "_text_pop_index" + ".csv");
 		restTermPopularity = TokenPopularity.loadTokenPopularities(
-				ExperimentConstants.WIKI_DATA_DIR + "lm_rest_" + suffix + "_text_pop_index" + ".csv");
+				WikiConstants.WIKI_DATA_DIR + "lm_rest_" + suffix + "_text_pop_index" + ".csv");
 		biwordCachePopularity = TokenPopularity.loadTokenPopularities(
-				ExperimentConstants.WIKI_DATA_DIR + "lm_cache_" + suffix + "_bi" + "_text_pop_index" + ".csv");
+				WikiConstants.WIKI_DATA_DIR + "lm_cache_" + suffix + "_bi" + "_text_pop_index" + ".csv");
 		biwordRestPopularity = TokenPopularity.loadTokenPopularities(
-				ExperimentConstants.WIKI_DATA_DIR + "lm_rest_" + suffix + "_bi" + "_text_pop_index" + ".csv");
+				WikiConstants.WIKI_DATA_DIR + "lm_rest_" + suffix + "_bi" + "_text_pop_index" + ".csv");
 		FeatureExtraction wqde = new FeatureExtraction(WikiIndexer.WEIGHT_FIELD);
 		LOGGER.log(Level.INFO, "loading done!");
 		List<String> data = new ArrayList<String>();
@@ -89,7 +89,7 @@ public class RunFeatureExtractionForMultiTables {
 				"qll_bi_rest" };
 		StringBuilder fileHeader = new StringBuilder();
 		for (int i = 0; i < cacheIndexReaderList.size(); i++) {
-			for (int j = 0; j < ExperimentConstants.textAttribs[i].length; j++) {
+			for (int j = 0; j < WikiConstants.textAttribs[i].length; j++) {
 				final String featSuffix = i + "_" + j;
 				fileHeader.append(Arrays.asList(featureNames).stream().map(ft -> ft + "_" + featSuffix + ",")
 						.collect(Collectors.joining()));
@@ -107,7 +107,7 @@ public class RunFeatureExtractionForMultiTables {
 				IndexReader restIndexReader = restIndexReaderList.get(i);
 				IndexReader biwordIndexReader = biCacheIndexReaderList.get(i);
 				IndexReader biwordRestIndexReader = biRestIndexReaderList.get(i);
-				for (String attrib : ExperimentConstants.textAttribs[i]) {
+				for (String attrib : WikiConstants.textAttribs[i]) {
 					long start = System.currentTimeMillis();
 					List<Double> f = new ArrayList<Double>();
 					f.add(wqde.coveredTokenRatio(indexReader, queryText, attrib, analyzer));

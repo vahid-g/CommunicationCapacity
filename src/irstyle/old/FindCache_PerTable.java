@@ -30,7 +30,7 @@ import org.apache.lucene.store.RAMDirectory;
 
 import database.DatabaseConnection;
 import database.DatabaseType;
-import irstyle.ExperimentConstants;
+import irstyle.WikiConstants;
 import irstyle.IRStyleQueryResult;
 import irstyle.IRStyleWikiHelper;
 import irstyle.WikiIndexer;
@@ -59,7 +59,7 @@ public class FindCache_PerTable {
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 10);
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			String[] tableNames = ExperimentConstants.tableName;
+			String[] tableNames = WikiConstants.tableName;
 			Connection conn = dc.getConnection();
 			String[] cacheTables = new String[tableNames.length];
 			String[] selectTemplates = new String[tableNames.length];
@@ -68,7 +68,7 @@ public class FindCache_PerTable {
 			RAMDirectory[] ramDir = new RAMDirectory[tableNames.length];
 			int[] pageSize = new int[tableNames.length];
 			for (int i = 0; i < pageSize.length; i++) {
-				pageSize[i] = ExperimentConstants.size[i] / 10;
+				pageSize[i] = WikiConstants.size[i] / 10;
 			}
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
@@ -82,7 +82,7 @@ public class FindCache_PerTable {
 				selectTemplates[i] = "select * from " + tableNames[i] + " order by popularity desc limit ?, "
 						+ pageSize[i] + ";";
 				insertTemplates[i] = "insert into " + cacheTables[i] + " (id) values (?);";
-				indexPaths[i] = ExperimentConstants.WIKI_DATA_DIR + cacheTables[i];
+				indexPaths[i] = WikiConstants.WIKI_DATA_DIR + cacheTables[i];
 				config[i] = new IndexWriterConfig(new StandardAnalyzer());
 				config[i].setSimilarity(new BM25Similarity());
 				config[i].setRAMBufferSizeMB(1024);
@@ -105,11 +105,11 @@ public class FindCache_PerTable {
 			int loop = 1;
 			JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
 			IndexReader articleReader = DirectoryReader
-					.open(FSDirectory.open(Paths.get(ExperimentConstants.WIKI_DATA_DIR + "tbl_article_wiki13/100")));
+					.open(FSDirectory.open(Paths.get(WikiConstants.WIKI_DATA_DIR + "tbl_article_wiki13/100")));
 			IndexReader imageReader = DirectoryReader
-					.open(FSDirectory.open(Paths.get(ExperimentConstants.WIKI_DATA_DIR + "tbl_image_pop/100")));
+					.open(FSDirectory.open(Paths.get(WikiConstants.WIKI_DATA_DIR + "tbl_image_pop/100")));
 			IndexReader linkReader = DirectoryReader
-					.open(FSDirectory.open(Paths.get(ExperimentConstants.WIKI_DATA_DIR + "tbl_link_pop/100")));
+					.open(FSDirectory.open(Paths.get(WikiConstants.WIKI_DATA_DIR + "tbl_link_pop/100")));
 			IndexReader[] indexReader = new IndexReader[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
 				System.out.println("================================");
@@ -134,7 +134,7 @@ public class FindCache_PerTable {
 				IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 				while (true) {
 					System.out.println("Iteration " + loop++);
-					if (offset[i] + pageSize[i] > ExperimentConstants.size[i]) {
+					if (offset[i] + pageSize[i] > WikiConstants.size[i]) {
 						System.out.println("Scanned all table");
 						break;
 					}
@@ -146,7 +146,7 @@ public class FindCache_PerTable {
 					while (rs.next()) {
 						int id = rs.getInt("id");
 						String text = "";
-						for (String attrib : ExperimentConstants.textAttribs[i]) {
+						for (String attrib : WikiConstants.textAttribs[i]) {
 							text += rs.getString(attrib);
 						}
 						Document doc = new Document();

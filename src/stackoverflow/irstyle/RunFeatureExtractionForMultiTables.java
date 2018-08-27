@@ -52,25 +52,25 @@ public class RunFeatureExtractionForMultiTables {
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 1000);
 		}
-		for (String table : Constants.tableName) {
-			String indexPath = Constants.DATA_STACK + "ml_" + table + "_cache_" + suffix;
+		for (String table : StackConstants.tableName) {
+			String indexPath = StackConstants.DATA_STACK + "ml_" + table + "_cache_" + suffix;
 			cacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = Constants.DATA_STACK + "ml_" + table + "_rest_" + suffix;
+			indexPath = StackConstants.DATA_STACK + "ml_" + table + "_rest_" + suffix;
 			restIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = Constants.DATA_STACK + "ml_" + table + "_cache_" + suffix + "_bi";
+			indexPath = StackConstants.DATA_STACK + "ml_" + table + "_cache_" + suffix + "_bi";
 			biCacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = Constants.DATA_STACK + "ml_" + table + "_rest_" + suffix + "_bi";
+			indexPath = StackConstants.DATA_STACK + "ml_" + table + "_rest_" + suffix + "_bi";
 			biRestIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
 		}
 		LOGGER.log(Level.INFO, "loading popularity indices..");
 		cacheTermPopularity = TokenPopularity
-				.loadTokenPopularities(Constants.DATA_STACK + "lm_cache_" + suffix + "_text_pop_index" + ".csv");
+				.loadTokenPopularities(StackConstants.DATA_STACK + "lm_cache_" + suffix + "_text_pop_index" + ".csv");
 		restTermPopularity = TokenPopularity
-				.loadTokenPopularities(Constants.DATA_STACK + "lm_rest_" + suffix + "_text_pop_index" + ".csv");
+				.loadTokenPopularities(StackConstants.DATA_STACK + "lm_rest_" + suffix + "_text_pop_index" + ".csv");
 		biwordCachePopularity = TokenPopularity.loadTokenPopularities(
-				Constants.DATA_STACK + "lm_cache_" + suffix + "_bi" + "_text_pop_index" + ".csv");
+				StackConstants.DATA_STACK + "lm_cache_" + suffix + "_bi" + "_text_pop_index" + ".csv");
 		biwordRestPopularity = TokenPopularity
-				.loadTokenPopularities(Constants.DATA_STACK + "lm_rest_" + suffix + "_bi" + "_text_pop_index" + ".csv");
+				.loadTokenPopularities(StackConstants.DATA_STACK + "lm_rest_" + suffix + "_bi" + "_text_pop_index" + ".csv");
 		FeatureExtraction wqde = new FeatureExtraction(Indexer.weightField);
 		LOGGER.log(Level.INFO, "loading done!");
 		List<String> data = new ArrayList<String>();
@@ -83,7 +83,7 @@ public class RunFeatureExtractionForMultiTables {
 				"qll_bi_rest" };
 		StringBuilder fileHeader = new StringBuilder();
 		for (int i = 0; i < cacheIndexReaderList.size(); i++) {
-			for (int j = 0; j < Constants.textAttribs[i].length; j++) {
+			for (int j = 0; j < StackConstants.textAttribs[i].length; j++) {
 				final String featSuffix = i + "_" + j;
 				fileHeader.append(Arrays.asList(featureNames).stream().map(ft -> ft + "_" + featSuffix + ",")
 						.collect(Collectors.joining()));
@@ -101,7 +101,7 @@ public class RunFeatureExtractionForMultiTables {
 				IndexReader restIndexReader = restIndexReaderList.get(i);
 				IndexReader biwordIndexReader = biCacheIndexReaderList.get(i);
 				IndexReader biwordRestIndexReader = biRestIndexReaderList.get(i);
-				for (String attrib : Constants.textAttribs[i]) {
+				for (String attrib : StackConstants.textAttribs[i]) {
 					long start = System.currentTimeMillis();
 					List<Double> f = new ArrayList<Double>();
 					f.add(wqde.coveredTokenRatio(indexReader, queryText, attrib, analyzer));
