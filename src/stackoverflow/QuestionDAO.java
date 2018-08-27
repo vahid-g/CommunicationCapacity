@@ -49,7 +49,7 @@ public class QuestionDAO {
 				rels.add(new Qrel(Integer.parseInt(question.id), question.acceptedAnswer + "", 1));
 			}
 			ExperimentQuery query = new ExperimentQuery(Integer.parseInt(question.id), question.text,
-					question.viewCount, rels);
+					question.testViewCount, rels);
 			queryList.add(query);
 		}
 		return queryList;
