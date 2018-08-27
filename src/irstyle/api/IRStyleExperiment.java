@@ -59,11 +59,11 @@ public class IRStyleExperiment {
 	}
 
 	public static IRStyleExperiment createStackExperiment() {
-		String[] cacheName = new String[WikiConstants.tableName.length];
-		for (int i = 0; i < WikiConstants.tableName.length; i++) {
-			cacheName[i] = "sub_" + WikiConstants.tableName[i] + "_mrr";
+		String[] cacheName = new String[StackConstants.tableName.length];
+		for (int i = 0; i < StackConstants.tableName.length; i++) {
+			cacheName[i] = "sub_" + StackConstants.tableName[i] + "_mrr";
 		}
-		return new IRStyleExperiment(StackConstants.tableName, StackConstants.textAttribs, "TrainViewCount", cacheName,
+		return new IRStyleExperiment(StackConstants.tableName, StackConstants.textAttribs, "ViewCount", cacheName,
 				StackConstants.cacheSize, StackConstants.DATA_STACK, DatabaseType.STACKOVERFLOW);
 	}
 
