@@ -36,6 +36,7 @@ public class RunStackCacheSearch {
 		if (argsList.contains("-eff")) {
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 1000);
+			outputFileName += "_eff";
 		}
 		String answersTable = Constants.tableName[0];
 		String tagsTable = Constants.tableName[1];
@@ -56,10 +57,6 @@ public class RunStackCacheSearch {
 
 		} else {
 			outputFileName += "_full";
-		}
-		if (argsList.contains("-eff")) {
-			queries = queries.subList(0, 20);
-			outputFileName += "_eff";
 		}
 		outputFileName += ".csv";
 		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess("stack_overflow");
