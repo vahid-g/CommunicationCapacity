@@ -10,11 +10,17 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
 import irstyle.IRStyleQueryResult;
+import irstyle.api.IRStyleExperiment;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
@@ -27,36 +33,39 @@ import stackoverflow.StackQueryingExperiment;
 public class RunStackCacheSearch {
 
 	public static void main(String[] args) throws Exception {
-		List<String> argsList = Arrays.asList(args);
-		String cacheNameSuffix = "mrr";
+		Options options = new Options();
+		options.addOption(Option.builder("c").desc("Use cache").build());
+		options.addOption(Option.builder("f").desc("Efficiency experiment").build());
+		CommandLineParser clp = new DefaultParser();
+		CommandLine cl = clp.parse(options, args);
+		IRStyleExperiment experiment = IRStyleExperiment.createStackExperiment();
 		String outputFileName = "result";
 		StackQueryingExperiment sqe = new StackQueryingExperiment();
 		List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
 		List<ExperimentQuery> queries = QuestionDAO.convertToExperimentQuery(questions);
-		if (argsList.contains("-eff")) {
-			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 1000);
-			outputFileName += "_eff";
-		}
 		String answersTable = StackConstants.tableName[0];
 		String tagsTable = StackConstants.tableName[1];
 		String commentsTable = StackConstants.tableName[2];
 		String postTagsTable = StackConstants.ANSWER_TAGS_TABLE;
 		String postCommentsTable = StackConstants.ANSWER_COMMENTS_TABLE;
-		String answersIndexPath = StackConstants.DATA_STACK + StackConstants.tableName[0] + "_full";
-		String tagsIndexPath = StackConstants.DATA_STACK + StackConstants.tableName[1] + "_full";
-		String commentsIndexPath = StackConstants.DATA_STACK + StackConstants.tableName[2] + "_full";
-		if (argsList.contains("-cache")) {
+		String answersIndexPath = experiment.dataDir + StackConstants.tableName[0] + "_full";
+		String tagsIndexPath = experiment.dataDir + StackConstants.tableName[1] + "_full";
+		String commentsIndexPath = experiment.dataDir + StackConstants.tableName[2] + "_full";
+		if (cl.hasOption('c')) {
 			outputFileName += "_cache";
-			answersTable = "sub" + answersTable;
-			tagsTable = "sub" + tagsTable;
-			commentsTable = "sub_" + commentsTable;
-			answersIndexPath = StackConstants.DATA_STACK + "sub_" + StackConstants.tableName[0] + "_" + cacheNameSuffix;
-			tagsIndexPath = StackConstants.DATA_STACK + "sub_" + StackConstants.tableName[1] + "_" + cacheNameSuffix;
-			commentsIndexPath = StackConstants.DATA_STACK + "sub_" + StackConstants.tableName[2] + "_" + cacheNameSuffix;
-
+			answersTable = experiment.cacheNames[0];
+			tagsTable = experiment.cacheNames[1];
+			commentsTable = experiment.cacheNames[2];
+			answersIndexPath = experiment.dataDir + experiment.cacheNames[0];
+			tagsIndexPath = experiment.dataDir + experiment.cacheNames[1];
+			commentsIndexPath = experiment.dataDir + experiment.cacheNames[2];
 		} else {
 			outputFileName += "_full";
+		}
+		if (cl.hasOption('e')) {
+			Collections.shuffle(queries, new Random(1));
+			queries = queries.subList(0, 1000);
+			outputFileName += "_eff";
 		}
 		outputFileName += ".csv";
 		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess("stack_overflow");
