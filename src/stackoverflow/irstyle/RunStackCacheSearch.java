@@ -80,6 +80,7 @@ public class RunStackCacheSearch {
 			long tuplesetTime = 0;
 			double recall = 0;
 			double p20 = 0;
+			double mrr = 0;
 			for (int exec = 0; exec < Params.numExecutions; exec++) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
@@ -119,6 +120,7 @@ public class RunStackCacheSearch {
 					System.out.println("rrank=" + result.rrank());
 					recall += result.recall();
 					p20 += result.p20();
+					mrr += result.rrank();
 					queryResults.add(result);
 				}
 			}
@@ -131,6 +133,7 @@ public class RunStackCacheSearch {
 			System.out.println("average total time  = " + time + " (ms)");
 			System.out.println("recall = " + recall / queries.size());
 			System.out.println("p20 = " + p20 / queries.size());
+			System.out.println("mrr = " + mrr / queries.size());
 			IRStyleKeywordSearch.printResults(queryResults, outputFileName);
 		}
 	}
