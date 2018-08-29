@@ -23,7 +23,7 @@ import indexing.BiwordAnalyzer;
 import irstyle.api.IRStyleExperiment;
 import irstyle.api.Indexer;
 
-public class BuildIndexForLM {
+public class BuildLanguageModelForDatabase {
 
 	// Takes a set of tables and their cached tables, build 4 models: Tables-Word,
 	// Tables-Biword, Cache-Word, Cache-Biword
