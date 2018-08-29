@@ -59,24 +59,25 @@ def main(argv):
     test_freq = X_test['freq']
     subset_mrr = X_test['cache']
     db_mrr = X_test['full']
+    print(db_mrr.mean())
     X_test = X_test.drop(['query', 'freq', 'cache', 'full'], axis=1)
     #print(df.corr()['label'].sort_values())
     print("train set size and ones: %d, %d" % (y.shape[0], np.sum(y)))
     print("test set size and ones: %d, %d" % (y_test.shape[0], np.sum(y_test)))
     print("bad query ratio in trian set =  %.2f" % (100 * np.sum(y) / y.shape[0]))
-    print("bad uqery in test set =  %.2f" % (100 * np.sum(y_test) / y_test.shape[0]))
+    print("bad query in test set =  %.2f" % (100 * np.sum(y_test) / y_test.shape[0]))
     # learn the model
     # y_pred = train_lr(X, y, X_test, y_test, t, df.columns.values[2:-2])
     y_pred = train_lr(X, y, X_test, y_test, t)
     output = pd.DataFrame()
     output['query'] = test_queries
-    output['testfreq'] = test_freq
+    output['TestFreq'] = test_freq
     output['cache'] = subset_mrr
     output['full'] = db_mrr
-    output['label'] = y_test
-    output['ql_label'] = x_test['ql_0_0'] < x_test['ql_rest_0_0']
+    output['Label'] = y_test
+    output['ql_label'] = X_test['ql_0_0'] < X_test['ql_rest_0_0']
     output['ql'] = np.where(output['ql_label'] == 1, db_mrr, subset_mrr)
-    output['ml_label'] = pd.series(y_pred, index=output.index)
+    output['ml_label'] = pd.Series(y_pred, index=output.index)
     output['ml'] = np.where(output['ml_label'] == 1, db_mrr, subset_mrr)
     output['best'] = np.maximum(subset_mrr, db_mrr)
     r = np.random.randint(0, 2, output['cache'].size)
