@@ -20,7 +20,7 @@ public class BuildCache {
 			experiment = IRStyleExperiment.createWikiP20Experiment();
 		} else if (args[0].equals("-inexr")) {
 			experiment = IRStyleExperiment.createWikiRecExperiment();
-		} else if (args[0].equals("-mrr")) {
+		} else if (args[0].equals("-msn")) {
 			experiment = IRStyleExperiment.createWikiMrrExperiment();
 		} else if (args[0].equals("-stack")) {
 			experiment = IRStyleExperiment.createStackExperiment();
