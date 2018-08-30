@@ -39,7 +39,7 @@ public class RunStackCacheSearch {
 		CommandLineParser clp = new DefaultParser();
 		CommandLine cl = clp.parse(options, args);
 		IRStyleExperiment experiment = IRStyleExperiment.createStackExperiment();
-		String outputFileName = "result";
+		String outputFileName = "/data/ghadakcv/stack/result";
 		StackQueryingExperiment sqe = new StackQueryingExperiment();
 		List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
 		List<ExperimentQuery> queries = QuestionDAO.convertToExperimentQuery(questions);
@@ -64,7 +64,7 @@ public class RunStackCacheSearch {
 		}
 		if (cl.hasOption('f')) {
 			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 1000);
+			queries = queries.subList(0, 10);
 			outputFileName += "_eff";
 		}
 		outputFileName += ".csv";
