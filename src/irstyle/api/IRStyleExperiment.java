@@ -34,7 +34,7 @@ public class IRStyleExperiment {
 		this.databaseType = databaseType;
 	}
 
-	public static IRStyleExperiment createWikiMrrExperiment() {
+	public static IRStyleExperiment createWikiMsnExperiment() {
 		String[] cacheName = new String[WikiConstants.tableName.length];
 		for (int i = 0; i < WikiConstants.tableName.length; i++) {
 			cacheName[i] = "sub_" + WikiConstants.tableName[i].substring(4) + "_mrr";

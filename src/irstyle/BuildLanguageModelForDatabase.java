@@ -42,7 +42,7 @@ public class BuildLanguageModelForDatabase {
 			experiment = IRStyleExperiment.createWikiRecExperiment();
 			suffix = "rec";
 		} else if (exp.equals("msn")) {
-			experiment = IRStyleExperiment.createWikiMrrExperiment();
+			experiment = IRStyleExperiment.createWikiMsnExperiment();
 			suffix = "mrr";
 		} else if (exp.equals("stack")) {
 			experiment = IRStyleExperiment.createStackExperiment();

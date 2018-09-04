@@ -21,7 +21,7 @@ public class BuildCache {
 		} else if (args[0].equals("-inexr")) {
 			experiment = IRStyleExperiment.createWikiRecExperiment();
 		} else if (args[0].equals("-msn")) {
-			experiment = IRStyleExperiment.createWikiMrrExperiment();
+			experiment = IRStyleExperiment.createWikiMsnExperiment();
 		} else if (args[0].equals("-stack")) {
 			experiment = IRStyleExperiment.createStackExperiment();
 		} else {
