@@ -24,7 +24,7 @@ def train_lr( X, y, X_test, y_test, t, col_names = None ):
     if col_names is not None:
         c = np.column_stack((col_names, np.round(lr.coef_.flatten(),2)))
         print(c[c[:,1].argsort()])
-    y_prob = lr.predict_proba(X_test)
+    y_prob = lr.predict_proba(X_test_trans)
     end = datetime.datetime.now()
     delta = end - start
     y_pred = y_prob[:, 1] > t
@@ -46,6 +46,8 @@ def main(argv):
     test_size = args.split
     t = args.threshold
     write_output = args.output
+    print('running swiki with test size %.2f and threshold %.2f' %
+          (test_size, t))
 
     df = pd.read_csv("../../data/cache_selection_structured/" + filename)
     df = df.fillna(0)
@@ -59,7 +61,6 @@ def main(argv):
     test_freq = X_test['freq']
     subset_mrr = X_test['cache']
     db_mrr = X_test['full']
-    print(db_mrr.mean())
     X_test = X_test.drop(['query', 'freq', 'cache', 'full'], axis=1)
     #print(df.corr()['label'].sort_values())
     print("train set size and ones: %d, %d" % (y.shape[0], np.sum(y)))

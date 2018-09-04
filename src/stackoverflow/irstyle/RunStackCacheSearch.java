@@ -64,10 +64,12 @@ public class RunStackCacheSearch {
 		}
 		if (cl.hasOption('f')) {
 			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 10);
+			queries = queries.subList(0, 10000);
 			outputFileName += "_eff";
 		}
 		outputFileName += ".csv";
+		Params.MAX_TS_SIZE = 100;
+		Params.N = 10;
 		System.out.println("setting: \n" + Params.getDescriptor());
 		JDBCaccess jdbcacc = IRStyleKeywordSearch.jdbcAccess("stack_overflow");
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
