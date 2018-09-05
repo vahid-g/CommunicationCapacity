@@ -49,7 +49,7 @@ public class RunFeatureExtractionForMultiTables {
 		String suffix = "mrr";
 		if (argList.contains("-eff")) {
 			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 10000);
+			queries = queries.subList(0, 20);
 		}
 		for (String table : StackConstants.tableName) {
 			String indexPath = StackConstants.DATA_STACK + "ml_" + table + "_cache_" + suffix;
