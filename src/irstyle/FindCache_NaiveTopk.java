@@ -30,6 +30,7 @@ import org.apache.lucene.store.FSDirectory;
 import database.DatabaseConnection;
 import database.DatabaseType;
 import irstyle.api.IRStyleKeywordSearch;
+import irstyle.api.Indexer;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
@@ -186,15 +187,18 @@ public class FindCache_NaiveTopk {
 							+ linkReader.numDocs());
 					for (ExperimentQuery query : queries) {
 						Schema sch = new Schema(schemaDescription);
-						List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleReader, query.getText(), WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
-						List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageReader, query.getText(), WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
-						List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkReader, query.getText(), WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
+						List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleReader,
+								query.getText(), Indexer.TEXT_FIELD, Indexer.ID_FIELD);
+						List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageReader, query.getText(),
+								Indexer.TEXT_FIELD, Indexer.ID_FIELD);
+						List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkReader, query.getText(),
+								Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 						Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 						relnamesValues.put(articleTable, articleIds);
 						relnamesValues.put(imageTable, imageIds);
 						relnamesValues.put(linkTable, linkIds);
-						IRStyleQueryResult result = IRStyleKeywordSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
-								relnamesValues);
+						IRStyleQueryResult result = IRStyleKeywordSearch.executeIRStyleQuery(jdbcacc, sch, relations,
+								query, relnamesValues);
 						queryResults.add(result);
 					}
 					acc = effectiveness(queryResults, effectivenessMetric, null);

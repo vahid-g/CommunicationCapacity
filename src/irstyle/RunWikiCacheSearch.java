@@ -20,6 +20,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
 import irstyle.api.IRStyleKeywordSearch;
+import irstyle.api.Indexer;
 import irstyle.api.Params;
 import irstyle.core.ExecPrepared;
 import irstyle.core.JDBCaccess;
@@ -66,13 +67,13 @@ public class RunWikiCacheSearch {
 		if (cl.hasOption('c')) {
 			justUseCache = true;
 			outputFileName += "_cache";
-			articleIndexPath = WikiIndexer.DATA_WIKIPEDIA + "sub_article_wiki13_" + cacheNameSuffix;
-			imageIndexPath = WikiIndexer.DATA_WIKIPEDIA + "sub_image_pop_" + cacheNameSuffix;
-			linkIndexPath = WikiIndexer.DATA_WIKIPEDIA + "sub_link_pop_" + cacheNameSuffix;
+			articleIndexPath = WikiConstants.WIKI_DATA_DIR + "sub_article_wiki13_" + cacheNameSuffix;
+			imageIndexPath = WikiConstants.WIKI_DATA_DIR + "sub_image_pop_" + cacheNameSuffix;
+			linkIndexPath = WikiConstants.WIKI_DATA_DIR + "sub_link_pop_" + cacheNameSuffix;
 		} else {
-			articleIndexPath = WikiIndexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100";
-			imageIndexPath = WikiIndexer.DATA_WIKIPEDIA + "tbl_image_pop/100";
-			linkIndexPath = WikiIndexer.DATA_WIKIPEDIA + "tbl_link_pop/100";
+			articleIndexPath = WikiConstants.WIKI_DATA_DIR + "tbl_article_wiki13/100";
+			imageIndexPath = WikiConstants.WIKI_DATA_DIR + "tbl_image_pop/100";
+			linkIndexPath = WikiConstants.WIKI_DATA_DIR + "tbl_link_pop/100";
 			outputFileName += "_full";
 		}
 		if (cl.hasOption('f')) {
@@ -139,11 +140,11 @@ public class RunWikiCacheSearch {
 							articleImageTable, articleLinkTable, jdbcacc.conn);
 					start = System.currentTimeMillis();
 					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleReader, query.getText(),
-							WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
+							Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 					List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageReader, query.getText(),
-							WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
+							Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 					List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkReader, query.getText(),
-							WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
+							Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 					luceneTime += (System.currentTimeMillis() - start);
 					if (Params.DEBUG) {
 						System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
@@ -156,9 +157,8 @@ public class RunWikiCacheSearch {
 					IRStyleQueryResult result = IRStyleKeywordSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
 							relnamesValues);
 					if (Params.DEBUG) {
-						System.out.println(" table scan percentage = "
-								+ (double)ExecPrepared.lastGenQueries / (articleIds.size() * imageIds.size() * linkIds.size())
-								+ "%");
+						System.out.println(" table scan percentage = " + (double) ExecPrepared.lastGenQueries
+								/ (articleIds.size() * imageIds.size() * linkIds.size()) + "%");
 					}
 					result.dedup();
 					tuplesetTime += result.tuplesetTime;

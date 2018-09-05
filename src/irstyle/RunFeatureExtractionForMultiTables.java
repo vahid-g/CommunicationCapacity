@@ -22,6 +22,7 @@ import org.apache.lucene.store.FSDirectory;
 import cache_selection_ml.FeatureExtraction;
 import indexing.BiwordAnalyzer;
 import indexing.popularity.TokenPopularity;
+import irstyle.api.Indexer;
 import query.ExperimentQuery;
 import query.QueryServices;
 
@@ -58,25 +59,25 @@ public class RunFeatureExtractionForMultiTables {
 			queries = queries.subList(0, 10);
 		}
 		for (String table : WikiConstants.tableName) {
-			String indexPath = WikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_" + suffix;
+			String indexPath = WikiConstants.WIKI_DATA_DIR + "ml_" + table + "_cache_" + suffix;
 			cacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = WikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_" + suffix;
+			indexPath = WikiConstants.WIKI_DATA_DIR + "ml_" + table + "_rest_" + suffix;
 			restIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = WikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_cache_" + suffix + "_bi";
+			indexPath = WikiConstants.WIKI_DATA_DIR + "ml_" + table + "_cache_" + suffix + "_bi";
 			biCacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = WikiIndexer.DATA_WIKIPEDIA + "ml_" + table + "_rest_" + suffix + "_bi";
+			indexPath = WikiConstants.WIKI_DATA_DIR + "ml_" + table + "_rest_" + suffix + "_bi";
 			biRestIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
 		}
 		LOGGER.log(Level.INFO, "loading popularity indices..");
-		cacheTermPopularity = TokenPopularity.loadTokenPopularities(
-				WikiConstants.WIKI_DATA_DIR + "lm_cache_" + suffix + "_text_pop_index" + ".csv");
-		restTermPopularity = TokenPopularity.loadTokenPopularities(
-				WikiConstants.WIKI_DATA_DIR + "lm_rest_" + suffix + "_text_pop_index" + ".csv");
+		cacheTermPopularity = TokenPopularity
+				.loadTokenPopularities(WikiConstants.WIKI_DATA_DIR + "lm_cache_" + suffix + "_text_pop_index" + ".csv");
+		restTermPopularity = TokenPopularity
+				.loadTokenPopularities(WikiConstants.WIKI_DATA_DIR + "lm_rest_" + suffix + "_text_pop_index" + ".csv");
 		biwordCachePopularity = TokenPopularity.loadTokenPopularities(
 				WikiConstants.WIKI_DATA_DIR + "lm_cache_" + suffix + "_bi" + "_text_pop_index" + ".csv");
 		biwordRestPopularity = TokenPopularity.loadTokenPopularities(
 				WikiConstants.WIKI_DATA_DIR + "lm_rest_" + suffix + "_bi" + "_text_pop_index" + ".csv");
-		FeatureExtraction wqde = new FeatureExtraction(WikiIndexer.WEIGHT_FIELD);
+		FeatureExtraction wqde = new FeatureExtraction(Indexer.WEIGHT_FIELD);
 		LOGGER.log(Level.INFO, "loading done!");
 		List<String> data = new ArrayList<String>();
 		String[] featureNames = { "covered", "covered_rest", "mean_df", "mean_df_rest", "min_df", "min_df_rest",
