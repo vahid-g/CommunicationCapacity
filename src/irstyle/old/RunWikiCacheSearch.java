@@ -1,4 +1,4 @@
-package irstyle;
+package irstyle.old;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -19,6 +19,9 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
+import irstyle.IRStyleQueryResult;
+import irstyle.IRStyleWikiHelper;
+import irstyle.WikiConstants;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Indexer;
 import irstyle.api.Params;

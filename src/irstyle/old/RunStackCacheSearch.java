@@ -1,4 +1,4 @@
-package stackoverflow.irstyle;
+package irstyle.old;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -32,6 +32,7 @@ import irstyle.core.Schema;
 import query.ExperimentQuery;
 import stackoverflow.QuestionDAO;
 import stackoverflow.StackQueryingExperiment;
+import stackoverflow.irstyle.StackConstants;
 
 public class RunStackCacheSearch {
 
