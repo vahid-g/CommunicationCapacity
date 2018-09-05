@@ -126,6 +126,8 @@ public class RunCacheSearch {
 			long luceneTime = 0;
 			long tuplesetTime = 0;
 			double recall = 0;
+			double weightedRecall = 0;
+			double count = 0;
 			double p20 = 0;
 			double mrr = 0;
 			for (int exec = 0; exec < Params.numExecutions; exec++) {
@@ -175,6 +177,8 @@ public class RunCacheSearch {
 					tuplesetTime += result.tuplesetTime;
 					time += luceneTime + result.execTime;
 					recall += result.recall();
+					weightedRecall += result.recall() * query.getFreq();
+					count += query.getFreq();
 					p20 += result.p20();
 					mrr += result.rrank();
 					queryResults.add(result);
@@ -191,6 +195,7 @@ public class RunCacheSearch {
 			System.out.println("average total time  = " + time + " (ms)");
 			System.out.println("number of cache hits: " + cacheUseCount + "/" + queries.size());
 			System.out.println("recall = " + recall / queries.size());
+			System.out.println("weighted recall = " + weightedRecall / count);
 			System.out.println("p20 = " + p20 / queries.size());
 			System.out.println("mrr = " + mrr / queries.size());
 			System.out.println("avergae article TS size: "

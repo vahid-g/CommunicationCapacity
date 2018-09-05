@@ -1,3 +1,4 @@
+from __future__ import division
 import pandas as pd
 import sys
 from scipy.stats import ttest_rel
@@ -39,15 +40,15 @@ def analyze(c, subset, db, popularity):
     print('bad \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f' %
           (r1.sum() / s, r2.sum() / s, r3.sum() / s, r4.sum() / s, r5.sum() /
            s, r6.sum() / s))
-    b = c['Label'] == 0
-    s = c[popularity][b].sum()
-    r1 = c[subset][b] * c[popularity][b]
-    r2 = c[db][b] * c[popularity][b]
-    r3 = c['ql'][b] * c[popularity][b]
-    r4 = c['ml'][b] * c[popularity][b]
-    r5 = c['best'][b] * c[popularity][b]
-    r6 = c['rand'][b] * c[popularity][b]
-    sdf= c[popularity][b].sum()
+    nb = c['Label'] == 0
+    s = c[popularity][nb].sum()
+    r1 = c[subset][nb] * c[popularity][nb]
+    r2 = c[db][nb] * c[popularity][nb]
+    r3 = c['ql'][nb] * c[popularity][nb]
+    r4 = c['ml'][nb] * c[popularity][nb]
+    r5 = c['best'][nb] * c[popularity][nb]
+    r6 = c['rand'][nb] * c[popularity][nb]
+    sdf= c[popularity][nb].sum()
     print('n_bad \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f \t %.2f' %
           (r1.sum() / s, r2.sum() / s, r3.sum() / s, r4.sum() / s, r5.sum() /
            s, r6.sum() / s))
@@ -57,9 +58,12 @@ def analyze(c, subset, db, popularity):
     ml_to_cache = c['ml_label'] * c[popularity]
     ql_to_cache = c['ql_label'] * c[popularity]
     s = float(c[popularity].sum())
-    print('ratio of queries sent to full db by ml: %.2f' % (ml_to_cache.sum() / s))
-    print('ratio of queries sent to full db by ql: %.2f' % (ql_to_cache.sum() / s))
-
+    print('queries sent to full db by ml: %.2f%%' % (ml_to_cache.sum() / s))
+    print('queries sent to full db by ql: %.2f%%' % (ql_to_cache.sum() / s))
+    print('queries with mrr > 0 on cache: %.2f%%' %
+          (c[popularity][c[subset] > 0].sum() / c[popularity].sum()))
+    print('queries with mrr > 0 on cache: %.2f%%' %
+          (c[popularity][c[db] > 0].sum() / c[popularity].sum()))
     print('ml and rand ' + str(ttest_rel(c['ml'], c['rand'])))
     print('ql and rand ' + str(ttest_rel(c['ql'], c['rand'])))
     print('subset and rand ' + str(ttest_rel(c[subset], c['rand'])))
