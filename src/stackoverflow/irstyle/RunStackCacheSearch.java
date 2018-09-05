@@ -20,6 +20,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
 import irstyle.IRStyleQueryResult;
+import irstyle.StackExperimentHelper;
 import irstyle.api.IRStyleExperiment;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
@@ -98,8 +99,8 @@ public class RunStackCacheSearch {
 							+ postTagsTable + " " + tagsTable + " " + answersTable + " " + postCommentsTable + " "
 							+ postCommentsTable + " " + commentsTable;
 					Schema sch = new Schema(schemaDescription);
-					Vector<Relation> relations = IRStyleStackHelper.createRelations(answersTable, postTagsTable,
-							tagsTable, postCommentsTable, commentsTable, jdbcacc.conn);
+					Vector<Relation> relations = new StackExperimentHelper().createRelations(answersTable,
+							postTagsTable, tagsTable, postCommentsTable, commentsTable);
 					start = System.currentTimeMillis();
 					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(answersReader, query.getText(),
 							TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);

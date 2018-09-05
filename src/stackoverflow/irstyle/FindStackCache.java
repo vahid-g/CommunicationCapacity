@@ -30,6 +30,7 @@ import org.apache.lucene.store.FSDirectory;
 import database.DatabaseConnection;
 import database.DatabaseType;
 import irstyle.IRStyleQueryResult;
+import irstyle.StackExperimentHelper;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
@@ -112,8 +113,8 @@ public class FindStackCache {
 					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
-			Vector<Relation> relations = IRStyleStackHelper.createRelations(articleTable, articleImageTable, imageTable,
-					articleLinkTable, linkTable, jdbcacc.conn);
+			Vector<Relation> relations = new StackExperimentHelper().createRelations(articleTable, imageTable,
+					linkTable, articleImageTable, articleLinkTable);
 			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
 			List<List<Document>> docsList = new ArrayList<List<Document>>();
 			int[] lastPopularity = new int[tableNames.length];
