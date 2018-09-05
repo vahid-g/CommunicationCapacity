@@ -1,4 +1,4 @@
-package stackoverflow.irstyle;
+package irstyle;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -14,6 +14,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
@@ -23,20 +29,25 @@ import org.apache.lucene.store.FSDirectory;
 import cache_selection_ml.FeatureExtraction;
 import indexing.BiwordAnalyzer;
 import indexing.popularity.TokenPopularity;
+import irstyle.api.IRStyleExperiment;
 import irstyle.api.Indexer;
+import irstyle.api.Params;
 import query.ExperimentQuery;
+import query.QueryServices;
 import stackoverflow.QuestionDAO;
 import stackoverflow.StackQueryingExperiment;
 
-public class RunFeatureExtractionForMultiTables {
+public class RunFeatureExtraction {
 
-	public static final Logger LOGGER = Logger.getLogger(RunFeatureExtractionForMultiTables.class.getName());
+	public static final Logger LOGGER = Logger.getLogger(RunFeatureExtraction.class.getName());
 
-	public static void main(String[] args) throws IOException, SQLException {
-		List<String> argList = Arrays.asList(args);
-		StackQueryingExperiment sqe = new StackQueryingExperiment();
-		List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
-		List<ExperimentQuery> queries = QuestionDAO.convertToExperimentQuery(questions);
+	public static void main(String[] args) throws IOException, ParseException, SQLException {
+		Options options = new Options();
+		options.addOption(Option.builder("e").hasArg().desc("The experiment inexp/inexr/mrr").build());
+		options.addOption(Option.builder("f").desc("Efficiency experiment").build());
+		CommandLineParser clp = new DefaultParser();
+		CommandLine cl = clp.parse(options, args);
+		List<ExperimentQuery> queries;
 		List<IndexReader> cacheIndexReaderList = new ArrayList<IndexReader>();
 		List<IndexReader> restIndexReaderList = new ArrayList<IndexReader>();
 		List<IndexReader> biCacheIndexReaderList = new ArrayList<IndexReader>();
@@ -46,30 +57,55 @@ public class RunFeatureExtractionForMultiTables {
 		Map<String, TokenPopularity> restTermPopularity;
 		Map<String, TokenPopularity> biwordCachePopularity;
 		Map<String, TokenPopularity> biwordRestPopularity;
-		String suffix = "mrr";
-		if (argList.contains("-eff")) {
+		String suffix;
+		IRStyleExperiment experiment;
+		if (cl.getOptionValue('e').equals("inexp")) {
+			experiment = IRStyleExperiment.createWikiP20Experiment();
+			suffix = "p20";
+			queries = QueryServices.loadInexQueries();
+		} else if (cl.getOptionValue('e').equals("inexr")) {
+			experiment = IRStyleExperiment.createWikiRecExperiment();
+			if (!cl.hasOption('f')) {
+				Params.N = 100;
+			}
+			suffix = "rec";
+			queries = QueryServices.loadInexQueries();
+		} else if (cl.getOptionValue('e').equals("msn")) {
+			experiment = IRStyleExperiment.createWikiMsnExperiment();
+			suffix = "mrr";
+			queries = QueryServices.loadMsnQueriesAll();
+		} else if (cl.getOptionValue('e').equals("stack")) {
+			experiment = IRStyleExperiment.createStackExperiment();
+			suffix = "mrr";
+			StackQueryingExperiment sqe = new StackQueryingExperiment();
+			List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
+			queries = QuestionDAO.convertToExperimentQuery(questions);
+		} else {
+			throw new ParseException("input parse exception");
+		}
+		if (cl.hasOption('f')) {
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, 20);
 		}
-		for (String table : StackConstants.tableName) {
-			String indexPath = StackConstants.DATA_STACK + "ml_" + table + "_cache_" + suffix;
+		for (String table : experiment.tableNames) {
+			String indexPath = experiment.dataDir + "ml_" + table + "_cache_" + suffix;
 			cacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = StackConstants.DATA_STACK + "ml_" + table + "_rest_" + suffix;
+			indexPath = experiment.dataDir + "ml_" + table + "_rest_" + suffix;
 			restIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = StackConstants.DATA_STACK + "ml_" + table + "_cache_" + suffix + "_bi";
+			indexPath = experiment.dataDir + "ml_" + table + "_cache_" + suffix + "_bi";
 			biCacheIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
-			indexPath = StackConstants.DATA_STACK + "ml_" + table + "_rest_" + suffix + "_bi";
+			indexPath = experiment.dataDir + "ml_" + table + "_rest_" + suffix + "_bi";
 			biRestIndexReaderList.add(DirectoryReader.open(FSDirectory.open(Paths.get(indexPath))));
 		}
 		LOGGER.log(Level.INFO, "loading popularity indices..");
 		cacheTermPopularity = TokenPopularity
-				.loadTokenPopularities(StackConstants.DATA_STACK + "lm_cache_" + suffix + "_text_pop_index" + ".csv");
+				.loadTokenPopularities(experiment.dataDir + "lm_cache_" + suffix + "_text_pop_index" + ".csv");
 		restTermPopularity = TokenPopularity
-				.loadTokenPopularities(StackConstants.DATA_STACK + "lm_rest_" + suffix + "_text_pop_index" + ".csv");
-		biwordCachePopularity = TokenPopularity.loadTokenPopularities(
-				StackConstants.DATA_STACK + "lm_cache_" + suffix + "_bi" + "_text_pop_index" + ".csv");
+				.loadTokenPopularities(experiment.dataDir + "lm_rest_" + suffix + "_text_pop_index" + ".csv");
+		biwordCachePopularity = TokenPopularity
+				.loadTokenPopularities(experiment.dataDir + "lm_cache_" + suffix + "_bi" + "_text_pop_index" + ".csv");
 		biwordRestPopularity = TokenPopularity
-				.loadTokenPopularities(StackConstants.DATA_STACK + "lm_rest_" + suffix + "_bi" + "_text_pop_index" + ".csv");
+				.loadTokenPopularities(experiment.dataDir + "lm_rest_" + suffix + "_bi" + "_text_pop_index" + ".csv");
 		FeatureExtraction wqde = new FeatureExtraction(Indexer.WEIGHT_FIELD);
 		LOGGER.log(Level.INFO, "loading done!");
 		List<String> data = new ArrayList<String>();
@@ -82,7 +118,7 @@ public class RunFeatureExtractionForMultiTables {
 				"qll_bi_rest" };
 		StringBuilder fileHeader = new StringBuilder();
 		for (int i = 0; i < cacheIndexReaderList.size(); i++) {
-			for (int j = 0; j < StackConstants.textAttribs[i].length; j++) {
+			for (int j = 0; j < experiment.textAttribs[i].length; j++) {
 				final String featSuffix = i + "_" + j;
 				fileHeader.append(Arrays.asList(featureNames).stream().map(ft -> ft + "_" + featSuffix + ",")
 						.collect(Collectors.joining()));
@@ -100,7 +136,7 @@ public class RunFeatureExtractionForMultiTables {
 				IndexReader restIndexReader = restIndexReaderList.get(i);
 				IndexReader biwordIndexReader = biCacheIndexReaderList.get(i);
 				IndexReader biwordRestIndexReader = biRestIndexReaderList.get(i);
-				for (String attrib : StackConstants.textAttribs[i]) {
+				for (String attrib : experiment.textAttribs[i]) {
 					long start = System.currentTimeMillis();
 					List<Double> f = new ArrayList<Double>();
 					f.add(wqde.coveredTokenRatio(indexReader, queryText, attrib, analyzer));
