@@ -20,12 +20,12 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.flexible.standard.parser.ParseException;
 import org.apache.lucene.store.FSDirectory;
 
+import irstyle.api.ExperimentHelper;
 import irstyle.api.IRStyleExperiment;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Indexer;
 import irstyle.api.Params;
 import irstyle.core.ExecPrepared;
-import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
 import irstyle.core.Schema;
 import query.ExperimentQuery;
@@ -50,12 +50,15 @@ public class RunCacheSearch {
 		List<ExperimentQuery> queries;
 		String outputFileName = "result";
 		IRStyleExperiment experiment;
+		ExperimentHelper experimentHelper;
 		if (cl.getOptionValue('e').equals("inexp")) {
 			experiment = IRStyleExperiment.createWikiP20Experiment();
+			experimentHelper = new WikiExperimentHelper();
 			cacheNameSuffix = "p20";
 			queries = QueryServices.loadInexQueries();
 		} else if (cl.getOptionValue('e').equals("inexr")) {
 			experiment = IRStyleExperiment.createWikiRecExperiment();
+			experimentHelper = new WikiExperimentHelper();
 			if (!cl.hasOption('f')) {
 				Params.N = 100;
 			}
@@ -63,11 +66,13 @@ public class RunCacheSearch {
 			queries = QueryServices.loadInexQueries();
 		} else if (cl.getOptionValue('e').equals("msn")) {
 			experiment = IRStyleExperiment.createWikiMsnExperiment();
+			experimentHelper = new WikiExperimentHelper();
 			cacheNameSuffix = "mrr";
 			queries = QueryServices.loadMsnQueriesAll();
 		} else if (cl.getOptionValue('e').equals("stack")) {
 			outputFileName = "/data/ghadakcv/stack/result";
 			experiment = IRStyleExperiment.createStackExperiment();
+			experimentHelper = new StackExperimentHelper();
 			cacheNameSuffix = "mrr";
 			StackQueryingExperiment sqe = new StackQueryingExperiment();
 			List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
@@ -107,8 +112,7 @@ public class RunCacheSearch {
 		Params.N = Integer.parseInt(cl.getOptionValue("k", Integer.toString(Params.N)));
 		Params.useScoreThresholding = cl.hasOption("s");
 		System.out.println("setting: \n" + Params.getDescriptor());
-		JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
-		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
+		IRStyleKeywordSearch.dropAllTuplesets(experimentHelper.getJdbcAccess());
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		try (IndexReader articleReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath[0])));
 				IndexReader imageReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath[1])));
@@ -139,8 +143,9 @@ public class RunCacheSearch {
 								+ tableNames[1] + " " + relationTableNames[1] + " " + tableNames[2]);
 						System.out.println(" Using indices: " + indexPath[0] + " " + indexPath[1] + " " + indexPath[2]);
 					}
-					Vector<Relation> relations = IRStyleWikiHelper.createRelations(tableNames[0], tableNames[1],
-							tableNames[2], relationTableNames[0], relationTableNames[1], jdbcacc.conn);
+					Vector<Relation> relations;
+					relations = experimentHelper.createRelations(tableNames[0], tableNames[1], tableNames[2],
+							relationTableNames[0], relationTableNames[1]);
 					long start = System.currentTimeMillis();
 					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleReader, query.getText(),
 							Indexer.TEXT_FIELD, Indexer.ID_FIELD);
@@ -157,8 +162,9 @@ public class RunCacheSearch {
 					relnamesValues.put(tableNames[0], articleIds);
 					relnamesValues.put(tableNames[1], imageIds);
 					relnamesValues.put(tableNames[2], linkIds);
-					IRStyleQueryResult result = IRStyleKeywordSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
-							relnamesValues);
+					System.out.println(schemaDescription);
+					IRStyleQueryResult result = IRStyleKeywordSearch.executeIRStyleQuery(
+							experimentHelper.getJdbcAccess(), sch, relations, query, relnamesValues);
 					if (Params.DEBUG) {
 						System.out.println(" table scan percentage = " + (double) ExecPrepared.lastGenQueries
 								/ (articleIds.size() * imageIds.size() * linkIds.size()) + "%");
