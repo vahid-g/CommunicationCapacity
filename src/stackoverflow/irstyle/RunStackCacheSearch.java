@@ -23,6 +23,7 @@ import irstyle.IRStyleQueryResult;
 import irstyle.StackExperimentHelper;
 import irstyle.api.IRStyleExperiment;
 import irstyle.api.IRStyleKeywordSearch;
+import irstyle.api.Indexer;
 import irstyle.api.Params;
 import irstyle.core.ExecPrepared;
 import irstyle.core.JDBCaccess;
@@ -103,11 +104,11 @@ public class RunStackCacheSearch {
 							postTagsTable, tagsTable, postCommentsTable, commentsTable);
 					start = System.currentTimeMillis();
 					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(answersReader, query.getText(),
-							TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
+							Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 					List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(tagsIndexReader, query.getText(),
-							TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
+							Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 					List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(commentsIndexReader, query.getText(),
-							TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
+							Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 					luceneTime += (System.currentTimeMillis() - start);
 					if (Params.DEBUG) {
 						System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),

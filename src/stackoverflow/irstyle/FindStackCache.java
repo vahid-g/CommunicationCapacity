@@ -32,6 +32,7 @@ import database.DatabaseType;
 import irstyle.IRStyleQueryResult;
 import irstyle.StackExperimentHelper;
 import irstyle.api.IRStyleKeywordSearch;
+import irstyle.api.Indexer;
 import irstyle.api.Params;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
@@ -176,11 +177,11 @@ public class FindStackCache {
 					for (ExperimentQuery query : queries) {
 						Schema sch = new Schema(schemaDescription);
 						List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleReader,
-								query.getText(), TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
+								query.getText(), Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 						List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageReader, query.getText(),
-								TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
+								Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 						List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkReader, query.getText(),
-								TableIndexer.TEXT_FIELD, TableIndexer.ID_FIELD);
+								Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 						Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 						relnamesValues.put(articleTable, articleIds);
 						relnamesValues.put(imageTable, imageIds);
