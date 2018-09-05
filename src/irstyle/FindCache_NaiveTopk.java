@@ -62,24 +62,24 @@ public class FindCache_NaiveTopk {
 		IRStyleExperimentHelper experimentHelper;
 		if (cl.getOptionValue('e').equals("inexp")) {
 			experiment = IRStyleExperiment.createWikiP20Experiment();
-			experimentHelper = new WikiExperimentHelper();
+			experimentHelper = new Wiki_ExperimentHelper();
 			queries = QueryServices.loadInexQueries();
 			effectivenessMetric = 1;
 		} else if (cl.getOptionValue('e').equals("inexr")) {
 			experiment = IRStyleExperiment.createWikiRecExperiment();
-			experimentHelper = new WikiExperimentHelper();
+			experimentHelper = new Wiki_ExperimentHelper();
 			Params.N = 100;
 			queries = QueryServices.loadInexQueries();
 			effectivenessMetric = 2;
 		} else if (cl.getOptionValue('e').equals("msn")) {
 			experiment = IRStyleExperiment.createWikiMsnExperiment();
-			experimentHelper = new WikiExperimentHelper();
+			experimentHelper = new Wiki_ExperimentHelper();
 			queries = QueryServices.loadMsnQueriesAll();
 			Params.N = 5;
 			effectivenessMetric = 0;
 		} else if (cl.getOptionValue('e').equals("stack")) {
 			experiment = IRStyleExperiment.createStackExperiment();
-			experimentHelper = new StackExperimentHelper();
+			experimentHelper = new Stack_ExperimentHelper();
 			StackQueryingExperiment sqe = new StackQueryingExperiment();
 			List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
 			queries = QuestionDAO.convertToExperimentQuery(questions);

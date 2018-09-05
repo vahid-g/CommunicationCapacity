@@ -53,12 +53,12 @@ public class RunCacheSearch {
 		IRStyleExperimentHelper experimentHelper;
 		if (cl.getOptionValue('e').equals("inexp")) {
 			experiment = IRStyleExperiment.createWikiP20Experiment();
-			experimentHelper = new WikiExperimentHelper();
+			experimentHelper = new Wiki_ExperimentHelper();
 			cacheNameSuffix = "p20";
 			queries = QueryServices.loadInexQueries();
 		} else if (cl.getOptionValue('e').equals("inexr")) {
 			experiment = IRStyleExperiment.createWikiRecExperiment();
-			experimentHelper = new WikiExperimentHelper();
+			experimentHelper = new Wiki_ExperimentHelper();
 			if (!cl.hasOption('f')) {
 				Params.N = 100;
 			}
@@ -66,13 +66,13 @@ public class RunCacheSearch {
 			queries = QueryServices.loadInexQueries();
 		} else if (cl.getOptionValue('e').equals("msn")) {
 			experiment = IRStyleExperiment.createWikiMsnExperiment();
-			experimentHelper = new WikiExperimentHelper();
+			experimentHelper = new Wiki_ExperimentHelper();
 			cacheNameSuffix = "mrr";
 			queries = QueryServices.loadMsnQueriesAll();
 		} else if (cl.getOptionValue('e').equals("stack")) {
 			outputFileName = "/data/ghadakcv/stack/result";
 			experiment = IRStyleExperiment.createStackExperiment();
-			experimentHelper = new StackExperimentHelper();
+			experimentHelper = new Stack_ExperimentHelper();
 			cacheNameSuffix = "mrr";
 			StackQueryingExperiment sqe = new StackQueryingExperiment();
 			List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");

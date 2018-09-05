@@ -10,9 +10,9 @@ import irstyle.api.IRStyleExperimentHelper;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.core.Relation;
 
-public class WikiExperimentHelper extends IRStyleExperimentHelper {
+public class Wiki_ExperimentHelper extends IRStyleExperimentHelper {
 
-	public WikiExperimentHelper() throws IOException {
+	public Wiki_ExperimentHelper() throws IOException {
 		jdbcAccess = IRStyleKeywordSearch.jdbcAccess("stack_overflow");
 	}
 

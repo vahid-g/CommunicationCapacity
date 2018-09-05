@@ -11,7 +11,7 @@ import java.util.Map;
 import database.DatabaseConnection;
 import database.DatabaseType;
 
-public class CreatePostTagRelation {
+public class Stack_CreatePostTagRelation {
 
 	public static void main(String[] args) throws IOException, SQLException {
 		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.STACKOVERFLOW)) {

@@ -21,7 +21,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import irstyle.IRStyleQueryResult;
 import irstyle.IRStyleWikiHelper;
-import irstyle.WikiConstants;
+import irstyle.Wiki_Constants;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Indexer;
 import irstyle.api.Params;
@@ -70,13 +70,13 @@ public class RunWikiCacheSearch {
 		if (cl.hasOption('c')) {
 			justUseCache = true;
 			outputFileName += "_cache";
-			articleIndexPath = WikiConstants.WIKI_DATA_DIR + "sub_article_wiki13_" + cacheNameSuffix;
-			imageIndexPath = WikiConstants.WIKI_DATA_DIR + "sub_image_pop_" + cacheNameSuffix;
-			linkIndexPath = WikiConstants.WIKI_DATA_DIR + "sub_link_pop_" + cacheNameSuffix;
+			articleIndexPath = Wiki_Constants.WIKI_DATA_DIR + "sub_article_wiki13_" + cacheNameSuffix;
+			imageIndexPath = Wiki_Constants.WIKI_DATA_DIR + "sub_image_pop_" + cacheNameSuffix;
+			linkIndexPath = Wiki_Constants.WIKI_DATA_DIR + "sub_link_pop_" + cacheNameSuffix;
 		} else {
-			articleIndexPath = WikiConstants.WIKI_DATA_DIR + "tbl_article_wiki13/100";
-			imageIndexPath = WikiConstants.WIKI_DATA_DIR + "tbl_image_pop/100";
-			linkIndexPath = WikiConstants.WIKI_DATA_DIR + "tbl_link_pop/100";
+			articleIndexPath = Wiki_Constants.WIKI_DATA_DIR + "tbl_article_wiki13/100";
+			imageIndexPath = Wiki_Constants.WIKI_DATA_DIR + "tbl_image_pop/100";
+			linkIndexPath = Wiki_Constants.WIKI_DATA_DIR + "tbl_link_pop/100";
 			outputFileName += "_full";
 		}
 		if (cl.hasOption('f')) {

@@ -20,8 +20,8 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
 import irstyle.IRStyleQueryResult;
-import irstyle.StackConstants;
-import irstyle.StackExperimentHelper;
+import irstyle.Stack_Constants;
+import irstyle.Stack_ExperimentHelper;
 import irstyle.api.IRStyleExperiment;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Indexer;
@@ -47,14 +47,14 @@ public class RunStackCacheSearch {
 		StackQueryingExperiment sqe = new StackQueryingExperiment();
 		List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
 		List<ExperimentQuery> queries = QuestionDAO.convertToExperimentQuery(questions);
-		String answersTable = StackConstants.tableName[0];
-		String tagsTable = StackConstants.tableName[1];
-		String commentsTable = StackConstants.tableName[2];
-		String postTagsTable = StackConstants.ANSWER_TAGS_TABLE;
-		String postCommentsTable = StackConstants.ANSWER_COMMENTS_TABLE;
-		String answersIndexPath = experiment.dataDir + StackConstants.tableName[0] + "_full";
-		String tagsIndexPath = experiment.dataDir + StackConstants.tableName[1] + "_full";
-		String commentsIndexPath = experiment.dataDir + StackConstants.tableName[2] + "_full";
+		String answersTable = Stack_Constants.tableName[0];
+		String tagsTable = Stack_Constants.tableName[1];
+		String commentsTable = Stack_Constants.tableName[2];
+		String postTagsTable = Stack_Constants.ANSWER_TAGS_TABLE;
+		String postCommentsTable = Stack_Constants.ANSWER_COMMENTS_TABLE;
+		String answersIndexPath = experiment.dataDir + Stack_Constants.tableName[0] + "_full";
+		String tagsIndexPath = experiment.dataDir + Stack_Constants.tableName[1] + "_full";
+		String commentsIndexPath = experiment.dataDir + Stack_Constants.tableName[2] + "_full";
 		if (cl.hasOption('c')) {
 			outputFileName += "_cache";
 			answersTable = experiment.cacheNames[0];
@@ -101,7 +101,7 @@ public class RunStackCacheSearch {
 							+ postTagsTable + " " + tagsTable + " " + answersTable + " " + postCommentsTable + " "
 							+ postCommentsTable + " " + commentsTable;
 					Schema sch = new Schema(schemaDescription);
-					Vector<Relation> relations = new StackExperimentHelper().createRelations(answersTable,
+					Vector<Relation> relations = new Stack_ExperimentHelper().createRelations(answersTable,
 							postTagsTable, tagsTable, postCommentsTable, commentsTable);
 					start = System.currentTimeMillis();
 					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(answersReader, query.getText(),

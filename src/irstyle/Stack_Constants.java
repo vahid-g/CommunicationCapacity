@@ -1,6 +1,6 @@
 package irstyle;
 
-public class StackConstants {
+public class Stack_Constants {
 
 	public static String[] tableName = { "answers_s_train", "tags_pop", "comments_pop" };
 

@@ -1,6 +1,6 @@
 package irstyle;
 
-public class WikiConstants {
+public class Wiki_Constants {
 
 	public static String[] tableName = { "tbl_article_wiki13", "tbl_image_pop", "tbl_link_pop" };
 
