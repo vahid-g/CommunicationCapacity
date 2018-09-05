@@ -162,7 +162,6 @@ public class RunCacheSearch {
 					relnamesValues.put(tableNames[0], articleIds);
 					relnamesValues.put(tableNames[1], imageIds);
 					relnamesValues.put(tableNames[2], linkIds);
-					System.out.println(schemaDescription);
 					IRStyleQueryResult result = IRStyleKeywordSearch.executeIRStyleQuery(
 							experimentHelper.getJdbcAccess(), sch, relations, query, relnamesValues);
 					if (Params.DEBUG) {
