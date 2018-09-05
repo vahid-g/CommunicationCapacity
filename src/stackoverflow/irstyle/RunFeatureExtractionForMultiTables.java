@@ -32,7 +32,6 @@ public class RunFeatureExtractionForMultiTables {
 
 	public static final Logger LOGGER = Logger.getLogger(RunFeatureExtractionForMultiTables.class.getName());
 
-	// TODO: remove popularity features are duplicated
 	public static void main(String[] args) throws IOException, SQLException {
 		List<String> argList = Arrays.asList(args);
 		StackQueryingExperiment sqe = new StackQueryingExperiment();
