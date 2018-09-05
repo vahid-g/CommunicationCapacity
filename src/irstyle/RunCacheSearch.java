@@ -17,9 +17,12 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.flexible.standard.parser.ParseException;
 import org.apache.lucene.store.FSDirectory;
 
+import irstyle.api.IRStyleExperiment;
 import irstyle.api.IRStyleKeywordSearch;
+import irstyle.api.Indexer;
 import irstyle.api.Params;
 import irstyle.core.ExecPrepared;
 import irstyle.core.JDBCaccess;
@@ -27,6 +30,8 @@ import irstyle.core.Relation;
 import irstyle.core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
+import stackoverflow.QuestionDAO;
+import stackoverflow.StackQueryingExperiment;
 
 public class RunCacheSearch {
 
@@ -40,40 +45,54 @@ public class RunCacheSearch {
 		options.addOption(Option.builder("s").desc("Score thresholding").build());
 		options.addOption(Option.builder("d").desc("Output debug info").build());
 		CommandLineParser clp = new DefaultParser();
-		CommandLine cl;
+		CommandLine cl = clp.parse(options, args);
 		String cacheNameSuffix;
 		List<ExperimentQuery> queries;
 		String outputFileName = "result";
-		cl = clp.parse(options, args);
+		IRStyleExperiment experiment;
 		if (cl.getOptionValue('e').equals("inexp")) {
+			experiment = IRStyleExperiment.createWikiP20Experiment();
 			cacheNameSuffix = "p20";
 			queries = QueryServices.loadInexQueries();
 		} else if (cl.getOptionValue('e').equals("inexr")) {
+			experiment = IRStyleExperiment.createWikiRecExperiment();
 			if (!cl.hasOption('f')) {
 				Params.N = 100;
 			}
 			cacheNameSuffix = "rec";
 			queries = QueryServices.loadInexQueries();
-		} else {
+		} else if (cl.getOptionValue('e').equals("msn")) {
+			experiment = IRStyleExperiment.createWikiMsnExperiment();
 			cacheNameSuffix = "mrr";
 			queries = QueryServices.loadMsnQueriesAll();
+		} else if (cl.getOptionValue('e').equals("stack")) {
+			outputFileName = "/data/ghadakcv/stack/result";
+			experiment = IRStyleExperiment.createStackExperiment();
+			cacheNameSuffix = "mrr";
+			StackQueryingExperiment sqe = new StackQueryingExperiment();
+			List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
+			queries = QuestionDAO.convertToExperimentQuery(questions);
+		} else {
+			throw new ParseException();
 		}
 		outputFileName += "_" + cacheNameSuffix;
-		boolean justUseCache = false;
-		String articleIndexPath;
-		String imageIndexPath;
-		String linkIndexPath;
+		String[] indexPath = new String[experiment.tableNames.length];
+		String[] tableNames = new String[experiment.tableNames.length];
+		String[] relationTableNames = new String[2];
 		if (cl.hasOption('c')) {
-			justUseCache = true;
 			outputFileName += "_cache";
-			articleIndexPath = WikiIndexer.DATA_WIKIPEDIA + "sub_article_wiki13_" + cacheNameSuffix;
-			imageIndexPath = WikiIndexer.DATA_WIKIPEDIA + "sub_image_pop_" + cacheNameSuffix;
-			linkIndexPath = WikiIndexer.DATA_WIKIPEDIA + "sub_link_pop_" + cacheNameSuffix;
+			indexPath[0] = experiment.dataDir + experiment.cacheNames[0];
+			indexPath[1] = experiment.dataDir + experiment.cacheNames[1];
+			indexPath[2] = experiment.dataDir + experiment.cacheNames[2];
+			tableNames = experiment.cacheNames;
+			relationTableNames = experiment.relationCacheNames;
 		} else {
-			articleIndexPath = WikiIndexer.DATA_WIKIPEDIA + "tbl_article_wiki13/100";
-			imageIndexPath = WikiIndexer.DATA_WIKIPEDIA + "tbl_image_pop/100";
-			linkIndexPath = WikiIndexer.DATA_WIKIPEDIA + "tbl_link_pop/100";
 			outputFileName += "_full";
+			indexPath[1] = experiment.dataDir + experiment.tableNames[0] + "_full";
+			indexPath[2] = experiment.dataDir + experiment.tableNames[1] + "_full";
+			indexPath[3] = experiment.dataDir + experiment.tableNames[2] + "_full";
+			tableNames = experiment.tableNames;
+			relationTableNames = experiment.relationTableNames;
 		}
 		if (cl.hasOption('f')) {
 			Collections.shuffle(queries, new Random(1));
@@ -91,9 +110,9 @@ public class RunCacheSearch {
 		JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
 		IRStyleKeywordSearch.dropAllTuplesets(jdbcacc);
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
-		try (IndexReader articleReader = DirectoryReader.open(FSDirectory.open(Paths.get(articleIndexPath)));
-				IndexReader imageReader = DirectoryReader.open(FSDirectory.open(Paths.get(imageIndexPath)));
-				IndexReader linkReader = DirectoryReader.open(FSDirectory.open(Paths.get(linkIndexPath)))) {
+		try (IndexReader articleReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath[0])));
+				IndexReader imageReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath[1])));
+				IndexReader linkReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath[2])))) {
 			long time = 0;
 			int cacheUseCount = 0;
 			long selectionTime = 0;
@@ -109,56 +128,40 @@ public class RunCacheSearch {
 					Vector<String> allkeyw = new Vector<String>();
 					// escaping single quotes
 					allkeyw.addAll(Arrays.asList(query.getText().replace("'", "\\'").split(" ")));
-					String articleTable = "tbl_article_wiki13";
-					String imageTable = "tbl_image_pop";
-					String linkTable = "tbl_link_pop";
-					String articleImageTable = "tbl_article_image_09";
-					String articleLinkTable = "tbl_article_link_09";
-					long start = System.currentTimeMillis();
-					if (justUseCache) {
-						cacheUseCount++;
-						articleTable = "sub_article_wiki13";
-						articleImageTable = "sub_article_image_09";
-						imageTable = "sub_image_pop";
-						articleLinkTable = "sub_article_link_09";
-						linkTable = "sub_link_pop";
-					}
-					selectionTime += System.currentTimeMillis() - start;
-					String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
-							+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
-							+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
-							+ articleLinkTable + " " + linkTable;
+					String schemaDescription = "5 " + tableNames[0] + " " + relationTableNames[0] + " " + tableNames[1]
+							+ " " + relationTableNames[1] + " " + tableNames[2] + " " + tableNames[0] + " "
+							+ relationTableNames[0] + " " + relationTableNames[0] + " " + tableNames[1] + " "
+							+ tableNames[0] + " " + relationTableNames[1] + " " + relationTableNames[1] + " "
+							+ tableNames[2];
 					Schema sch = new Schema(schemaDescription);
 					if (Params.DEBUG) {
-						System.out.println(" Using tables: " + articleTable + " " + articleImageTable + " " + imageTable
-								+ " " + articleLinkTable + " " + linkTable);
-						System.out.println(
-								" Using indices: " + articleIndexPath + " " + imageIndexPath + " " + linkIndexPath);
+						System.out.println(" Using tables: " + tableNames[0] + " " + relationTableNames[0] + " "
+								+ tableNames[1] + " " + relationTableNames[1] + " " + tableNames[2]);
+						System.out.println(" Using indices: " + indexPath[0] + " " + indexPath[1] + " " + indexPath[2]);
 					}
-					Vector<Relation> relations = IRStyleWikiHelper.createRelations(articleTable, imageTable, linkTable,
-							articleImageTable, articleLinkTable, jdbcacc.conn);
-					start = System.currentTimeMillis();
+					Vector<Relation> relations = IRStyleWikiHelper.createRelations(tableNames[0], tableNames[1],
+							tableNames[2], relationTableNames[0], relationTableNames[1], jdbcacc.conn);
+					long start = System.currentTimeMillis();
 					List<String> articleIds = IRStyleKeywordSearch.executeLuceneQuery(articleReader, query.getText(),
-							WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
+							Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 					List<String> imageIds = IRStyleKeywordSearch.executeLuceneQuery(imageReader, query.getText(),
-							WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
+							Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 					List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkReader, query.getText(),
-							WikiIndexer.TEXT_FIELD, WikiIndexer.ID_FIELD);
+							Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 					luceneTime += (System.currentTimeMillis() - start);
 					if (Params.DEBUG) {
-						System.out.printf(" |TS_article| = %d |TS_images| = %d |TS_links| = %d", articleIds.size(),
-								imageIds.size(), linkIds.size());
+						System.out.printf(" |TS_0| = %d |TS_1| = %d |TS_2| = %d", articleIds.size(), imageIds.size(),
+								linkIds.size());
 					}
 					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
-					relnamesValues.put(articleTable, articleIds);
-					relnamesValues.put(imageTable, imageIds);
-					relnamesValues.put(linkTable, linkIds);
+					relnamesValues.put(tableNames[0], articleIds);
+					relnamesValues.put(tableNames[1], imageIds);
+					relnamesValues.put(tableNames[2], linkIds);
 					IRStyleQueryResult result = IRStyleKeywordSearch.executeIRStyleQuery(jdbcacc, sch, relations, query,
 							relnamesValues);
 					if (Params.DEBUG) {
-						System.out.println(" table scan percentage = "
-								+ (double)ExecPrepared.lastGenQueries / (articleIds.size() * imageIds.size() * linkIds.size())
-								+ "%");
+						System.out.println(" table scan percentage = " + (double) ExecPrepared.lastGenQueries
+								/ (articleIds.size() * imageIds.size() * linkIds.size()) + "%");
 					}
 					result.dedup();
 					tuplesetTime += result.tuplesetTime;
