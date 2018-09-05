@@ -100,8 +100,9 @@ public class RunCacheSearch {
 			relationTableNames = experiment.relationTableNames;
 		}
 		if (cl.hasOption('f')) {
+			int queriesSize = Integer.parseInt(cl.getOptionValue('f', "20"));
 			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 20);
+			queries = queries.subList(0, queriesSize);
 			outputFileName += "_eff";
 		}
 		if (cl.hasOption('d')) {
@@ -112,6 +113,8 @@ public class RunCacheSearch {
 		Params.N = Integer.parseInt(cl.getOptionValue("k", Integer.toString(Params.N)));
 		Params.useScoreThresholding = cl.hasOption("s");
 		System.out.println("setting: \n" + Params.getDescriptor());
+		System.out.println("output file: " + outputFileName);
+		System.out.println("queries size: " + queries.size());
 		IRStyleKeywordSearch.dropAllTuplesets(experimentHelper.getJdbcAccess());
 		List<IRStyleQueryResult> queryResults = new ArrayList<IRStyleQueryResult>();
 		try (IndexReader articleReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath[0])));
