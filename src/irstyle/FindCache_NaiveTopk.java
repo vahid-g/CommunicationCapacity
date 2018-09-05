@@ -14,6 +14,11 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
@@ -24,75 +29,94 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.queryparser.flexible.standard.parser.ParseException;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.store.FSDirectory;
 
 import database.DatabaseConnection;
-import database.DatabaseType;
+import irstyle.api.IRStyleExperiment;
+import irstyle.api.IRStyleExperimentHelper;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Indexer;
 import irstyle.api.Params;
-import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
 import irstyle.core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
+import stackoverflow.QuestionDAO;
+import stackoverflow.StackQueryingExperiment;
 
 public class FindCache_NaiveTopk {
 
 	private static final double popSum[] = { 15440314886.0, 52716653460.0, 1407925741807.0 };
 
 	public static void main(String[] args) throws Exception {
-		List<String> argList = Arrays.asList(args);
-		List<ExperimentQuery> queries = null;
+		Options options = new Options();
+		options.addOption(Option.builder("e").hasArg().desc("The experiment inexp/inexr/mrr").build());
+		options.addOption(Option.builder("d").desc("Output debug info").build());
+		CommandLineParser clp = new DefaultParser();
+		CommandLine cl = clp.parse(options, args);
+		List<ExperimentQuery> queries;
 		int effectivenessMetric;
-		if (argList.contains("-inexp")) {
+		IRStyleExperiment experiment;
+		IRStyleExperimentHelper experimentHelper;
+		if (cl.getOptionValue('e').equals("inexp")) {
+			experiment = IRStyleExperiment.createWikiP20Experiment();
+			experimentHelper = new WikiExperimentHelper();
 			queries = QueryServices.loadInexQueries();
-			Params.N = 20;
 			effectivenessMetric = 1;
-		} else if (argList.contains("-inexr")) {
-			queries = QueryServices.loadInexQueries();
+		} else if (cl.getOptionValue('e').equals("inexr")) {
+			experiment = IRStyleExperiment.createWikiRecExperiment();
+			experimentHelper = new WikiExperimentHelper();
 			Params.N = 100;
+			queries = QueryServices.loadInexQueries();
 			effectivenessMetric = 2;
-		} else {
-			queries = QueryServices.loadMsnQueries();
+		} else if (cl.getOptionValue('e').equals("msn")) {
+			experiment = IRStyleExperiment.createWikiMsnExperiment();
+			experimentHelper = new WikiExperimentHelper();
+			queries = QueryServices.loadMsnQueriesAll();
 			Params.N = 5;
 			effectivenessMetric = 0;
+		} else if (cl.getOptionValue('e').equals("stack")) {
+			experiment = IRStyleExperiment.createStackExperiment();
+			experimentHelper = new StackExperimentHelper();
+			StackQueryingExperiment sqe = new StackQueryingExperiment();
+			List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
+			queries = QuestionDAO.convertToExperimentQuery(questions);
+			effectivenessMetric = 0;
+		} else {
+			throw new ParseException();
 		}
-		if (argList.contains("-debug")) {
+		if (cl.hasOption('d')) {
 			Params.DEBUG = true;
 		}
 		Collections.shuffle(queries, new Random(1));
 		queries = queries.subList(0, 10);
-		try (DatabaseConnection dc = new DatabaseConnection(DatabaseType.WIKIPEDIA)) {
-			// Map<ExperimentQuery, Integer> queryRelCountMap = IRStyleWikiHelper
-			// .buildQueryRelcountMap(dc.getConnection(), queries);
-			String[] tableNames = WikiConstants.tableName;
+		try (DatabaseConnection dc = new DatabaseConnection(experiment.databaseType)) {
+			String[] tableNames = experiment.tableNames;
 			Connection conn = dc.getConnection();
-			String[] cacheTables = new String[tableNames.length];
+			String[] cacheTables = experiment.cacheNames;
 			String[] selectTemplates = new String[tableNames.length];
 			String[] insertTemplates = new String[tableNames.length];
 			String[] indexPaths = new String[tableNames.length];
 			// RAMDirectory[] fsDir = new RAMDirectory[tableNames.length];
 			FSDirectory[] fsDir = new FSDirectory[tableNames.length];
-			// int[] pageSize = { 500000, 500000, 500000 };
 			int[] pageSize = new int[tableNames.length];
 			for (int i = 0; i < pageSize.length; i++) {
-				pageSize[i] = (WikiConstants.size[i] / 20);
+				pageSize[i] = (experiment.sizes[i] / 20);
 			}
 			IndexWriterConfig[] config = new IndexWriterConfig[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
-				cacheTables[i] = "tmp_" + tableNames[i].substring(4);
 				try (Statement stmt = conn.createStatement()) {
 					stmt.execute("drop table if exists " + cacheTables[i] + ";");
 					stmt.execute(
 							"create table " + cacheTables[i] + " as select id from " + tableNames[i] + " limit 0;");
 					stmt.execute("create index id on " + cacheTables[i] + "(id);");
 				}
-				selectTemplates[i] = "select * from " + tableNames[i] + " order by popularity desc limit ?, "
-						+ pageSize[i] + ";";
+				selectTemplates[i] = "select * from " + tableNames[i] + " order by " + experiment.popularity
+						+ " desc limit ?, " + pageSize[i] + ";";
 				insertTemplates[i] = "insert into " + cacheTables[i] + " (id) values (?);";
-				indexPaths[i] = WikiConstants.WIKI_DATA_DIR + cacheTables[i];
+				indexPaths[i] = experiment.dataDir + cacheTables[i];
 				config[i] = new IndexWriterConfig(new StandardAnalyzer());
 				config[i].setSimilarity(new BM25Similarity());
 				config[i].setRAMBufferSizeMB(1024);
@@ -115,19 +139,18 @@ public class FindCache_NaiveTopk {
 			int[] offset = { 0, 0, 0 };
 			int[] bestOffset = { 0, 0, 0 };
 			int loop = 1;
-			JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
 			String articleTable = cacheTables[0];
 			String imageTable = cacheTables[1];
 			String linkTable = cacheTables[2];
-			String articleImageTable = "tbl_article_image_09";
-			String articleLinkTable = "tbl_article_link_09";
+			String articleImageTable = experiment.relationTableNames[0];
+			String articleLinkTable = experiment.relationTableNames[1];
 			String schemaDescription = "5 " + articleTable + " " + articleImageTable + " " + imageTable + " "
 					+ articleLinkTable + " " + linkTable + " " + articleTable + " " + articleImageTable + " "
 					+ articleImageTable + " " + imageTable + " " + articleTable + " " + articleLinkTable + " "
 					+ articleLinkTable + " " + linkTable;
-			Vector<Relation> relations = IRStyleWikiHelper.createRelations(articleTable, imageTable, linkTable,
-					articleImageTable, articleLinkTable, jdbcacc.conn);
-			IRStyleKeywordSearch.dropTupleSets(jdbcacc, relations);
+			Vector<Relation> relations = experimentHelper.createRelations(articleTable, imageTable, linkTable,
+					articleImageTable, articleLinkTable);
+			IRStyleKeywordSearch.dropTupleSets(experimentHelper.getJdbcAccess(), relations);
 			List<List<Document>> docsList = new ArrayList<List<Document>>();
 			int[] lastPopularity = new int[tableNames.length];
 			for (int i = 0; i < tableNames.length; i++) {
@@ -137,14 +160,14 @@ public class FindCache_NaiveTopk {
 				while (rs.next()) {
 					int id = rs.getInt("id");
 					String text = "";
-					for (String attrib : WikiConstants.textAttribs[i]) {
+					for (String attrib : experiment.textAttribs[i]) {
 						text += rs.getString(attrib);
 					}
 					Document doc = new Document();
 					doc.add(new StoredField("id", id));
 					doc.add(new TextField("text", text, Store.NO));
 					docs.add(doc);
-					lastPopularity[i] = rs.getInt("popularity");
+					lastPopularity[i] = rs.getInt(experiment.popularity);
 				}
 				docsList.add(docs);
 			}
@@ -197,8 +220,8 @@ public class FindCache_NaiveTopk {
 						relnamesValues.put(articleTable, articleIds);
 						relnamesValues.put(imageTable, imageIds);
 						relnamesValues.put(linkTable, linkIds);
-						IRStyleQueryResult result = IRStyleKeywordSearch.executeIRStyleQuery(jdbcacc, sch, relations,
-								query, relnamesValues);
+						IRStyleQueryResult result = IRStyleKeywordSearch.executeIRStyleQuery(
+								experimentHelper.getJdbcAccess(), sch, relations, query, relnamesValues);
 						queryResults.add(result);
 					}
 					acc = effectiveness(queryResults, effectivenessMetric, null);
@@ -228,14 +251,14 @@ public class FindCache_NaiveTopk {
 				while (rs.next()) {
 					int id = rs.getInt("id");
 					String text = "";
-					for (String attrib : WikiConstants.textAttribs[m]) {
+					for (String attrib : experiment.textAttribs[m]) {
 						text += rs.getString(attrib);
 					}
 					Document doc = new Document();
 					doc.add(new StoredField("id", id));
 					doc.add(new TextField("text", text, Store.NO));
 					docs.add(doc);
-					lastPopularity[m] = rs.getInt("popularity");
+					lastPopularity[m] = rs.getInt(experiment.popularity);
 				}
 				docsList.remove(m);
 				docsList.add(m, docs);
@@ -243,7 +266,7 @@ public class FindCache_NaiveTopk {
 			System.out.println("Offsets for articles, images, links = " + Arrays.toString(bestOffset));
 			double[] percent = new double[bestOffset.length];
 			for (int i = 0; i < bestOffset.length; i++) {
-				percent[i] = bestOffset[i] / (double) WikiConstants.size[i];
+				percent[i] = bestOffset[i] / (double) experiment.sizes[i];
 			}
 			System.out.println("Best found sizes = " + Arrays.toString(percent));
 			for (int i = 0; i < tableNames.length; i++) {
