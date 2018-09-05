@@ -17,6 +17,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.flexible.standard.parser.ParseException;
 import org.apache.lucene.store.FSDirectory;
 
 import irstyle.api.IRStyleExperiment;
@@ -29,6 +30,8 @@ import irstyle.core.Relation;
 import irstyle.core.Schema;
 import query.ExperimentQuery;
 import query.QueryServices;
+import stackoverflow.QuestionDAO;
+import stackoverflow.StackQueryingExperiment;
 
 public class RunCacheSearch_Generic {
 
@@ -58,10 +61,19 @@ public class RunCacheSearch_Generic {
 			}
 			cacheNameSuffix = "rec";
 			queries = QueryServices.loadInexQueries();
-		} else {
+		} else if (cl.getOptionValue('e').equals("msn")) {
 			experiment = IRStyleExperiment.createWikiMsnExperiment();
 			cacheNameSuffix = "mrr";
 			queries = QueryServices.loadMsnQueriesAll();
+		} else if (cl.getOptionValue('e').equals("stack")) {
+			outputFileName = "/data/ghadakcv/stack/result";
+			experiment = IRStyleExperiment.createStackExperiment();
+			cacheNameSuffix = "mrr";
+			StackQueryingExperiment sqe = new StackQueryingExperiment();
+			List<QuestionDAO> questions = sqe.loadQuestionsFromTable("questions_s_test_train");
+			queries = QuestionDAO.convertToExperimentQuery(questions);
+		} else {
+			throw new ParseException();
 		}
 		outputFileName += "_" + cacheNameSuffix;
 		String[] indexPath = new String[experiment.tableNames.length];
@@ -138,8 +150,8 @@ public class RunCacheSearch_Generic {
 							Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 					luceneTime += (System.currentTimeMillis() - start);
 					if (Params.DEBUG) {
-						System.out.printf(" |TS_0| = %d |TS_1| = %d |TS_2| = %d", articleIds.size(),
-								imageIds.size(), linkIds.size());
+						System.out.printf(" |TS_0| = %d |TS_1| = %d |TS_2| = %d", articleIds.size(), imageIds.size(),
+								linkIds.size());
 					}
 					Map<String, List<String>> relnamesValues = new HashMap<String, List<String>>();
 					relnamesValues.put(tableNames[0], articleIds);
