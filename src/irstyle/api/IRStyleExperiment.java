@@ -22,8 +22,13 @@ public class IRStyleExperiment {
 
 	public final DatabaseType databaseType;
 
+	public final String[] relationTableNames;
+
+	public final String[] relationCacheNames;
+
 	private IRStyleExperiment(String[] tableNames, String[][] textAttribs, String popularity, String[] cacheNames,
-			int[] limits, int[] sizes, String dataDir, DatabaseType databaseType) {
+			int[] limits, int[] sizes, String dataDir, DatabaseType databaseType, String[] relationTableNames,
+			String[] relationCacheNames) {
 		this.tableNames = tableNames;
 		this.textAttribs = textAttribs;
 		this.popularity = popularity;
@@ -32,6 +37,8 @@ public class IRStyleExperiment {
 		this.sizes = sizes;
 		this.dataDir = dataDir;
 		this.databaseType = databaseType;
+		this.relationTableNames = relationTableNames;
+		this.relationCacheNames = relationCacheNames;
 	}
 
 	public static IRStyleExperiment createWikiMsnExperiment() {
@@ -40,7 +47,8 @@ public class IRStyleExperiment {
 			cacheName[i] = "sub_" + WikiConstants.tableName[i].substring(4) + "_mrr";
 		}
 		return new IRStyleExperiment(WikiConstants.tableName, WikiConstants.textAttribs, "popularity", cacheName,
-				WikiConstants.mrrLimit, WikiConstants.size, WikiConstants.WIKI_DATA_DIR, DatabaseType.WIKIPEDIA);
+				WikiConstants.mrrLimit, WikiConstants.size, WikiConstants.WIKI_DATA_DIR, DatabaseType.WIKIPEDIA,
+				WikiConstants.relationTable, WikiConstants.relationCacheTable);
 	}
 
 	public static IRStyleExperiment createWikiP20Experiment() {
@@ -49,7 +57,8 @@ public class IRStyleExperiment {
 			cacheName[i] = "sub_" + WikiConstants.tableName[i].substring(4) + "_p20";
 		}
 		return new IRStyleExperiment(WikiConstants.tableName, WikiConstants.textAttribs, "popularity", cacheName,
-				WikiConstants.precisionLimit, WikiConstants.size, WikiConstants.WIKI_DATA_DIR, DatabaseType.WIKIPEDIA);
+				WikiConstants.precisionLimit, WikiConstants.size, WikiConstants.WIKI_DATA_DIR, DatabaseType.WIKIPEDIA,
+				WikiConstants.relationTable, WikiConstants.relationCacheTable);
 	}
 
 	public static IRStyleExperiment createWikiRecExperiment() {
@@ -58,7 +67,8 @@ public class IRStyleExperiment {
 			cacheName[i] = "sub_" + WikiConstants.tableName[i].substring(4) + "_rec";
 		}
 		return new IRStyleExperiment(WikiConstants.tableName, WikiConstants.textAttribs, "popularity", cacheName,
-				WikiConstants.recallLimit, WikiConstants.size, WikiConstants.WIKI_DATA_DIR, DatabaseType.WIKIPEDIA);
+				WikiConstants.recallLimit, WikiConstants.size, WikiConstants.WIKI_DATA_DIR, DatabaseType.WIKIPEDIA,
+				WikiConstants.relationTable, WikiConstants.relationCacheTable);
 	}
 
 	public static IRStyleExperiment createStackExperiment() {
@@ -67,7 +77,8 @@ public class IRStyleExperiment {
 			cacheName[i] = "sub_" + StackConstants.tableName[i] + "_mrr";
 		}
 		return new IRStyleExperiment(StackConstants.tableName, StackConstants.textAttribs, "ViewCount", cacheName,
-				StackConstants.cacheSize, StackConstants.size, StackConstants.DATA_STACK, DatabaseType.STACKOVERFLOW);
+				StackConstants.cacheSize, StackConstants.size, StackConstants.DATA_STACK, DatabaseType.STACKOVERFLOW,
+				StackConstants.relationTables, StackConstants.relationCacheTables);
 	}
 
 }

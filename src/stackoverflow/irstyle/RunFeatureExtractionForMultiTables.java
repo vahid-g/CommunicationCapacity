@@ -71,7 +71,7 @@ public class RunFeatureExtractionForMultiTables {
 				StackConstants.DATA_STACK + "lm_cache_" + suffix + "_bi" + "_text_pop_index" + ".csv");
 		biwordRestPopularity = TokenPopularity
 				.loadTokenPopularities(StackConstants.DATA_STACK + "lm_rest_" + suffix + "_bi" + "_text_pop_index" + ".csv");
-		FeatureExtraction wqde = new FeatureExtraction(Indexer.weightField);
+		FeatureExtraction wqde = new FeatureExtraction(Indexer.WEIGHT_FIELD);
 		LOGGER.log(Level.INFO, "loading done!");
 		List<String> data = new ArrayList<String>();
 		String[] featureNames = { "covered", "covered_rest", "mean_df", "mean_df_rest", "min_df", "min_df_rest",

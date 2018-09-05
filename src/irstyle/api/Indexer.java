@@ -23,9 +23,9 @@ import database.DatabaseConnection;
 
 public class Indexer {
 
-	public static String idField = "id";
-	public static String textField = "text";
-	public static String weightField = "weight";
+	public static final String ID_FIELD = "id";
+	public static final String TEXT_FIELD = "text";
+	public static final String WEIGHT_FIELD = "weight";
 
 	public static IndexWriterConfig getIndexWriterConfig() {
 		return getIndexWriterConfig(new StandardAnalyzer());
@@ -124,19 +124,19 @@ public class Indexer {
 		}
 		String answer = answerBuilder.toString();
 		Document doc = new Document();
-		doc.add(new StoredField(idField, rs.getString(idAttrib)));
+		doc.add(new StoredField(ID_FIELD, rs.getString(idAttrib)));
 		// answer = StringEscapeUtils.unescapeHtml4(answer); // convert html encoded
 		// characters to unicode
-		doc.add(new TextField(textField, answer, Store.NO));
-		doc.add(new StoredField(weightField, rs.getInt(popularity)));
+		doc.add(new TextField(TEXT_FIELD, answer, Store.NO));
+		doc.add(new StoredField(WEIGHT_FIELD, rs.getInt(popularity)));
 		iwriter.addDocument(doc);
 	}
 
 	public static void indexRSWithAttribs(String idAttrib, String[] textAttribs, IndexWriter iwriter, ResultSet rs,
 			String popularity) throws SQLException, IOException {
 		Document doc = new Document();
-		doc.add(new StoredField(idField, rs.getString(idAttrib)));
-		doc.add(new StoredField(weightField, rs.getInt(popularity)));
+		doc.add(new StoredField(ID_FIELD, rs.getString(idAttrib)));
+		doc.add(new StoredField(WEIGHT_FIELD, rs.getInt(popularity)));
 		for (String attrib : textAttribs) {
 			doc.add(new TextField(attrib, rs.getString(attrib), Store.NO));
 

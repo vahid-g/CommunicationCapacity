@@ -18,5 +18,9 @@ public class WikiConstants {
 	public static int[] size = { 11945034, 1183070, 9766351 };
 
 	public final static String WIKI_DATA_DIR = "/data/ghadakcv/wikipedia/";
+	
+	public static String[] relationTable = {"tbl_article_image_09", "tbl_article_link_09"};
+	
+	public static String[] relationCacheTable = {"sub_article_image_09", "sub_article_link_09", };
 
 }

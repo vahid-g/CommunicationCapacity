@@ -10,9 +10,9 @@ import irstyle.api.Indexer;
 public class WikiIndexer {
 
 	public static final String DATA_WIKIPEDIA = "/data/ghadakcv/wikipedia/";
-	public static final String ID_FIELD = Indexer.idField;
-	public static final String TEXT_FIELD = Indexer.textField;
-	public static final String WEIGHT_FIELD = Indexer.weightField;
+	public static final String ID_FIELD = Indexer.ID_FIELD;
+	public static final String TEXT_FIELD = Indexer.TEXT_FIELD;
+	public static final String WEIGHT_FIELD = Indexer.WEIGHT_FIELD;
 
 	public static void indexArticles(DatabaseConnection dc) throws IOException, SQLException {
 		String tableName = "tbl_article_wiki13";
