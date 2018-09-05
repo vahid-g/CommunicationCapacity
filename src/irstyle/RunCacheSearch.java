@@ -39,7 +39,7 @@ public class RunCacheSearch {
 		Options options = new Options();
 		options.addOption(Option.builder("e").hasArg().desc("The experiment inexp/inexr/mrr").build());
 		options.addOption(Option.builder("c").desc("Use cache").build());
-		options.addOption(Option.builder("f").desc("Efficiency experiment").build());
+		options.addOption(Option.builder("f").desc("Efficiency experiment").hasArg().build());
 		options.addOption(Option.builder("k").desc("The k in tok-k").hasArg().build());
 		options.addOption(Option.builder("t").desc("TS size threshold").hasArg().build());
 		options.addOption(Option.builder("s").desc("Score thresholding").build());

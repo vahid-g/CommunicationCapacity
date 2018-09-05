@@ -209,9 +209,13 @@ public class IRStyleKeywordSearch {
 			}
 		}
 		if (Params.DEBUG) {
-			System.out.print(
-					" score range = " + scoreDocHits[0].score + " - " + scoreDocHits[scoreDocHits.length - 1].score);
-			System.out.println(" and TS size = " + results.size());
+			if (scoreDocHits.length > 0) {
+				System.out.print(" score range = " + scoreDocHits[0].score + " - "
+						+ scoreDocHits[scoreDocHits.length - 1].score);
+				System.out.println(" and TS size = " + results.size());
+			} else {
+				System.out.println("zero returned docs for: " + queryText);
+			}
 		}
 		aggregateArticleTuplesetSize += results.size();
 		counter++;
