@@ -20,7 +20,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.flexible.standard.parser.ParseException;
 import org.apache.lucene.store.FSDirectory;
 
-import irstyle.api.ExperimentHelper;
+import irstyle.api.IRStyleExperimentHelper;
 import irstyle.api.IRStyleExperiment;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Indexer;
@@ -50,7 +50,7 @@ public class RunCacheSearch {
 		List<ExperimentQuery> queries;
 		String outputFileName = "result";
 		IRStyleExperiment experiment;
-		ExperimentHelper experimentHelper;
+		IRStyleExperimentHelper experimentHelper;
 		if (cl.getOptionValue('e').equals("inexp")) {
 			experiment = IRStyleExperiment.createWikiP20Experiment();
 			experimentHelper = new WikiExperimentHelper();

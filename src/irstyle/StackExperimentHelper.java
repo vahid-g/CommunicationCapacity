@@ -6,11 +6,11 @@ import java.sql.SQLException;
 import java.util.Vector;
 
 import irstyle.api.DatabaseHelper;
-import irstyle.api.ExperimentHelper;
+import irstyle.api.IRStyleExperimentHelper;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.core.Relation;
 
-public class StackExperimentHelper extends ExperimentHelper {
+public class StackExperimentHelper extends IRStyleExperimentHelper {
 
 	public StackExperimentHelper() throws IOException {
 		jdbcAccess = IRStyleKeywordSearch.jdbcAccess("stack_overflow");

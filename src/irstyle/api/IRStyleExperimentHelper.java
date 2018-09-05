@@ -6,7 +6,7 @@ import java.util.Vector;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
 
-public abstract class ExperimentHelper {
+public abstract class IRStyleExperimentHelper {
 
 	protected JDBCaccess jdbcAccess;
 
