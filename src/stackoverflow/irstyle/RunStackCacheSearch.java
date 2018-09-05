@@ -23,6 +23,7 @@ import irstyle.IRStyleQueryResult;
 import irstyle.api.IRStyleExperiment;
 import irstyle.api.IRStyleKeywordSearch;
 import irstyle.api.Params;
+import irstyle.core.ExecPrepared;
 import irstyle.core.JDBCaccess;
 import irstyle.core.Relation;
 import irstyle.core.Schema;
@@ -136,6 +137,9 @@ public class RunStackCacheSearch {
 			System.out.println("recall = " + recall / queries.size());
 			System.out.println("p20 = " + p20 / queries.size());
 			System.out.println("mrr = " + mrr / queries.size());
+			System.out.println("avergae article TS size: "
+					+ IRStyleKeywordSearch.aggregateArticleTuplesetSize / IRStyleKeywordSearch.counter);
+			System.out.println("average gen queries: " + ExecPrepared.totalGenQueries / ExecPrepared.execCount);
 			IRStyleKeywordSearch.printResults(queryResults, outputFileName);
 		}
 	}
