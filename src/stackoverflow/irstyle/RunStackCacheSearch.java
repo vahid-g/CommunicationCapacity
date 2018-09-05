@@ -65,7 +65,7 @@ public class RunStackCacheSearch {
 		}
 		if (cl.hasOption('f')) {
 			Collections.shuffle(queries, new Random(1));
-			queries = queries.subList(0, 10000);
+			queries = queries.subList(0, 10);
 			outputFileName += "_eff";
 		}
 		outputFileName += ".csv";
