@@ -120,7 +120,6 @@ public class RunStackCacheSearch {
 					result.dedup();
 					tuplesetTime += result.tuplesetTime;
 					time += luceneTime + result.execTime;
-					System.out.println("rrank=" + result.rrank());
 					recall += result.recall();
 					p20 += result.p20();
 					mrr += result.rrank();

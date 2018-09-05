@@ -103,8 +103,8 @@ public class RunCacheSearch {
 			Params.DEBUG = true;
 		}
 		outputFileName += ".csv";
-		Params.MAX_TS_SIZE = Integer.parseInt(cl.getOptionValue("t", "10000"));
-		Params.N = Integer.parseInt(cl.getOptionValue("k", "20"));
+		Params.MAX_TS_SIZE = Integer.parseInt(cl.getOptionValue("t", Integer.toString(Params.MAX_TS_SIZE)));
+		Params.N = Integer.parseInt(cl.getOptionValue("k", Integer.toString(Params.N)));
 		Params.useScoreThresholding = cl.hasOption("s");
 		System.out.println("setting: \n" + Params.getDescriptor());
 		JDBCaccess jdbcacc = IRStyleWikiHelper.jdbcAccess();
