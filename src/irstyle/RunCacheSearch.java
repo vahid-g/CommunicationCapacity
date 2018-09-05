@@ -93,9 +93,9 @@ public class RunCacheSearch {
 			relationTableNames = experiment.relationCacheNames;
 		} else {
 			outputFileName += "_full";
-			indexPath[1] = experiment.dataDir + experiment.tableNames[0] + "_full";
-			indexPath[2] = experiment.dataDir + experiment.tableNames[1] + "_full";
-			indexPath[3] = experiment.dataDir + experiment.tableNames[2] + "_full";
+			indexPath[0] = experiment.dataDir + experiment.tableNames[0] + "_full";
+			indexPath[1] = experiment.dataDir + experiment.tableNames[1] + "_full";
+			indexPath[2] = experiment.dataDir + experiment.tableNames[2] + "_full";
 			tableNames = experiment.tableNames;
 			relationTableNames = experiment.relationTableNames;
 		}
