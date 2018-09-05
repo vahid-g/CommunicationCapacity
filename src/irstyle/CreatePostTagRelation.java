@@ -1,4 +1,4 @@
-package stackoverflow.irstyle;
+package irstyle;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;

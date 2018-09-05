@@ -1,8 +1,8 @@
 package irstyle.api;
 
 import database.DatabaseType;
+import irstyle.StackConstants;
 import irstyle.WikiConstants;
-import stackoverflow.irstyle.StackConstants;
 
 public class IRStyleExperiment {
 

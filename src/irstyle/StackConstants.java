@@ -1,4 +1,4 @@
-package stackoverflow.irstyle;
+package irstyle;
 
 public class StackConstants {
 

@@ -20,6 +20,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
 
 import irstyle.IRStyleQueryResult;
+import irstyle.StackConstants;
 import irstyle.StackExperimentHelper;
 import irstyle.api.IRStyleExperiment;
 import irstyle.api.IRStyleKeywordSearch;
@@ -32,7 +33,6 @@ import irstyle.core.Schema;
 import query.ExperimentQuery;
 import stackoverflow.QuestionDAO;
 import stackoverflow.StackQueryingExperiment;
-import stackoverflow.irstyle.StackConstants;
 
 public class RunStackCacheSearch {
 
