@@ -13,7 +13,7 @@ import irstyle.core.Relation;
 public class Wiki_ExperimentHelper extends IRStyleExperimentHelper {
 
 	public Wiki_ExperimentHelper() throws IOException {
-		jdbcAccess = IRStyleKeywordSearch.jdbcAccess("stack_overflow");
+		jdbcAccess = IRStyleKeywordSearch.jdbcAccess("wikipedia");
 	}
 
 	@Override
