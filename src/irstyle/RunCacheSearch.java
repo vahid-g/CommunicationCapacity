@@ -44,6 +44,7 @@ public class RunCacheSearch {
 		options.addOption(Option.builder("t").desc("TS size threshold").hasArg().build());
 		options.addOption(Option.builder("s").desc("Score thresholding").build());
 		options.addOption(Option.builder("d").desc("Output debug info").build());
+		options.addOption(Option.builder("o").desc("write result to file").build());
 		CommandLineParser clp = new DefaultParser();
 		CommandLine cl = clp.parse(options, args);
 		String cacheNameSuffix;
@@ -126,10 +127,12 @@ public class RunCacheSearch {
 			long luceneTime = 0;
 			long tuplesetTime = 0;
 			double recall = 0;
-			double weightedRecall = 0;
+			double weightedMrr = 0;
 			double count = 0;
 			double p20 = 0;
 			double mrr = 0;
+			double nonzeroRrank = 0;
+			double nonzeroP20 = 0;
 			for (int exec = 0; exec < Params.numExecutions; exec++) {
 				int loop = 1;
 				for (ExperimentQuery query : queries) {
@@ -159,10 +162,16 @@ public class RunCacheSearch {
 					List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkReader, query.getText(),
 							Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 					luceneTime += (System.currentTimeMillis() - start);
-					for (int i = 0; i < 10; i++) {
-						System.out.println("\t" + articleIds.get(i) + "\t" + imageIds.get(i) + "\t" + linkIds.get(i));
-					}
 					if (Params.DEBUG) {
+						List<Integer> sizeList = new ArrayList<Integer>();
+						sizeList.add(10);
+						sizeList.add(articleIds.size());
+						sizeList.add(linkIds.size());
+						sizeList.add(imageIds.size());
+						for (int i = 0; i < Collections.min(sizeList); i++) {
+							System.out
+									.println("\t" + articleIds.get(i) + "\t" + imageIds.get(i) + "\t" + linkIds.get(i));
+						}
 						System.out.printf(" |TS_0| = %d |TS_1| = %d |TS_2| = %d", articleIds.size(), imageIds.size(),
 								linkIds.size());
 					}
@@ -180,31 +189,42 @@ public class RunCacheSearch {
 					tuplesetTime += result.tuplesetTime;
 					time += luceneTime + result.execTime;
 					recall += result.recall();
-					weightedRecall += result.recall() * query.getFreq();
 					count += query.getFreq();
 					p20 += result.p20();
 					mrr += result.rrank();
+					weightedMrr += result.rrank() * query.getFreq();
 					queryResults.add(result);
+					if (result.rrank() > 0) {
+						nonzeroRrank++;
+					}
+					if (result.p20() > 0) {
+						nonzeroP20++;
+					}
 				}
 			}
 			selectionTime /= (queries.size() * Params.numExecutions);
 			luceneTime /= (queries.size() * Params.numExecutions);
 			tuplesetTime /= (queries.size() * Params.numExecutions);
 			time /= queries.size() * Params.numExecutions;
+			System.out.println("avergae article TS size: "
+					+ IRStyleKeywordSearch.aggregateArticleTuplesetSize / IRStyleKeywordSearch.counter);
+			System.out.println("average gen queries: " + ExecPrepared.totalGenQueries / ExecPrepared.execCount);
 			System.out.println("average cache selection time = " + selectionTime + " (ms)");
 			System.out.println("average lucene time = " + luceneTime + " (ms)");
 			System.out.println("average tupleset time = " + tuplesetTime + " (ms)");
 			System.out.println("average just search time = " + (time - tuplesetTime) + " (ms)");
 			System.out.println("average total time  = " + time + " (ms)");
+			System.out.println("========================================");
 			System.out.println("number of cache hits: " + cacheUseCount + "/" + queries.size());
 			System.out.println("recall = " + recall / queries.size());
-			System.out.println("weighted recall = " + weightedRecall / count);
 			System.out.println("p20 = " + p20 / queries.size());
 			System.out.println("mrr = " + mrr / queries.size());
-			System.out.println("avergae article TS size: "
-					+ IRStyleKeywordSearch.aggregateArticleTuplesetSize / IRStyleKeywordSearch.counter);
-			System.out.println("average gen queries: " + ExecPrepared.totalGenQueries / ExecPrepared.execCount);
-			IRStyleKeywordSearch.printResults(queryResults, outputFileName);
+			System.out.println("weighted mrr = " + weightedMrr / count);
+			System.out.println("nonzero rrank = " + nonzeroRrank / queries.size());
+			System.out.println("nonzero p20 = " + nonzeroP20 / queries.size());
+			if (cl.hasOption('o')) {
+				IRStyleKeywordSearch.printResults(queryResults, outputFileName);
+			}
 		}
 	}
 
