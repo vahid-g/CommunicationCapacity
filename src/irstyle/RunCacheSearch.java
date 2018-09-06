@@ -159,6 +159,9 @@ public class RunCacheSearch {
 					List<String> linkIds = IRStyleKeywordSearch.executeLuceneQuery(linkReader, query.getText(),
 							Indexer.TEXT_FIELD, Indexer.ID_FIELD);
 					luceneTime += (System.currentTimeMillis() - start);
+					for (int i = 0; i < 10; i++) {
+						System.out.println("\t" + articleIds.get(i) + "\t" + imageIds.get(i) + "\t" + linkIds.get(i));
+					}
 					if (Params.DEBUG) {
 						System.out.printf(" |TS_0| = %d |TS_1| = %d |TS_2| = %d", articleIds.size(), imageIds.size(),
 								linkIds.size());
