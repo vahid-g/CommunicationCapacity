@@ -57,9 +57,11 @@ def analyze(c, subset, db, popularity):
           (bad_count, bad_count * 100 / query_count))
     ml_to_cache = c['ml_label'] * c[popularity]
     ql_to_cache = c['ql_label'] * c[popularity]
+    best_to_cache = c['best'] * c[popularity]
     s = float(c[popularity].sum())
     print('queries sent to full db by ml: %.2f%%' % (ml_to_cache.sum() / s))
     print('queries sent to full db by ql: %.2f%%' % (ql_to_cache.sum() / s))
+    print('queries sent to full db by best: %.2f%%' % (best_to_cache.sum() / s))
     print('queries with mrr > 0 on cache: %.2f%%' %
           (c[popularity][c[subset] > 0].sum() / c[popularity].sum()))
     print('queries with mrr > 0 on cache: %.2f%%' %
