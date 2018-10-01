@@ -10,6 +10,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import LeaveOneOut
 from sklearn.model_selection import RepeatedStratifiedKFold
 from utils import print_results
+from run_swiki import train_lr
 
 def main(argv):
     filename = argv[0]
@@ -27,6 +28,7 @@ def main(argv):
         df = df.append(bads, ignore_index=True)
     X = df.drop(['label'], axis = 1)
     y = df['label']
+    df = df.drop(['label'], axis = 1)
     p20_mean = np.zeros([1, 6])
     bad_mean = np.zeros([1, 6])
     ml_average_rare = 0
@@ -51,20 +53,10 @@ def main(argv):
         ql_pred = 1 if ql_cache < ql_rest else 0
         ql = p12 if ql_pred == 0 else p100
         # learn the model
-        sc = MinMaxScaler().fit(X_train)
-        X_train = sc.transform(X_train)
-        X_test = sc.transform(X_test)
-        # print("\ttraining balanced LR..")
-        lr = linear_model.LogisticRegression(class_weight='balanced')
-        lr.fit(X_train, y_train)
-        # print("\ttraining mean accuracy = %.2f" % lr.score(X_train, y_train))
-        # print("\ttesting mean accuracy = %.2f" % lr.score(X_test, y_test))
-        y_prob = lr.predict_proba(X_test)
-        y_pred = y_prob[:, 1] > t
-        y_pred = y_pred.astype('uint8')
-        # print('\t t = %.2f results:' % t)
-        # print_results(y_test, y_pred)
-        # compute ML based effectiveness
+        print(X_train.shape)
+        print(df.columns.shape)
+        # y_pred = train_lr(X_train, y_train, X_test, y_test, t, df.columns.values[:-2])
+        y_pred = train_lr(X_train, y_train, X_test, y_test, t)
         ml = p12 if y_pred[0] == 0 else p100
         best = p12 if y_test.iloc[0] == 0 else p100
         rnd = p12 if np.random.randint(0, 2) == 1 else p100

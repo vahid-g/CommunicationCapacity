@@ -13,12 +13,15 @@ import datetime
 
 
 def print_results(y_test, y_pred):
-    tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
-    print("\t  precision = %f" % (tp / (tp + fp)))
-    print("\t  recall = %.2f" % (tp / (tp + fn)))
-    print("\t  negative predictive value= %.2f" % (tn / (tn + fn)))
-    print("\t  true negative rate= %.2f" % (tn / (tn + fp)))
-    print("\t  1s percentage = %.2f" % (100 * np.sum(y_pred) / y_pred.shape[0]))
+    if (y_test.size > 1):
+        tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+        print("\t  precision = %f" % (tp / (tp + fp)))
+        print("\t  recall = %.2f" % (tp / (tp + fn)))
+        print("\t  negative predictive value= %.2f" % (tn / (tn + fn)))
+        print("\t  true negative rate= %.2f" % (tn / (tn + fp)))
+        print("\t  1s percentage = %.2f" % (100 * np.sum(y_pred) / y_pred.shape[0]))
+    else:
+        print(" can not compute confusion matrix when |y_test| = 1")
 
 def param_tuning(X, y):
     tuned_parameters = [{'C': [0.01, 0.1, 1, 10, 100, 1000]}]

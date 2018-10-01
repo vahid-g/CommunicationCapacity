@@ -26,7 +26,9 @@ def train_lr( X, y, X_test, y_test, t, col_names = None, sample_weight = None ):
     print("testing mean accuracy = %.2f" % lr.score(X_test_trans, y_test))
     if col_names is not None:
         c = np.column_stack((col_names, np.round(lr.coef_.flatten(),2)))
-        print(c[c[:,1].argsort()])
+        sorted_c = c[c[:,1].argsort()]
+        print(sorted_c[:5])
+        print(sorted_c[-5:])
     y_prob = lr.predict_proba(X_test_trans)
     end = datetime.datetime.now()
     delta = end - start
@@ -74,8 +76,8 @@ def main(argv):
     print("test set size, bad queries and bad query ratio: %d, %d, %.2f"
           % (y_test.shape[0], np.sum(y_test), (100 * np.sum(y_test) / y_test.shape[0])))
     # learn the model
-    # y_pred = train_lr(X, y, X_test, y_test, t, df.columns.values[2:-2])
-    y_pred = train_lr(X, y, X_test, y_test, t)
+    y_pred = train_lr(X, y, X_test, y_test, t, df.columns.values[2:-2])
+    # y_pred = train_lr(X, y, X_test, y_test, t)
     output = pd.DataFrame()
     output['query'] = test_queries
     output['TestFreq'] = test_freq
