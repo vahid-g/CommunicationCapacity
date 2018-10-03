@@ -1,4 +1,4 @@
-package irstyle_core;
+package irstyle.core;
 //package xkeyword;
 
 import java.math.*;
@@ -441,13 +441,10 @@ public class Instance implements Cloneable// , iCandidateNetwork
 		return false;
 	}
 
-	private String getTupleSet4Instance(Instance inst1, Vector allkeywords) {// returns the tuple set name for the root
-																				// Instance of inst1
-																				// format for tuple sets is
-																				// relationName_k1_.._.._kn, where
-																				// k1..kn are the
-																				// indices of the keywords in inst1 in
-																				// allkeywords
+	// returns the tuple set name for the root Instance of inst1 format for tuple
+	// sets is relationName_k1_.._.._kn, where k1..kn are the indices of the
+	// keywords in inst1 in allkeywords
+	private String getTupleSet4Instance(Instance inst1, Vector allkeywords) {
 		String name = inst1.getRelationName();
 		if (!inst1.keywords.isEmpty()) // 10/6/02
 			name = "TS_" + name;
@@ -596,7 +593,8 @@ public class Instance implements Cloneable// , iCandidateNetwork
 
 	public String getSQLstatementParameterized(Vector relations, Vector allkeywords,
 			ArrayList nfreeTSs /* is output */) {// inputs
-		// a Vector of all Relation objects and outputs the parametrized SQL statement that evaluates this candidate network
+		// a Vector of all Relation objects and outputs the parametrized SQL statement
+		// that evaluates this candidate network
 		// and also the names of non free TSs from which the parameters are instantiated
 		String SQL = "select * from ";
 		Vector v = this.getAllInstances();
@@ -808,6 +806,11 @@ public class Instance implements Cloneable// , iCandidateNetwork
 
 	@Override
 	public String toString() {
-		return this.relationName;
+		StringBuilder sb = new StringBuilder();
+		for (Object keyword : keywords) {
+			sb.append(keyword.toString());
+			sb.append(" ");
+		}
+		return this.relationName + ": " + sb.toString();
 	}
 }

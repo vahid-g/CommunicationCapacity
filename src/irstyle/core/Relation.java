@@ -1,4 +1,4 @@
-package irstyle_core;
+package irstyle.core;
 
 import java.util.*;
 import java.lang.Boolean;
@@ -26,7 +26,7 @@ public class Relation {
 		attrType = new Vector(1);
 	}
 
-	String getName() {
+	public String getName() {
 		return name;
 	}
 

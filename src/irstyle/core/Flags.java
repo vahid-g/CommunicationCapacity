@@ -1,4 +1,4 @@
-package irstyle_core;
+package irstyle.core;
 
 
 /**
@@ -11,11 +11,10 @@ package irstyle_core;
  */
 
 public class Flags {
-
         //public static final boolean CREATE_INDX_SHOW_OUTPUT = false;
         public static final boolean RESULTS__SHOW_OUTPUT = false;
         public static final boolean DEBUG_INFO = false;
         public static final boolean DEBUG_INFO2 = false;
-        public static final boolean ALLOW_DUPLICATE_TUPLES = true; //used in case of A-P-A, to avoid having the same author twice
+        public static final boolean ALLOW_DUPLICATE_TUPLES = false; //used in case of A-P-A, to avoid having the same author twice
         //public static final boolean DEBUG_MEMORY_ALG3 = true;
 }

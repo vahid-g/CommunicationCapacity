@@ -1,4 +1,4 @@
-package irstyle_core;
+package irstyle.core;
 
 import java.util.Comparator;
 
@@ -34,9 +34,9 @@ public class Result {
 		System.out.println(str.substring(0, 20) + " " + score);
 	}
 
-	public static class ResultComparator implements Comparator {
-		public int compare(Object o1, Object o2) {
-			if (((Result) o1).score > ((Result) o2).score)
+	public static class ResultComparator implements Comparator<Result> {
+		public int compare(Result o1, Result o2) {
+			if (o1.score > o2.score)
 				return -1;
 			else if (((Result) o1).score < ((Result) o2).score)
 				return 1;
@@ -44,7 +44,7 @@ public class Result {
 				return 0;
 		}
 	}
-	
+
 	public String getStr() {
 		return str;
 	}

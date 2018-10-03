@@ -1,6 +1,6 @@
-package irstyle_core;
+package irstyle.core;
 
-import java.util.*;
+import java.util.Vector;
 
 public class MasterIndex {/*
 							 * We use Oracle8i interMedia Text 8.1.5 to create the invetred index for each

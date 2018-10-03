@@ -27,7 +27,7 @@ def main(argv):
     filename = argv[0]
     t = float(argv[1])
     size = 0.33
-    df = pd.read_csv('../../data/python_data/' + filename)
+    df = pd.read_csv('../../data/cache_selection/' + filename)
     labels = df['Label']
     df = df.drop(['Id', 'Label'], axis=1)
     #print(df.corr()['Label'].sort_values())

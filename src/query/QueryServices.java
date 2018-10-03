@@ -36,12 +36,15 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import indexing.GeneralIndexer;
+import wiki13.WikiFilesPaths;
 
 public class QueryServices {
 
 	static final Logger LOGGER = Logger.getLogger(QueryServices.class.getName());
 
 	private static final int DEFAULT_TOPDOC_COUNTS = 200;
+
+	private static WikiFilesPaths defaultPaths = WikiFilesPaths.getMaplePaths();
 
 	public static void main(String[] args) {
 		loadInexQueries("inex14sbs.topics.xml", "inex14sbs.qrels", "title");
@@ -171,6 +174,10 @@ public class QueryServices {
 			return 0;
 	}
 
+	public static List<ExperimentQuery> loadMsnQueries() {
+		return loadMsnQueries(defaultPaths.getMsnQueryFilePath(), defaultPaths.getMsnQrelFilePath());
+	}
+
 	public static List<ExperimentQuery> loadMsnQueries(String queryPath, String qrelPath) {
 		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
 		try (FileInputStream fis = new FileInputStream(qrelPath);
@@ -194,6 +201,43 @@ public class QueryServices {
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
+		return queryList;
+	}
+
+	public static List<ExperimentQuery> loadMsnQueriesAll() {
+		return loadMsnQueriesAll(defaultPaths.getMsnAllFilePath());
+	}
+
+	public static List<ExperimentQuery> loadMsnQueriesAll(String path) {
+		List<ExperimentQuery> queryList = new ArrayList<ExperimentQuery>();
+		int lineCounter = 0;
+		try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+			String line;
+			br.readLine(); // to skip the headers
+			while ((line = br.readLine()) != null) {
+				lineCounter++;
+				String[] fields = line.split("\t");
+				if (fields.length < 6) {
+					LOGGER.log(Level.WARNING, "Skipping query that doesn't have enough fields at line: " + line);
+					continue;
+				}
+				if (fields[5].equals("NULL")) {
+					// LOGGER.log(Level.WARNING, "Skipping query that doesn't have a qrel at line: " + line);
+					continue;
+				}
+				Integer qid = Integer.parseInt(fields[0]);
+				String text = fields[1];
+				int freq = Integer.parseInt(fields[2]);
+				Qrel qrel = new Qrel(qid, fields[3], 1);
+				Set<Qrel> qrelSet = new HashSet<Qrel>();
+				qrelSet.add(qrel);
+				ExperimentQuery iq = new ExperimentQuery(qid, text, freq, qrelSet);
+				queryList.add(iq);
+			}
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
+		}
+		LOGGER.log(Level.INFO, "Loaded queries: " + queryList.size() + "/" + lineCounter);
 		return queryList;
 	}
 
@@ -222,6 +266,10 @@ public class QueryServices {
 			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 		return queryList;
+	}
+
+	public static List<ExperimentQuery> loadInexQueries() {
+		return loadInexQueries(defaultPaths.getInexQueryFilePath(), defaultPaths.getInexQrelFilePath());
 	}
 
 	public static List<ExperimentQuery> loadInexQueries(String path, String qrelPath) {

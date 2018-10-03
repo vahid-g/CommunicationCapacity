@@ -1,4 +1,4 @@
-package irstyle_core;
+package irstyle.core;
 public class CNstats
 {
 	double numActiveTSproduced=0; //#JNTS put is Q

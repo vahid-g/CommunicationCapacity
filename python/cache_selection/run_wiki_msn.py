@@ -12,7 +12,7 @@ from stack_anal import analyze
 
 def main(argv):
     filename = argv[0]
-    df = pd.read_csv('../../data/python_data/' + filename)
+    df = pd.read_csv('../../data/cache_selection/' + filename)
     t = float(argv[1])
     df = df.fillna(0)
     labels = df['label']
@@ -61,12 +61,15 @@ def main(argv):
     ml = subset_mrr.copy()
     ml.loc[y_pred == 1] = db_mrr[y_pred == 1]
     output['ml'] = ml
-    output['ml_label'] = pd.Series(y_pred, index=output.index)
+    output['Pred'] = pd.Series(y_pred, index=output.index)
     best = subset_mrr.copy()
     print(best.mean())
     best[y_test == 1] = db_mrr[y_test == 1]
     print(best.mean())
     output['best'] = best
+    r = np.random.randint(0, 2, output['2'].size)
+    output['rand'] = output['2'].copy()
+    output['rand'][r == 1] = output['100'][r == 1].copy()
     analyze(output, '2', '100','TestFreq')
     if (argv[2]):
         df.to_csv('%s%s_result.csv' % ('../../data/python_data/',

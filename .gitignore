@@ -23,6 +23,7 @@ config.properties
 
 #python
 *.pyc
+/result.csv
 
 #IntellijIdea
 .idea/

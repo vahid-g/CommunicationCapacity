@@ -1,8 +1,13 @@
-package irstyle_core;
+package irstyle.core;
 //package xkeyword;
 
 import java.sql.Connection;
-import java.util.*;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Vector;
 
 public class MIndexAccess {
 	Vector tuplesets;
@@ -55,7 +60,7 @@ public class MIndexAccess {
 		}
 	}
 
-	private boolean hasTextAttr(Relation rel) {
+	public boolean hasTextAttr(Relation rel) {
 		for (int i = 0; i < rel.getNumAttributes(); i++)
 			if (rel.isInMasterIndex(rel.getAttribute(i)))
 				return true;
@@ -129,7 +134,7 @@ public class MIndexAccess {
 				String startOfCommand = "CREATE TABLE TS_" + rel.getName() + " AS SELECT ";
 				for (int j = 0; j < rel.getAttributes().size(); j++) {
 					// if (rel.isInMasterIndex(rel.getAttribute(j))) {
-						startOfCommand += rel.getAttribute(j) + ", ";
+					startOfCommand += rel.getAttribute(j) + ", ";
 					// }
 				}
 				String columns = "";
@@ -144,7 +149,8 @@ public class MIndexAccess {
 				String command = "";
 				String matchAgainst = "match(" + columns + ") against('" + keywList + "' IN NATURAL LANGUAGE MODE)";
 				// command+=storage_clause;
-				command = startOfCommand + matchAgainst + " as score FROM " + rel.getName() + " where " + matchAgainst + ";";
+				command = startOfCommand + matchAgainst + " as score FROM " + rel.getName() + " where " + matchAgainst
+						+ ";";
 				// cleanupCommands.addElement( (String) ("DROP TABLE TS_"+rel.getName()));
 				jdbcacc.execute(command);// SQLcommands.addElement(command);
 				if (Flags.DEBUG_INFO2)
@@ -160,6 +166,88 @@ public class MIndexAccess {
 				}
 			}
 
+	}
+
+	public void createTupleSets3(Schema sch, Vector allkeywords, Connection conn,
+			Map<String, List<String>> relnameValues) {
+		JDBCaccess jdbcacc = new JDBCaccess(conn);
+		// create non-empty tuple sets and add keywords to schema
+		Vector allInst = sch.getAllInstances();
+		String keywList = "";
+		for (int j = 0; j < allkeywords.size(); j++) {
+			String keyw = (String) allkeywords.elementAt(j);
+			keywList += keyw + " ";
+		}
+		keywList = keywList.substring(0, keywList.length() - 1);
+		for (int i = 0; i < relations.size(); i++) {
+			if (hasTextAttr((Relation) relations.elementAt(i))) {
+				Relation rel = (Relation) relations.elementAt(i);
+				String tuplesetName = "TS_" + rel.getName();
+				String createTable = "CREATE TABLE  " + tuplesetName + "(id int, score int);";
+				jdbcacc.execute(createTable);
+				List<String> values = relnameValues.get(rel.name);
+				for (String value : values) {
+					String insertInto = "INSERT INTO " + tuplesetName + "(id, score) VALUES " + value + ";";
+					jdbcacc.execute(insertInto);
+				}
+				if (!jdbcacc.isTableEmpty("TS_" + rel.getName())) {// add all or none keywords
+					for (int y = 0; y < allkeywords.size(); y++)
+						sch.getInstance(rel.getName()).addKeyword((String) allkeywords.elementAt(y));
+					TupleSet ts = new TupleSet();
+					ts.relname = rel.getName();
+					ts.TSname = "TS_" + rel.getName();
+					ts.keywords = (Vector) allkeywords.clone();
+					tuplesets.addElement(ts);
+				}
+			}
+		}
+	}
+
+	public void createTupleSetsFast(Schema sch, Vector allkeywords, Connection conn,
+			Map<String, List<String>> relnameValues) throws SQLException {
+		JDBCaccess jdbcacc = new JDBCaccess(conn);
+		// create non-empty tuple sets and add keywords to schema
+		Vector allInst = sch.getAllInstances();
+		String keywList = "";
+		for (int j = 0; j < allkeywords.size(); j++) {
+			String keyw = (String) allkeywords.elementAt(j);
+			keywList += keyw + " ";
+		}
+		keywList = keywList.substring(0, keywList.length() - 1);
+		conn.setAutoCommit(false);
+		for (int i = 0; i < relations.size(); i++) {
+			if (hasTextAttr((Relation) relations.elementAt(i))) {
+				Relation rel = (Relation) relations.elementAt(i);
+				String tuplesetName = "TS_" + rel.getName();
+				// String createTable = "CREATE TABLE " + tuplesetName + "(id int, score
+				// float);";
+				// if (relnameValues.get(rel.name).size() <= 1000) {
+				String createTable = "CREATE TABLE  " + tuplesetName + "(id int, score float) ENGINE=MEMORY;";
+				// }
+				jdbcacc.execute(createTable);
+				List<String> values = relnameValues.get(rel.name);
+				String insertIntoTemplate = "INSERT INTO " + tuplesetName + "(id, score) VALUES (?,?);";
+				PreparedStatement stmt = jdbcacc.createPreparedStatement(insertIntoTemplate);
+				for (String value : values) {
+					String[] fields = value.split(",");
+					stmt.setInt(1, Integer.parseInt(fields[0].substring(1)));
+					stmt.setFloat(2, Float.parseFloat(fields[1].substring(0, fields[1].length() - 1)));
+					stmt.addBatch();
+				}
+				stmt.executeBatch();
+				conn.commit();
+				if (!jdbcacc.isTableEmpty("TS_" + rel.getName())) {// add all or none keywords
+					for (int y = 0; y < allkeywords.size(); y++)
+						sch.getInstance(rel.getName()).addKeyword((String) allkeywords.elementAt(y));
+					TupleSet ts = new TupleSet();
+					ts.relname = rel.getName();
+					ts.TSname = "TS_" + rel.getName();
+					ts.keywords = (Vector) allkeywords.clone();
+					tuplesets.addElement(ts);
+				}
+			}
+		}
+		conn.setAutoCommit(true);
 	}
 
 	void clearTupleSets(Connection conn) {

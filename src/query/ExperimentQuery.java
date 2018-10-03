@@ -15,6 +15,13 @@ public class ExperimentQuery {
 	private Map<String, Integer> qrelScoreMap = new HashMap<String, Integer>();
 	private int freq;
 
+	public ExperimentQuery(ExperimentQuery query) {
+		this.id = query.id;
+		this.text = query.text;
+		this.qrelScoreMap = new HashMap<String, Integer>(query.qrelScoreMap);
+		this.freq = query.freq;
+	}
+
 	public ExperimentQuery(int id, String text, int freq) {
 		this.id = id;
 		this.text = text;

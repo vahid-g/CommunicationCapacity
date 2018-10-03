@@ -1,4 +1,4 @@
-package irstyle_core;
+package irstyle.core;
 
 import java.sql.*;
 //import com.ms.wfc.ui.*;
@@ -7,6 +7,10 @@ import java.util.*;
 public class JDBCaccess {
 	private Statement stmt;
 	public Connection conn;
+	Set<Statement> statementPool = new HashSet<Statement>();
+	Set<ResultSet> resultsetPool = new HashSet<ResultSet>();
+
+	private String databaseName;
 
 	public JDBCaccess(String Server, String Port, String Database_name, String Username, String Password) {
 		try {
@@ -20,15 +24,21 @@ public class JDBCaccess {
 			// Database_name, Username,
 			// Password); // jdbc\:mysql\://localhost\:3306/wikipedia
 			Properties connectionProps = new Properties();
-			connectionProps.put("user", "root");
-			connectionProps.put("password", "M@ple!");
-			conn = DriverManager.getConnection("jdbc:mysql://" + Server + ":3306/wikipedia", connectionProps);
+			connectionProps.put("user", Username);
+			connectionProps.put("password", Password);
+			databaseName = Database_name;
+			conn = DriverManager.getConnection("jdbc:mysql://" + Server + ":3306/" + Database_name, connectionProps);
+			conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 			stmt = conn.createStatement();
 		} catch (Exception e1) {
 			System.out.println("exception class: " + e1.getClass() + "  with message: " + e1.getMessage()
 					+ "exception in JDBCaccess.JDBCaccess");
 		}
 
+	}
+
+	public String getDatabaseName() {
+		return databaseName;
 	}
 
 	public JDBCaccess(Connection conn) {
@@ -181,7 +191,7 @@ public class JDBCaccess {
 					str += rs.getInt(i);
 				else
 					str += rs.getString(i);
-				str +=  " - ";
+				str += " - ";
 			}
 			return str;
 		} catch (Exception e1) {
@@ -194,7 +204,10 @@ public class JDBCaccess {
 	ResultSet createCursor(String sqlstatement) {
 		try {
 			Statement st = conn.createStatement();
-			return st.executeQuery(sqlstatement);
+			statementPool.add(st);
+			ResultSet rs = st.executeQuery(sqlstatement);
+			resultsetPool.add(rs);
+			return rs;
 		} catch (Exception e1) {
 			System.out.println("exception class: " + e1.getClass() + "  with message: " + e1.getMessage()
 					+ "exception in  JDBCaccess.createCursor");
@@ -203,8 +216,28 @@ public class JDBCaccess {
 		}
 	}
 
-	int getNextID(ResultSet rset) {
+	public void cleanup() {
+		for (Statement st : statementPool) {
+			if (st != null) {
+				try {
+					st.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		for (ResultSet rs : resultsetPool) {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 
+	int getNextID(ResultSet rset) {
 		try {
 			if (!rset.next()) // no more results
 				return -1;
@@ -217,7 +250,6 @@ public class JDBCaccess {
 	}
 
 	int getCurrScore(ResultSet rset) {
-
 		try {
 			return rset.getInt("SCORE");
 		} catch (Exception e1) {
@@ -246,7 +278,8 @@ public class JDBCaccess {
 		}
 	}
 
-	public int getTopNResults(String sql, int N, ArrayList results) {// adds top-N results to the array results of Result type
+	public int getTopNResults(String sql, int N, ArrayList results) {// adds top-N results to the array results of
+																		// Result type
 		try {
 			long time1 = System.currentTimeMillis();
 			ResultSet rs = stmt.executeQuery(sql);
@@ -275,7 +308,7 @@ public class JDBCaccess {
 		while (st.hasMoreTokens()) {
 			String s = st.nextToken();
 			for (int i = 0; i < keywords.size(); i++) {
-				if (s.compareTo((String) keywords.get(i)) == 0)
+				if (s.compareToIgnoreCase((String) keywords.get(i)) == 0)
 					found[i] = true;
 			}
 		}
@@ -285,9 +318,10 @@ public class JDBCaccess {
 		return true;
 	}
 
-	public int getTopNResultsAllKeyw(String sql, int N, ArrayList results, ArrayList keywords) {// adds top-N results to the
-																							// array results of Result
-																							// type
+	public int getTopNResultsAllKeyw(String sql, int N, ArrayList results, ArrayList keywords) {// adds top-N results to
+																								// the
+		// array results of Result
+		// type
 		try {
 			long time1 = System.currentTimeMillis();
 			ResultSet rs = stmt.executeQuery(sql);
