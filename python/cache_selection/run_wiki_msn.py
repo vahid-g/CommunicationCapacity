@@ -43,8 +43,8 @@ def main(argv):
     lr.fit(X, y)
     print("training mean accuracy = %.2f" % lr.score(X, y))
     print("testing mean accuracy = %.2f" % lr.score(X_test, y_test))
-    #c = np.column_stack((df.columns.values[5:-1], np.round(lr.coef_.flatten(),2)))
-    #print(c[c[:,1].argsort()])
+    c = np.column_stack((df.columns.values[5:-1], np.round(lr.coef_.flatten(),2)))
+    print(c[c[:,1].argsort()])
     y_prob = lr.predict_proba(X_test)
     y_pred = y_prob[:, 1] > t
     y_pred = y_pred.astype('uint8')

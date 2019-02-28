@@ -27,8 +27,8 @@ def train_lr( X, y, X_test, y_test, t, col_names = None, sample_weight = None ):
     if col_names is not None:
         c = np.column_stack((col_names, np.round(lr.coef_.flatten(),2)))
         sorted_c = c[c[:,1].argsort()]
-        print(sorted_c[:5])
-        print(sorted_c[-5:])
+        print(sorted_c[:10])
+        print(sorted_c[-10:])
     y_prob = lr.predict_proba(X_test_trans)
     end = datetime.datetime.now()
     delta = end - start
