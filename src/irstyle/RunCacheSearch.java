@@ -40,7 +40,7 @@ public class RunCacheSearch {
 		options.addOption(Option.builder("e").hasArg().desc("The experiment inexp/inexr/mrr").build());
 		options.addOption(Option.builder("c").desc("Use cache").build());
 		options.addOption(Option.builder("f").desc("Efficiency experiment").hasArg().build());
-		options.addOption(Option.builder("k").desc("The k in tok-k").hasArg().build());
+		options.addOption(Option.builder("k").desc("The k in top-k").hasArg().build());
 		options.addOption(Option.builder("t").desc("TS size threshold").hasArg().build());
 		options.addOption(Option.builder("s").desc("Score thresholding").build());
 		options.addOption(Option.builder("d").desc("Output debug info").build());
@@ -104,7 +104,7 @@ public class RunCacheSearch {
 			int queriesSize = Integer.parseInt(cl.getOptionValue('f', "20"));
 			Collections.shuffle(queries, new Random(1));
 			queries = queries.subList(0, queriesSize);
-			outputFileName += "_eff";
+			outputFileName += "_f";
 		}
 		if (cl.hasOption('d')) {
 			Params.DEBUG = true;

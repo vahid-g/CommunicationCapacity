@@ -130,10 +130,12 @@ public class IRStyleKeywordSearch {
 
 	public static void printResults(List<IRStyleQueryResult> queryResults, String filename) throws IOException {
 		try (FileWriter fw = new FileWriter(filename)) {
+			fw.write("qid, freq, text, rrank, p20, recall, time, qrel\n");
 			for (IRStyleQueryResult result : queryResults) {
 				ExperimentQuery query = result.getQuery();
 				fw.write(query.getId() + "," + query.getFreq() + "," + query.getText().replaceAll(",", " ") + ","
-						+ result.rrank() + "," + result.p20() + "," + result.recall() + "," + result.execTime + "\n");
+						+ result.rrank() + "," + result.p20() + "," + result.recall() + "," + result.execTime + ","
+						+ query.getFirstQrelId() + "\n");
 				fw.flush();
 			}
 		}

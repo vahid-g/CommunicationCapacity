@@ -32,10 +32,6 @@ public class ExperimentQuery {
 		this(id, text, 1, qrels);
 	}
 
-	public int getFreq() {
-		return freq;
-	}
-
 	public ExperimentQuery(int id, String text, int freq, Set<Qrel> qrels) {
 		this(id, text, freq);
 		for (Qrel qrel : qrels) {
@@ -63,12 +59,23 @@ public class ExperimentQuery {
 		return id;
 	}
 
+	public int getFreq() {
+		return freq;
+	}
+
 	public Map<String, Integer> getQrelScoreMap() {
 		return qrelScoreMap;
 	}
 
 	public String getText() {
 		return text.replace(",", " ");
+	}
+	
+	public String getFirstQrelId() {
+		for (String qrel : qrelScoreMap.keySet()) {
+			return qrel;
+		}
+		return null;
 	}
 
 	public boolean hasQrelId(String qrelId) {
