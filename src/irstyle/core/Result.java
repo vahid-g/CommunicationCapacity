@@ -24,10 +24,17 @@ public class Result {
 
 	String str;
 	double score;
+	int preparedQueryCount;
 
 	public Result(String res, double sc) {
 		str = res;
 		score = sc;
+	}
+	
+	public Result(String res, double sc, int pq) {
+		str = res;
+		score = sc;
+		preparedQueryCount = pq;
 	}
 
 	public void print() {

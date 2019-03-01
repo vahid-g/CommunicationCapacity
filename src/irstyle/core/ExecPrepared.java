@@ -790,16 +790,17 @@ public class ExecPrepared {
 			}
 		}
 		long time2 = System.currentTimeMillis();
-		if (Params.DEBUG)
+		if (Params.DEBUG) {
 			System.out.println(" Parallel algor: results output = " + resultsSoFar + " numPreparedQueries = "
 					+ numPreparedQueries + "  in time = " + (time2 - time1));
+		}
 		lastGenQueries = numPreparedQueries;
 		totalGenQueries += numPreparedQueries;
 		execCount++;
 		if (Flags.RESULTS__SHOW_OUTPUT)
 			printResults(R, scoresR);
 		for (int i = 0; i < R.size(); i++)
-			ResultsAndScores.add(new Result((String) R.get(i), ((Double) scoresR.get(i)).doubleValue()));
+			ResultsAndScores.add(new Result((String) R.get(i), ((Double) scoresR.get(i)).doubleValue(), numPreparedQueries));
 		jdbcacc.cleanup();
 		return (int) (time2 - time1);
 	}

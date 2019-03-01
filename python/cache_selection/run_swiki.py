@@ -38,6 +38,10 @@ def train_lr( X, y, X_test, y_test, t, col_names = None, sample_weight = None ):
     print_results(y_test, y_pred)
     print('total time predictions: %f (s)' % delta.total_seconds())
     print('time per query: %f (s)' % (delta.total_seconds() / len(y_pred)))
+    false_preds = y_pred != y
+    false_vectors = np.multiply(lr.coef_ * X[false_preds, :])
+    c = np.column_stack((col_names, np.round(lr.coef_.flatten(),2)))
+    print(vector.shape)
     return y_pred
 
 def main(argv):
@@ -77,7 +81,6 @@ def main(argv):
           % (y_test.shape[0], np.sum(y_test), (100 * np.sum(y_test) / y_test.shape[0])))
     # learn the model
     y_pred = train_lr(X, y, X_test, y_test, t, df.columns.values[2:-2])
-    # y_pred = train_lr(X, y, X_test, y_test, t)
     output = pd.DataFrame()
     output['query'] = test_queries
     output['TestFreq'] = test_freq
