@@ -11,7 +11,7 @@ from utils import print_results
 from stack_anal import analyze
 import datetime
 import argparse
-def train_lr( X, y, X_test, y_test, t, col_names = None, sample_weight = None ):
+def train_lr( X, y, X_test, y_test, t, col_names = None, sample_weight = None):
     sc = MinMaxScaler().fit(X)
     X = sc.transform(X)
     start = datetime.datetime.now()
@@ -38,10 +38,6 @@ def train_lr( X, y, X_test, y_test, t, col_names = None, sample_weight = None ):
     print_results(y_test, y_pred)
     print('total time predictions: %f (s)' % delta.total_seconds())
     print('time per query: %f (s)' % (delta.total_seconds() / len(y_pred)))
-    false_preds = y_pred != y
-    false_vectors = np.multiply(lr.coef_ * X[false_preds, :])
-    c = np.column_stack((col_names, np.round(lr.coef_.flatten(),2)))
-    print(vector.shape)
     return y_pred
 
 def main(argv):
@@ -49,7 +45,9 @@ def main(argv):
     parser.add_argument('filename', help="input features file")
     parser.add_argument('-s', '--split', type=float, help="test split ratio", default=0.33)
     parser.add_argument('-t', '--threshold', type=float, help="decision boundry", default=0.5)
-    parser.add_argument('-o', '--output', action='store_true', help="save the output")
+    parser.add_argument('-o', '--output', action='store_true', help="save the output", default=None)
+    parser.add_argument('-d', '--diff', action='store_true',
+                        help="uses feature diffs")
     args = parser.parse_args()
     filename = args.filename
     test_size = args.split
@@ -59,6 +57,17 @@ def main(argv):
           (test_size, t))
 
     df = pd.read_csv("../../data/cache_selection_structured/" + filename)
+    if args.diff:
+        columns = df.columns
+        for i in range(2,146,2):
+            col = columns[i]
+            if 'rest' in  col:
+                continue
+            rest_col = col[:-4] + '_rest' + col[-4:]
+            if rest_col not in columns:
+                print('wtf! %s' % rest_col)
+            df[col] = df[col] - df[rest_col]
+            df = df.drop([rest_col], axis=1)
     print("df size: " + str(df.shape))
     df = df.fillna(0)
     df = df.T.drop_duplicates().T
@@ -87,7 +96,10 @@ def main(argv):
     output['cache'] = subset_mrr
     output['full'] = db_mrr
     output['Label'] = y_test
-    output['ql_label'] = X_test['ql_0_0'] < X_test['ql_rest_0_0']
+    if args.diff:
+        output['ql_label'] = X_test['ql_0_0'] < 0 
+    else:
+        output['ql_label'] = X_test['ql_0_0'] < X_test['ql_rest_0_0']
     output['ql'] = np.where(output['ql_label'] == 1, db_mrr, subset_mrr)
     output['ml_label'] = pd.Series(y_pred, index=output.index)
     output['ml'] = np.where(output['ml_label'] == 1, db_mrr, subset_mrr)
