@@ -12,14 +12,20 @@ from sklearn.metrics import confusion_matrix
 import datetime
 
 
-def print_results(y_test, y_pred):
+def print_results(y_test, y_pred, sample_weight = None):
     if (y_test.size > 1):
-        tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+        tn, fp, fn, tp = confusion_matrix(y_true=y_test, 
+                                          y_pred=y_pred,
+                                          sample_weight=sample_weight).ravel()
         print("\t  precision = %f" % (tp / (tp + fp)))
         print("\t  recall = %.2f" % (tp / (tp + fn)))
         print("\t  negative predictive value= %.2f" % (tn / (tn + fn)))
         print("\t  true negative rate= %.2f" % (tn / (tn + fp)))
-        print("\t  1s percentage = %.2f" % (100 * np.sum(y_pred) / y_pred.shape[0]))
+        if sample_weight is None:
+            print("\t  predicted positives percentage = %.2f" % (100 * np.sum(y_pred) / y_pred.shape[0]))
+        else:
+            print("\t  predicted positives percentage = %.2f" %
+                  (100 * np.sum(y_pred * sample_weight) / np.sum(sample_weight)))
     else:
         print(" can not compute confusion matrix when |y_test| = 1")
 

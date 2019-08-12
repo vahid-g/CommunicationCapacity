@@ -12,45 +12,12 @@ from stack_anal import analyze
 import datetime
 import argparse
 
-def train_lr(X, y, X_test, y_test, t, col_names = None, sample_weight = None,
-             test_weight = None):
-    sc = MinMaxScaler().fit(X)
-    X = sc.transform(X)
-    start = datetime.datetime.now()
-    X_test_trans = sc.transform(X_test)
-    print("training balanced LR..")
-    lr = linear_model.LogisticRegression(class_weight='balanced')
-    if sample_weight is not None:
-        lr.fit(X, y, sample_weight)
-    else:
-        lr.fit(X, y)
-    print("training mean accuracy = %.2f" % lr.score(X, y))
-    print("testing mean accuracy = %.2f" % lr.score(X_test_trans, y_test))
-    if col_names is not None:
-        c = np.column_stack((col_names, np.round(lr.coef_.flatten(),2)))
-        sorted_c = c[c[:,1].argsort()]
-        print(sorted_c[:10])
-        print(sorted_c[-10:])
-    y_prob = lr.predict_proba(X_test_trans)
-    end = datetime.datetime.now()
-    delta = end - start
-    y_pred = y_prob[:, 1] > t
-    y_pred = y_pred.astype('uint8')
-    print('--- t = %.2f results:' % t)
-    # duplicate 
-    print_results(y_test, y_pred)
-    print('--- weighted')
-    print_results(y_test, y_pred, test_weight)
-    print('total time predictions: %f (s)' % delta.total_seconds())
-    print('time per query: %f (s)' % (delta.total_seconds() / len(y_pred)))
-    return y_pred
-
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('filename', help="input features file")
     parser.add_argument('-s', '--split', type=float, help="test split ratio", default=0.33)
     parser.add_argument('-t', '--threshold', type=float, help="decision boundry", default=0.5)
-    parser.add_argument('-o', '--output', action='store_true', help="save the output", default=None)
+    parser.add_argument('-o', '--output', action='store_true', help="save the output")
     parser.add_argument('-d', '--diff', action='store_true',
                         help="uses feature diffs")
     args = parser.parse_args()
@@ -94,27 +61,41 @@ def main(argv):
     print("test set size, bad queries and bad query ratio: %d, %d, %.2f"
           % (y_test.shape[0], np.sum(y_test), (100 * np.sum(y_test) / y_test.shape[0])))
     # learn the model
-    y_pred = train_lr(X, y, X_test, y_test, t, df.columns.values[2:-2])
-    output = pd.DataFrame()
-    output['query'] = test_queries
-    output['TestFreq'] = test_freq
-    output['cache'] = subset_mrr
-    output['full'] = db_mrr
-    output['Label'] = y_test
-    if args.diff:
-        output['ql_label'] = X_test['ql_0_0'] < 0 
+    col_names = df.columns.values[2:-2]
+    sc = MinMaxScaler().fit(X)
+    X = sc.transform(X)
+    start = datetime.datetime.now()
+    X_test_trans = sc.transform(X_test)
+    print("training balanced LR..")
+    lr = linear_model.LogisticRegression(class_weight='balanced')
+    if sample_weight is not None:
+        lr.fit(X, y, sample_weight)
     else:
-        output['ql_label'] = X_test['ql_0_0'] < X_test['ql_rest_0_0']
-    output['ql'] = np.where(output['ql_label'] == 1, db_mrr, subset_mrr)
-    output['ml_label'] = pd.Series(y_pred, index=output.index)
-    output['ml'] = np.where(output['ml_label'] == 1, db_mrr, subset_mrr)
-    output['best'] = np.maximum(subset_mrr, db_mrr)
-    r = np.random.randint(0, 2, output['cache'].size)
-    output['rand'] = np.where(r == 1, output['full'], output['cache'])
-    analyze(output, 'cache', 'full','TestFreq')
-    if (write_output):
-        output.to_csv('%s%s_result.csv' % ('../../data/cache_selection_structured/',
-                                       filename[:-4]), index=False)
+        lr.fit(X, y)
+    print("training mean accuracy = %.2f" % lr.score(X, y))
+    print("testing mean accuracy = %.2f" % lr.score(X_test_trans, y_test))
+    if col_names is not None:
+        c = np.column_stack((col_names, np.round(lr.coef_.flatten(),2)))
+        sorted_c = c[c[:,1].argsort()]
+        print(sorted_c[:10])
+        print(sorted_c[-10:])
+    y_prob = lr.predict_proba(X_test_trans)
+    end = datetime.datetime.now()
+    delta = end - start
+    y_pred = y_prob[:, 1] > t
+    y_pred = y_pred.astype('uint8')
+    print('--- t = %.2f results:' % t)
+    print_results(y_test, y_pred)
+    print('total time predictions: %f (s)' % delta.total_seconds())
+    print('time per query: %f (s)' % (delta.total_seconds() / len(y_pred)))
+    false_preds = (y_pred != y_test) & (y_test == 1)
+    print('false negatives: %d' % (false_preds[false_preds].size))
+    queries = test_queries[false_preds]
+    false_vectors = np.multiply(lr.coef_.ravel(), X_test_trans[false_preds, :])
+    sorted_args = false_vectors.argsort()
+    print(queries)
+    print(col_names[sorted_args[:,:3]])
+    print(np.sort(false_vectors)[:,:3])
 
 if __name__ == "__main__":
     main(sys.argv[1:])
