@@ -24,7 +24,8 @@ public class EnhanceHelper {
 
     public static void main(String[] args) throws IOException {
         final String pathGroupName = args[0];
-        myPaths = PathCollection.get(pathGroupName);
+        PathCollection.initiate(pathGroupName);
+        myPaths = PathCollection.get();
 
 //        final String cacheUpdateLogPath = args[1];
 //        final String restUpdateLogPath = args[2];

@@ -6,11 +6,16 @@ import java.util.Date;
 public class PathCollection {
     public final String timestamp = new SimpleDateFormat("MMddHHmm").format(new Date());
     private static PathCollection myInstance = null;
-    private static String pathGroup = "";
+    private static String pathGroup = null;
 
-    static public PathCollection get(String group) {
-        if (!pathGroup.equals(group)) {
-            pathGroup = group;
+    static public void initiate(String group) {
+		if (pathGroup == null) {
+			pathGroup = group;
+		}
+    }
+
+    static public PathCollection get() {
+        if (myInstance == null) {
             myInstance = new PathCollection(group);
         }
         return myInstance;
