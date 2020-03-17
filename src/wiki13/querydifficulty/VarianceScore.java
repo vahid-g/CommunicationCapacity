@@ -1,15 +1,16 @@
 package wiki13.querydifficulty;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.StringReader;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -89,5 +90,45 @@ public class VarianceScore implements QueryDifficultyScoreInterface {
 			}
 		}
 		return difficulties;
+	}
+
+	public static double computeMaxVAR(IndexReader indexReader, String query, String field, Analyzer analyzer) throws IOException {
+		double maxVar = 0;
+		IndexSearcher searcher = new IndexSearcher(indexReader);
+		searcher.setSimilarity(new BM25Similarity());
+
+		TokenStream tokenStream = analyzer.tokenStream(field,
+				new StringReader(query.replaceAll("'", "`")));
+		CharTermAttribute termAtt = tokenStream.addAttribute(CharTermAttribute.class);
+		tokenStream.reset();
+		List<String> terms = new ArrayList<>();
+		while(tokenStream.incrementToken()){
+			terms.add(termAtt.toString());
+		}
+		tokenStream.close();
+
+		QueryParser parser = new QueryParser(field, analyzer);
+		for (String term : terms) {
+			try {
+				Query termQuery = parser.parse(term);
+				TopDocs topDocs = searcher.search(termQuery, 12000000);
+				double scoreSum = 0;
+				double scoreSquareSum = 0;
+				for (int i = 0; i < topDocs.totalHits; i++) {
+					double score = topDocs.scoreDocs[i].score;
+					scoreSum += score;
+					scoreSquareSum += Math.pow(score, 2);
+				}
+				double ex = scoreSum / topDocs.totalHits;
+				double var = 0;
+				if (topDocs.totalHits > 0) {
+					var = (scoreSquareSum / topDocs.totalHits) - Math.pow(ex, 2);
+					maxVar = Math.max(var, maxVar);
+				}
+			} catch (org.apache.lucene.queryparser.classic.ParseException e) {
+				LOGGER.log(Level.SEVERE, e.getMessage(), e);
+			}
+		}
+		return maxVar;
 	}
 }

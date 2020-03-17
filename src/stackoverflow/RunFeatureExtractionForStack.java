@@ -32,6 +32,9 @@ import indexing.popularity.TokenPopularity;
 public class RunFeatureExtractionForStack {
 
 	public static final Logger LOGGER = Logger.getLogger(RunFeatureExtractionForStack.class.getName());
+	public static final String featuresSavePath = "/data/khodadaa/stack_results/stack_feat/";
+	public static final String indexPath = "/data/ghadakcv/stack_index_s/";
+	public static final String biwordIndexPath = "/data/ghadakcv/stack_index_s_bi/";
 
 	public static void main(String[] args) throws IOException, SQLException {
 
@@ -59,7 +62,7 @@ public class RunFeatureExtractionForStack {
 			} else {
 				List<QuestionDAO> queries = sqsr.loadQuestionsFromTable("questions_s_test_train");
 				List<String> data = featureExtraction(exp, totalExp, queries);
-				try (FileWriter fw = new FileWriter("/data/ghadakcv/stack_results/stack_feat/" + exp + ".csv")) {
+				try (FileWriter fw = new FileWriter(featuresSavePath + exp + ".csv")) {
 					for (String line : data) {
 						fw.write(line + "\n");
 					}
@@ -76,8 +79,8 @@ public class RunFeatureExtractionForStack {
 
 	protected static List<String> featureExtraction(String exp, String totalExp, List<QuestionDAO> queries)
 			throws IOException, SQLException {
-		String indexBase = "/data/ghadakcv/stack_index_s/";
-		String biwordIndexBase = "/data/ghadakcv/stack_index_s_bi/";
+		String indexBase = indexPath;
+		String biwordIndexBase = biwordIndexPath;
 		Path indexPath = Paths.get(indexBase + exp);
 		Path globalIndexPath = Paths.get(indexBase + totalExp);
 		Path biwordIndexPath = Paths.get(biwordIndexBase + exp);
@@ -102,7 +105,7 @@ public class RunFeatureExtractionForStack {
 			String[] featureNames = { "query", "covered_t", "mean_df_t", "min_df_t", "mean_mean_pop_t",
 					"mean_min_pop_t", "min_mean_pop_t", "min_min_pop_t", "ql_t", "qll_t", "covered_t_bi",
 					"mean_df_t_bi", "min_df_t_bi", "mean_mean_pop_t_bi", "mean_min_pop_t_bi", "min_mean_pop_t_bi",
-					"min_min_pop_t_bi", "ql_t_bi", "qll_t_bi" };
+					"min_min_pop_t_bi", "ql_t_bi", "qll_t_bi", "scs_t", "maxSCQ_t"};
 			data.add(Arrays.asList(featureNames).stream().map(ft -> ft + ",").collect(Collectors.joining()));
 			long start = System.currentTimeMillis();
 			for (QuestionDAO query : queries) {
@@ -128,6 +131,9 @@ public class RunFeatureExtractionForStack {
 						biwordAnalyzer));
 				f.add(wqde.queryLogLikelihood(biwordIndexReader, queryText, bodyField, globalBiwordIndexReader,
 						biwordAnalyzer));
+				f.add(wqde.specificity(indexReader, queryText, bodyField, analyzer));
+				f.add(wqde.similarity(indexReader, queryText, bodyField, analyzer));
+//				f.add(wqde.maxVar(indexReader, queryText, bodyField, analyzer));
 				data.add(queryText + "," + f.stream().map(ft -> ft + ",").collect(Collectors.joining()));
 			}
 			long end = System.currentTimeMillis();

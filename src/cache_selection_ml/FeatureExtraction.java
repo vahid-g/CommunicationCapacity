@@ -2,10 +2,7 @@ package cache_selection_ml;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -29,7 +26,11 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 
 import indexing.popularity.TokenPopularity;
+import query.ExperimentQuery;
 import query.LuceneQueryBuilder;
+import wiki13.querydifficulty.SimilarityScore;
+import wiki13.querydifficulty.SpecificityScore;
+import wiki13.querydifficulty.VarianceScore;
 
 public class FeatureExtraction {
 
@@ -200,6 +201,18 @@ public class FeatureExtraction {
 			tokenStream.end();
 		}
 		return likelihood;
+	}
+
+	protected double specificity(IndexReader indexReader, String query, String field, Analyzer analyzer) throws IOException {
+		return SpecificityScore.computeScore(indexReader, query, field, analyzer);
+	}
+
+	protected double similarity(IndexReader indexReader, String query, String field, Analyzer analyzer) throws IOException {
+		return SimilarityScore.computeScore(indexReader, query, field, analyzer);
+	}
+
+	protected double maxVar(IndexReader indexReader, String query, String field, Analyzer analyzer) throws IOException {
+		return VarianceScore.computeMaxVAR(indexReader, query, field, analyzer);
 	}
 
 	@Deprecated
